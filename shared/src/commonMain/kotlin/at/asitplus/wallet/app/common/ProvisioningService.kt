@@ -36,6 +36,7 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import ui.navigation.IntentService
@@ -50,18 +51,30 @@ class ProvisioningService(
     private val holderAgent: HolderAgent,
     private val config: SettingsRepository,
     private val errorService: ErrorService,
-    httpService: HttpService,
+    private val httpService: HttpService,
 ) {
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = httpService.buildHttpClient(cookieStorage = cookieStorage)
 
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback/provisioning"
-    private val clientId = "https://wallet.a-sit.at/app"
+    private var cachedClientId: String? = null
 
     private var clientAttestationJwt = null as String?
-    suspend fun clientAttestationJwt() = clientAttestationJwt ?: BuildClientAttestationJwt(
+    private var openId4VciClientCached = null as OpenId4VciClient?
+
+    private suspend fun currentClientId(): String {
+        val clientId = config.clientId.first()
+        if (clientId != cachedClientId) {
+            cachedClientId = clientId
+            clientAttestationJwt = null
+            openId4VciClientCached = null
+        }
+        return clientId
+    }
+
+    private suspend fun clientAttestationJwt() = clientAttestationJwt ?: BuildClientAttestationJwt(
         SignJwt(keyMaterial, JwsHeaderCertOrJwk()),
-        clientId = clientId,
+        clientId = currentClientId(),
         issuer = keyMaterial.getCertificate()?.extractSubjectCn() ?: "https://example.com",
         lifetime = 60.minutes,
         clientKey = keyMaterial.jsonWebKey
@@ -69,45 +82,48 @@ class ProvisioningService(
         clientAttestationJwt = it
     }
 
-    private val openId4VciClient = OpenId4VciClient(
-        engine = HttpClient().engine,
-        cookiesStorage = cookieStorage,
-        httpClientConfig = httpService.loggingConfig,
-        oauth2Client = OAuth2KtorClient(
+    private suspend fun openId4VciClient(): OpenId4VciClient = openId4VciClientCached ?: run {
+        val clientId = currentClientId()
+        OpenId4VciClient(
             engine = HttpClient().engine,
             cookiesStorage = cookieStorage,
-            oAuth2Client = OAuth2Client(clientId = clientId, redirectUrl = redirectUrl),
             httpClientConfig = httpService.loggingConfig,
-            loadClientAttestationJwt = { clientAttestationJwt() },
-            signClientAttestationPop = SignJwt(keyMaterial, JwsHeaderNone()),
-        ),
-        oid4vciService = WalletService(
-            clientId = clientId,
-            keyMaterial = keyMaterial,
-            loadKeyAttestation = {
-                with(EphemeralKeyWithSelfSignedCert()) {
-                    catching {
-                        SignJwt<KeyAttestationJwt>(this, JwsHeaderCertOrJwk())(
-                            OpenIdConstants.KEY_ATTESTATION_JWT_TYPE,
-                            KeyAttestationJwt(
-                                issuedAt = System.now(),
-                                nonce = it.clientNonce,
-                                attestedKeys = setOf(keyMaterial.jsonWebKey)
-                            ),
-                            KeyAttestationJwt.serializer(),
-                        ).getOrThrow()
+            oauth2Client = OAuth2KtorClient(
+                engine = HttpClient().engine,
+                cookiesStorage = cookieStorage,
+                oAuth2Client = OAuth2Client(clientId = clientId, redirectUrl = redirectUrl),
+                httpClientConfig = httpService.loggingConfig,
+                loadClientAttestationJwt = { clientAttestationJwt() },
+                signClientAttestationPop = SignJwt(keyMaterial, JwsHeaderNone()),
+            ),
+            oid4vciService = WalletService(
+                clientId = clientId,
+                keyMaterial = keyMaterial,
+                loadKeyAttestation = {
+                    with(EphemeralKeyWithSelfSignedCert()) {
+                        catching {
+                            SignJwt<KeyAttestationJwt>(this, JwsHeaderCertOrJwk())(
+                                OpenIdConstants.KEY_ATTESTATION_JWT_TYPE,
+                                KeyAttestationJwt(
+                                    issuedAt = System.now(),
+                                    nonce = it.clientNonce,
+                                    attestedKeys = setOf(keyMaterial.jsonWebKey)
+                                ),
+                                KeyAttestationJwt.serializer(),
+                            ).getOrThrow()
+                        }
                     }
                 }
-            }
-        )
-    )
+            )
+        ).also { openId4VciClientCached = it }
+    }
 
     /**
      * Loads credential metadata info from [host]
      */
     @Throws(Throwable::class)
     suspend fun loadCredentialMetadata(host: String) =
-        openId4VciClient.loadCredentialMetadata(host).getOrThrow()
+        openId4VciClient().loadCredentialMetadata(host).getOrThrow()
 
     /**
      * Starts the issuing process at [credentialIssuer]
@@ -119,7 +135,7 @@ class ProvisioningService(
     ) {
         config.set(host = credentialIssuer)
         cookieStorage.reset()
-        openId4VciClient.startProvisioningWithAuthRequestReturningResult(
+        openId4VciClient().startProvisioningWithAuthRequestReturningResult(
             credentialIssuer,
             credentialIdentifierInfo
         ).getOrThrow().run {
@@ -152,7 +168,7 @@ class ProvisioningService(
                 vckJsonSerializer.decodeFromString<ProvisioningContext>(it)
                     .also { dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT) }
             }?.let {
-                openId4VciClient.resumeWithAuthCode(redirectedUrl, it).getOrThrow()
+                openId4VciClient().resumeWithAuthCode(redirectedUrl, it).getOrThrow()
                     .credentials.forEach {
                         holderAgent.storeCredential(it).onFailure { ex ->
                             Napier.e("storeCredential failed", ex)
@@ -193,7 +209,7 @@ class ProvisioningService(
         credentialIdentifierInfo: CredentialIdentifierInfo,
         transactionCode: String? = null
     ) {
-        openId4VciClient.loadCredentialWithOfferReturningResult(
+        openId4VciClient().loadCredentialWithOfferReturningResult(
             credentialOffer,
             credentialIdentifierInfo,
             transactionCode
