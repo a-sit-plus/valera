@@ -45,6 +45,7 @@
     <string name="button_label_share_log_file">Share Log-File</string>
     <string name="button_label_reset_app">Reset App</string>
     <string name="button_label_clear_log">Clear Log</string>
+    <string name="button_label_default">Default</string>
     <string name="button_label_provision_credential_browser">Load via Browser</string>
     <string name="button_label_provision_credential_qr">Load via QR-Code</string>
     <string name="button_label_select">Select</string>
@@ -223,6 +224,7 @@
     <string name="id_format_iso_mdoc_label">ISO_MDOC</string>
 
     <string name="text_label_issuing_service">Issuing Service</string>
+    <string name="text_label_client_identifier">Client identifier</string>
     <string name="text_label_id_identifier">Identifier</string>
     <string name="text_label_id_format">Representation</string>
     <string name="text_label_id_scheme">Credential Type</string>
@@ -363,6 +365,7 @@
     <string name="section_heading_present_data_title">Present data to</string>
     <string name="section_heading_present_data_to_executive_subtitle">Executive</string>
     <string name="section_heading_present_data_to_other_citizen_subtitle">other Citizen</string>
+    <string name="section_heading_general">General</string>
     <string name="section_heading_actions">Actions</string>
     <string name="section_heading_information">Information</string>
     <string name="section_heading_requested_data">Requested Data</string>

@@ -25,11 +25,14 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,11 +42,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_clear_log
 import at.asitplus.valera.resources.button_label_confirm
 import at.asitplus.valera.resources.button_label_data_protection_policy
+import at.asitplus.valera.resources.button_label_default
 import at.asitplus.valera.resources.button_label_dismiss
 import at.asitplus.valera.resources.button_label_faq
 import at.asitplus.valera.resources.button_label_licenses
@@ -58,8 +63,10 @@ import at.asitplus.valera.resources.info_text_co_founded_by_eu
 import at.asitplus.valera.resources.info_text_received_funding_from_eu
 import at.asitplus.valera.resources.reset_app_alert_text
 import at.asitplus.valera.resources.section_heading_actions
+import at.asitplus.valera.resources.section_heading_general
 import at.asitplus.valera.resources.section_heading_information
 import at.asitplus.valera.resources.text_label_build
+import at.asitplus.valera.resources.text_label_client_identifier
 import at.asitplus.valera.resources.warning
 import at.asitplus.wallet.app.common.BuildType
 import org.jetbrains.compose.resources.getString
@@ -93,6 +100,16 @@ fun SettingsView(
 ) {
     var isLoading by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    val clientIdInputValue by settingsViewModel.clientIdInputState.collectAsState()
+    var clientIdInput by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(clientIdInputValue))
+    }
+    LaunchedEffect(clientIdInputValue) {
+        if (clientIdInputValue != clientIdInput.text) {
+            clientIdInput = TextFieldValue(clientIdInputValue)
+        }
     }
 
     var showResetAlert by remember { mutableStateOf(false) }
@@ -154,6 +171,41 @@ fun SettingsView(
                     modifier = Modifier.padding(end = 16.dp, start = 16.dp)
                 ) {
                     val layoutSpacingModifier = Modifier.padding(top = 24.dp)
+
+                    Column(
+                        modifier = layoutSpacingModifier
+                    ) {
+                        val listSpacingModifier = Modifier.padding(top = 8.dp)
+                        Text(
+                            text = stringResource(Res.string.section_heading_general),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Row(
+                            modifier = listSpacingModifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            OutlinedTextField(
+                                value = clientIdInput,
+                                onValueChange = {
+                                    clientIdInput = it
+                                    settingsViewModel.updateClientIdInput(it.text)
+                                },
+                                label = {
+                                    Text(stringResource(Res.string.text_label_client_identifier))
+                                },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            TextButton(
+                                onClick = {
+                                    settingsViewModel.resetClientIdToDefault()
+                                }
+                            ) {
+                                Text(stringResource(Res.string.button_label_default))
+                            }
+                        }
+                    }
 
                     Column(
                         modifier = layoutSpacingModifier
