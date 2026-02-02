@@ -41,6 +41,7 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -88,6 +89,17 @@ fun WalletNavigation(
     val navController: NavHostController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
     var pendingRoute: Route? = null
+    fun handleDcapiCreationResult(success: Boolean, error: Throwable? = null) {
+        if (!walletMain.platformAdapter.hasPendingDCAPICreationRequest()) {
+            return
+        }
+        val response = if (success) {
+            TODO()
+        } else {
+            error?.message ?: "issuance failed"
+        }
+        walletMain.platformAdapter.prepareDCAPICreationResponse(response, success)
+    }
     val initialLink = remember {
         intentState.appLink.value.also { link ->
             Napier.d("WalletNavigation initialLink=$link")
@@ -224,7 +236,8 @@ fun WalletNavigation(
             },
             koinScope = koinScope,
             intentState = intentState,
-            returnToHome = returnToHome
+            returnToHome = returnToHome,
+            handleDcapiCreationResult = ::handleDcapiCreationResult
         )
     }
 
@@ -242,12 +255,12 @@ fun WalletNavigation(
                     return@combineTransform
                 }
                 val isDcapiLink = link == GET_CREDENTIAL_INTENT || link == CREATE_CREDENTIAL_INTENT
-                    val dcapiReady = intentState.dcapiInvocationData.value != null
-                    Napier.d("WalletNavigation appLink dcapiReady=$dcapiReady")
-                    if (isDcapiLink && !dcapiReady) {
-                        Napier.d("WalletNavigation appLink waiting for dcapiInvocationData")
-                        return@combineTransform
-                    }
+                val dcapiReady = intentState.dcapiInvocationData.value != null
+                Napier.d("WalletNavigation appLink dcapiReady=$dcapiReady")
+                if (isDcapiLink && !dcapiReady) {
+                    Napier.d("WalletNavigation appLink waiting for dcapiInvocationData")
+                    return@combineTransform
+                }
                 Napier.d("WalletNavigation appLink emitting link=$link")
                 emit(link)
             }.collect { link ->
@@ -300,8 +313,9 @@ private fun WalletNavHost(
     walletMain: WalletMain = koinInject(scope = koinScope),
     settingsRepository: SettingsRepository = koinInject(),
     intentState: IntentState,
-    returnToHome: () -> Unit
-    ) {
+    returnToHome: () -> Unit,
+    handleDcapiCreationResult: (Boolean, Throwable?) -> Unit,
+) {
 
     NavHost(
         navController = navController,
@@ -614,14 +628,18 @@ private fun WalletNavHost(
                                 navigate(LoadingRoute)
                                 walletMain.scope.launch {
                                     try {
-                                        walletMain.provisioningService.loadCredentialWithOffer(
+                                        val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
                                             credentialOffer = offer!!,
                                             credentialIdentifierInfo = credentialIdentifierInfo,
                                             transactionCode = transactionCode?.ifEmpty { null }
                                                 ?.ifBlank { null },
                                         )
+                                        if (issuanceResult is CredentialIssuanceResult.Success) {
+                                            handleDcapiCreationResult(true, null)
+                                        }
                                         returnToHome()
                                     } catch (e: Throwable) {
+                                        handleDcapiCreationResult(false, e)
                                         returnToHome()
                                         walletMain.errorService.emit(e)
                                     }
@@ -655,14 +673,18 @@ private fun WalletNavHost(
                                 navigate(LoadingRoute)
                                 walletMain.scope.launch {
                                     try {
-                                        walletMain.provisioningService.loadCredentialWithOffer(
+                                        val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
                                             credentialOffer = offer,
                                             credentialIdentifierInfo = credentialIdentifierInfo,
                                             transactionCode = transactionCode?.ifEmpty { null }
                                                 ?.ifBlank { null },
                                         )
+                                        if (issuanceResult is CredentialIssuanceResult.Success) {
+                                            handleDcapiCreationResult(true, null)
+                                        }
                                         returnToHome()
                                     } catch (e: Throwable) {
+                                        handleDcapiCreationResult(false, e)
                                         returnToHome()
                                         walletMain.errorService.emit(e)
                                     }
@@ -791,9 +813,11 @@ private fun WalletNavHost(
                     walletMain = walletMain,
                     uri = backStackEntry.toRoute<ProvisioningResumeIntentRoute>().uri,
                     onSuccess = {
+                        handleDcapiCreationResult(true, null)
                         navigateBack()
                     },
                     onFailure = { error ->
+                        handleDcapiCreationResult(false, error)
                         walletMain.errorService.emit(error)
                     })
             })
@@ -839,20 +863,27 @@ private fun WalletNavHost(
         }
 
         composable<DCAPICreationIntentRoute> { backStackEntry ->
-            // TODO implement DC API creation
-            /*DCAPICreationIntentView(remember {
+            DCAPICreationIntentView(remember {
                 DCAPICreationIntentViewModel(
                     walletMain = walletMain,
                     uri = backStackEntry.toRoute<DCAPICreationIntentRoute>().uri,
                     onSuccess = { route ->
-                        Napier.d("valid authentication request")
+                        Napier.d("valid creation request")
                         navigateBack()
                         navigate(route)
                     },
                     onFailure = { e ->
-                        walletMain.errorService.emit(e)
+                        val wrapped = ErrorHandlingOverrideException(
+                            resetStackOverride = {
+                                intentState.finishApp?.invoke() ?: navigateBack()
+                            },
+                            actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
+                            onAcknowledge = (e as? DeferredErrorActionException)?.onAcknowledge,
+                            cause = e
+                        )
+                        walletMain.errorService.emit(wrapped)
                     })
-            })*/
+            })
         }
 
         composable<PresentationIntentRoute> { backStackEntry ->
