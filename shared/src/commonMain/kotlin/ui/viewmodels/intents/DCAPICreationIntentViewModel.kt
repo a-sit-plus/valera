@@ -11,7 +11,7 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import ui.navigation.routes.AddCredentialPreAuthnRoute
+import ui.navigation.routes.AddCredentialPreAuthnDcApiRoute
 import ui.navigation.routes.Route
 
 class DCAPICreationIntentViewModel(
@@ -36,7 +36,7 @@ class DCAPICreationIntentViewModel(
         catching {
             val creationData = walletMain.platformAdapter.getCurrentDCAPICreationData().getOrThrow()
             val credentialOffer = parseCredentialOffer(creationData.requestJson).getOrThrow()
-            onSuccess(AddCredentialPreAuthnRoute(credentialOffer))
+            onSuccess(AddCredentialPreAuthnDcApiRoute(credentialOffer))
         }.onFailure { onFailure(it) }
     }
 

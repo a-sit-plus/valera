@@ -691,7 +691,53 @@ private fun WalletNavHost(
                                 }
                             },
                             onClickLogo = onClickLogo,
-                            onClickSettings = { navigate(SettingsRoute) })
+                            onClickSettings = { navigate(SettingsRoute) }
+                        )
+                    }.getOrElse {
+                        returnToHome()
+                        walletMain.errorService.emit(it)
+                        null
+                    }
+                }
+            }?.let { vm ->
+                LoadCredentialView(vm)
+            }
+        }
+
+        composable<AddCredentialPreAuthnDcApiRoute> { backStackEntry ->
+            val offer = backStackEntry.toRoute<AddCredentialPreAuthnDcApiRoute>().credentialOffer
+            remember {
+                runBlocking {
+                    runCatching {
+                        LoadCredentialViewModel.initFromDcApi(
+                            walletMain = walletMain,
+                            navigateUp = navigateBack,
+                            offer = offer,
+                            onSubmit = { credentialIdentifierInfo, transactionCode, _ ->
+                                returnToHome()
+                                navigate(LoadingRoute)
+                                walletMain.scope.launch {
+                                    try {
+                                        val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
+                                            credentialOffer = offer,
+                                            credentialIdentifierInfo = credentialIdentifierInfo,
+                                            transactionCode = transactionCode?.ifEmpty { null }
+                                                ?.ifBlank { null },
+                                        )
+                                        if (issuanceResult is CredentialIssuanceResult.Success) {
+                                            handleDcapiCreationResult(true, null)
+                                        }
+                                        returnToHome()
+                                    } catch (e: Throwable) {
+                                        handleDcapiCreationResult(false, e)
+                                        returnToHome()
+                                        walletMain.errorService.emit(e)
+                                    }
+                                }
+                            },
+                            onClickLogo = onClickLogo,
+                            onClickSettings = { navigate(SettingsRoute) }
+                        )
                     }.getOrElse {
                         returnToHome()
                         walletMain.errorService.emit(it)

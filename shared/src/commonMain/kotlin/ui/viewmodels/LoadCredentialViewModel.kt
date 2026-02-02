@@ -62,6 +62,30 @@ class LoadCredentialViewModel(
                     .filter { it.credentialIdentifier in offer.configurationIds }
             }.await()
         )
+
+        suspend fun initFromDcApi(
+            walletMain: WalletMain,
+            offer: CredentialOffer,
+            onSubmit: CredentialSelection,
+            navigateUp: () -> Unit,
+            onClickLogo: () -> Unit,
+            onClickSettings: () -> Unit
+        ) = LoadCredentialViewModel(
+            walletMain = walletMain,
+            onSubmit = onSubmit,
+            navigateUp = navigateUp,
+            hostString = offer.credentialIssuer,
+            offer = offer,
+            onClickLogo = onClickLogo,
+            onClickSettings = onClickSettings,
+            credentialIdentifiers = walletMain.scope.async {
+                val issuerMetadata = requireNotNull(offer.credentialIssuerMetadata) {
+                    "Missing credential issuer metadata for DC API request"
+                }
+                walletMain.provisioningService.parseCredentialMetadata(issuerMetadata)
+                    .filter { it.credentialIdentifier in offer.configurationIds }
+            }.await()
+        )
         suspend fun init(
             walletMain: WalletMain,
             url: String,
