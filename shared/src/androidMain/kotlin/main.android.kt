@@ -211,6 +211,7 @@ public class AndroidPlatformAdapter(
                 val credentialsListCbor = coseCompliantSerializer.encodeToByteArray(entries)
                 val customRegistry = CustomRegistry(credentialsListCbor, context)
                 RegistryManager.create(context).registerCredentials(customRegistry)
+                CustomRegistry.registerIssuance(context)
             }.onSuccess { Napier.i("DC API: Credential Manager registration succeeded") }
                 .onFailure { Napier.w("DC API: Credential Manager registration failed", it) }
         }
