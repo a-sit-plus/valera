@@ -10,7 +10,7 @@
 #include <sys/stat.h>
 #include <stdint.h>
 #include <unistd.h>
-#include "../cJSON/cJSON.h"
+#include "cJSON.h"
 #include "../credentialmanager.h"
 
 #include "launcher_icon.h"

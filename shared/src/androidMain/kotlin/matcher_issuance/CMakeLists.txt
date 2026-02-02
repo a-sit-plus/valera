@@ -6,11 +6,11 @@ cmake_minimum_required(VERSION 3.30)
 project(Matcher)
 
 # Add include directories
-include_directories(. cJSON)
+include_directories(. ../matcher_common)
 
 # Common library source files
 set(COMMON_LIB_SRCS
-    cJSON/cJSON.c
+    ../matcher_common/cJSON.c
     credentialmanager.c
 )
 

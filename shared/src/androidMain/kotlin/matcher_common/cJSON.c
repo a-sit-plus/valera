@@ -1,4 +1,10 @@
 /*
+ * Copyright (c) 2025.
+ * SPDX-License-Identifier: Apache-2.0
+ * Source: Derived from CMWallet and adapted for this project.
+ */
+
+/*
   Copyright (c) 2009-2017 Dave Gamble and cJSON contributors
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
