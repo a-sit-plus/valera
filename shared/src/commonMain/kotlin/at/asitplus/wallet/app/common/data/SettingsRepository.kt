@@ -25,6 +25,7 @@ import kotlin.time.Duration
 
 interface SettingsRepository {
     val host: Flow<String>
+    val clientId: Flow<String>
     val isConditionsAccepted: Flow<Boolean>
     val presentmentUseNegotiatedHandover: Flow<Boolean>
     val presentmentBleCentralClientModeEnabled: Flow<Boolean>
@@ -45,6 +46,7 @@ interface SettingsRepository {
 
     fun set(
         host: String? = null,
+        clientId: String? = null,
         isConditionsAccepted: Boolean? = null,
         presentmentUseNegotiatedHandover: Boolean? = null,
         presentmentBleCentralClientModeEnabled: Boolean? = null,
@@ -81,6 +83,7 @@ interface SettingsRepository {
     suspend fun reset()
 
     companion object {
+        const val DEFAULT_CLIENT_ID = "https://wallet.a-sit.at/app"
         private const val BLE_CENTRAL_CLIENT_MODE = "ble:central_client_mode:"
         private const val BLE_PERIPHERAL_SERVER_MODE = "ble:peripheral_server_mode:"
         private const val NFC_DATA_TRANSFER = "nfc:"
