@@ -9,7 +9,7 @@
 
 #include "dcql.h"
 
-#include "cJSON/cJSON.h"
+#include "cJSON.h"
 
 int AddAllClaims(cJSON* matched_claim_names, cJSON* candidate_paths) {
     cJSON* curr_path;

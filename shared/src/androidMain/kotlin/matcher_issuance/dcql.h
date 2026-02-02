@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-#include "cJSON/cJSON.h"
+#include "cJSON.h"
 
 cJSON* dcql_query(const int request_id, cJSON* query, cJSON* credential_store);
 

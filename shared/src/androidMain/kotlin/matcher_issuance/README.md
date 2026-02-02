@@ -15,7 +15,7 @@ This produces `build/issuance_provision.wasm`. Copy it into
 `../../../../../androidApp/src/androidMain/assets/dcapimatcher_issuing.wasm` to register it:
 
 ```shell
-$ cp build/issuance_provision.wasm ../../../../../androidApp/src/androidMain/assets/dcapimatcher_issuing.wasm
+$ cp build/libissuance_provision.wasm ../../../../../androidApp/src/androidMain/assets/dcapimatcher_issuing.wasm
 ```
 
 To update the launcher icon, convert a PNG into the C header format used by
@@ -25,5 +25,5 @@ To update the launcher icon, convert a PNG into the C header format used by
 $ python3 issuance/png_to_c_array.py issuing_icon.png issuance/launcher_icon.h _launcher_icon_png
 ```
 
-The [cJSON library](https://github.com/DaveGamble/cJSON) is bundled as `cJSON/cJSON.[c, h]` with
-licence in `cJSON/LICENSE` file.
+The [cJSON library](https://github.com/DaveGamble/cJSON) is shared in
+`../matcher_common/cJSON.[c, h]` with license in `../matcher_common/cJSON-LICENSE` file.
