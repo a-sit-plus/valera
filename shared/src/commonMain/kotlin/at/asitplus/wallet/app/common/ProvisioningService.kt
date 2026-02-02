@@ -2,6 +2,7 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.catching
 import at.asitplus.openid.CredentialOffer
+import at.asitplus.openid.IssuerMetadata
 import at.asitplus.openid.OpenIdConstants
 import at.asitplus.signum.indispensable.asn1.Asn1Primitive
 import at.asitplus.signum.indispensable.asn1.Asn1String
@@ -133,6 +134,13 @@ class ProvisioningService(
     @Throws(Throwable::class)
     suspend fun loadCredentialMetadata(host: String) =
         openId4VciClient().loadCredentialMetadata(host).getOrThrow()
+
+    /**
+     * Parses issuer metadata into credential identifier info.
+     */
+    @Throws(Throwable::class)
+    fun parseCredentialMetadata(issuerMetadata: IssuerMetadata) =
+        openId4VciClient.parseCredentialMetadata(issuerMetadata).getOrThrow()
 
     /**
      * Starts the issuing process at [credentialIssuer]
