@@ -32,6 +32,7 @@ import at.asitplus.dcapi.request.verifier.DigitalCredentialGetRequest
 import at.asitplus.dcapi.request.verifier.DigitalCredentialRequestOptions
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.app.android.dcapi.AndroidDCAPIInvocationData
+import at.asitplus.wallet.app.android.dcapi.CustomRegistry
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.CapabilitiesService
 import at.asitplus.wallet.app.common.IntentState
