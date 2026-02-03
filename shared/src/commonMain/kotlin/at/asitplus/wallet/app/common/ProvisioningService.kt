@@ -31,7 +31,6 @@ import at.asitplus.wallet.lib.oidvci.WalletService
 import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
 import io.github.aakira.napier.Napier
-import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.Dispatchers
@@ -61,6 +60,7 @@ class ProvisioningService(
 
     private var clientAttestationJwt = null as String?
     private var openId4VciClientCached = null as OpenId4VciClient?
+    private var walletServiceCached = null as WalletService?
 
     private suspend fun currentClientId(): String {
         val clientId = config.clientId.first()
@@ -82,39 +82,48 @@ class ProvisioningService(
         clientAttestationJwt = it
     }
 
-    private suspend fun openId4VciClient(): OpenId4VciClient = openId4VciClientCached ?: run {
+    private suspend fun walletService(): WalletService = walletServiceCached ?: run {
         val clientId = currentClientId()
+        WalletService(
+            clientId = clientId,
+            keyMaterial = keyMaterial,
+            loadKeyAttestation = {
+                with(EphemeralKeyWithSelfSignedCert()) {
+                    catching {
+                        SignJwt<KeyAttestationJwt>(this, JwsHeaderCertOrJwk())(
+                            OpenIdConstants.KEY_ATTESTATION_JWT_TYPE,
+                            KeyAttestationJwt(
+                                issuedAt = System.now(),
+                                nonce = it.clientNonce,
+                                attestedKeys = setOf(keyMaterial.jsonWebKey)
+                            ),
+                            KeyAttestationJwt.serializer(),
+                        ).getOrThrow()
+                    }
+                }
+            },
+            remoteResourceRetriever = { data ->
+                withContext(Dispatchers.IO) {
+                    client.get(data.url).bodyAsText()
+                }
+            }
+        )
+    }.also { walletServiceCached = it }
+
+    private suspend fun openId4VciClient(): OpenId4VciClient = openId4VciClientCached ?: run {
         OpenId4VciClient(
-            engine = HttpClient().engine,
+            engine = client.engine,
             cookiesStorage = cookieStorage,
             httpClientConfig = httpService.loggingConfig,
             oauth2Client = OAuth2KtorClient(
-                engine = HttpClient().engine,
+                engine = client.engine,
                 cookiesStorage = cookieStorage,
-                oAuth2Client = OAuth2Client(clientId = clientId, redirectUrl = redirectUrl),
+                oAuth2Client = OAuth2Client(clientId = currentClientId(), redirectUrl = redirectUrl),
                 httpClientConfig = httpService.loggingConfig,
                 loadClientAttestationJwt = { clientAttestationJwt() },
                 signClientAttestationPop = SignJwt(keyMaterial, JwsHeaderNone()),
             ),
-            oid4vciService = WalletService(
-                clientId = clientId,
-                keyMaterial = keyMaterial,
-                loadKeyAttestation = {
-                    with(EphemeralKeyWithSelfSignedCert()) {
-                        catching {
-                            SignJwt<KeyAttestationJwt>(this, JwsHeaderCertOrJwk())(
-                                OpenIdConstants.KEY_ATTESTATION_JWT_TYPE,
-                                KeyAttestationJwt(
-                                    issuedAt = System.now(),
-                                    nonce = it.clientNonce,
-                                    attestedKeys = setOf(keyMaterial.jsonWebKey)
-                                ),
-                                KeyAttestationJwt.serializer(),
-                            ).getOrThrow()
-                        }
-                    }
-                }
-            )
+            oid4vciService = walletService()
         ).also { openId4VciClientCached = it }
     }
 
@@ -186,14 +195,7 @@ class ProvisioningService(
     suspend fun decodeCredentialOffer(
         qrCodeContent: String
     ): CredentialOffer {
-        val walletService = WalletService(
-            keyMaterial = keyMaterial,
-            remoteResourceRetriever = { data ->
-                withContext(Dispatchers.IO) {
-                    client.get(data.url).bodyAsText()
-                }
-            })
-        return walletService.parseCredentialOffer(qrCodeContent).getOrThrow()
+        return walletService().parseCredentialOffer(qrCodeContent).getOrThrow()
     }
 
     /**
