@@ -5,6 +5,7 @@ import at.asitplus.iso.IssuerSigned
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
 import at.asitplus.wallet.lib.data.VerifiableCredentialJws
@@ -14,6 +15,8 @@ import at.asitplus.wallet.lib.ktor.openid.RefreshTokenInfo
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -21,7 +24,8 @@ import kotlinx.serialization.Serializable
 import kotlin.random.Random
 
 class PersistentSubjectCredentialStore(
-    private val dataStore: DataStoreService
+    private val dataStore: DataStoreService,
+    private val validator: Validator
 ) : SubjectCredentialStore, WalletSubjectCredentialStore {
     private val container = this.observeStoreContainer()
 
@@ -88,14 +92,6 @@ class PersistentSubjectCredentialStore(
                 }
             }.toList())
         } ?: KmmResult.success(latestCredentials)
-    }
-
-    override suspend fun deleteCredential(credential: SubjectCredentialStore.StoreEntry) {
-        val currentContainer = observeStoreContainer().first()
-        val id = currentContainer.credentials.find { it.second == credential }?.first
-        if (id != null) {
-            removeStoreEntryById(id)
-        }
     }
 
     private suspend fun exportToDataStore(newContainer: StoreContainer) {
@@ -210,6 +206,31 @@ class PersistentSubjectCredentialStore(
     override fun observeStoreContainer(): Flow<StoreContainer> {
         return dataStore.getPreference(Configuration.DATASTORE_KEY_VCS).map {
             dataStoreValueToStoreContainer(it)
+        }
+    }
+
+    /**
+     * Checks all stored credentials and returns a list of those that are no longer fresh.
+     * Returns a list of Pairs containing the unique StoreEntryId and the Entry itself.
+     */
+    override suspend fun getInvalidCredentials(): List<Pair<StoreEntryId, SubjectCredentialStore.StoreEntry>> {
+        val availableCredentials = container.first().credentials
+        if (availableCredentials.isEmpty()) return emptyList()
+
+        return coroutineScope {
+            val deferredStatus = availableCredentials.map { (id, entry) ->
+                (id to entry) to async {
+                    validator.checkCredentialFreshness(entry)
+                }
+            }
+
+            deferredStatus.map { (pair, deferred) ->
+                pair to deferred.await()
+            }.filter { (_, freshness) ->
+                !freshness.isFresh
+            }.map { (pair, _) ->
+                pair
+            }
         }
     }
 }

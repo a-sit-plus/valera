@@ -15,15 +15,17 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.platform.testTag
-import androidx.navigation.NavController
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import at.asitplus.catching
@@ -32,7 +34,6 @@ import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
-import at.asitplus.wallet.app.common.CredentialCheckManager
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.SnackbarService
@@ -234,6 +235,33 @@ private fun WalletNavHost(
 
     ) {
 
+    val items by walletMain.credentialValidityService.refreshItems.collectAsState()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val isOnRefreshCenter = backStackEntry?.destination?.hasRoute<RefreshCenterRoute>() == true
+
+    if (!isOnRefreshCenter && items.size == 1) {
+        val item = items.first()
+        RefreshConfirmationDialog(
+            entry = item.entry,
+            onConfirm = {
+                walletMain.credentialValidityService.refreshSingle(item)
+            },
+            onDismiss = { walletMain.credentialValidityService.removeRefreshRequest(item) }
+        )
+    }
+
+    LaunchedEffect(items.size, isOnRefreshCenter) {
+        if (!isOnRefreshCenter && items.size > 1) {
+            navController.navigate(RefreshCenterRoute) {
+                launchSingleTop = true
+            }
+        }
+
+        if (isOnRefreshCenter && items.isEmpty()) {
+            navController.popBackStack()
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -241,6 +269,22 @@ private fun WalletNavHost(
         exitTransition = { ExitTransition.None },
         modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)
     ) {
+
+        composable<RefreshCenterRoute> {
+            RefreshCredentialsView(
+                items = items,
+                onRefreshItem = { item ->
+                    walletMain.credentialValidityService.refreshSingle(item)
+                },
+                onRemoveItem = { entry ->
+                    walletMain.credentialValidityService.removeRefreshRequest(entry)
+                },
+                onDone = {
+                    walletMain.credentialValidityService.clearAllRefreshRequests()
+                }
+            )
+        }
+
         composable<InitializationRoute> {
             InitializationView(koinScope = koinScope, navigateOnboarding = {
                 navigateNewGraph(OnboardingStartRoute)

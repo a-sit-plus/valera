@@ -30,6 +30,7 @@ import at.asitplus.wallet.lib.oidvci.BuildClientAttestationJwt
 import at.asitplus.wallet.lib.oidvci.WalletService
 import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
+import data.storage.StoreEntryId
 import io.github.aakira.napier.Napier
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -186,12 +187,12 @@ class ProvisioningService(
             }
     }
 
-    suspend fun refreshCredential(refreshTokenInfo: CredentialRenewalInfo, oldCredential: SubjectCredentialStore.StoreEntry) {
+    suspend fun refreshCredential(refreshTokenInfo: CredentialRenewalInfo, oldCredentialId: StoreEntryId) {
         Napier.d("refreshCredential with identifier ${refreshTokenInfo.credentialIdentifier}")
         val result = openId4VciClient.refreshCredentialReturningResult(refreshTokenInfo).getOrThrow()
         result.credentials.forEach { credentialInput ->
             holderAgent.storeCredential(credentialInput, result.refreshToken)
-            holderAgent.deleteCredential(oldCredential)
+            holderAgent.deleteCredential(oldCredentialId)
         }
     }
 

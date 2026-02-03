@@ -24,7 +24,6 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -36,7 +35,6 @@ import net.swiftzer.semver.SemVer
 import org.jetbrains.compose.resources.decodeToImageBitmap
 import org.jetbrains.compose.resources.getString
 import org.multipaz.prompt.PromptModel
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * Main class to hold all services needed in the Compose App.
@@ -60,7 +58,7 @@ class WalletMain(
     val settingsRepository: SettingsRepository,
     val sessionService: SessionService,
     val capabilitiesService: CapabilitiesService,
-    val credentialValidityManager: CredentialCheckManager,
+    val credentialValidityService: CredentialValidityService,
 ) {
     val appReady = MutableStateFlow<Boolean?>(null)
 
@@ -77,7 +75,7 @@ class WalletMain(
 
     init {
         startListeningForNewCredentialsDCAPI()
-        credentialValidityManager.startChecking()
+        credentialValidityService.startChecking()
         if (keyMaterial.keyMaterial is FallBackKeyMaterial) {
             Napier.e("FallBackKeyMaterial: ${keyMaterial.keyMaterial.reason}")
         }
