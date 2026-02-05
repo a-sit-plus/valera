@@ -740,6 +740,7 @@ private fun WalletNavHost(
                                             credentialIdentifierInfo = credentialIdentifierInfo,
                                             transactionCode = transactionCode?.ifEmpty { null }
                                                 ?.ifBlank { null },
+                                            authorizationServerMetadata = offer.authorizationServerMetadata
                                         )
                                         if (issuanceResult is CredentialIssuanceResult.Success) {
                                             handleDcapiCreationResult(true, null)
