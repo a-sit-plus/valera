@@ -10,6 +10,7 @@
      * iOS-specific pre-request is shown in a separate rather rudimentary UI
      * Content in the pre-request is not yet compared with the content in the full request
      * Sharing UI does not always open after approving the pre-request
+   * Add support for issuance via the DC API based on the preliminary spec defined in https://github.com/openid/OpenID4VCI/pull/476
  
 # Release 5.7.5
  * Update to VC-K 5.10.1

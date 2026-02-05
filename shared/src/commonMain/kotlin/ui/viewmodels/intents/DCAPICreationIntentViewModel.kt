@@ -43,7 +43,8 @@ class DCAPICreationIntentViewModel(
     private fun parseCredentialOffer(requestJson: String): KmmResult<CredentialOffer> = catching {
         val creationOptions =
             vckJsonSerializer.decodeFromString<DigitalCredentialCreationOptions>(requestJson)
-        // TODO how to handle more than one request?
+        // TODO specification does not yet define what to do with multiple requests
+        // TODO parse and check origin once its sent by the web platform ("… will send the credential offer along with the Origin of the Issuer to the End-User's chosen Wallet.")
         require(creationOptions.requests.count() == 1) { "Only one request supported for now" }
         creationOptions.requests.firstOrNull()?.data
             ?: throw IllegalArgumentException("DC API: No supported issuance request found")
