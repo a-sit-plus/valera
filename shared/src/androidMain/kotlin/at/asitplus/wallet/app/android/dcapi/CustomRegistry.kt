@@ -15,14 +15,14 @@ class CustomRegistry(
 ) : DigitalCredentialRegistry(
     id = context.packageName,
     credentials = credentialsCbor,
-    matcher = loadMatcher(context),
+    matcher = loadVerificationMatcher(context),
     intentAction = intentAction,
 ) {
 
     companion object {
         private const val ISSUANCE_REGISTRY_ID = "openid4vci"
 
-        private fun loadMatcher(context: Context): ByteArray =
+        private fun loadVerificationMatcher(context: Context): ByteArray =
             context.assets.open("dcapimatcher.wasm").use { stream ->
                 ByteArray(stream.available()).apply {
                     stream.read(this)

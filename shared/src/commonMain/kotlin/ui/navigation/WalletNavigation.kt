@@ -71,6 +71,9 @@ import ui.views.intents.*
 import ui.views.iso.holder.HolderView
 import ui.views.iso.verifier.VerifierView
 import ui.views.presentation.PresentationView
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 internal object NavigatorTestTags {
     const val loadingTestTag = "loadingTestTag"
@@ -93,10 +96,24 @@ fun WalletNavigation(
         if (!walletMain.platformAdapter.hasPendingDCAPICreationRequest()) {
             return
         }
+        // Return response for issuing. Currently, only offer_accepted is defined in pull request
+        // https://github.com/openid/OpenID4VCI/blob/leecam-410-dcapi/openid-4-verifiable-credential-issuance-1_0.md
+        // Will probably be refined before it hits a final specification
         val response = if (success) {
-            TODO()
+            vckJsonSerializer.encodeToString(
+                buildJsonObject {
+                    put("status", "offer_accepted")
+                }
+            )
         } else {
-            error?.message ?: "issuance failed"
+            if (error != null) {
+                walletMain.errorService.emit(error)
+            }
+            vckJsonSerializer.encodeToString(
+                buildJsonObject {
+                    put("status", "offer_declined")
+                }
+            )
         }
         walletMain.platformAdapter.prepareDCAPICreationResponse(response, success)
     }
