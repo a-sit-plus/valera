@@ -71,9 +71,6 @@ import ui.views.intents.*
 import ui.views.iso.holder.HolderView
 import ui.views.iso.verifier.VerifierView
 import ui.views.presentation.PresentationView
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 
 internal object NavigatorTestTags {
     const val loadingTestTag = "loadingTestTag"
@@ -92,31 +89,7 @@ fun WalletNavigation(
     val navController: NavHostController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
     var pendingRoute: Route? = null
-    fun handleDcapiCreationResult(success: Boolean, error: Throwable? = null) {
-        if (!walletMain.platformAdapter.hasPendingDCAPICreationRequest()) {
-            return
-        }
-        // Return response for issuing. Currently, only offer_accepted is defined in pull request
-        // https://github.com/openid/OpenID4VCI/blob/leecam-410-dcapi/openid-4-verifiable-credential-issuance-1_0.md
-        // Will probably be refined before it hits a final specification
-        val response = if (success) {
-            vckJsonSerializer.encodeToString(
-                buildJsonObject {
-                    put("status", "offer_accepted")
-                }
-            )
-        } else {
-            if (error != null) {
-                walletMain.errorService.emit(error)
-            }
-            vckJsonSerializer.encodeToString(
-                buildJsonObject {
-                    put("status", "offer_declined")
-                }
-            )
-        }
-        walletMain.platformAdapter.prepareDCAPICreationResponse(response, success)
-    }
+
     val initialLink = remember {
         intentState.appLink.value.also { link ->
             Napier.d("WalletNavigation initialLink=$link")
@@ -253,8 +226,7 @@ fun WalletNavigation(
             },
             koinScope = koinScope,
             intentState = intentState,
-            returnToHome = returnToHome,
-            handleDcapiCreationResult = ::handleDcapiCreationResult
+            returnToHome = returnToHome
         )
     }
 
@@ -331,7 +303,6 @@ private fun WalletNavHost(
     settingsRepository: SettingsRepository = koinInject(),
     intentState: IntentState,
     returnToHome: () -> Unit,
-    handleDcapiCreationResult: (Boolean, Throwable?) -> Unit,
 ) {
 
     NavHost(
@@ -645,18 +616,14 @@ private fun WalletNavHost(
                                 navigate(LoadingRoute)
                                 walletMain.scope.launch {
                                     try {
-                                        val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
+                                        walletMain.provisioningService.loadCredentialWithOffer(
                                             credentialOffer = offer!!,
                                             credentialIdentifierInfo = credentialIdentifierInfo,
                                             transactionCode = transactionCode?.ifEmpty { null }
                                                 ?.ifBlank { null },
                                         )
-                                        if (issuanceResult is CredentialIssuanceResult.Success) {
-                                            handleDcapiCreationResult(true, null)
-                                        }
                                         returnToHome()
                                     } catch (e: Throwable) {
-                                        handleDcapiCreationResult(false, e)
                                         returnToHome()
                                         walletMain.errorService.emit(e)
                                     }
@@ -690,18 +657,14 @@ private fun WalletNavHost(
                                 navigate(LoadingRoute)
                                 walletMain.scope.launch {
                                     try {
-                                        val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
+                                        walletMain.provisioningService.loadCredentialWithOffer(
                                             credentialOffer = offer,
                                             credentialIdentifierInfo = credentialIdentifierInfo,
                                             transactionCode = transactionCode?.ifEmpty { null }
                                                 ?.ifBlank { null },
                                         )
-                                        if (issuanceResult is CredentialIssuanceResult.Success) {
-                                            handleDcapiCreationResult(true, null)
-                                        }
                                         returnToHome()
                                     } catch (e: Throwable) {
-                                        handleDcapiCreationResult(false, e)
                                         returnToHome()
                                         walletMain.errorService.emit(e)
                                     }
@@ -721,41 +684,41 @@ private fun WalletNavHost(
             }
         }
 
-        composable<AddCredentialPreAuthnDcApiRoute> { backStackEntry ->
-            val offer = backStackEntry.toRoute<AddCredentialPreAuthnDcApiRoute>().credentialOffer
+        composable<AddCredentialDcApiRoute> { backStackEntry ->
+            val offer = backStackEntry.toRoute<AddCredentialDcApiRoute>().credentialOffer
             remember {
                 runBlocking {
                     runCatching {
+                        lateinit var dcapiVm: LoadCredentialViewModel
+                        val onSubmit: CredentialSelection = { credentialIdentifierInfo, transactionCode, _ ->
+                            navigate(LoadingRoute)
+                            walletMain.scope.launch {
+                                try {
+                                    val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
+                                        credentialOffer = offer,
+                                        credentialIdentifierInfo = credentialIdentifierInfo,
+                                        transactionCode = transactionCode?.ifEmpty { null }
+                                            ?.ifBlank { null },
+                                        authorizationServerMetadata = offer.authorizationServerMetadata
+                                    )
+                                    if (issuanceResult is CredentialIssuanceResult.Success) {
+                                        dcapiVm.handleDCAPICreationResult(true, null)
+                                    } else {
+                                        dcapiVm.handleDCAPICreationResult(false, null)
+                                    }
+                                } catch (e: Throwable) {
+                                    dcapiVm.handleDCAPICreationResult(false, e)
+                                }
+                            }
+                        }
                         LoadCredentialViewModel.initFromDcApi(
                             walletMain = walletMain,
                             navigateUp = navigateBack,
                             offer = offer,
-                            onSubmit = { credentialIdentifierInfo, transactionCode, _ ->
-                                returnToHome()
-                                navigate(LoadingRoute)
-                                walletMain.scope.launch {
-                                    try {
-                                        val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
-                                            credentialOffer = offer,
-                                            credentialIdentifierInfo = credentialIdentifierInfo,
-                                            transactionCode = transactionCode?.ifEmpty { null }
-                                                ?.ifBlank { null },
-                                            authorizationServerMetadata = offer.authorizationServerMetadata
-                                        )
-                                        if (issuanceResult is CredentialIssuanceResult.Success) {
-                                            handleDcapiCreationResult(true, null)
-                                        }
-                                        returnToHome()
-                                    } catch (e: Throwable) {
-                                        handleDcapiCreationResult(false, e)
-                                        returnToHome()
-                                        walletMain.errorService.emit(e)
-                                    }
-                                }
-                            },
+                            onSubmit = onSubmit,
                             onClickLogo = onClickLogo,
                             onClickSettings = { navigate(SettingsRoute) }
-                        )
+                        ).also { dcapiVm = it }
                     }.getOrElse {
                         returnToHome()
                         walletMain.errorService.emit(it)
@@ -877,11 +840,9 @@ private fun WalletNavHost(
                     walletMain = walletMain,
                     uri = backStackEntry.toRoute<ProvisioningResumeIntentRoute>().uri,
                     onSuccess = {
-                        handleDcapiCreationResult(true, null)
                         navigateBack()
                     },
                     onFailure = { error ->
-                        handleDcapiCreationResult(false, error)
                         walletMain.errorService.emit(error)
                     })
             })

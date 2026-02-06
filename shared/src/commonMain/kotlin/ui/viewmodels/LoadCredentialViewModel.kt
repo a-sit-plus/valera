@@ -1,7 +1,10 @@
 package ui.viewmodels
 
+import DeferredErrorActionException
+import at.asitplus.dcapi.issuance.DigitalCredentialOfferReturn
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import kotlinx.coroutines.async
 
@@ -20,6 +23,31 @@ class LoadCredentialViewModel(
     val onClickLogo: () -> Unit,
     val onClickSettings: () -> Unit,
 ) {
+    fun handleDCAPICreationResult(success: Boolean, error: Throwable? = null) {
+        if (!walletMain.platformAdapter.hasPendingDCAPICreationRequest()) {
+            return
+        }
+        if (!success) {
+            val deferredError = DeferredErrorActionException(
+                onAcknowledge = {
+                    if (!walletMain.platformAdapter.hasPendingDCAPICreationRequest()) {
+                        return@DeferredErrorActionException
+                    }
+                    // TODO replace with official status messages once specification defines them
+                    val response =
+                        vckJsonSerializer.encodeToString(DigitalCredentialOfferReturn.error(status = "offer_declined"))
+                    walletMain.platformAdapter.prepareDCAPICreationResponse(response, false)
+                    walletMain.platformAdapter.finishApp()
+                },
+                cause = error ?: Exception("issuance failed")
+            )
+            walletMain.errorService.emit(deferredError)
+        } else {
+            val response = vckJsonSerializer.encodeToString(DigitalCredentialOfferReturn.success())
+            walletMain.platformAdapter.prepareDCAPICreationResponse(response, true)
+            walletMain.platformAdapter.finishApp()
+        }
+    }
 
     companion object {
         suspend fun init(

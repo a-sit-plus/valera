@@ -222,19 +222,21 @@ class ProvisioningService(
         credentialIdentifierInfo: CredentialIdentifierInfo,
         transactionCode: String? = null,
         authorizationServerMetadata: OAuth2AuthorizationServerMetadata? = null
-    ) {
-        openId4VciClient().loadCredentialWithOfferReturningResult(
+    ): CredentialIssuanceResult {
+        return openId4VciClient().loadCredentialWithOfferReturningResult(
             credentialOffer,
             credentialIdentifierInfo,
             transactionCode,
             authorizationServerMetadata
         ).getOrThrow().run {
-            when (this) {
-                is CredentialIssuanceResult.OpenUrlForAuthnRequest -> storeContextOpenIntent()
-                is CredentialIssuanceResult.Success -> {
-                    credentials.forEach {
-                        holderAgent.storeCredential(it).onFailure { ex ->
-                            Napier.e("storeCredential failed", ex)
+            this.also {
+                when (this) {
+                    is CredentialIssuanceResult.OpenUrlForAuthnRequest -> storeContextOpenIntent()
+                    is CredentialIssuanceResult.Success -> {
+                        credentials.forEach {
+                            holderAgent.storeCredential(it).onFailure { ex ->
+                                Napier.e("storeCredential failed", ex)
+                            }
                         }
                     }
                 }
