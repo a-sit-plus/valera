@@ -6,35 +6,55 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontWeight
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.agent.representation
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.refresh_dialog_confirm
+import at.asitplus.valera.resources.refresh_dialog_dismiss
+import at.asitplus.valera.resources.refresh_dialog_message_multiple
+import at.asitplus.valera.resources.refresh_dialog_message_single
+import at.asitplus.valera.resources.refresh_dialog_title_multiple
+import at.asitplus.valera.resources.refresh_dialog_title_single
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun RefreshConfirmationDialog(
-    entry: SubjectCredentialStore.StoreEntry,
+    entry: SubjectCredentialStore.StoreEntry?,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
+
+    val dialogTitle = if (entry != null) {
+        stringResource(Res.string.refresh_dialog_title_single)
+    } else {
+        stringResource(Res.string.refresh_dialog_title_multiple)
+    }
+
+    val dialogMessage = if (entry != null) {
+        stringResource(Res.string.refresh_dialog_message_single, entry.scheme.uiLabel())
+    } else {
+        stringResource(Res.string.refresh_dialog_message_multiple)
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Update Available",
+                text = dialogTitle,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
         },
         text = {
             Text(
-                text = "A new version of '${entry.scheme.uiLabel()}' is available. Would you like to update it now?",
+                text = dialogMessage,
                 style = MaterialTheme.typography.bodyMedium
             )
         },
         confirmButton = {
             TextButton(onClick = onConfirm) {
                 Text(
-                    text = "Update Now",
+                    text = stringResource(Res.string.refresh_dialog_confirm),
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -43,7 +63,7 @@ fun RefreshConfirmationDialog(
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text(
-                    text = "Later",
+                    text = stringResource(Res.string.refresh_dialog_dismiss),
                     color = MaterialTheme.colorScheme.secondary
                 )
             }

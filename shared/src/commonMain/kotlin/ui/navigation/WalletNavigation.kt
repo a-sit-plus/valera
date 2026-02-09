@@ -16,7 +16,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.backhandler.BackHandler
@@ -239,24 +241,46 @@ private fun WalletNavHost(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val isOnRefreshCenter = backStackEntry?.destination?.hasRoute<RefreshCenterRoute>() == true
 
+    var processedItemIds by remember { mutableStateOf(setOf<Long>()) }
+    var hasNavigatedToCenter by remember { mutableStateOf(false) }
+
+    LaunchedEffect(items.isEmpty()) {
+        if (items.isEmpty()) {
+            processedItemIds = emptySet()
+            hasNavigatedToCenter = false
+        }
+    }
+
     if (!isOnRefreshCenter && items.size == 1) {
         val item = items.first()
+        if (!processedItemIds.contains(item.storeId)) {
+            RefreshConfirmationDialog(
+                entry = item.entry,
+                onConfirm = {
+                    processedItemIds = processedItemIds + item.storeId
+                    walletMain.credentialValidityService.refreshSingle(item)
+                },
+                onDismiss = {
+                    walletMain.credentialValidityService.removeRefreshRequest(item)
+                }
+            )
+        }
+    }
+
+    if (!isOnRefreshCenter && items.size > 1 && !hasNavigatedToCenter) {
         RefreshConfirmationDialog(
-            entry = item.entry,
+            entry = null,
             onConfirm = {
-                walletMain.credentialValidityService.refreshSingle(item)
+                hasNavigatedToCenter = true
+                navController.navigate(RefreshCenterRoute) { launchSingleTop = true }
             },
-            onDismiss = { walletMain.credentialValidityService.removeRefreshRequest(item) }
+            onDismiss = {
+                walletMain.credentialValidityService.clearAllRefreshRequests()
+            }
         )
     }
 
     LaunchedEffect(items.size, isOnRefreshCenter) {
-        if (!isOnRefreshCenter && items.size > 1) {
-            navController.navigate(RefreshCenterRoute) {
-                launchSingleTop = true
-            }
-        }
-
         if (isOnRefreshCenter && items.isEmpty()) {
             navController.popBackStack()
         }
