@@ -112,7 +112,8 @@ fun CredentialDetailsScaffold(
                 actions = {
                     if (isStoreEntryAvailable) {
                         CredentialCardActionMenu(
-                            onDelete = onDelete
+                            onDelete = onDelete,
+                            onRefresh = {},
                         )
                         Logo(onClick = onClickLogo)
                         Column(modifier = Modifier.clickable(onClick = onClickSettings)) {

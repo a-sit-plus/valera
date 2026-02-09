@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.multipaz.util.Platform.promptModel
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -89,38 +88,66 @@ class CredentialValidityService(
         }
     }
 
-    fun refreshSingle(item: RefreshItem): Job = scope.launch {
-        val stableId = entryId(item) // Capture the ID immediately
+    /**
+     * Refreshes the credential
+     */
+    fun refreshSingle(entry: SubjectCredentialStore.StoreEntry, storeId: Long): Job = scope.launch {
+        performRefreshLogic(entry, storeId)
+    }
+
+    /**
+     * Wraps core refresh logic with status updates for [ui.views.RefreshCredentialsView]
+     */
+    fun refreshSingleWithStatus(item: RefreshItem): Job = scope.launch {
+        val stableId = entryId(item)
         if (item.status == RefreshStatus.InProgress) return@launch
 
         updateStatus(stableId, RefreshStatus.InProgress)
 
-        try {
-            provisioningService.refreshCredential(item.entry.refreshToken!!, item.storeId)
-            updateStatus(stableId, RefreshStatus.Succeeded)
-            snackbarService.showSnackbar("Refreshed ${item.entry.scheme.uiLabelNonCompose()}")
-        } catch (e: Exception) {
-            val rt = item.entry.refreshToken
-            if (rt == null) {
-                updateStatus(stableId, RefreshStatus.Failed, "No refresh token")
-                return@launch
-            }
-            val ok = startProvisioningAwait(
-                host = rt.issuerMetadata.credentialIssuer,
-                credentialIdentifierInfo = CredentialIdentifierInfo(
-                    issuerMetadata = rt.issuerMetadata,
-                    credentialIdentifier = rt.credentialIdentifier,
-                    supportedCredentialFormat = rt.credentialFormat
-                )
-            )
+        val success = performRefreshLogic(item.entry, item.storeId)
 
-            if (ok) {
-                holderAgent.deleteCredential(item.storeId)
-                updateStatus(stableId, RefreshStatus.Succeeded)
-                snackbarService.showSnackbar("${item.entry.scheme.uiLabelNonCompose()} re-issued")
-            } else {
-                updateStatus(stableId, RefreshStatus.Failed, "Re-issue failed")
+        if (success) {
+            updateStatus(stableId, RefreshStatus.Succeeded)
+        } else {
+            updateStatus(stableId, RefreshStatus.Failed, "Refresh failed")
+        }
+    }
+
+    private suspend fun performRefreshLogic(entry: SubjectCredentialStore.StoreEntry, storeId: Long): Boolean {
+        return try {
+            val refreshToken = entry.refreshToken
+            if (refreshToken == null) {
+                snackbarService.showSnackbar("No refresh token available for ${entry.scheme.uiLabelNonCompose()}")
+                return false
             }
+
+            provisioningService.refreshCredential(refreshToken, storeId)
+            snackbarService.showSnackbar("Refreshed ${entry.scheme.uiLabelNonCompose()}")
+            true
+        } catch (_: Exception) {
+            handleReissueFallback(entry, storeId)
+        }
+    }
+
+    private suspend fun handleReissueFallback(entry: SubjectCredentialStore.StoreEntry, storeId: Long): Boolean {
+        val rt = entry.refreshToken ?: return false
+
+        val ok = startProvisioningAwait(
+            host = rt.issuerMetadata.credentialIssuer,
+            credentialIdentifierInfo = CredentialIdentifierInfo(
+                issuerMetadata = rt.issuerMetadata,
+                credentialIdentifier = rt.credentialIdentifier,
+                supportedCredentialFormat = rt.credentialFormat
+            )
+        )
+
+        return if (ok) {
+            holderAgent.deleteCredential(storeId)
+            snackbarService.showSnackbar("${entry.scheme.uiLabelNonCompose()} re-issued")
+            true
+        } else {
+            snackbarService.showSnackbar("Re-issue failed for ${entry.scheme.uiLabelNonCompose()}")
+            false
         }
     }
 

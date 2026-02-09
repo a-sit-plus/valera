@@ -258,7 +258,7 @@ private fun WalletNavHost(
                 entry = item.entry,
                 onConfirm = {
                     processedItemIds = processedItemIds + item.storeId
-                    walletMain.credentialValidityService.refreshSingle(item)
+                    walletMain.credentialValidityService.refreshSingleWithStatus(item)
                 },
                 onDismiss = {
                     walletMain.credentialValidityService.removeRefreshRequest(item)
@@ -298,7 +298,7 @@ private fun WalletNavHost(
             RefreshCredentialsView(
                 items = items,
                 onRefreshItem = { item ->
-                    walletMain.credentialValidityService.refreshSingle(item)
+                    walletMain.credentialValidityService.refreshSingleWithStatus(item)
                 },
                 onRemoveItem = { entry ->
                     walletMain.credentialValidityService.removeRefreshRequest(entry)
@@ -351,7 +351,8 @@ private fun WalletNavHost(
                         selected = NavigationData.HOME_SCREEN
                     )
                 },
-                koinScope = koinScope
+                koinScope = koinScope,
+                onRefresh = walletMain.credentialValidityService::refreshSingle
             )
             LaunchedEffect(koinScope) {
                 walletMain.scope.launch {

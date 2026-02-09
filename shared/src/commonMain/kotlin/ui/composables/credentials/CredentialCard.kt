@@ -17,6 +17,7 @@ fun CredentialCard(
     credentialFreshnessSummaryModel: CredentialFreshnessSummaryUiModel?,
     imageDecoder: (ByteArray) -> Result<ImageBitmap>,
     onDelete: () -> Unit,
+    onRefresh: () -> Unit,
     onOpenDetails: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
@@ -35,6 +36,8 @@ fun CredentialCard(
             credential = credential,
             showLoadingSpinner = !isTokenStatusEvaluated,
             onDelete = onDelete,
+            onRefresh = onRefresh,
+            credentialFreshnessSummaryModel = credentialFreshnessSummaryModel
         )
         CredentialSummaryCardContent(
             credential = credential,
