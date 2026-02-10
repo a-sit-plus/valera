@@ -11,6 +11,7 @@ import at.asitplus.signum.indispensable.josef.KeyAttestationJwt
 import at.asitplus.signum.indispensable.pki.AttributeTypeAndValue
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.wallet.app.common.data.SettingsRepository
+import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
@@ -31,6 +32,7 @@ import at.asitplus.wallet.lib.oidvci.WalletService
 import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
 import data.storage.StoreEntryId
+import data.storage.WalletSubjectCredentialStore
 import io.github.aakira.napier.Napier
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -49,6 +51,7 @@ class ProvisioningService(
     private val dataStoreService: DataStoreService,
     private val keyMaterial: KeyMaterial,
     private val holderAgent: HolderAgent,
+    private val subjectCredentialStore: WalletSubjectCredentialStore,
     private val config: SettingsRepository,
     private val errorService: ErrorService,
     private val httpService: HttpService,
@@ -178,21 +181,22 @@ class ProvisioningService(
                 vckJsonSerializer.decodeFromString<ProvisioningContext>(it)
                     .also { dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT) }
             }?.let {
-                openId4VciClient().resumeWithAuthCode(redirectedUrl, it).getOrThrow()
-                    .credentials.forEach {
-                        holderAgent.storeCredential(it).onFailure { ex ->
+                openId4VciClient().resumeWithAuthCode(redirectedUrl, it).getOrThrow().also { result ->
+                    result.credentials.forEach { cred ->
+                        holderAgent.storeCredential(cred, result.refreshToken).onFailure { ex ->
                             Napier.e("storeCredential failed", ex)
                         }
                     }
+                }
             }
     }
 
     suspend fun refreshCredential(refreshTokenInfo: CredentialRenewalInfo, oldCredentialId: StoreEntryId) {
         Napier.d("refreshCredential with identifier ${refreshTokenInfo.credentialIdentifier}")
-        val result = openId4VciClient.refreshCredentialReturningResult(refreshTokenInfo).getOrThrow()
+        val result = openId4VciClient().refreshCredentialReturningResult(refreshTokenInfo).getOrThrow()
         result.credentials.forEach { credentialInput ->
             holderAgent.storeCredential(credentialInput, result.refreshToken)
-            holderAgent.deleteCredential(oldCredentialId)
+            subjectCredentialStore.removeStoreEntryById(oldCredentialId)
         }
     }
 

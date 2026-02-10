@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common.di
 
+import at.asitplus.wallet.app.common.CapabilitiesService
 import at.asitplus.wallet.app.common.CredentialValidityService
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.KeystoreService

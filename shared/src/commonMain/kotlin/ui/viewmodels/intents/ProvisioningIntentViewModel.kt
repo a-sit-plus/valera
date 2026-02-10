@@ -5,10 +5,6 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_credentials_title
 import at.asitplus.valera.resources.snackbar_credential_loaded_successfully
 import at.asitplus.wallet.app.common.WalletMain
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.getString
 
 class ProvisioningIntentViewModel(
@@ -19,12 +15,10 @@ class ProvisioningIntentViewModel(
 ) {
     suspend fun process() {
         catchingUnwrapped {
-            withContext(Dispatchers.IO + NonCancellable) {
-                walletMain.keyMaterial.promptText =
-                    getString(Res.string.biometric_authentication_prompt_to_bind_credentials_title)
-                walletMain.provisioningService.resumeWithAuthCode(uri)
-                walletMain.snackbarService.showSnackbar(getString(Res.string.snackbar_credential_loaded_successfully))
-            }
+            walletMain.keyMaterial.promptText =
+                getString(Res.string.biometric_authentication_prompt_to_bind_credentials_title)
+            walletMain.provisioningService.resumeWithAuthCode(uri)
+            walletMain.snackbarService.showSnackbar(getString(Res.string.snackbar_credential_loaded_successfully))
         }.onSuccess {
             onSuccess()
         }.onFailure { error ->

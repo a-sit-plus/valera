@@ -28,7 +28,6 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_clear_and_close
 import at.asitplus.valera.resources.button_dismiss
 import at.asitplus.valera.resources.button_refresh
-import at.asitplus.valera.resources.button_remove
 import at.asitplus.valera.resources.error_unknown
 import at.asitplus.valera.resources.refresh_center_empty_state
 import at.asitplus.valera.resources.refresh_center_title
@@ -124,7 +123,7 @@ fun RefreshItemRow(
             }
             else -> {
                 Row {
-                    TextButton(onClick = onRemove) { Text(stringResource(Res.string.button_remove), color = Color.Gray) }
+                    TextButton(onClick = onRemove) { Text(stringResource(Res.string.button_dismiss), color = Color.Gray) }
                     Button(onClick = onRefresh) { Text(stringResource(Res.string.button_refresh)) }
                 }
             }

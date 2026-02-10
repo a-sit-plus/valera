@@ -11,7 +11,6 @@ import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
 import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
 import at.asitplus.wallet.lib.data.vckJsonSerializer
-import at.asitplus.wallet.lib.ktor.openid.RefreshTokenInfo
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
 import io.github.aakira.napier.Napier
@@ -40,7 +39,7 @@ class PersistentSubjectCredentialStore(
         vc: VerifiableCredentialJws,
         vcSerialized: String,
         scheme: ConstantIndex.CredentialScheme,
-        refreshToken: RefreshTokenInfo?
+        refreshToken: CredentialRenewalInfo?
     ) = SubjectCredentialStore.StoreEntry.Vc(
         vcSerialized,
         vc,
@@ -56,7 +55,7 @@ class PersistentSubjectCredentialStore(
         vcSerialized: String,
         disclosures: Map<String, SelectiveDisclosureItem?>,
         scheme: ConstantIndex.CredentialScheme,
-        refreshToken: RefreshTokenInfo?
+        refreshToken: CredentialRenewalInfo?
     ) = SubjectCredentialStore.StoreEntry.SdJwt(
         vcSerialized,
         vc,
@@ -70,7 +69,7 @@ class PersistentSubjectCredentialStore(
     override suspend fun storeCredential(
         issuerSigned: IssuerSigned,
         scheme: ConstantIndex.CredentialScheme,
-        refreshToken: RefreshTokenInfo?
+        refreshToken: CredentialRenewalInfo?
     ) = SubjectCredentialStore.StoreEntry.Iso(
         issuerSigned,
         scheme.schemaUri,

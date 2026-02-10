@@ -253,11 +253,11 @@ private fun WalletNavHost(
 
     if (!isOnRefreshCenter && items.size == 1) {
         val item = items.first()
-        if (!processedItemIds.contains(item.storeId)) {
+        if (!processedItemIds.contains(item.storeEntryId)) {
             RefreshConfirmationDialog(
                 entry = item.entry,
                 onConfirm = {
-                    processedItemIds = processedItemIds + item.storeId
+                    processedItemIds = processedItemIds + item.storeEntryId
                     walletMain.credentialValidityService.refreshSingleWithStatus(item)
                 },
                 onDismiss = {

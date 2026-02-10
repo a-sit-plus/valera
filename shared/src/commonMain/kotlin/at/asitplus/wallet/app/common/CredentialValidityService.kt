@@ -1,14 +1,20 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.button_clear_and_close
+import at.asitplus.valera.resources.error_no_refresh_token
+import at.asitplus.valera.resources.error_reissue_failed
+import at.asitplus.valera.resources.success_refreshed
+import at.asitplus.valera.resources.success_reissued
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
-import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineName
+import data.storage.StoreEntryId
+import data.storage.WalletSubjectCredentialStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,46 +22,37 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import org.multipaz.util.Platform.promptModel
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 class CredentialValidityService(
-    private val holderAgent: HolderAgent,
+    private val subjectCredentialStore: WalletSubjectCredentialStore,
     private val snackbarService: SnackbarService,
     private val provisioningService: ProvisioningService,
     private val errorService: ErrorService
 ) {
     private var job: Job? = null
-    val coroutineExceptionHandler = CoroutineExceptionHandler { _, error -> }
-    val scope =
-        CoroutineScope(
-            Dispatchers.Default + coroutineExceptionHandler + promptModel + CoroutineName(
-                "WalletMain"
-            )
-        )
+    val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
     private val _refreshItems = MutableStateFlow<List<RefreshItem>>(emptyList())
     val refreshItems: StateFlow<List<RefreshItem>> = _refreshItems.asStateFlow()
 
-    private fun entryId(item: RefreshItem): String = item.storeId.toString()
-
-    fun clearAllRefreshRequests() {
-        _refreshItems.value = emptyList()
-    }
+    fun clearAllRefreshRequests() { _refreshItems.value = emptyList() }
 
     fun removeRefreshRequest(item: RefreshItem) {
-        val id = entryId(item)
-        _refreshItems.update { list -> list.filterNot { entryId(it) == id } }
+        _refreshItems.update { list -> list.filterNot { it.storeEntryId == item.storeEntryId } }
     }
 
-    fun requestRefreshmentBatch(entriesWithIds: List<Pair<Long, SubjectCredentialStore.StoreEntry>>) {
-        _refreshItems.update { entriesWithIds.map { RefreshItem(storeId = it.first, entry = it.second) } }
+    fun requestRefreshmentBatch(entriesWithIds: List<Pair<StoreEntryId, SubjectCredentialStore.StoreEntry>>) {
+        _refreshItems.update { entriesWithIds.map { RefreshItem(storeEntryId = it.first, entry = it.second) } }
     }
 
     /**
      * Starts a periodic loop that checks for expired credentials.
      */
-    fun startChecking(interval: Duration = 40.seconds) {
+    fun startChecking(interval: Duration = 30.seconds) {
         job?.cancel()
 
         job = scope.launch {
@@ -68,24 +65,16 @@ class CredentialValidityService(
     }
 
     private suspend fun performCheck() {
-        val invalid = holderAgent.getInvalidCredentials()
+        val invalid = subjectCredentialStore.getInvalidCredentials()
         requestRefreshmentBatch(invalid)
     }
 
-    suspend fun startProvisioningAwait(
-        host: String,
-        credentialIdentifierInfo: CredentialIdentifierInfo
-    ): Boolean {
-        return try {
-            provisioningService.startProvisioningWithAuthRequest(
-                credentialIssuer = host,
-                credentialIdentifierInfo = credentialIdentifierInfo,
-            )
-            true
-        } catch (e: Throwable) {
-            errorService.emit(e)
-            false
-        }
+    suspend fun startProvisioning(host: String, credentialIdentifierInfo: CredentialIdentifierInfo): Boolean = try {
+        provisioningService.startProvisioningWithAuthRequest(host, credentialIdentifierInfo)
+        true
+    } catch (e: Throwable) {
+        errorService.emit(e)
+        false
     }
 
     /**
@@ -99,17 +88,16 @@ class CredentialValidityService(
      * Wraps core refresh logic with status updates for [ui.views.RefreshCredentialsView]
      */
     fun refreshSingleWithStatus(item: RefreshItem): Job = scope.launch {
-        val stableId = entryId(item)
         if (item.status == RefreshStatus.InProgress) return@launch
 
-        updateStatus(stableId, RefreshStatus.InProgress)
+        updateStatus(item.storeEntryId, RefreshStatus.InProgress)
 
-        val success = performRefreshLogic(item.entry, item.storeId)
+        val success = performRefreshLogic(item.entry, item.storeEntryId)
 
         if (success) {
-            updateStatus(stableId, RefreshStatus.Succeeded)
+            updateStatus(item.storeEntryId, RefreshStatus.Succeeded)
         } else {
-            updateStatus(stableId, RefreshStatus.Failed, "Refresh failed")
+            updateStatus(item.storeEntryId, RefreshStatus.Failed, "Refresh failed")
         }
     }
 
@@ -117,12 +105,12 @@ class CredentialValidityService(
         return try {
             val refreshToken = entry.refreshToken
             if (refreshToken == null) {
-                snackbarService.showSnackbar("No refresh token available for ${entry.scheme.uiLabelNonCompose()}")
+                snackbarService.showSnackbar(getString(Res.string.error_no_refresh_token), entry.scheme.uiLabelNonCompose())
                 return false
             }
 
             provisioningService.refreshCredential(refreshToken, storeId)
-            snackbarService.showSnackbar("Refreshed ${entry.scheme.uiLabelNonCompose()}")
+            snackbarService.showSnackbar(getString(Res.string.success_refreshed), entry.scheme.uiLabelNonCompose())
             true
         } catch (_: Exception) {
             handleReissueFallback(entry, storeId)
@@ -132,7 +120,7 @@ class CredentialValidityService(
     private suspend fun handleReissueFallback(entry: SubjectCredentialStore.StoreEntry, storeId: Long): Boolean {
         val rt = entry.refreshToken ?: return false
 
-        val ok = startProvisioningAwait(
+        val ok = startProvisioning(
             host = rt.issuerMetadata.credentialIssuer,
             credentialIdentifierInfo = CredentialIdentifierInfo(
                 issuerMetadata = rt.issuerMetadata,
@@ -142,26 +130,26 @@ class CredentialValidityService(
         )
 
         return if (ok) {
-            holderAgent.deleteCredential(storeId)
-            snackbarService.showSnackbar("${entry.scheme.uiLabelNonCompose()} re-issued")
+            subjectCredentialStore.removeStoreEntryById(storeId)
+            snackbarService.showSnackbar(getString(Res.string.success_reissued), entry.scheme.uiLabelNonCompose())
             true
         } else {
-            snackbarService.showSnackbar("Re-issue failed for ${entry.scheme.uiLabelNonCompose()}")
+            snackbarService.showSnackbar(getString(Res.string.error_reissue_failed), entry.scheme.uiLabelNonCompose())
             false
         }
     }
 
-    private fun updateStatus(id: String, status: RefreshStatus, error: String? = null) {
+    private fun updateStatus(id: Long, status: RefreshStatus, error: String? = null) {
         _refreshItems.update { list ->
             list.map { item ->
-                if (entryId(item) == id) item.copy(status = status, error = error) else item
+                if (item.storeEntryId == id) item.copy(status = status, error = error) else item
             }
         }
     }
 }
 
 data class RefreshItem(
-    val storeId: Long,
+    val storeEntryId: Long,
     val entry: SubjectCredentialStore.StoreEntry,
     val selected: Boolean = true,
     val status: RefreshStatus = RefreshStatus.Pending,
