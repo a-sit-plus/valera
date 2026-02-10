@@ -713,7 +713,7 @@ private fun WalletNavHost(
                         }
                         LoadCredentialViewModel.initFromDcApi(
                             walletMain = walletMain,
-                            navigateUp = navigateBack,
+                            navigateUp = { intentState.finishApp.invoke() },
                             offer = offer,
                             onSubmit = onSubmit,
                             onClickLogo = onClickLogo,
@@ -894,13 +894,12 @@ private fun WalletNavHost(
                     uri = backStackEntry.toRoute<DCAPICreationIntentRoute>().uri,
                     onSuccess = { route ->
                         Napier.d("valid creation request")
-                        navigateBack()
-                        navigate(route)
+                        navigateNewGraph(route)
                     },
                     onFailure = { e ->
                         val wrapped = ErrorHandlingOverrideException(
                             resetStackOverride = {
-                                intentState.finishApp?.invoke() ?: navigateBack()
+                                intentState.finishApp.invoke()
                             },
                             actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
                             onAcknowledge = (e as? DeferredErrorActionException)?.onAcknowledge,
