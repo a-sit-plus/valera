@@ -30,7 +30,7 @@ class CustomRegistry(
             }
 
         private fun loadIssuanceMatcher(context: Context): ByteArray =
-            context.assets.open("dcapimatcher_issuing.wasm").use { stream ->
+            context.assets.open("dcapimatcher_issuing_hardcoded.wasm").use { stream ->
                 ByteArray(stream.available()).apply {
                     stream.read(this)
                 }
