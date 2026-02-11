@@ -1,7 +1,6 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.button_clear_and_close
 import at.asitplus.valera.resources.error_no_refresh_token
 import at.asitplus.valera.resources.error_reissue_failed
 import at.asitplus.valera.resources.success_refreshed
@@ -23,7 +22,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
-import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -69,8 +67,8 @@ class CredentialValidityService(
         requestRefreshmentBatch(invalid)
     }
 
-    suspend fun startProvisioning(host: String, credentialIdentifierInfo: CredentialIdentifierInfo): Boolean = try {
-        provisioningService.startProvisioningWithAuthRequest(host, credentialIdentifierInfo)
+    suspend fun startProvisioningForReissuance(host: String, credentialIdentifierInfo: CredentialIdentifierInfo, reissuingStoreEntryId: StoreEntryId): Boolean = try {
+        provisioningService.startProvisioningWithAuthRequest(host, credentialIdentifierInfo, reissuingStoreEntryId)
         true
     } catch (e: Throwable) {
         errorService.emit(e)
@@ -92,54 +90,48 @@ class CredentialValidityService(
 
         updateStatus(item.storeEntryId, RefreshStatus.InProgress)
 
-        val success = performRefreshLogic(item.entry, item.storeEntryId)
-
-        if (success) {
-            updateStatus(item.storeEntryId, RefreshStatus.Succeeded)
-        } else {
-            updateStatus(item.storeEntryId, RefreshStatus.Failed, "Refresh failed")
-        }
+        val status = performRefreshLogic(item.entry, item.storeEntryId)
+        updateStatus(item.storeEntryId, status)
     }
 
-    private suspend fun performRefreshLogic(entry: SubjectCredentialStore.StoreEntry, storeId: Long): Boolean {
+    private suspend fun performRefreshLogic(entry: SubjectCredentialStore.StoreEntry, storeId: Long): RefreshStatus {
         return try {
             val refreshToken = entry.refreshToken
             if (refreshToken == null) {
                 snackbarService.showSnackbar(getString(Res.string.error_no_refresh_token), entry.scheme.uiLabelNonCompose())
-                return false
+                return RefreshStatus.Failed
             }
 
             provisioningService.refreshCredential(refreshToken, storeId)
             snackbarService.showSnackbar(getString(Res.string.success_refreshed), entry.scheme.uiLabelNonCompose())
-            true
+            RefreshStatus.Succeeded
         } catch (_: Exception) {
             handleReissueFallback(entry, storeId)
         }
     }
 
-    private suspend fun handleReissueFallback(entry: SubjectCredentialStore.StoreEntry, storeId: Long): Boolean {
-        val rt = entry.refreshToken ?: return false
+    private suspend fun handleReissueFallback(entry: SubjectCredentialStore.StoreEntry, storeId: Long): RefreshStatus {
+        val rt = entry.refreshToken ?: return RefreshStatus.Failed
 
-        val ok = startProvisioning(
+        val ok = startProvisioningForReissuance(
             host = rt.issuerMetadata.credentialIssuer,
             credentialIdentifierInfo = CredentialIdentifierInfo(
                 issuerMetadata = rt.issuerMetadata,
                 credentialIdentifier = rt.credentialIdentifier,
                 supportedCredentialFormat = rt.credentialFormat
-            )
+            ),
+            reissuingStoreEntryId = storeId
         )
 
-        return if (ok) {
-            subjectCredentialStore.removeStoreEntryById(storeId)
-            snackbarService.showSnackbar(getString(Res.string.success_reissued), entry.scheme.uiLabelNonCompose())
-            true
-        } else {
+        return if (!ok) {
             snackbarService.showSnackbar(getString(Res.string.error_reissue_failed), entry.scheme.uiLabelNonCompose())
-            false
+            RefreshStatus.Failed
+        } else {
+            RefreshStatus.InProgress
         }
     }
 
-    private fun updateStatus(id: Long, status: RefreshStatus, error: String? = null) {
+    fun updateStatus(id: Long, status: RefreshStatus, error: String? = null) {
         _refreshItems.update { list ->
             list.map { item ->
                 if (item.storeEntryId == id) item.copy(status = status, error = error) else item

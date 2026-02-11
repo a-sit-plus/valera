@@ -145,12 +145,14 @@ class ProvisioningService(
     suspend fun startProvisioningWithAuthRequest(
         credentialIssuer: String,
         credentialIdentifierInfo: CredentialIdentifierInfo,
+        reissuingStoreEntryId: StoreEntryId? = null
     ) {
         config.set(host = credentialIssuer)
         cookieStorage.reset()
         openId4VciClient().startProvisioningWithAuthRequestReturningResult(
             credentialIssuer,
-            credentialIdentifierInfo
+            credentialIdentifierInfo,
+            reissuingStoreEntryId
         ).getOrThrow().run {
             storeContextOpenIntent()
         }
@@ -173,19 +175,24 @@ class ProvisioningService(
      * Called after getting the redirect back from ID Austria to the Issuing Service
      */
     @Throws(Throwable::class)
-    suspend fun resumeWithAuthCode(redirectedUrl: String) {
+    suspend fun resumeWithAuthCode(redirectedUrl: String, statusUpdater: ((Long, RefreshStatus) -> Unit)? = null) {
         Napier.d("handleResponse with $redirectedUrl")
         dataStoreService.getPreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
             .firstOrNull()
             ?.let {
                 vckJsonSerializer.decodeFromString<ProvisioningContext>(it)
                     .also { dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT) }
-            }?.let {
-                openId4VciClient().resumeWithAuthCode(redirectedUrl, it).getOrThrow().also { result ->
+            }?.let { context ->
+                openId4VciClient().resumeWithAuthCode(redirectedUrl, context).getOrThrow().also { result ->
                     result.credentials.forEach { cred ->
                         holderAgent.storeCredential(cred, result.refreshToken).onFailure { ex ->
                             Napier.e("storeCredential failed", ex)
                         }
+                    }
+                    context.reissuingStoreEntryId?.let {
+                        subjectCredentialStore.removeStoreEntryById(it)
+                        Napier.i("Deleted old credential after successful reissuance")
+                        statusUpdater?.invoke(it, RefreshStatus.Succeeded)
                     }
                 }
             }
@@ -195,8 +202,9 @@ class ProvisioningService(
         Napier.d("refreshCredential with identifier ${refreshTokenInfo.credentialIdentifier}")
         val result = openId4VciClient().refreshCredentialReturningResult(refreshTokenInfo).getOrThrow()
         result.credentials.forEach { credentialInput ->
-            holderAgent.storeCredential(credentialInput, result.refreshToken)
-            subjectCredentialStore.removeStoreEntryById(oldCredentialId)
+            holderAgent.storeCredential(credentialInput, result.refreshToken).onSuccess {
+                subjectCredentialStore.removeStoreEntryById(oldCredentialId)
+            }
         }
     }
 
