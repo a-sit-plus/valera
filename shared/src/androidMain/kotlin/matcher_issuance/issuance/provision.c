@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <unistd.h>
 #include "cJSON.h"
@@ -17,6 +18,8 @@
 
 #define PROTOCOL_OPENID4VCI "openid4vci1.0"
 #define PROTOCOL_OPENID4VCI_V1 "openid4vci-v1"
+
+#define ALLOW_ALL true
 
 cJSON* GetDCRequestJson() {
     uint32_t request_size;
@@ -73,7 +76,7 @@ int main() {uint32_t credentials_size;
             cJSON* credential_issuer = cJSON_GetObjectItem(cred_offer, "credential_issuer");
         
             cJSON* capabilities = cJSON_GetObjectItem(creds, "capabilities");
-            if(capabilities == NULL || cJSON_HasObjectItem(capabilities, cJSON_GetStringValue(credential_issuer))) {
+            if(capabilities == NULL || cJSON_HasObjectItem(capabilities, cJSON_GetStringValue(credential_issuer)) || ALLOW_ALL) {
                 cJSON* display = cJSON_GetObjectItem(creds, "display");
                 cJSON* icon = cJSON_GetObjectItem(display, "icon");
                 int icon_start_int = 0;
