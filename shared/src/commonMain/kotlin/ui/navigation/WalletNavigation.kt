@@ -195,7 +195,6 @@ fun WalletNavigation(
     }
 
     val returnToHome: () -> Unit = {
-        Exception().printStackTrace()
         CoroutineScope(Dispatchers.Main).launch {
             if (hasHomeScreenInBackStack()) {
                 popBackStack(HomeScreenRoute)
