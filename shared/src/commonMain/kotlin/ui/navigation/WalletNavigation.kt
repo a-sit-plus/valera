@@ -101,10 +101,12 @@ fun WalletNavigation(
     }
 
     val navigateBack: () -> Unit = {
-        Exception().printStackTrace()
         CoroutineScope(Dispatchers.Main).launch {
             Napier.d("Navigate back")
-            navController.navigateUp()
+            val navigated = navController.navigateUp()
+            if (!navigated) {
+                Napier.w("Navigate up failed")
+            }
         }
     }
 
