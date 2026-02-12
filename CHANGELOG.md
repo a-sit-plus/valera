@@ -4,6 +4,7 @@
  * Support URL scheme `av` for age verification
  * Use vck serializers for DC API
  * DC API: Support requests with multiple protocols
+ * Add: Support presentation for general DCQL queries
  
 # Release 5.7.5
  * Update to VC-K 5.10.1

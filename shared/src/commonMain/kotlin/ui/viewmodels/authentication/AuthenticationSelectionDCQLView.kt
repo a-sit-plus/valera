@@ -126,7 +126,7 @@ fun AuthenticationSelectionDCQLView(
                             val id = DCQLCredentialQueryIdentifier(
                                 orderedCredentialQueryIdentifiers[index]
                             )
-                            id to credentialQueryOptions[id]!![it!!]
+                            id to listOf(credentialQueryOptions[id]!![it!!])
                         }.toMap()
                     )
                 )

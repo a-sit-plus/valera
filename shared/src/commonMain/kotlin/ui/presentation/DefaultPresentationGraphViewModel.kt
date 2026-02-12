@@ -5,8 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import at.asitplus.catching
-import at.asitplus.dcapi.DCAPIResponse
-import at.asitplus.openid.OpenIdConstants
+import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
@@ -25,7 +24,6 @@ import ui.viewmodels.authentication.CredentialPresentationSubmissions
 import ui.viewmodels.authentication.DCQLCredentialSubmissions
 import ui.viewmodels.authentication.PresentationExchangeCredentialSubmissions
 
-// TODO: what to do about abstract finalizationMethod?
 class DefaultPresentationGraphViewModel(
     savedStateHandle: SavedStateHandle,
     private val walletMain: WalletMain,
@@ -34,10 +32,10 @@ class DefaultPresentationGraphViewModel(
 
     val dcApiRequest = catching {
         when (val request = route.authorizationResponsePreparationState.request) {
-            is RequestParametersFrom.DcApiSigned<*> -> request.dcApiRequest
-            is RequestParametersFrom.DcApiUnsigned<*> -> request.dcApiRequest
+            is RequestParametersFrom.DcApiSigned -> request.dcApiRequest
+            is RequestParametersFrom.DcApiUnsigned -> request.dcApiRequest
             else -> null
-        }
+        } as? DCAPIWalletRequest
     }
 
     val matchingResult = MutableStateFlow<UiState<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>>>(
@@ -96,34 +94,24 @@ class DefaultPresentationGraphViewModel(
         return finalizationMethod(credentialPresentation)
     }
 
-    private suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpWallet.AuthenticationSuccess {
+    private suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpWallet.AuthenticationResult {
         val authenticationResult = walletMain.presentationService.finalizeAuthorizationResponse(
             credentialPresentation = credentialPresentation,
             preparationState = route.authorizationResponsePreparationState
         )
         return when (authenticationResult) {
-            is OpenId4VpWallet.AuthenticationForward -> {
-                val isEncryptedResponse =
-                    route.authenticationRequest.parameters.responseMode == OpenIdConstants.ResponseMode.DcApiJwt
-                finalizeDcApi(authenticationResult, isEncryptedResponse)
-            }
-
+            is OpenId4VpWallet.AuthenticationForward -> finalizeDcApi(authenticationResult)
             is OpenId4VpWallet.AuthenticationSuccess -> authenticationResult
         }
     }
 
     private fun finalizeDcApi(
         authenticationResult: OpenId4VpWallet.AuthenticationForward,
-        isEncryptedResponse: Boolean,
-    ): OpenId4VpWallet.AuthenticationSuccess {
-        authenticationResult.authenticationResponseResult.params.response?.let {
-            // TODO no response json required for non-encrypted case?
-            // at least https://digital-credentials.dev/ only works without it
-            val response = if (isEncryptedResponse)
-                vckJsonSerializer.encodeToString(DCAPIResponse.createOid4vpResponse(it))
-            else it
-            walletMain.presentationService.finalizeOid4vpDCAPIPresentation(response)
-        } ?: throw IllegalArgumentException("Not response has been generated")
+    ): OpenId4VpWallet.AuthenticationResult {
+        authenticationResult.authenticationResponseResult.params.let {
+            val serializedResponse = vckJsonSerializer.encodeToString(it)
+            walletMain.presentationService.finalizeOid4vpDCAPIPresentation(serializedResponse)
+        }
         return OpenId4VpWallet.AuthenticationSuccess()
     }
 }

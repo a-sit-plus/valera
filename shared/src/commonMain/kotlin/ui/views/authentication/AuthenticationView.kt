@@ -73,11 +73,9 @@ fun AuthenticationView(
                         onClickLogo = vm.onClickLogo,
                         onClickSettings = vm.onClickSettings,
                         vm = AuthenticationSelectionPresentationExchangeViewModel(
-                            walletMain = vm.walletMain,
                             confirmSelections = { selections -> vm.confirmSelection(selections) },
                             navigateUp = { vm.viewState = AuthenticationViewState.Consent },
-                            credentialMatchingResult = matching,
-                            navigateToHomeScreen = vm.navigateToHomeScreen
+                            credentialMatchingResult = matching
                         ),
                         onError = onError,
                     )
