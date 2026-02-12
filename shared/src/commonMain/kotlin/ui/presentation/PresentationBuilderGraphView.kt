@@ -97,14 +97,22 @@ fun PresentationBuilderGraphView(
                     }
                     // TODO: requires newer vck version for list of submissions per id
                     onSubmit(
-                        DCQLCredentialSubmissions(submissions.mapValues {
-                            it.value.first()
-                        })
+                        DCQLCredentialSubmissions(submissions)
                     )
                 }
             )
 
-            is PresentationExchangeMatchingResult -> PresentationExchangePresentationBuilderGraphView(matchingResult.value)
+            is PresentationExchangeMatchingResult -> PresentationExchangePresentationBuilderGraphView(
+                authenticateAtRelyingParty = authenticateAtRelyingParty,
+                serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
+                serviceProviderLocalizedName = serviceProviderLocalizedName,
+                onClickLogo = onClickLogo,
+                onClickSettings = onClickSettings,
+                matchingResult = matchingResult.value,
+                onError = onError,
+                onNavigateUp = onNavigateToPresentationStart,
+                onSubmit = onSubmit,
+            )
         }
     }
 }

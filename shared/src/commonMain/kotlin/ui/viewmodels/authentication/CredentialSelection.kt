@@ -8,7 +8,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 sealed interface CredentialPresentationSubmissions<Credential: Any>
 
 data class DCQLCredentialSubmissions<Credential: Any>(
-    val credentialQuerySubmissions: Map<DCQLCredentialQueryIdentifier, DCQLCredentialSubmissionOption<Credential>>?,
+    val credentialQuerySubmissions: Map<DCQLCredentialQueryIdentifier, List<DCQLCredentialSubmissionOption<Credential>>>?,
 ) : CredentialPresentationSubmissions<Credential>
 
 data class PresentationExchangeCredentialSubmissions(
