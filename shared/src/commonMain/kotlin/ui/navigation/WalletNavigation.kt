@@ -1,7 +1,6 @@
 package ui.navigation
 
 import AppTestTags
-import DeferredErrorActionException
 import ErrorHandlingOverrideException
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -423,7 +422,7 @@ private fun WalletNavHost(
         composable<AuthenticationViewRoute> { backStackEntry ->
             val route: AuthenticationViewRoute = backStackEntry.toRoute()
             val navigateUpFromAuth = if (shouldFinishToCaller()) {
-                { intentState.finishApp?.invoke() ?: navigateBack() }
+                { intentState.finishApp.invoke() }
             } else {
                 navigateBack
             }
@@ -470,7 +469,7 @@ private fun WalletNavHost(
 
         composable<DCAPIAuthenticationConsentRoute> { backStackEntry ->
             val navigateUpFromAuth = if (shouldFinishToCaller()) {
-                { intentState.finishApp?.invoke() ?: navigateBack() }
+                { intentState.finishApp.invoke() }
             } else {
                 navigateBack
             }
@@ -549,7 +548,7 @@ private fun WalletNavHost(
 
         composable<AuthenticationSuccessRoute> { backStackEntry ->
             val navigateUpFromSuccess = if (shouldFinishToCaller()) {
-                { intentState.finishApp?.invoke() ?: navigateBack() }
+                { intentState.finishApp.invoke() }
             } else {
                 navigateBack
             }
@@ -773,17 +772,20 @@ private fun WalletNavHost(
         composable<ErrorRoute> { backStackEntry ->
             walletMain.errorService.error.collectAsState(null).value?.let {
                 catchingUnwrapped {
-                    val throwable = if (it.throwable is ErrorHandlingOverrideException) {
-                        it.throwable
-                    } else if (shouldFinishToCaller()) {
-                        ErrorHandlingOverrideException(
-                            resetStackOverride = {
-                                intentState.finishApp?.invoke() ?: navigateBack()
-                            },
-                            actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
-                            onAcknowledge = (it.throwable as? DeferredErrorActionException)?.onAcknowledge,
-                            cause = it.throwable
-                        )
+                    val throwable = if (shouldFinishToCaller()) {
+                        val existingOverride = it.throwable as? ErrorHandlingOverrideException
+                        if (existingOverride?.hasUiOverride == true) {
+                            existingOverride
+                        } else {
+                            ErrorHandlingOverrideException(
+                                resetStackOverride = {
+                                    intentState.finishApp.invoke()
+                                },
+                                actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
+                                onAcknowledge = existingOverride?.onAcknowledge,
+                                cause = existingOverride?.cause ?: it.throwable
+                            )
+                        }
                     } else {
                         it.throwable
                     }
@@ -877,11 +879,11 @@ private fun WalletNavHost(
                     onFailure = { e ->
                         val wrapped = ErrorHandlingOverrideException(
                             resetStackOverride = {
-                                intentState.finishApp?.invoke() ?: navigateBack()
+                                intentState.finishApp.invoke()
                             },
                             actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
-                            onAcknowledge = (e as? DeferredErrorActionException)?.onAcknowledge,
-                            cause = e
+                            onAcknowledge = (e as? ErrorHandlingOverrideException)?.onAcknowledge,
+                            cause = (e as? ErrorHandlingOverrideException)?.cause ?: e
                         )
                         walletMain.errorService.emit(wrapped)
                     })
@@ -903,8 +905,8 @@ private fun WalletNavHost(
                                 intentState.finishApp.invoke()
                             },
                             actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
-                            onAcknowledge = (e as? DeferredErrorActionException)?.onAcknowledge,
-                            cause = e
+                            onAcknowledge = (e as? ErrorHandlingOverrideException)?.onAcknowledge,
+                            cause = (e as? ErrorHandlingOverrideException)?.cause ?: e
                         )
                         walletMain.errorService.emit(wrapped)
                     })

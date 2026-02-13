@@ -73,7 +73,9 @@ actual fun getColorScheme(): ColorScheme {
     }
 }
 
-private val iosIntentState = IntentState()
+private val iosIntentState = IntentState().apply {
+    finishApp = { }
+}
 
 object MdocSessionManager {
     // TODO check if correct credentials are shown without credentialId set (and check behaviour on Android, should only show the one credential selected by the user)

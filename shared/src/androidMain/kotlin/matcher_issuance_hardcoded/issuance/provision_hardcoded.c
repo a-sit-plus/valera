@@ -49,7 +49,7 @@ int main() {
     printf("Adding hardcoded entry\n");
     char *icon_start = _launcher_icon_png;
 
-    AddStringIdEntry("0", icon_start, sizeof(_launcher_icon_png), "Valera", "Save this credential in Valera", NULL, NULL);
+    AddStringIdEntry("0", icon_start, sizeof(_launcher_icon_png), "Valera", "Store this credential in Valera", NULL, NULL);
 
 	return 0;
 }
