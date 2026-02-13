@@ -11,25 +11,21 @@ import org.koin.core.scope.Scope
 @ExperimentalComposeUiApi
 @ExperimentalMaterial3Api
 @Composable
-fun DefaultPresentationGraphView(
+fun DCAPIPresentationGraphView(
     onNavigateUp: () -> Unit,
     onError: (Throwable) -> Unit,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
     koinScope: Scope,
-    viewModel: DefaultPresentationGraphViewModel = koinViewModel(scope = koinScope),
+    viewModel: DCAPIPresentationGraphViewModel = koinViewModel(scope = koinScope),
 ) {
-    val dcApiRequest = try {
-        viewModel.dcApiRequest.getOrThrow()
-    } catch (throwable: Throwable) {
-        onError(throwable)
-        return
+    val isoMdocRequest = try {
+        viewModel.dcApiWalletRequest.getOrThrow()
+    } catch (it: Throwable) {
+        return onError(it)
     }
-
-    val spLocation = dcApiRequest?.callingOrigin ?: viewModel.route.recipientLocation
-    val spName = dcApiRequest?.callingPackageName
-//    val authenticationRequest = viewModel.route.authenticationRequest
-//    val transactionData = authenticationRequest.parameters.transactionData?.firstOrNull()
+    val spName = isoMdocRequest.callingPackageName
+    val spLocation = isoMdocRequest.callingOrigin
 
     val authenticateAtRelyingParty = spLocation != "Local Presentation"
 
@@ -43,7 +39,9 @@ fun DefaultPresentationGraphView(
         onError = onError,
         onClickSettings = onClickSettings,
         onClickLogo = onClickLogo,
-        matchingResult = matchingResult,
+        matchingResult = matchingResult.map {
+            it.second
+        },
         submitPresentation = SubmitPresentation { it, navigate ->
             viewModel.confirmSelection(
                 credentialPresentationSubmissions = it,
@@ -52,7 +50,7 @@ fun DefaultPresentationGraphView(
                     navigate(
                         PresentationSuccessRoute(
                             redirectUrl = it.redirectUri,
-                            isCrossDeviceFlow = viewModel.route.isCrossDeviceFlow,
+                            isCrossDeviceFlow = false,
                         )
                     )
                 }
@@ -60,6 +58,3 @@ fun DefaultPresentationGraphView(
         },
     )
 }
-
-
-

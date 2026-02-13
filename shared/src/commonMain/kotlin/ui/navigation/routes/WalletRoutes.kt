@@ -127,32 +127,12 @@ data class AuthenticationViewRoute(
 }
 
 @Serializable
-data class DefaultPresentationGraphRoute(
-    val authenticationRequestParametersFromSerialized: String,
-    val authorizationPreparationStateSerialized: String,
-    val recipientLocation: String,
-    val isCrossDeviceFlow: Boolean,
-) : Route() {
-    constructor(
-        authenticationRequest: RequestParametersFrom<AuthenticationRequestParameters>,
-        authorizationResponsePreparationState: AuthorizationResponsePreparationState,
-        recipientLocation: String,
-        isCrossDeviceFlow: Boolean,
-    ) : this(
-        authenticationRequestParametersFromSerialized = vckJsonSerializer.encodeToString(authenticationRequest),
-        authorizationPreparationStateSerialized = vckJsonSerializer.encodeToString(authorizationResponsePreparationState),
-        recipientLocation = recipientLocation,
-        isCrossDeviceFlow
-    )
-
-    val authenticationRequest: RequestParametersFrom<AuthenticationRequestParameters>
-        get() = vckJsonSerializer.decodeFromString(authenticationRequestParametersFromSerialized)
-    val authorizationResponsePreparationState: AuthorizationResponsePreparationState
-        get() = vckJsonSerializer.decodeFromString(authorizationPreparationStateSerialized)
-}
+data class DCAPIAuthenticationConsentRoute(
+    val apiRequestSerialized: String
+) : Route()
 
 @Serializable
-data class DCAPIAuthenticationConsentRoute(
+data class DCAPIPresentationViewRoute(
     val apiRequestSerialized: String
 ) : Route()
 

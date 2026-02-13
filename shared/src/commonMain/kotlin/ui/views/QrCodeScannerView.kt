@@ -39,6 +39,7 @@ fun QrCodeScannerView(
                 stringResource(Res.string.heading_label_authenticate_at_device_title),
                 stringResource(Res.string.heading_label_authenticate_at_device_subtitle)
             )
+
             QrCodeScannerMode.PROVISIONING -> Pair(
                 stringResource(Res.string.heading_label_authenticate_at_device_title),
                 null
@@ -53,8 +54,14 @@ fun QrCodeScannerView(
                 isLoading = true
                 vm.onQrScanned(
                     payload,
-                    onSuccess = onNavigateToRoute,
-                    onFailure = onError,
+                    onSuccess = {
+                        onNavigateToRoute(it)
+                        isLoading = false
+                    },
+                    onFailure = {
+                        onError(it)
+                        isLoading = false
+                    },
                 )
             },
             onClickLogo = onClickLogo,

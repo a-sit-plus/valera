@@ -6,47 +6,62 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import at.asitplus.catching
 import at.asitplus.dcapi.request.DCAPIWalletRequest
-import at.asitplus.openid.RequestParametersFrom
+import at.asitplus.dif.PresentationDefinition
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.toDifInputDescriptorList
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.CredentialMatchingResult
+import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
-import ui.navigation.routes.AuthenticationViewRoute
+import ui.navigation.routes.DCAPIAuthenticationConsentRoute
 import ui.viewmodels.authentication.CredentialPresentationSubmissions
 import ui.viewmodels.authentication.DCQLCredentialSubmissions
 import ui.viewmodels.authentication.PresentationExchangeCredentialSubmissions
 
-class DefaultPresentationGraphViewModel(
+class DCAPIPresentationGraphViewModel(
     savedStateHandle: SavedStateHandle,
     private val walletMain: WalletMain,
 ) : ViewModel() {
-    val route = savedStateHandle.toRoute<AuthenticationViewRoute>()
+    val route = savedStateHandle.toRoute<DCAPIAuthenticationConsentRoute>()
 
-    val dcApiRequest = catching {
-        when (val request = route.authorizationResponsePreparationState.request) {
-            is RequestParametersFrom.DcApiSigned -> request.dcApiRequest
-            is RequestParametersFrom.DcApiUnsigned -> request.dcApiRequest
-            else -> null
-        } as? DCAPIWalletRequest
+    val apiRequestSerialized = route.apiRequestSerialized
+
+    val dcApiWalletRequest = catching {
+        vckJsonSerializer.decodeFromString<DCAPIWalletRequest.IsoMdoc>(apiRequestSerialized)
     }
 
-    val matchingResult = MutableStateFlow<UiState<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>>>(
+    val matchingResult = MutableStateFlow<UiState<Pair<DCAPIWalletRequest.IsoMdoc, CredentialMatchingResult<SubjectCredentialStore.StoreEntry>>>>(
         UiStateLoading
     ).apply {
         viewModelScope.launch {
             value = try {
+                val unwrappedDcApiWalletRequest = dcApiWalletRequest.getOrThrow()
+                val descriptors = unwrappedDcApiWalletRequest.isoMdocRequest.deviceRequest.docRequests.toDifInputDescriptorList()
+                val presentationRequest = CredentialPresentationRequest.PresentationExchangeRequest(
+                    presentationDefinition = PresentationDefinition(
+                        inputDescriptors = descriptors
+                    )
+                )
                 UiStateSuccess(
-                    walletMain.presentationService.getMatchingCredentials(
-                        preparationState = route.authorizationResponsePreparationState
-                    ).getOrThrow()
+                    unwrappedDcApiWalletRequest to PresentationExchangeMatchingResult(
+                        presentationRequest = CredentialPresentationRequest.PresentationExchangeRequest(
+                            presentationDefinition = PresentationDefinition(
+                                inputDescriptors = presentationRequest.presentationDefinition.inputDescriptors,
+                            )
+                        ),
+                        matchingInputDescriptorCredentials = walletMain.holderAgent.matchInputDescriptorsAgainstCredentialStore(
+                            inputDescriptors = presentationRequest.presentationDefinition.inputDescriptors,
+                            fallbackFormatHolder = null,
+                        ).getOrThrow()
+                    )
                 )
             } catch (it: Throwable) {
                 UiStateError(it)
@@ -59,8 +74,8 @@ class DefaultPresentationGraphViewModel(
         onSuccess: (OpenId4VpWallet.AuthenticationSuccess) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-        val matchingResult = matchingResult.value as? UiStateSuccess ?: return
-        val presentationRequest = matchingResult.value.presentationRequest
+        val (request, matchingResult) = (matchingResult.value as? UiStateSuccess)?.value ?: return
+        val presentationRequest = matchingResult.presentationRequest
         val presentation = try {
             when (credentialPresentationSubmissions) {
                 is DCQLCredentialSubmissions -> CredentialPresentation.DCQLPresentation(
@@ -78,7 +93,10 @@ class DefaultPresentationGraphViewModel(
         }
         viewModelScope.launch {
             try {
-                val result = finalizeAuthorization(presentation)
+                val result = finalizeAuthorization(
+                    credentialPresentation = presentation,
+                    request = request,
+                )
                 onSuccess(result)
             } catch (it: Throwable) {
                 onFailure(it)
@@ -87,34 +105,25 @@ class DefaultPresentationGraphViewModel(
     }
 
     private suspend fun finalizeAuthorization(
-        credentialPresentation: CredentialPresentation
+        credentialPresentation: CredentialPresentation,
+        request: DCAPIWalletRequest.IsoMdoc
     ): OpenId4VpWallet.AuthenticationSuccess {
         walletMain.keyMaterial.promptText =
             getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
-        return finalizationMethod(credentialPresentation)
-    }
-
-    private suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpWallet.AuthenticationSuccess {
-        val authenticationResult = walletMain.presentationService.finalizeAuthorizationResponse(
-            credentialPresentation = credentialPresentation,
-            preparationState = route.authorizationResponsePreparationState
+        return finalizationMethod(
+            credentialPresentation,
+            request = request,
         )
-        return when (authenticationResult) {
-            is OpenId4VpWallet.AuthenticationForward -> finalizeDcApi(authenticationResult)
-            is OpenId4VpWallet.AuthenticationSuccess -> authenticationResult
-        }
     }
 
-    private fun finalizeDcApi(
-        authenticationResult: OpenId4VpWallet.AuthenticationForward,
-    ): OpenId4VpWallet.AuthenticationSuccess {
-        authenticationResult.authenticationResponseResult.params.let {
-            val serializedResponse = vckJsonSerializer.encodeToString(it)
-            walletMain.presentationService.finalizeOid4vpDCAPIPresentation(serializedResponse)
-        }
-        return OpenId4VpWallet.AuthenticationSuccess()
-    }
+    private suspend fun finalizationMethod(
+        credentialPresentation: CredentialPresentation,
+        request: DCAPIWalletRequest.IsoMdoc
+    ): OpenId4VpWallet.AuthenticationSuccess = walletMain.presentationService.finalizeDCAPIIsoMdocPresentation(
+        credentialPresentation = when (credentialPresentation) {
+            is CredentialPresentation.PresentationExchangePresentation -> credentialPresentation
+            else -> throw IllegalArgumentException()
+        },
+        isoMdocWalletRequest = request,
+    )
 }
-
-
-

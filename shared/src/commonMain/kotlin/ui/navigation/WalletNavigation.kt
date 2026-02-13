@@ -29,7 +29,6 @@ import androidx.navigation.toRoute
 import at.asitplus.catching
 import at.asitplus.catchingUnwrapped
 import at.asitplus.dcapi.request.DCAPIWalletRequest
-import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
 import at.asitplus.wallet.app.common.ErrorService
@@ -53,9 +52,9 @@ import ui.composables.BottomBar
 import ui.composables.NavigationData
 import ui.navigation.routes.*
 import ui.navigation.routes.RoutePrerequisites.CRYPTO
+import ui.presentation.DCAPIPresentationGraphView
 import ui.presentation.DefaultPresentationGraphView
 import ui.viewmodels.*
-import ui.viewmodels.authentication.DefaultAuthenticationViewModel
 import ui.viewmodels.authentication.NewDCAPIAuthenticationViewModel
 import ui.viewmodels.authentication.PresentationViewModel
 import ui.viewmodels.intents.*
@@ -348,12 +347,9 @@ private fun WalletNavHost(
             )
         }
 
-        composable<DefaultPresentationGraphRoute> {
+        composable<AuthenticationViewRoute> {
             DefaultPresentationGraphView(
-                onError = {
-                    walletMain.errorService.emit(it)
-                    popBackStack(HomeScreenRoute)
-                },
+                onError = onError,
                 onClickLogo = onClickLogo,
                 onClickSettings = {
                     navigate(SettingsRoute)
@@ -365,86 +361,18 @@ private fun WalletNavHost(
             )
         }
 
-        composable<AuthenticationViewRoute> { backStackEntry ->
-            val route: AuthenticationViewRoute = backStackEntry.toRoute()
-
-            val vm = remember {
-                try {
-                    val dcApiRequest = when (val request = route.authorizationResponsePreparationState.request) {
-                        is RequestParametersFrom.DcApiSigned<*> -> request.dcApiRequest
-                        is RequestParametersFrom.DcApiUnsigned<*> -> request.dcApiRequest
-                        else -> null
-                    }
-                    val spLocation = dcApiRequest?.callingOrigin ?: route.recipientLocation
-
-                    DefaultAuthenticationViewModel(
-                        spName = dcApiRequest?.callingPackageName,
-                        spLocation = spLocation,
-                        spImage = null,
-                        authenticationRequest = route.authenticationRequest,
-                        preparationState = route.authorizationResponsePreparationState,
-                        navigateUp = navigateBack,
-                        navigateToAuthenticationSuccessPage = {
-                            navigate(AuthenticationSuccessRoute(it, route.isCrossDeviceFlow))
-                        },
-                        navigateToHomeScreen = {
-                            popBackStack(HomeScreenRoute)
-                        },
-                        walletMain = walletMain,
-                        onClickLogo = onClickLogo,
-                        onClickSettings = { navigate(SettingsRoute) },
-                    )
-                } catch (e: Throwable) {
+        composable<DCAPIPresentationViewRoute> {
+            DCAPIPresentationGraphView(
+                onError = onError,
+                onClickLogo = onClickLogo,
+                onClickSettings = {
+                    navigate(SettingsRoute)
+                },
+                koinScope = koinScope,
+                onNavigateUp = {
                     popBackStack(HomeScreenRoute)
-                    walletMain.errorService.emit(e)
-                    null
-                }
-            }
-
-            if (vm != null) {
-                AuthenticationView(
-                    vm = vm,
-                    onError = onError,
-                )
-            }
-        }
-
-        composable<DCAPIAuthenticationConsentRoute> { backStackEntry ->
-            val vm = remember {
-                try {
-                    val apiRequestSerialized =
-                        backStackEntry.toRoute<DCAPIAuthenticationConsentRoute>().apiRequestSerialized
-                    val dcApiWalletRequest: DCAPIWalletRequest.IsoMdoc = catching {
-                        vckJsonSerializer.decodeFromString<DCAPIWalletRequest.IsoMdoc>(apiRequestSerialized)
-                    }.getOrThrow()
-
-                    NewDCAPIAuthenticationViewModel(
-                        isoMdocRequest = dcApiWalletRequest,
-                        navigateUp = navigateBack,
-                        navigateToAuthenticationSuccessPage = {
-                            navigate(AuthenticationSuccessRoute(it, false))
-                        },
-                        walletMain = walletMain,
-                        navigateToHomeScreen = {
-                            popBackStack(HomeScreenRoute)
-                        },
-                        onClickLogo = onClickLogo,
-                        onClickSettings = { navigate(SettingsRoute) }
-                    ).also { it.initWithDeviceRequest(dcApiWalletRequest.isoMdocRequest.deviceRequest) }
-
-                } catch (e: Throwable) {
-                    Napier.e("error", e)
-                    onError(e)
-                    null
-                }
-            }
-
-            if (vm != null) {
-                AuthenticationView(
-                    vm = vm,
-                    onError = onError,
-                )
-            }
+                },
+            )
         }
 
         composable<LocalPresentationAuthenticationConsentRoute> { backStackEntry ->
@@ -488,8 +416,7 @@ private fun WalletNavHost(
             AuthenticationSuccessView(
                 navigateUp = navigateBack,
                 onClickLogo = onClickLogo,
-                onClickSettings = { navigate(SettingsRoute) },
-                koinScope = koinScope
+                onClickSettings = { navigate(SettingsRoute) }
             )
         }
 
