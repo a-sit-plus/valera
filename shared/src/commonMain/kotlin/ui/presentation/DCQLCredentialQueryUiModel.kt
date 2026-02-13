@@ -6,7 +6,3 @@ data class DCQLCredentialQueryUiModel(
     val requestedAttributesLocalized: DCQLCredentialQueryUiModelAttributeLabels?,
 )
 
-data class DCQLCredentialQueryUiModelAttributeLabels(
-    val attributesLocalized: List<String>,
-    val otherAttributes: Int,
-)

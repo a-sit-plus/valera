@@ -95,10 +95,8 @@ fun PresentationBuilderGraphView(
                             )
                         }
                     }
-                    // TODO: requires newer vck version for list of submissions per id
-                    onSubmit(
-                        DCQLCredentialSubmissions(submissions)
-                    )
+
+                    onSubmit(DCQLCredentialSubmissions(submissions))
                 }
             )
 
