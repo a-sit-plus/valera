@@ -1,7 +1,6 @@
 package ui.viewmodels
 
 import AppResetRequiredException
-import DeferredErrorActionException
 import ErrorHandlingOverrideException
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_error_action_reset_app
@@ -31,15 +30,14 @@ class ErrorViewModel(
     init {
         val override = throwable as? ErrorHandlingOverrideException
         val onAcknowledge = override?.onAcknowledge
-            ?: (throwable as? DeferredErrorActionException)?.onAcknowledge
         when {
-            override != null -> {
+            override?.hasUiOverride == true -> {
                 onClickButton = {
                     clearError()
                     onAcknowledge?.runCatching { invoke() }
-                    override.resetStackOverride()
+                    override.resetStackOverride!!.invoke()
                 }
-                actionDescription = override.actionDescriptionOverride
+                actionDescription = override.actionDescriptionOverride!!
                 textCause = cause
             }
             message == AppResetRequiredException.toString() -> {

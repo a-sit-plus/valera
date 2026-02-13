@@ -1,6 +1,6 @@
 package ui.viewmodels
 
-import DeferredErrorActionException
+import ErrorHandlingOverrideException
 import at.asitplus.dcapi.issuance.DigitalCredentialOfferReturn
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.wallet.app.common.WalletMain
@@ -28,10 +28,10 @@ class LoadCredentialViewModel(
             return
         }
         if (!success) {
-            val deferredError = DeferredErrorActionException(
+            val deferredError = ErrorHandlingOverrideException(
                 onAcknowledge = {
                     if (!walletMain.platformAdapter.hasPendingDCAPICreationRequest()) {
-                        return@DeferredErrorActionException
+                        return@ErrorHandlingOverrideException
                     }
                     // TODO replace with official status messages once specification defines them
                     val response =

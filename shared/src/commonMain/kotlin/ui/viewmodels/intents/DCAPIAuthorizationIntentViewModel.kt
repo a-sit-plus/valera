@@ -1,6 +1,6 @@
 package ui.viewmodels.intents
 
-import DeferredErrorActionException
+import ErrorHandlingOverrideException
 import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
@@ -33,7 +33,7 @@ class DCAPIAuthorizationIntentViewModel(
             else -> OAuth2Exception.InvalidRequest(error.message) // TODO Not sure what to return in this case
         }.serialize()
         onFailure(
-            DeferredErrorActionException(
+            ErrorHandlingOverrideException(
                 onAcknowledge = {
                     walletMain.platformAdapter.prepareDCAPICredentialResponse(response, false)
                 },
