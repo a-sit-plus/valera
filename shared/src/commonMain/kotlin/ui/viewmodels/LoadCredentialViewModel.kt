@@ -39,7 +39,7 @@ class LoadCredentialViewModel(
                     walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, false)
                     navigateUp()
                 },
-                cause = error ?: Exception("issuance failed")
+                cause = error ?: Exception("Issuance failed")
             )
             walletMain.errorService.emit(deferredError)
         } else {

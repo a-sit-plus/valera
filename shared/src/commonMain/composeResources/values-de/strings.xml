@@ -341,7 +341,7 @@
     <string name="info_text_error_action_start_screen">Sie werden zur Startseite weitergeleitet.</string>
     <string name="info_text_error_action_reset_app">Sie werden zur Erstkonfiguration weitergeleitet.</string>
     <string name="info_text_error_action_close_intent">Sie kehren zum vorherigen Bildschirm zurück.</string>
-    <string name="info_text_error_action_return_to_invoker">Sie kehren zur anfragenden App zurück.</string>
+    <string name="info_text_error_action_return_to_invoker">Sie kehren zur anfragenden App/Webseite zurück.</string>
     <string name="info_text_error_cause_reset_app">Aufgrund technischer Verbesserungen muss die App zurückgesetzt werden.</string>
     <string name="info_text_data_items_missing">fehlend</string>
     <string name="info_text_authentication_success">Die Anmeldung wurde erfolgreich durchgeführt.</string>

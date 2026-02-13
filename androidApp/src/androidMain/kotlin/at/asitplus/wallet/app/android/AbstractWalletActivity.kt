@@ -7,13 +7,11 @@ import android.nfc.cardemulation.CardEmulation
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.credentials.CreateCredentialResponse
 import androidx.credentials.CreateDigitalCredentialResponse
 import androidx.credentials.DigitalCredential
 import androidx.credentials.ExperimentalDigitalCredentialApi
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.CreateCredentialCustomException
-import androidx.credentials.exceptions.CreateCredentialException
 import androidx.credentials.exceptions.GetCredentialCustomException
 import androidx.credentials.provider.PendingIntentHandler
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer

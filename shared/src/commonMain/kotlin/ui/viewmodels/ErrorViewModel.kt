@@ -28,16 +28,16 @@ class ErrorViewModel(
     val cause = displayThrowable.cause?.toString()
 
     init {
-        val override = throwable as? ErrorHandlingOverrideException
-        val onAcknowledge = override?.onAcknowledge
+        val exceptionOverride = throwable as? ErrorHandlingOverrideException
+        val onAcknowledge = exceptionOverride?.onAcknowledge
         when {
-            override?.hasUiOverride == true -> {
+            exceptionOverride?.hasUiOverride == true -> {
                 onClickButton = {
                     clearError()
                     onAcknowledge?.runCatching { invoke() }
-                    override.resetStackOverride!!.invoke()
+                    exceptionOverride.resetStackOverride!!.invoke()
                 }
-                actionDescription = override.actionDescriptionOverride!!
+                actionDescription = exceptionOverride.actionDescriptionOverride!!
                 textCause = cause
             }
             message == AppResetRequiredException.toString() -> {

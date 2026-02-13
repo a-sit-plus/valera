@@ -1,5 +1,5 @@
 # Build the provision_hardcoded matcher to WebAssembly using wasi-sdk.
-# Source: Derived from CMWallet[https://github.com/digitalcredentialsdev/CMWallet] and adapted for this project.
+# Source: Derived from multipaz and adapted for this project.
 
 WASM_CLANG = ~/wasi-sdk-20.0/bin/clang
 
