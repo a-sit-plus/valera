@@ -394,5 +394,4 @@ public class AndroidPlatformAdapter(
         context.startActivity(Intent(Settings.ACTION_SETTINGS))
     }
 
-    override fun finishApp() = intentState.finishApp.invoke()
 }

@@ -37,7 +37,7 @@ class LoadCredentialViewModel(
                     val response =
                         vckJsonSerializer.encodeToString(DigitalCredentialOfferReturn.error(status = "offer_declined"))
                     walletMain.platformAdapter.prepareDCAPICreationResponse(response, false)
-                    walletMain.platformAdapter.finishApp()
+                    navigateUp()
                 },
                 cause = error ?: Exception("issuance failed")
             )
@@ -45,7 +45,7 @@ class LoadCredentialViewModel(
         } else {
             val response = vckJsonSerializer.encodeToString(DigitalCredentialOfferReturn.success())
             walletMain.platformAdapter.prepareDCAPICreationResponse(response, true)
-            walletMain.platformAdapter.finishApp()
+            navigateUp()
         }
     }
 
