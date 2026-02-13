@@ -702,12 +702,12 @@ private fun WalletNavHost(
                                         authorizationServerMetadata = offer.authorizationServerMetadata
                                     )
                                     if (issuanceResult is CredentialIssuanceResult.Success) {
-                                        dcapiVm.handleDCAPICreationResult(true, null)
+                                        dcapiVm.handleDCAPIIssuingResult(true, null)
                                     } else {
-                                        dcapiVm.handleDCAPICreationResult(false, null)
+                                        dcapiVm.handleDCAPIIssuingResult(false, null)
                                     }
                                 } catch (e: Throwable) {
-                                    dcapiVm.handleDCAPICreationResult(false, e)
+                                    dcapiVm.handleDCAPIIssuingResult(false, e)
                                 }
                             }
                         }
@@ -890,11 +890,11 @@ private fun WalletNavHost(
             })
         }
 
-        composable<DCAPICreationIntentRoute> { backStackEntry ->
-            DCAPICreationIntentView(remember {
-                DCAPICreationIntentViewModel(
+        composable<DCAPIIssuingIntentRoute> { backStackEntry ->
+            DCAPIIssuingIntentView(remember {
+                DCAPIIssuingIntentViewModel(
                     walletMain = walletMain,
-                    uri = backStackEntry.toRoute<DCAPICreationIntentRoute>().uri,
+                    uri = backStackEntry.toRoute<DCAPIIssuingIntentRoute>().uri,
                     onSuccess = { route ->
                         Napier.d("valid creation request")
                         navigateNewGraph(route)
@@ -906,7 +906,7 @@ private fun WalletNavHost(
                             },
                             actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
                             onAcknowledge = {
-                                walletMain.platformAdapter.prepareDCAPICreationResponse(
+                                walletMain.platformAdapter.prepareDCAPIIssuingResponse(
                                     e.message ?: "invalid request", false
                                 )
                             },

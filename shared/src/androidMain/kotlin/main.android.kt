@@ -41,7 +41,7 @@ import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.RealCapabilitiesService
 import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.WalletDependencyProvider
-import at.asitplus.wallet.app.common.dcapi.DCAPICreationRequest
+import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.common.di.appModule
 import at.asitplus.wallet.lib.data.vckJsonSerializer
@@ -337,7 +337,7 @@ public class AndroidPlatformAdapter(
     }
 
     @OptIn(ExperimentalDigitalCredentialApi::class)
-    override fun getCurrentDCAPICreationData(): KmmResult<DCAPICreationRequest> = catching {
+    override fun getCurrentDCAPIIssuingData(): KmmResult<DCAPIIssuingRequest> = catching {
         (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (intent, _) ->
             val credentialRequest = PendingIntentHandler.retrieveProviderCreateCredentialRequest(intent)
                 ?: throw IllegalArgumentException("DC API: No credential create request received")
@@ -346,7 +346,7 @@ public class AndroidPlatformAdapter(
             val callingRequest = credentialRequest.callingRequest as? CreateDigitalCredentialRequest
                 ?: throw IllegalArgumentException("Expected CreateDigitalCredentialRequest object not received")
 
-            DCAPICreationRequest(
+            DCAPIIssuingRequest(
                 requestJson = callingRequest.requestJson,
                 callingPackageName = callingPackageName,
                 callingOrigin = callingOrigin
@@ -374,7 +374,7 @@ public class AndroidPlatformAdapter(
         } ?: throw IllegalStateException("Callback for response not found")
     }
 
-    override fun prepareDCAPICreationResponse(response: String, success: Boolean) {
+    override fun prepareDCAPIIssuingResponse(response: String, success: Boolean) {
         (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (intent, sendCredentialResponseToInvoker) ->
             if (intent.action != RegistryManager.ACTION_CREATE_CREDENTIAL) {
                 throw IllegalStateException("Expected DC API create invocation")
@@ -384,7 +384,7 @@ public class AndroidPlatformAdapter(
         } ?: throw IllegalStateException("Callback for response not found")
     }
 
-    override fun hasPendingDCAPICreationRequest(): Boolean =
+    override fun hasPendingDCAPIIssuingRequest(): Boolean =
         (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)
             ?.intent
             ?.action == RegistryManager.ACTION_CREATE_CREDENTIAL

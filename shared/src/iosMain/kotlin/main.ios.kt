@@ -21,7 +21,7 @@ import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.RealCapabilitiesService
 import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.WalletDependencyProvider
-import at.asitplus.wallet.app.common.dcapi.DCAPICreationRequest
+import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.common.di.appModule
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
@@ -465,7 +465,7 @@ class IosPlatformAdapter(
         } ?: KmmResult.failure(Throwable("No request data available"))
     }
 
-    override fun getCurrentDCAPICreationData(): KmmResult<DCAPICreationRequest> = catching {
+    override fun getCurrentDCAPIIssuingData(): KmmResult<DCAPIIssuingRequest> = catching {
         throw IllegalStateException("Not supported on iOS")
     }
 
@@ -488,11 +488,11 @@ class IosPlatformAdapter(
             MdocSessionManager.clearSession()
         } ?: throw IllegalStateException("Callback for response not found")
 
-    override fun prepareDCAPICreationResponse(response: String, success: Boolean) {
+    override fun prepareDCAPIIssuingResponse(response: String, success: Boolean) {
         Napier.w("DC API issuing not supported on iOS")
     }
 
-    override fun hasPendingDCAPICreationRequest(): Boolean {
+    override fun hasPendingDCAPIIssuingRequest(): Boolean {
         Napier.w("DC API issuing not supported on iOS")
         return false
     }

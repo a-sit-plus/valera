@@ -13,21 +13,21 @@ import kotlinx.coroutines.launch
 import ui.navigation.routes.AddCredentialDcApiRoute
 import ui.navigation.routes.Route
 
-class DCAPICreationIntentViewModel(
+class DCAPIIssuingIntentViewModel(
     val walletMain: WalletMain,
     val uri: String,
     val onSuccess: (Route) -> Unit,
     val onFailure: (Throwable) -> Unit
 ) {
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
-        Napier.e("Exception occurred during DC API creation invocation", error)
+        Napier.e("Exception occurred during DC API issuing invocation", error)
         onFailure(error)
     }
 
     fun process() = walletMain.scope.launch(Dispatchers.Default + coroutineExceptionHandler) {
         catching {
-            val creationData = walletMain.platformAdapter.getCurrentDCAPICreationData().getOrThrow()
-            val credentialOffer = parseCredentialOffer(creationData.requestJson).getOrThrow()
+            val issuingData = walletMain.platformAdapter.getCurrentDCAPIIssuingData().getOrThrow()
+            val credentialOffer = parseCredentialOffer(issuingData.requestJson).getOrThrow()
             onSuccess(AddCredentialDcApiRoute(credentialOffer))
         }.onFailure { onFailure(it) }
     }
