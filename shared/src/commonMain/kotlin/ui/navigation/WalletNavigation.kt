@@ -900,15 +900,19 @@ private fun WalletNavHost(
                         navigateNewGraph(route)
                     },
                     onFailure = { e ->
-                        val wrapped = ErrorHandlingOverrideException(
+                        val overrideException = ErrorHandlingOverrideException(
                             resetStackOverride = {
                                 intentState.finishApp?.invoke() ?: navigateBack()
                             },
                             actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
-                            onAcknowledge = (e as? ErrorHandlingOverrideException)?.onAcknowledge,
-                            cause = (e as? ErrorHandlingOverrideException)?.cause ?: e
+                            onAcknowledge = {
+                                walletMain.platformAdapter.prepareDCAPICreationResponse(
+                                    e.message ?: "invalid request", false
+                                )
+                            },
+                            cause = e
                         )
-                        walletMain.errorService.emit(wrapped)
+                        walletMain.errorService.emit(overrideException)
                     })
             })
         }
