@@ -39,7 +39,6 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.data.vckJsonSerializer
-import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -309,7 +308,8 @@ private fun WalletNavHost(
                     BottomBar(
                         navigate = navigate, selected = NavigationData.PRESENT_DATA_SCREEN
                     )
-                })
+                },
+            )
         }
 
         composable<ProximityHolderRoute> {
@@ -847,22 +847,19 @@ private fun WalletNavHost(
                 })
         }
         composable<QrCodeScannerRoute> { backStackEntry ->
-            QrCodeScannerView(remember {
-                QrCodeScannerViewModel(
-                    navigateUp = navigateBack,
-                    onSuccess = { route ->
-                        navigateBack()
-                        navigate(route)
-                    },
-                    onFailure = { error ->
-                        walletMain.errorService.emit(error)
-                    },
-                    walletMain = walletMain,
-                    onClickLogo = onClickLogo,
-                    onClickSettings = { navigate(SettingsRoute) },
-                    mode = backStackEntry.toRoute<QrCodeScannerRoute>().mode
-                )
-            })
+            QrCodeScannerView(
+                koinScope = koinScope,
+                onNavigateUp = navigateBack,
+                onClickLogo = onClickLogo,
+                onClickSettings = { navigate(SettingsRoute) },
+                onNavigateToRoute = {
+                    navigateBack()
+                    navigate(it)
+                },
+                onError = {
+                    walletMain.errorService.emit(it)
+                },
+            )
         }
         composable<CapabilitiesRoute> { backStackEntry ->
             backStackEntry.toRoute<CapabilitiesRoute>().prerequisites.let { prerequisites ->

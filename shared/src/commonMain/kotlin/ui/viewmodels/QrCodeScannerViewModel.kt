@@ -1,8 +1,9 @@
 package ui.viewmodels
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.WalletMain
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
@@ -11,40 +12,35 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import ui.navigation.routes.AddCredentialPreAuthnRoute
 import ui.navigation.routes.DefaultPresentationGraphRoute
+import ui.navigation.routes.QrCodeScannerRoute
 import ui.navigation.routes.Route
 import ui.navigation.routes.SigningQtspSelectionRoute
 
 class QrCodeScannerViewModel(
-    val navigateUp: (() -> Unit)?,
-    val onSuccess: (Route) -> Unit,
-    val onFailure: (Throwable) -> Unit,
+    savedStateHandle: SavedStateHandle,
     val walletMain: WalletMain,
-    val onClickLogo: () -> Unit,
-    val onClickSettings: () -> Unit,
-    val mode: QrCodeScannerMode
-) {
-    var isLoading by mutableStateOf(false)
+) : ViewModel() {
+    val mode = savedStateHandle.toRoute<QrCodeScannerRoute>().mode
 
     suspend fun startModeProcess(mode: QrCodeScannerMode, link: String) = when (mode) {
         QrCodeScannerMode.AUTHENTICATION -> prepareAuthentication(link)
         QrCodeScannerMode.SIGNING -> prepareSigning(link)
         QrCodeScannerMode.PROVISIONING -> prepareCredential(link)
-
     }
 
-    fun onQrScanned(link: String) = walletMain.scope.launch {
-        isLoading = true
+    fun onQrScanned(
+        link: String,
+        onSuccess: (Route) -> Unit,
+        onFailure: (Throwable) -> Unit,
+    ) = viewModelScope.launch {
         Napier.d("onQrScanned: $link")
-        listOf(mode).plus(QrCodeScannerMode.entries.filter { it != mode }).forEach {
-            catchingUnwrapped {
+        listOf(mode).plus(QrCodeScannerMode.entries.filter { it != mode }).firstNotNullOfOrNull {
+            try {
                 startModeProcess(it, link)
-            }.onSuccess {
-                isLoading = false
-                onSuccess(it)
-                return@launch
+            } catch (_: Throwable) {
+                null
             }
-        }
-        onFailure(Throwable("Unable to parse: $link"))
+        }?.let(onSuccess) ?: onFailure(Throwable("Unable to parse: $link"))
     }
 
     suspend fun prepareCredential(link: String) = catchingUnwrapped {
