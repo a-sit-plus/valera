@@ -1,6 +1,5 @@
 package ui.viewmodels.intents
 
-import ErrorHandlingOverrideException
 import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.wallet.app.common.WalletMain
@@ -21,15 +20,8 @@ class DCAPICreationIntentViewModel(
     val onFailure: (Throwable) -> Unit
 ) {
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
-        Napier.w("Exception occurred during DC API creation invocation", error)
-        onFailure(
-            ErrorHandlingOverrideException(
-                onAcknowledge = {
-                    walletMain.platformAdapter.prepareDCAPICreationResponse(error.message ?: "invalid request", false)
-                },
-                cause = error
-            )
-        )
+        Napier.e("Exception occurred during DC API creation invocation", error)
+        onFailure(error)
     }
 
     fun process() = walletMain.scope.launch(Dispatchers.Default + coroutineExceptionHandler) {
