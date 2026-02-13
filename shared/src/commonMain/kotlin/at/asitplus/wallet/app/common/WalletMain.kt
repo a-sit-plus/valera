@@ -239,16 +239,45 @@ interface PlatformAdapter {
      */
     fun getCurrentDCAPIIssuingData(): KmmResult<DCAPIIssuingRequest>
 
+    /**
+     * Returns a Digital Credentials API credential response (OpenID4VP / generic) to the invoker.
+     *
+     * @param response serialized response payload
+     * @param success whether the request completed successfully
+     */
     fun prepareDCAPICredentialResponse(response: String, success: Boolean)
 
+    /**
+     * Returns an ISO mdoc Digital Credentials API response to the invoker.
+     *
+     * @param response encrypted ISO mdoc response payload
+     * @param success whether the request completed successfully
+     */
     fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean)
 
+    /**
+     * Returns a Digital Credentials API issuing response to the invoker.
+     *
+     * @param response serialized issuing result payload
+     * @param success whether issuing completed successfully
+     */
     fun prepareDCAPIIssuingResponse(response: String, success: Boolean)
 
+    /**
+     * Indicates whether there is an active DC API issuing request waiting for a response.
+     */
     fun hasPendingDCAPIIssuingRequest(): Boolean
 
+    /**
+     * Opens the platform's application/system settings screen.
+     */
     fun openDeviceSettings()
 
+    /**
+     * Returns current camera permission state.
+     *
+     * @return `true` if granted, `false` if denied/restricted, `null` if not determined yet
+     */
     fun getCameraPermission(): Boolean?
 
 }
