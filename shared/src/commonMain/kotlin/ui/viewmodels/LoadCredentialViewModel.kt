@@ -23,20 +23,20 @@ class LoadCredentialViewModel(
     val onClickLogo: () -> Unit,
     val onClickSettings: () -> Unit,
 ) {
-    fun handleDCAPICreationResult(success: Boolean, error: Throwable? = null) {
-        if (!walletMain.platformAdapter.hasPendingDCAPICreationRequest()) {
+    fun handleDCAPIIssuingResult(success: Boolean, error: Throwable? = null) {
+        if (!walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
             return
         }
         if (!success) {
             val deferredError = ErrorHandlingOverrideException(
                 onAcknowledge = {
-                    if (!walletMain.platformAdapter.hasPendingDCAPICreationRequest()) {
+                    if (!walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
                         return@ErrorHandlingOverrideException
                     }
                     // TODO replace with official status messages once specification defines them
                     val response =
                         vckJsonSerializer.encodeToString(DigitalCredentialOfferReturn.error(status = "offer_declined"))
-                    walletMain.platformAdapter.prepareDCAPICreationResponse(response, false)
+                    walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, false)
                     navigateUp()
                 },
                 cause = error ?: Exception("issuance failed")
@@ -44,7 +44,7 @@ class LoadCredentialViewModel(
             walletMain.errorService.emit(deferredError)
         } else {
             val response = vckJsonSerializer.encodeToString(DigitalCredentialOfferReturn.success())
-            walletMain.platformAdapter.prepareDCAPICreationResponse(response, true)
+            walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, true)
             navigateUp()
         }
     }

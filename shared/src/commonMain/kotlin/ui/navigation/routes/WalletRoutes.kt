@@ -180,7 +180,7 @@ data class AuthorizationIntentRoute(val uri: String) : Route()
 data class DCAPIAuthorizationIntentRoute(val uri: String) : Route()
 
 @Serializable
-data class DCAPICreationIntentRoute(val uri: String) : Route()
+data class DCAPIIssuingIntentRoute(val uri: String) : Route()
 
 @Serializable
 data class PresentationIntentRoute(val uri: String) : Route()

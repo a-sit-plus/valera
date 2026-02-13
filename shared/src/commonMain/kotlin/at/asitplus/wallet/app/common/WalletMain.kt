@@ -4,7 +4,7 @@ import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
 import at.asitplus.dcapi.EncryptedResponse
 import at.asitplus.dcapi.request.DCAPIWalletRequest
-import at.asitplus.wallet.app.common.dcapi.DCAPICreationRequest
+import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
@@ -237,15 +237,15 @@ interface PlatformAdapter {
     /**
      * Retrieves creation request from the digital credentials browser API
      */
-    fun getCurrentDCAPICreationData(): KmmResult<DCAPICreationRequest>
+    fun getCurrentDCAPIIssuingData(): KmmResult<DCAPIIssuingRequest>
 
     fun prepareDCAPICredentialResponse(response: String, success: Boolean)
 
     fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean)
 
-    fun prepareDCAPICreationResponse(response: String, success: Boolean)
+    fun prepareDCAPIIssuingResponse(response: String, success: Boolean)
 
-    fun hasPendingDCAPICreationRequest(): Boolean
+    fun hasPendingDCAPIIssuingRequest(): Boolean
 
     fun openDeviceSettings()
 
@@ -277,7 +277,7 @@ class DummyPlatformAdapter : PlatformAdapter {
         return KmmResult.failure(IllegalStateException("Using dummy platform adapter"))
     }
 
-    override fun getCurrentDCAPICreationData(): KmmResult<DCAPICreationRequest> {
+    override fun getCurrentDCAPIIssuingData(): KmmResult<DCAPIIssuingRequest> {
         return KmmResult.failure(IllegalStateException("Using dummy platform adapter"))
     }
 
@@ -287,10 +287,10 @@ class DummyPlatformAdapter : PlatformAdapter {
     override fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean) {
     }
 
-    override fun prepareDCAPICreationResponse(response: String, success: Boolean) {
+    override fun prepareDCAPIIssuingResponse(response: String, success: Boolean) {
     }
 
-    override fun hasPendingDCAPICreationRequest(): Boolean {
+    override fun hasPendingDCAPIIssuingRequest(): Boolean {
         return false
     }
 
