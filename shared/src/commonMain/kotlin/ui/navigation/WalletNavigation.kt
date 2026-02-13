@@ -422,7 +422,7 @@ private fun WalletNavHost(
         composable<AuthenticationViewRoute> { backStackEntry ->
             val route: AuthenticationViewRoute = backStackEntry.toRoute()
             val navigateUpFromAuth = if (shouldFinishToCaller()) {
-                { intentState.finishApp.invoke() }
+                { intentState.finishApp?.invoke() ?: navigateBack() }
             } else {
                 navigateBack
             }
@@ -469,7 +469,7 @@ private fun WalletNavHost(
 
         composable<DCAPIAuthenticationConsentRoute> { backStackEntry ->
             val navigateUpFromAuth = if (shouldFinishToCaller()) {
-                { intentState.finishApp.invoke() }
+                { intentState.finishApp?.invoke() ?: navigateBack() }
             } else {
                 navigateBack
             }
@@ -548,7 +548,7 @@ private fun WalletNavHost(
 
         composable<AuthenticationSuccessRoute> { backStackEntry ->
             val navigateUpFromSuccess = if (shouldFinishToCaller()) {
-                { intentState.finishApp.invoke() }
+                { intentState.finishApp?.invoke() ?: navigateBack() }
             } else {
                 navigateBack
             }
@@ -713,7 +713,7 @@ private fun WalletNavHost(
                         }
                         LoadCredentialViewModel.initFromDcApi(
                             walletMain = walletMain,
-                            navigateUp = { intentState.finishApp.invoke() },
+                            navigateUp = { intentState.finishApp?.invoke() ?: navigateBack() },
                             offer = offer,
                             onSubmit = onSubmit,
                             onClickLogo = onClickLogo,
@@ -779,7 +779,7 @@ private fun WalletNavHost(
                         } else {
                             ErrorHandlingOverrideException(
                                 resetStackOverride = {
-                                    intentState.finishApp.invoke()
+                                    intentState.finishApp?.invoke() ?: navigateBack()
                                 },
                                 actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
                                 onAcknowledge = existingOverride?.onAcknowledge,
@@ -879,7 +879,7 @@ private fun WalletNavHost(
                     onFailure = { e ->
                         val wrapped = ErrorHandlingOverrideException(
                             resetStackOverride = {
-                                intentState.finishApp.invoke()
+                                intentState.finishApp?.invoke() ?: navigateBack()
                             },
                             actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
                             onAcknowledge = (e as? ErrorHandlingOverrideException)?.onAcknowledge,
@@ -902,7 +902,7 @@ private fun WalletNavHost(
                     onFailure = { e ->
                         val wrapped = ErrorHandlingOverrideException(
                             resetStackOverride = {
-                                intentState.finishApp.invoke()
+                                intentState.finishApp?.invoke() ?: navigateBack()
                             },
                             actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
                             onAcknowledge = (e as? ErrorHandlingOverrideException)?.onAcknowledge,
