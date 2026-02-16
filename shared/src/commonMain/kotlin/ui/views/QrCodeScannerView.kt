@@ -56,7 +56,6 @@ fun QrCodeScannerView(
                     payload,
                     onSuccess = {
                         onNavigateToRoute(it)
-                        isLoading = false
                     },
                     onFailure = {
                         onError(it)

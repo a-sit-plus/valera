@@ -73,7 +73,7 @@ fun DCQLPresentationBuilderGraphViewContent(
     }
     val currentProgress = progressStart + progressRequiredCredentialSetQueries
     val stepsToBeDone =
-        progressStart + totalRequiredCredentialSetQueries + 1 // one step for final submission or selection optionals
+        progressStart + totalRequiredCredentialSetQueries + 1 // one step for final submission or selecting optionals
 
     val requiredCredentialQueries = credentialSetQueries.mapIndexedNotNull { index, it ->
         it.takeIf {

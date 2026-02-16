@@ -37,7 +37,9 @@ fun DCQLPresentationCredentialSetQueryOptionSelectionPageContent(
             CommonBottomButtonsAbortContinue(
                 text = null,
                 onAbort = onAbort,
-                onContinue = onContinue,
+                onContinue = onContinue.takeIf {
+                    selectedOptionIndex != null
+                },
             )
         }
     ) {
