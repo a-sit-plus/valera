@@ -51,41 +51,40 @@ fun DCQLPresentationFinalizationPageContent(
         }
     ) {
         Column(
-            modifier = Modifier.padding(it).fillMaxSize().padding(bottom = 16.dp, start = 16.dp, end = 16.dp).verticalScroll(state = rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(32.dp)
+            modifier = Modifier.padding(it).fillMaxSize(),
         ) {
             val title = if (authenticateAtRelyingParty) {
                 stringResource(Res.string.heading_label_authenticate_at_device_screen)
             } else {
                 stringResource(Res.string.heading_label_show_data_third_party)
             }
-            ScreenHeading(title)
-
-            if (serviceProviderLogo != null) {
-                Box(Modifier.Companion.fillMaxWidth(), contentAlignment = Alignment.Companion.Center) {
-                    Image(
-                        bitmap = serviceProviderLogo,
-                        contentDescription = null,
-                        contentScale = ContentScale.Companion.Fit,
-                        modifier = Modifier.Companion.height(64.dp),
-                    )
-                }
-            }
-
-            DataDisplaySection(
-                title = stringResource(Res.string.section_heading_data_recipient),
-                data = listOfNotNull(
-                    serviceProviderLocalizedName?.let {
-                        stringResource(Res.string.attribute_friendly_name_data_recipient_name) to serviceProviderLocalizedName
-                    },
-                    stringResource(Res.string.attribute_friendly_name_data_recipient_location) to serviceProviderLocalizedLocation,
-                ),
-            )
+            ScreenHeading(title, modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp))
 
             Column(
-                modifier = Modifier.Companion.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(32.dp),
+                modifier = Modifier.verticalScroll(state = rememberScrollState()).padding(16.dp),
             ) {
+                if (serviceProviderLogo != null) {
+                    Box(Modifier.Companion.fillMaxWidth(), contentAlignment = Alignment.Companion.Center) {
+                        Image(
+                            bitmap = serviceProviderLogo,
+                            contentDescription = null,
+                            contentScale = ContentScale.Companion.Fit,
+                            modifier = Modifier.Companion.height(64.dp),
+                        )
+                    }
+                }
+
+                DataDisplaySection(
+                    title = stringResource(Res.string.section_heading_data_recipient),
+                    data = listOfNotNull(
+                        serviceProviderLocalizedName?.let {
+                            stringResource(Res.string.attribute_friendly_name_data_recipient_name) to serviceProviderLocalizedName
+                        },
+                        stringResource(Res.string.attribute_friendly_name_data_recipient_location) to serviceProviderLocalizedLocation,
+                    ),
+                )
+
                 selections.entries.sortedBy {
                     it.key.string
                 }.flatMap {
