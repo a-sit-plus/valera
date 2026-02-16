@@ -1,5 +1,5 @@
 [versions]
-vck="5.11.0"
+vck="5.12.0-SNAPSHOT"
 
 agp = "8.12.3"
 kotlin = "2.3.0"
