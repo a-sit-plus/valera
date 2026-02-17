@@ -13,6 +13,7 @@ import at.asitplus.KmmResult
 import at.asitplus.dcapi.EncryptedResponse
 import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.dcapi.request.IsoMdocRequest
+import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.CapabilitiesService
 import at.asitplus.wallet.app.common.IntentState
@@ -47,7 +48,7 @@ import platform.Foundation.*
 import platform.UIKit.*
 import platform.darwin.dispatch_async
 import platform.darwin.dispatch_get_main_queue
-import ui.navigation.IOS_DC_API_CALL
+import ui.navigation.IntentService.Companion.IOS_DC_API_CALL
 import ui.theme.darkScheme
 import ui.theme.lightScheme
 import kotlin.coroutines.resume
@@ -74,6 +75,9 @@ actual fun getColorScheme(): ColorScheme {
 }
 
 private val iosIntentState = IntentState()
+
+// Expose the singleton intent state to Swift for deep-link handling.
+fun getIosIntentState(): IntentState = iosIntentState
 
 object MdocSessionManager {
     // TODO check if correct credentials are shown without credentialId set (and check behaviour on Android, should only show the one credential selected by the user)
