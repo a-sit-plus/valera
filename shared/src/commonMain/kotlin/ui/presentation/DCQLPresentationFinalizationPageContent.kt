@@ -1,9 +1,9 @@
 package ui.presentation
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -61,7 +61,6 @@ fun DCQLPresentationFinalizationPageContent(
             ScreenHeading(title, modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp))
 
             Column(
-                verticalArrangement = Arrangement.spacedBy(32.dp),
                 modifier = Modifier.verticalScroll(state = rememberScrollState()).padding(16.dp),
             ) {
                 if (serviceProviderLogo != null) {
@@ -73,6 +72,7 @@ fun DCQLPresentationFinalizationPageContent(
                             modifier = Modifier.Companion.height(64.dp),
                         )
                     }
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
 
                 DataDisplaySection(
@@ -89,7 +89,8 @@ fun DCQLPresentationFinalizationPageContent(
                     it.key.string
                 }.flatMap {
                     it.value
-                }.forEach { card ->
+                }.forEachIndexed { index, card ->
+                    Spacer(modifier = Modifier.height(16.dp))
                     // TODO: good enough or should we have separate cards for final submissions?
                     //  - if these cards should be reused, then allowMultiSelection shouldn't be relevant with (isSelected, onToggleSelection) = (true, null)
                     //  - Cards should therefore implicitly handle the case (true, *, null) to show the card without any selection specific semantics UI
