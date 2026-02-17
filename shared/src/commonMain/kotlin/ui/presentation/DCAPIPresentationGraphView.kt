@@ -37,8 +37,8 @@ fun DCAPIPresentationGraphView(
         authenticateAtRelyingParty = authenticateAtRelyingParty,
         onNavigateUp = onNavigateUp,
         onError = onError,
-        onClickSettings = onClickSettings,
         onClickLogo = onClickLogo,
+        onClickSettings = onClickSettings,
         matchingResult = matchingResult.map {
             it.second
         },
@@ -56,5 +56,6 @@ fun DCAPIPresentationGraphView(
                 }
             )
         },
+        transactionData = null
     )
 }

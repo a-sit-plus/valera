@@ -2,6 +2,7 @@ package ui.presentation
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -28,8 +29,6 @@ fun DefaultPresentationGraphView(
 
     val spLocation = dcApiRequest?.callingOrigin ?: viewModel.route.recipientLocation
     val spName = dcApiRequest?.callingPackageName
-//    val authenticationRequest = viewModel.route.authenticationRequest
-//    val transactionData = authenticationRequest.parameters.transactionData?.firstOrNull()
 
     val authenticateAtRelyingParty = spLocation != "Local Presentation"
 
@@ -41,8 +40,8 @@ fun DefaultPresentationGraphView(
         authenticateAtRelyingParty = authenticateAtRelyingParty,
         onNavigateUp = onNavigateUp,
         onError = onError,
-        onClickSettings = onClickSettings,
         onClickLogo = onClickLogo,
+        onClickSettings = onClickSettings,
         matchingResult = matchingResult,
         submitPresentation = SubmitPresentation { it, navigate ->
             viewModel.confirmSelection(
@@ -58,6 +57,14 @@ fun DefaultPresentationGraphView(
                 }
             )
         },
+        transactionData = try {
+            viewModel.route.authenticationRequest.parameters.transactionData?.firstOrNull()
+        } catch (throwable: Throwable) {
+            LaunchedEffect(Unit) {
+                onError(throwable)
+            }
+            null
+        }
     )
 }
 

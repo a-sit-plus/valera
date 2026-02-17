@@ -5,6 +5,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
+import ui.presentation.DCAPIPresentationGraphViewModel
 import ui.presentation.DCQLPresentationBuilderGraphViewModel
 import ui.presentation.DefaultPresentationGraphViewModel
 import ui.viewmodels.AddCredentialViewModel
@@ -28,6 +29,7 @@ fun uiModule() = module {
     viewModelOf(::VerifierViewModel)
     viewModelOf(::DefaultPresentationGraphViewModel)
     viewModelOf(::DCQLPresentationBuilderGraphViewModel)
+    viewModelOf(::DCAPIPresentationGraphViewModel)
     viewModelOf(::AuthenticationSuccessViewModel)
     viewModelOf(::AddCredentialViewModel)
     viewModelOf(::CapabilitiesViewModel)
