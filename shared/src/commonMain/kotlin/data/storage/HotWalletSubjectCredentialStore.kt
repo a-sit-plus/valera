@@ -62,7 +62,7 @@ class HotWalletSubjectCredentialStore(
         vc = vc,
         vcSerialized = vcSerialized,
         scheme = scheme,
-        refreshToken = refreshToken,
+        renewalInfo = refreshToken,
     )
 
     override suspend fun storeCredential(
@@ -86,6 +86,6 @@ class HotWalletSubjectCredentialStore(
     ): SubjectCredentialStore.StoreEntry = delegate.storeCredential(
         issuerSigned = issuerSigned,
         scheme = scheme,
-        refreshToken = refreshToken
+        renewalInfo = refreshToken
     )
 }

@@ -23,6 +23,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 class CredentialValidityService(
@@ -50,29 +51,16 @@ class CredentialValidityService(
     /**
      * Starts a periodic loop that checks for expired credentials.
      */
-    fun startChecking(interval: Duration = 30.seconds) {
+    fun startChecking(interval: Duration = 5.minutes) {
         job?.cancel()
 
         job = scope.launch {
             delay(10.seconds)
             while (isActive) {
-                performCheck()
+                requestRefreshmentBatch(subjectCredentialStore.getInvalidCredentials())
                 delay(interval)
             }
         }
-    }
-
-    private suspend fun performCheck() {
-        val invalid = subjectCredentialStore.getInvalidCredentials()
-        requestRefreshmentBatch(invalid)
-    }
-
-    suspend fun startProvisioningForReissuance(host: String, credentialIdentifierInfo: CredentialIdentifierInfo, reissuingStoreEntryId: StoreEntryId): Boolean = try {
-        provisioningService.startProvisioningWithAuthRequest(host, credentialIdentifierInfo, reissuingStoreEntryId)
-        true
-    } catch (e: Throwable) {
-        errorService.emit(e)
-        false
     }
 
     /**
@@ -89,45 +77,50 @@ class CredentialValidityService(
         if (item.status == RefreshStatus.InProgress) return@launch
 
         updateStatus(item.storeEntryId, RefreshStatus.InProgress)
-
-        val status = performRefreshLogic(item.entry, item.storeEntryId)
-        updateStatus(item.storeEntryId, status)
+        updateStatus(item.storeEntryId, performRefreshLogic(item.entry, item.storeEntryId))
     }
 
-    private suspend fun performRefreshLogic(entry: SubjectCredentialStore.StoreEntry, storeId: Long): RefreshStatus {
-        return try {
-            val refreshToken = entry.refreshToken
-            if (refreshToken == null) {
-                snackbarService.showSnackbar(getString(Res.string.error_no_refresh_token), entry.scheme.uiLabelNonCompose())
-                return RefreshStatus.Failed
-            }
+    private suspend fun performRefreshLogic(entry: SubjectCredentialStore.StoreEntry, storeId: Long): RefreshStatus =
+        try {
+            val refreshToken = entry.renewalInfo ?: return RefreshStatus.Failed.also {
+                    snackbarService.showSnackbar(
+                        getString(Res.string.error_no_refresh_token),
+                        entry.scheme.uiLabelNonCompose()
+                    )
+                }
 
             provisioningService.refreshCredential(refreshToken, storeId)
-            snackbarService.showSnackbar(getString(Res.string.success_refreshed), entry.scheme.uiLabelNonCompose())
+            snackbarService.showSnackbar(
+                getString(Res.string.success_refreshed),
+                entry.scheme.uiLabelNonCompose()
+            )
             RefreshStatus.Succeeded
         } catch (_: Exception) {
             handleReissueFallback(entry, storeId)
         }
-    }
+
 
     private suspend fun handleReissueFallback(entry: SubjectCredentialStore.StoreEntry, storeId: Long): RefreshStatus {
-        val rt = entry.refreshToken ?: return RefreshStatus.Failed
+        val renewalInfo = entry.renewalInfo ?: return RefreshStatus.Failed
 
-        val ok = startProvisioningForReissuance(
-            host = rt.issuerMetadata.credentialIssuer,
-            credentialIdentifierInfo = CredentialIdentifierInfo(
-                issuerMetadata = rt.issuerMetadata,
-                credentialIdentifier = rt.credentialIdentifier,
-                supportedCredentialFormat = rt.credentialFormat
-            ),
-            reissuingStoreEntryId = storeId
-        )
-
-        return if (!ok) {
-            snackbarService.showSnackbar(getString(Res.string.error_reissue_failed), entry.scheme.uiLabelNonCompose())
-            RefreshStatus.Failed
-        } else {
+        return try {
+            provisioningService.startProvisioningWithAuthRequest(
+                credentialIssuer = renewalInfo.issuerMetadata.credentialIssuer,
+                credentialIdentifierInfo = CredentialIdentifierInfo(
+                    issuerMetadata = renewalInfo.issuerMetadata,
+                    credentialIdentifier = renewalInfo.credentialIdentifier,
+                    supportedCredentialFormat = renewalInfo.credentialFormat
+                ),
+                reissuingStoreEntryId = storeId
+            )
             RefreshStatus.InProgress
+        } catch (e: Throwable) {
+            errorService.emit(e)
+            snackbarService.showSnackbar(
+                getString(Res.string.error_reissue_failed),
+                entry.scheme.uiLabelNonCompose()
+            )
+            RefreshStatus.Failed
         }
     }
 
