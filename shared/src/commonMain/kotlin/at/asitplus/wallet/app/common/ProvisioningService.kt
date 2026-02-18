@@ -140,8 +140,8 @@ class ProvisioningService(
      * Parses issuer metadata into credential identifier info.
      */
     @Throws(Throwable::class)
-    fun parseCredentialMetadata(issuerMetadata: IssuerMetadata) =
-        openId4VciClient.parseCredentialMetadata(issuerMetadata).getOrThrow()
+    suspend fun parseCredentialMetadata(issuerMetadata: IssuerMetadata) =
+        openId4VciClient().parseCredentialMetadata(issuerMetadata).getOrThrow()
 
     /**
      * Starts the issuing process at [credentialIssuer]
