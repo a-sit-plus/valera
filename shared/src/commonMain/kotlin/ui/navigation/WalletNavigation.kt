@@ -27,6 +27,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import at.asitplus.catching
 import at.asitplus.catchingUnwrapped
+import at.asitplus.dcapi.issuance.DigitalCredentialOfferReturn
 import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.valera.resources.Res
@@ -720,8 +721,23 @@ private fun WalletNavHost(
                             onClickSettings = { navigate(SettingsRoute) }
                         ).also { dcapiVm = it }
                     }.getOrElse {
-                        returnToHome()
-                        walletMain.errorService.emit(it)
+                        val wrapped = ErrorHandlingOverrideException(
+                            resetStackOverride = {
+                                intentState.finishApp?.invoke() ?: navigateBack()
+                            },
+                            actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
+                            onAcknowledge = {
+                                if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
+                                    val response = vckJsonSerializer.encodeToString(
+                                        DigitalCredentialOfferReturn.error(status = "offer_declined")
+                                    )
+                                    walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, false)
+                                }
+                                intentState.finishApp?.invoke() ?: navigateBack()
+                            },
+                            cause = it
+                        )
+                        walletMain.errorService.emit(wrapped)
                         null
                     }
                 }
