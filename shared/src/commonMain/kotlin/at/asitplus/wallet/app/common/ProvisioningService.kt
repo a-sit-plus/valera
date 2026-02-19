@@ -184,15 +184,19 @@ class ProvisioningService(
                     .also { dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT) }
             }?.let { context ->
                 openId4VciClient().resumeWithAuthCode(redirectedUrl, context).getOrThrow().also { result ->
-                    result.credentials.forEach { cred ->
-                        holderAgent.storeCredential(cred, result.refreshToken).onFailure { ex ->
-                            Napier.e("storeCredential failed", ex)
-                        }
+                    val storageResults = result.credentials.map { cred ->
+                        holderAgent.storeCredential(cred, result.refreshToken)
                     }
-                    context.reissuingStoreEntryId?.let {
-                        subjectCredentialStore.removeStoreEntryById(it)
-                        Napier.i("Deleted old credential after successful reissuance")
-                        statusUpdater?.invoke(it, RefreshStatus.Succeeded)
+
+                    if (storageResults.all { it.isSuccess }) {
+                        context.reissuingStoreEntryId?.let { id ->
+                            subjectCredentialStore.removeStoreEntryById(id)
+                            statusUpdater?.invoke(id, RefreshStatus.Succeeded)
+                        }
+                    } else {
+                        storageResults.filter { it.isFailure }.forEach {
+                            Napier.e("storeCredential failed", it.exceptionOrNull())
+                        }
                     }
                 }
             }
