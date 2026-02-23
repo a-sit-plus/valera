@@ -57,12 +57,12 @@ class HotWalletSubjectCredentialStore(
         vc: VerifiableCredentialJws,
         vcSerialized: String,
         scheme: ConstantIndex.CredentialScheme,
-        refreshToken: CredentialRenewalInfo?
+        renewalInfo: CredentialRenewalInfo?
     ): SubjectCredentialStore.StoreEntry = delegate.storeCredential(
         vc = vc,
         vcSerialized = vcSerialized,
         scheme = scheme,
-        renewalInfo = refreshToken,
+        renewalInfo = renewalInfo,
     )
 
     override suspend fun storeCredential(
@@ -70,22 +70,22 @@ class HotWalletSubjectCredentialStore(
         vcSerialized: String,
         disclosures: Map<String, SelectiveDisclosureItem?>,
         scheme: ConstantIndex.CredentialScheme,
-        refreshToken: CredentialRenewalInfo?
+        renewalInfo: CredentialRenewalInfo?
     ): SubjectCredentialStore.StoreEntry = delegate.storeCredential(
         vc = vc,
         vcSerialized = vcSerialized,
         disclosures = disclosures,
         scheme = scheme,
-        refreshToken
+        renewalInfo
     )
 
     override suspend fun storeCredential(
         issuerSigned: IssuerSigned,
         scheme: ConstantIndex.CredentialScheme,
-        refreshToken: CredentialRenewalInfo?
+        renewalInfo: CredentialRenewalInfo?
     ): SubjectCredentialStore.StoreEntry = delegate.storeCredential(
         issuerSigned = issuerSigned,
         scheme = scheme,
-        renewalInfo = refreshToken
+        renewalInfo = renewalInfo
     )
 }

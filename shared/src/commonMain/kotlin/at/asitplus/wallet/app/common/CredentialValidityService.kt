@@ -4,7 +4,6 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_no_refresh_token
 import at.asitplus.valera.resources.error_reissue_failed
 import at.asitplus.valera.resources.success_refreshed
-import at.asitplus.valera.resources.success_reissued
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
@@ -82,14 +81,14 @@ class CredentialValidityService(
 
     private suspend fun performRefreshLogic(entry: SubjectCredentialStore.StoreEntry, storeId: Long): RefreshStatus =
         try {
-            val refreshToken = entry.renewalInfo ?: return RefreshStatus.Failed.also {
+            val renewalInfo = entry.renewalInfo ?: return RefreshStatus.Failed.also {
                     snackbarService.showSnackbar(
                         getString(Res.string.error_no_refresh_token),
                         entry.scheme.uiLabelNonCompose()
                     )
                 }
 
-            provisioningService.refreshCredential(refreshToken, storeId)
+            provisioningService.refreshCredential(renewalInfo, storeId, ::updateStatus)
             snackbarService.showSnackbar(
                 getString(Res.string.success_refreshed),
                 entry.scheme.uiLabelNonCompose()

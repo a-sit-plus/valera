@@ -197,17 +197,28 @@ class ProvisioningService(
                         storageResults.filter { it.isFailure }.forEach {
                             Napier.e("storeCredential failed", it.exceptionOrNull())
                         }
+                        context.reissuingStoreEntryId?.let { statusUpdater?.invoke(it, RefreshStatus.Failed) }
                     }
                 }
             }
     }
 
-    suspend fun refreshCredential(refreshTokenInfo: CredentialRenewalInfo, oldCredentialId: StoreEntryId) {
-        Napier.d("refreshCredential with identifier ${refreshTokenInfo.credentialIdentifier}")
-        val result = openId4VciClient().refreshCredentialReturningResult(refreshTokenInfo).getOrThrow()
-        result.credentials.forEach { credentialInput ->
-            holderAgent.storeCredential(credentialInput, result.refreshToken).onSuccess {
+    @Throws(Throwable::class)
+    suspend fun refreshCredential(renewalInfo: CredentialRenewalInfo, oldCredentialId: StoreEntryId, statusUpdater: ((Long, RefreshStatus) -> Unit)) {
+        Napier.d("refreshCredential with identifier ${renewalInfo.credentialIdentifier}")
+        openId4VciClient().refreshCredentialReturningResult(renewalInfo).getOrThrow().also { result ->
+            val storageResults = result.credentials.map { credentialInput ->
+                holderAgent.storeCredential(credentialInput, result.refreshToken)
+            }
+
+            if (storageResults.all { it.isSuccess }) {
                 subjectCredentialStore.removeStoreEntryById(oldCredentialId)
+                statusUpdater(oldCredentialId, RefreshStatus.Succeeded)
+            } else {
+                storageResults.filter { it.isFailure }.forEach {
+                    Napier.e("storeCredential failed", it.exceptionOrNull())
+                }
+                statusUpdater(oldCredentialId, RefreshStatus.Failed)
             }
         }
     }
