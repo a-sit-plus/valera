@@ -14,10 +14,12 @@ import at.asitplus.wallet.eupid.IsoIec5218Gender
 import at.asitplus.wallet.eupid.PlaceOfBirth
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme.SdJwtAttributes
+import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.wallet.lib.data.LocalDateOrInstant
+import at.asitplus.wallet.lib.data.vckJsonSerializer
 import data.Attribute
 import io.ktor.util.decodeBase64Bytes
 import kotlinx.datetime.LocalDate
@@ -103,10 +105,11 @@ sealed class EuPidCredentialAdapter(
             }
             val scheme = storeEntry.scheme!!
             return when (storeEntry) {
-                is SubjectCredentialStore.StoreEntry.Vc ->
-                    (storeEntry.vc.vc.credentialSubject as? EuPidCredential)
-                        ?.let { EuPidCredentialVcAdapter(it, decodePortrait, scheme) }
-                        ?: throw IllegalArgumentException("storeEntry")
+                is SubjectCredentialStore.StoreEntry.Vc -> (storeEntry.vc.vc.credentialSubject).let {
+                    vckJsonSerializer.decodeFromJsonElement<EuPidCredential>(it).let {
+                        EuPidCredentialVcAdapter(it, decodePortrait, scheme)
+                    }
+                }
 
                 is SubjectCredentialStore.StoreEntry.SdJwt ->
                     EuPidCredentialSdJwtAdapter(

@@ -8,6 +8,7 @@ import at.asitplus.valera.resources.snackbar_reset_app_successfully
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import kotlinx.coroutines.CompletionHandler
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import org.jetbrains.compose.resources.getString
 
+@OptIn(FlowPreview::class)
 class SettingsViewModel(
     private val walletMain: WalletMain
 ) : ViewModel() {
