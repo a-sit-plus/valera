@@ -68,12 +68,12 @@ fun PresentationBuilderGraphView(
                 onClickLogo = onClickLogo,
                 onClickSettings = onClickSettings,
                 dcqlQuery = matchingResult.value.presentationRequest.dcqlQuery,
-                satisfiableCredentialQueries = matchingResult.value.dcqlQueryResult.credentialQueryMatches.filter {
+                satisfiableCredentialQueries = matchingResult.value.matchingResult.credentialQueryMatches.filter {
                     it.value.isNotEmpty()
                 }.keys,
                 onError = onError,
                 onNavigateUp = onNavigateToPresentationStart,
-                selectableCredentialSubmissionCards = matchingResult.value.dcqlQueryResult.credentialQueryMatches.mapValues {
+                selectableCredentialSubmissionCards = matchingResult.value.matchingResult.credentialQueryMatches.mapValues {
                     it.value.map { option ->
                         SelectableCredentialSubmissionCard { isSelected, allowMultiSelection, onToggleSelection ->
                             DCQLCredentialQuerySubmissionSelectionOption(
@@ -87,7 +87,7 @@ fun PresentationBuilderGraphView(
                 },
                 onSubmit = {
                     val submissions = it.mapValues { (queryId, submissionIndices) ->
-                        val matches = matchingResult.value.dcqlQueryResult.credentialQueryMatches[queryId]
+                        val matches = matchingResult.value.matchingResult.credentialQueryMatches[queryId]
                             ?: return@DCQLPresentationBuilderGraphView onError(IllegalStateException("Failed to find submission options for unknown credential query identifier $queryId"))
                         submissionIndices.map {
                             matches.getOrNull(it.toInt()) ?: return@DCQLPresentationBuilderGraphView onError(
