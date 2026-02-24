@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.wallet.lib.agent.Validator
 import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
@@ -11,7 +12,7 @@ data class WalletDependencyProvider(
     val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
     var subjectCredentialStore: PersistentSubjectCredentialStore =
-        PersistentSubjectCredentialStore(dataStoreService),
+        PersistentSubjectCredentialStore(dataStoreService, Validator()),
     val buildContext: BuildContext,
     val promptModel: PromptModel
 ) {

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -18,13 +19,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_delete_credential
+import at.asitplus.valera.resources.button_refresh
 import at.asitplus.valera.resources.content_description_delete_credential
 import org.jetbrains.compose.resources.stringResource
+import ui.models.CredentialFreshnessSummaryUiModel
 
 @Composable
 fun CredentialCardActionMenu(
     showLoadingSpinner: Boolean = false,
     onDelete: () -> Unit,
+    onRefresh: () -> Unit,
+    credentialFreshnessSummaryModel: CredentialFreshnessSummaryUiModel? = null
 ) {
     var isMenuExpanded by rememberSaveable {
         mutableStateOf(false)
@@ -35,6 +40,8 @@ fun CredentialCardActionMenu(
         isMenuExpanded = isMenuExpanded,
         onChangeIsMenuExpanded = { isMenuExpanded = it },
         onDelete = onDelete,
+        onRefresh = onRefresh,
+        credentialFreshnessSummaryModel = credentialFreshnessSummaryModel
     )
 }
 
@@ -44,6 +51,8 @@ fun CredentialCardActionMenu(
     isMenuExpanded: Boolean,
     onChangeIsMenuExpanded: (Boolean) -> Unit,
     onDelete: () -> Unit,
+    onRefresh: () -> Unit,
+    credentialFreshnessSummaryModel: CredentialFreshnessSummaryUiModel?,
     modifier: Modifier = Modifier,
 ) {
     Row(modifier = modifier) {
@@ -76,6 +85,20 @@ fun CredentialCardActionMenu(
                 },
                 onClick = onDelete
             )
+            if (credentialFreshnessSummaryModel?.timelinessIndicator?.isExpired == true) {
+                DropdownMenuItem(
+                    text = {
+                        Row {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = stringResource(Res.string.button_refresh)
+                            )
+                            Text(stringResource(Res.string.button_refresh))
+                        }
+                    },
+                    onClick = onRefresh
+                )
+            }
         }
     }
 }

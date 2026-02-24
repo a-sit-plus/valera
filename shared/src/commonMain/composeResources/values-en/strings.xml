@@ -514,4 +514,28 @@
     <string name="additional_text_other_untranslated_claims">other claims</string>
 
     <string name="button_label_capabilities_settings">Device settings</string>
+
+    <!--  Refresh views  -->
+    <string name="refresh_center_title">Refresh Credentials</string>
+    <string name="button_clear_and_close">Close</string>
+    <string name="refresh_center_empty_state">No credentials need refreshing.</string>
+    <string name="refresh_status_pending">Update required</string>
+    <string name="refresh_status_in_progress">Refreshing…</string>
+    <string name="refresh_status_succeeded">Successfully Updated</string>
+    <string name="refresh_status_failed">Failed: %1$s</string>
+    <string name="error_unknown">Unknown error</string>
+    <string name="button_dismiss">Dismiss</string>
+    <string name="button_remove">Remove</string>
+    <string name="button_refresh">Refresh</string>
+    <string name="refresh_dialog_title_single">Update Available</string>
+    <string name="refresh_dialog_title_multiple">Updates Available</string>
+    <string name="refresh_dialog_message_single">A refreshment of '%1$s' is required. Would you like to update it now?</string>
+    <string name="refresh_dialog_message_multiple">A refreshments are required for several credentials. Would you like to update them now?</string>
+    <string name="refresh_dialog_confirm">Update Now</string>
+    <string name="refresh_dialog_dismiss">Later</string>
+    <string name="error_no_refresh_token">No refresh token available</string>
+    <string name="success_refreshed">Refreshed</string>
+    <string name="success_reissued">Re-issued</string>
+    <string name="error_reissue_failed">Re-issue failed</string>
+    <string name="error_refresh_failed">Refresh failed</string>
 </resources>

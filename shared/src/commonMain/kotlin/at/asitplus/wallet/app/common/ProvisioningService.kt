@@ -11,6 +11,7 @@ import at.asitplus.signum.indispensable.josef.KeyAttestationJwt
 import at.asitplus.signum.indispensable.pki.AttributeTypeAndValue
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.wallet.app.common.data.SettingsRepository
+import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
@@ -30,6 +31,8 @@ import at.asitplus.wallet.lib.oidvci.BuildClientAttestationJwt
 import at.asitplus.wallet.lib.oidvci.WalletService
 import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
+import data.storage.StoreEntryId
+import data.storage.WalletSubjectCredentialStore
 import io.github.aakira.napier.Napier
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -48,6 +51,7 @@ class ProvisioningService(
     private val dataStoreService: DataStoreService,
     private val keyMaterial: KeyMaterial,
     private val holderAgent: HolderAgent,
+    private val subjectCredentialStore: WalletSubjectCredentialStore,
     private val config: SettingsRepository,
     private val errorService: ErrorService,
     private val httpService: HttpService,
@@ -141,12 +145,14 @@ class ProvisioningService(
     suspend fun startProvisioningWithAuthRequest(
         credentialIssuer: String,
         credentialIdentifierInfo: CredentialIdentifierInfo,
+        reissuingStoreEntryId: StoreEntryId? = null
     ) {
         config.set(host = credentialIssuer)
         cookieStorage.reset()
         openId4VciClient().startProvisioningWithAuthRequestReturningResult(
             credentialIssuer,
-            credentialIdentifierInfo
+            credentialIdentifierInfo,
+            reissuingStoreEntryId
         ).getOrThrow().run {
             storeContextOpenIntent()
         }
@@ -169,21 +175,52 @@ class ProvisioningService(
      * Called after getting the redirect back from ID Austria to the Issuing Service
      */
     @Throws(Throwable::class)
-    suspend fun resumeWithAuthCode(redirectedUrl: String) {
+    suspend fun resumeWithAuthCode(redirectedUrl: String, statusUpdater: ((Long, RefreshStatus) -> Unit)? = null) {
         Napier.d("handleResponse with $redirectedUrl")
         dataStoreService.getPreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
             .firstOrNull()
             ?.let {
                 vckJsonSerializer.decodeFromString<ProvisioningContext>(it)
                     .also { dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT) }
-            }?.let {
-                openId4VciClient().resumeWithAuthCode(redirectedUrl, it).getOrThrow()
-                    .credentials.forEach {
-                        holderAgent.storeCredential(it).onFailure { ex ->
-                            Napier.e("storeCredential failed", ex)
-                        }
+            }?.let { context ->
+                openId4VciClient().resumeWithAuthCode(redirectedUrl, context).getOrThrow().also { result ->
+                    val storageResults = result.credentials.map { cred ->
+                        holderAgent.storeCredential(cred, result.refreshToken)
                     }
+
+                    if (storageResults.all { it.isSuccess }) {
+                        context.reissuingStoreEntryId?.let { id ->
+                            subjectCredentialStore.removeStoreEntryById(id)
+                            statusUpdater?.invoke(id, RefreshStatus.Succeeded)
+                        }
+                    } else {
+                        storageResults.filter { it.isFailure }.forEach {
+                            Napier.e("storeCredential failed", it.exceptionOrNull())
+                        }
+                        context.reissuingStoreEntryId?.let { statusUpdater?.invoke(it, RefreshStatus.Failed) }
+                    }
+                }
             }
+    }
+
+    @Throws(Throwable::class)
+    suspend fun refreshCredential(renewalInfo: CredentialRenewalInfo, oldCredentialId: StoreEntryId, statusUpdater: ((Long, RefreshStatus) -> Unit)) {
+        Napier.d("refreshCredential with identifier ${renewalInfo.credentialIdentifier}")
+        openId4VciClient().refreshCredentialReturningResult(renewalInfo).getOrThrow().also { result ->
+            val storageResults = result.credentials.map { credentialInput ->
+                holderAgent.storeCredential(credentialInput, result.refreshToken)
+            }
+
+            if (storageResults.all { it.isSuccess }) {
+                subjectCredentialStore.removeStoreEntryById(oldCredentialId)
+                statusUpdater(oldCredentialId, RefreshStatus.Succeeded)
+            } else {
+                storageResults.filter { it.isFailure }.forEach {
+                    Napier.e("storeCredential failed", it.exceptionOrNull())
+                }
+                statusUpdater(oldCredentialId, RefreshStatus.Failed)
+            }
+        }
     }
 
     /**

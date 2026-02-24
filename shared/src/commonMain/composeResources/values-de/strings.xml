@@ -518,7 +518,31 @@
     <string name="info_text_capabilities_continue">Passen Sie die Einstellungen an um fortzufahren.</string>
     <string name="info_text_capabilities_no_camera">Der Zugriff auf die Kamera wurde verweigert. Bitte passen Sie die Einstellungen an.</string>
 
-    <string name="additional_text_other_untranslated_claims">weitere Attribute</string>
-
     <string name="button_label_capabilities_settings">Geräteeinstellungen</string>
+    <string name="additional_text_other_untranslated_claims">weitere Attribute</string>
+    <string name="button_label_capabilities_settings">Geräteeinstellungen</string>
+  
+    <!--  Refresh views  -->
+    <string name="refresh_center_title">Ausweise aktualisieren</string>
+    <string name="button_clear_and_close">Leeren &amp; Schließen</string>
+    <string name="refresh_center_empty_state">Keine Ausweise müssen aktualisiert werden.</string>
+    <string name="refresh_status_pending">Update erforderlich</string>
+    <string name="refresh_status_in_progress">Aktualisierung läuft…</string>
+    <string name="refresh_status_succeeded">Erfolgreich aktualisiert</string>
+    <string name="refresh_status_failed">Fehlgeschlagen: %1$s</string>
+    <string name="error_unknown">Unbekannter Fehler</string>
+    <string name="button_dismiss">Verwerfen</string>
+    <string name="button_remove">Entfernen</string>
+    <string name="button_refresh">Aktualisieren</string>
+    <string name="refresh_dialog_title_single">Update verfügbar</string>
+    <string name="refresh_dialog_title_multiple">Updates verfügbar</string>
+    <string name="refresh_dialog_message_single">Eine neue Version von '%1$s' ist verfügbar. Möchten Sie diese jetzt aktualisieren?</string>
+    <string name="refresh_dialog_message_multiple">Für mehrere Ausweise sind neue Versionen verfügbar. Möchten Sie diese jetzt aktualisieren?</string>
+    <string name="refresh_dialog_confirm">Jetzt aktualisieren</string>
+    <string name="refresh_dialog_dismiss">Später</string>
+    <string name="error_no_refresh_token">Kein Refresh-Token verfügbar</string>
+    <string name="success_refreshed">Aktualisiert</string>
+    <string name="success_reissued">Neu ausgestellt</string>
+    <string name="error_reissue_failed">Neuausstellung fehlgeschlagen</string>
+    <string name="error_refresh_failed">Aktualisierung fehlgeschlagen</string>
 </resources>

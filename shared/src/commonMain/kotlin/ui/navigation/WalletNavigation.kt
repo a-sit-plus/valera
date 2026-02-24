@@ -16,14 +16,19 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.platform.testTag
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import at.asitplus.catching
@@ -232,6 +237,56 @@ private fun WalletNavHost(
     walletMain: WalletMain = koinInject(scope = koinScope),
     settingsRepository: SettingsRepository = koinInject(),
 ) {
+
+    val items by walletMain.credentialValidityService.refreshItems.collectAsState()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val isOnRefreshCenter = backStackEntry?.destination?.hasRoute<RefreshCenterRoute>() == true
+
+    var processedItemIds by remember { mutableStateOf(setOf<Long>()) }
+    var hasNavigatedToCenter by remember { mutableStateOf(false) }
+
+    LaunchedEffect(items.isEmpty()) {
+        if (items.isEmpty()) {
+            processedItemIds = emptySet()
+            hasNavigatedToCenter = false
+        }
+    }
+
+    if (!isOnRefreshCenter && items.size == 1) {
+        val item = items.first()
+        if (!processedItemIds.contains(item.storeEntryId)) {
+            RefreshConfirmationDialog(
+                entry = item.entry,
+                onConfirm = {
+                    processedItemIds = processedItemIds + item.storeEntryId
+                    walletMain.credentialValidityService.refreshSingleWithStatus(item)
+                },
+                onDismiss = {
+                    walletMain.credentialValidityService.removeRefreshRequest(item)
+                }
+            )
+        }
+    }
+
+    if (!isOnRefreshCenter && items.size > 1 && !hasNavigatedToCenter) {
+        RefreshConfirmationDialog(
+            entry = null,
+            onConfirm = {
+                hasNavigatedToCenter = true
+                navController.navigate(RefreshCenterRoute) { launchSingleTop = true }
+            },
+            onDismiss = {
+                walletMain.credentialValidityService.clearAllRefreshRequests()
+            }
+        )
+    }
+
+    LaunchedEffect(items.size, isOnRefreshCenter) {
+        if (isOnRefreshCenter && items.isEmpty()) {
+            navController.popBackStack()
+        }
+    }
+    
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -239,6 +294,22 @@ private fun WalletNavHost(
         exitTransition = { ExitTransition.None },
         modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)
     ) {
+
+        composable<RefreshCenterRoute> {
+            RefreshCredentialsView(
+                items = items,
+                onRefreshItem = { item ->
+                    walletMain.credentialValidityService.refreshSingleWithStatus(item)
+                },
+                onRemoveItem = { entry ->
+                    walletMain.credentialValidityService.removeRefreshRequest(entry)
+                },
+                onDone = {
+                    walletMain.credentialValidityService.clearAllRefreshRequests()
+                }
+            )
+        }
+
         composable<InitializationRoute> {
             InitializationView(koinScope = koinScope, navigateOnboarding = {
                 navigateNewGraph(OnboardingStartRoute)
@@ -281,7 +352,8 @@ private fun WalletNavHost(
                         selected = NavigationData.HOME_SCREEN
                     )
                 },
-                koinScope = koinScope
+                koinScope = koinScope,
+                onRefresh = walletMain.credentialValidityService::refreshSingle
             )
             LaunchedEffect(koinScope) {
                 walletMain.scope.launch {
