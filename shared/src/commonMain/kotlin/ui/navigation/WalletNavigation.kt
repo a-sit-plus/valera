@@ -871,12 +871,6 @@ private fun WalletNavHost(
                     koinScope = koinScope,
                     onClickLogo = onClickLogo,
                     onClickSettings = { navigate(SettingsRoute) },
-                    onSoftReset = {
-                        walletMain.scope.launch {
-                            walletMain.softReset()
-                            popBackStack(InitializationRoute)
-                        }
-                    },
                     onContinue = {
                         navigatePending()
                     },
