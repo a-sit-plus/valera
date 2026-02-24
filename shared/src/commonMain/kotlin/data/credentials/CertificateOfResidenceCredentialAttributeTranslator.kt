@@ -29,6 +29,11 @@ import at.asitplus.valera.resources.attribute_friendly_name_sex
 import data.credentials.CertificateOfResidenceCredentialClaimDefinition.*
 
 class CertificateOfResidenceCredentialAttributeTranslator : CredentialAttributeTranslator {
+    override fun translateSingleClaimReference(claimReference: SingleClaimReference) = when(claimReference) {
+        is JsonClaimReference -> translate(claimReference.normalizedJsonPath)
+        is MdocClaimReference -> null
+    }
+
     override fun translate(
         attributeName: NormalizedJsonPath
     ) = CertificateOfResidenceCredentialSdJwtClaimDefinitionResolver().resolveOrNull(attributeName)?.stringResource()

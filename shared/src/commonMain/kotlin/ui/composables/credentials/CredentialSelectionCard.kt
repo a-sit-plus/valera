@@ -57,7 +57,8 @@ fun CredentialSelectionCard(
         CredentialSelectionCardHeader(
             credentialFreshnessValidationState = credentialFreshnessValidationState,
             credential = credential.key,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            allowMultiSelection = false,
         )
         CredentialSummaryCardContent(
             credential = credential.key,

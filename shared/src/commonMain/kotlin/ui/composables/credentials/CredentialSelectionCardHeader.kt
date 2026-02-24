@@ -19,6 +19,7 @@ fun ColumnScope.CredentialSelectionCardHeader(
     credentialFreshnessValidationState: CredentialFreshnessValidationStateUiModel,
     credential: SubjectCredentialStore.StoreEntry,
     modifier: Modifier = Modifier,
+    allowMultiSelection: Boolean,
 ) {
     PersonAttributeDetailCardHeading(
         icon = {

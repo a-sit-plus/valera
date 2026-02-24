@@ -17,6 +17,8 @@ import org.jetbrains.compose.resources.StringResource
 
 @Suppress("DEPRECATION")
 interface CredentialAttributeTranslator {
+    fun translateSingleClaimReference(claimReference: SingleClaimReference): StringResource?
+
     fun translate(attributeName: NormalizedJsonPath): StringResource?
 
     companion object {

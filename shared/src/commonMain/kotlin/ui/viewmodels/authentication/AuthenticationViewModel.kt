@@ -80,7 +80,7 @@ abstract class AuthenticationViewModel(
                 when(credentialPresentationSubmissions) {
                     is DCQLCredentialSubmissions -> CredentialPresentation.DCQLPresentation(
                         presentationRequest = presentationRequest as CredentialPresentationRequest.DCQLRequest,
-                        credentialQuerySubmissions = credentialPresentationSubmissions.credentialQuerySubmissions?.mapValues { listOf(it.value) }
+                        credentialQuerySubmissions = credentialPresentationSubmissions.credentialQuerySubmissions
                     )
 
                     is PresentationExchangeCredentialSubmissions -> CredentialPresentation.PresentationExchangePresentation(

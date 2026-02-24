@@ -1,4 +1,6 @@
 <resources>
+    <string name="unexpected_screen_text">This view should never be visible, please contact the app creators.</string>
+
     <string name="dictionary_yes">Yes</string>
     <string name="dictionary_no">No</string>
 
@@ -244,6 +246,10 @@
     <string name="text_label_valid_to">Valid to</string>
     <string name="text_label_optional">Optional</string>
     <string name="text_label_all_claims_requested">All attributes</string>
+    <string name="text_label_mandatory_dataset">Required dataset</string>
+    <string name="text_label_mandatory_dataset_description">The service requires one of the following datasets</string>
+    <string name="text_label_optional_dataset">Optional dataset</string>
+    <string name="text_label_optional_dataset_description">Optionally the service requests one of the following datasets</string>
     <string name="text_label_check_all">Check all</string>
     <string name="text_label_powered_by">POWERED BY</string>
     <string name="text_label_certificate">Certificate</string>
@@ -253,7 +259,9 @@
     <string name="text_label_status_idx">Status Index</string>
     <string name="text_label_vcType">VcType</string>
     <string name="text_label_docType">DocType</string>
+    <string name="text_label_select_no_optional_credential_set_query_option">Send nothing</string>
 
+    <string name="heading_label_credential_selection">Which Data should be used?</string>
     <string name="heading_label_authenticate_at_device_title">Authenticate</string>
     <string name="heading_label_authenticate_at_device_subtitle">at relying party</string>
     <string name="heading_label_show_data">Show Data</string>
@@ -502,6 +510,8 @@
     <string name="info_text_capabilities_missing_capabilities">Your device currently does not support all features.</string>
     <string name="info_text_capabilities_continue">Please adjust the settings accordingly to continue.</string>
     <string name="info_text_capabilities_no_camera">Access to the camera was denied. Please adjust the settings.</string>
+
+    <string name="additional_text_other_untranslated_claims">other claims</string>
 
     <string name="button_label_capabilities_settings">Device settings</string>
 

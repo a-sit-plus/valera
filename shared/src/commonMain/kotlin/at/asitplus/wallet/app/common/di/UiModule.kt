@@ -1,13 +1,18 @@
 package at.asitplus.wallet.app.common.di
 
 import at.asitplus.wallet.app.common.SnackbarService
+import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
+import ui.presentation.DCAPIPresentationGraphViewModel
+import ui.presentation.DCQLPresentationBuilderGraphViewModel
+import ui.presentation.DefaultPresentationGraphViewModel
 import ui.viewmodels.AddCredentialViewModel
 import ui.viewmodels.CapabilitiesViewModel
 import ui.viewmodels.CredentialsViewModel
 import ui.viewmodels.InitializationViewModel
+import ui.viewmodels.QrCodeScannerViewModel
 import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.authentication.AuthenticationSuccessViewModel
 import ui.viewmodels.iso.holder.HolderViewModel
@@ -22,8 +27,13 @@ fun uiModule() = module {
     viewModelOf(::TransferOptionsViewModel)
     viewModelOf(::HolderViewModel)
     viewModelOf(::VerifierViewModel)
+    viewModelOf(::DefaultPresentationGraphViewModel)
+    viewModelOf(::DCQLPresentationBuilderGraphViewModel)
+    viewModelOf(::DCAPIPresentationGraphViewModel)
     viewModelOf(::AuthenticationSuccessViewModel)
     viewModelOf(::AddCredentialViewModel)
     viewModelOf(::CapabilitiesViewModel)
     viewModelOf(::InitializationViewModel)
+    viewModelOf(::QrCodeScannerViewModel)
 }
+

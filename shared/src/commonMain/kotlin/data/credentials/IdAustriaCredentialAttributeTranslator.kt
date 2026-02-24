@@ -20,8 +20,14 @@ import at.asitplus.valera.resources.id_austria_credential_attribute_friendly_nam
 import at.asitplus.valera.resources.id_austria_credential_attribute_friendly_name_main_address_postal_code
 import at.asitplus.valera.resources.id_austria_credential_attribute_friendly_name_main_address_stair
 import at.asitplus.valera.resources.id_austria_credential_attribute_friendly_name_main_address_street
+import org.jetbrains.compose.resources.StringResource
 
 class IdAustriaCredentialAttributeTranslator : CredentialAttributeTranslator {
+    override fun translateSingleClaimReference(claimReference: SingleClaimReference) = when(claimReference) {
+        is JsonClaimReference -> translate(claimReference.normalizedJsonPath)
+        is MdocClaimReference -> null
+    }
+
     override fun translate(
         attributeName: NormalizedJsonPath
     ) = IdAustriaCredentialSdJwtClaimDefinitionResolver().resolveOrNull(

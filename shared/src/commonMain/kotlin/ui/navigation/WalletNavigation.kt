@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -33,7 +34,6 @@ import androidx.navigation.toRoute
 import at.asitplus.catching
 import at.asitplus.catchingUnwrapped
 import at.asitplus.dcapi.request.DCAPIWalletRequest
-import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
 import at.asitplus.wallet.app.common.ErrorService
@@ -57,9 +57,9 @@ import ui.composables.BottomBar
 import ui.composables.NavigationData
 import ui.navigation.routes.*
 import ui.navigation.routes.RoutePrerequisites.CRYPTO
+import ui.presentation.DCAPIPresentationGraphView
+import ui.presentation.DefaultPresentationGraphView
 import ui.viewmodels.*
-import ui.viewmodels.authentication.AuthenticationViewModel
-import ui.viewmodels.authentication.DefaultAuthenticationViewModel
 import ui.viewmodels.authentication.NewDCAPIAuthenticationViewModel
 import ui.viewmodels.authentication.PresentationViewModel
 import ui.viewmodels.intents.*
@@ -75,6 +75,7 @@ internal object NavigatorTestTags {
     const val loadingTestTag = "loadingTestTag"
 }
 
+@ExperimentalMaterial3Api
 @Composable
 fun WalletNavigation(
     koinScope: Scope,
@@ -219,6 +220,7 @@ fun WalletNavigation(
     }
 }
 
+@ExperimentalMaterial3Api
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun WalletNavHost(
@@ -234,8 +236,7 @@ private fun WalletNavHost(
     koinScope: Scope,
     walletMain: WalletMain = koinInject(scope = koinScope),
     settingsRepository: SettingsRepository = koinInject(),
-
-    ) {
+) {
 
     val items by walletMain.credentialValidityService.refreshItems.collectAsState()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -285,7 +286,7 @@ private fun WalletNavHost(
             navController.popBackStack()
         }
     }
-
+    
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -378,7 +379,8 @@ private fun WalletNavHost(
                     BottomBar(
                         navigate = navigate, selected = NavigationData.PRESENT_DATA_SCREEN
                     )
-                })
+                },
+            )
         }
 
         composable<ProximityHolderRoute> {
@@ -417,85 +419,32 @@ private fun WalletNavHost(
             )
         }
 
-        composable<AuthenticationViewRoute> { backStackEntry ->
-            val route: AuthenticationViewRoute = backStackEntry.toRoute()
-
-            val vm = remember {
-                try {
-                    val dcApiRequest = when (val request = route.authorizationResponsePreparationState.request) {
-                        is RequestParametersFrom.DcApiSigned<*> -> request.dcApiRequest
-                        is RequestParametersFrom.DcApiUnsigned<*> -> request.dcApiRequest
-                        else -> null
-                    }
-                    val spLocation = dcApiRequest?.callingOrigin ?: route.recipientLocation
-
-                    DefaultAuthenticationViewModel(
-                        spName = dcApiRequest?.callingPackageName,
-                        spLocation = spLocation,
-                        spImage = null,
-                        authenticationRequest = route.authenticationRequest,
-                        preparationState = route.authorizationResponsePreparationState,
-                        navigateUp = navigateBack,
-                        navigateToAuthenticationSuccessPage = {
-                            navigate(AuthenticationSuccessRoute(it, route.isCrossDeviceFlow))
-                        },
-                        navigateToHomeScreen = {
-                            popBackStack(HomeScreenRoute)
-                        },
-                        walletMain = walletMain,
-                        onClickLogo = onClickLogo,
-                        onClickSettings = { navigate(SettingsRoute) },
-                    )
-                } catch (e: Throwable) {
+        composable<AuthenticationViewRoute> {
+            DefaultPresentationGraphView(
+                onError = onError,
+                onClickLogo = onClickLogo,
+                onClickSettings = {
+                    navigate(SettingsRoute)
+                },
+                koinScope = koinScope,
+                onNavigateUp = {
                     popBackStack(HomeScreenRoute)
-                    walletMain.errorService.emit(e)
-                    null
-                }
-            }
-
-            if (vm != null) {
-                AuthenticationView(
-                    vm = vm, onError = onError
-                )
-            }
+                },
+            )
         }
 
-        composable<DCAPIAuthenticationConsentRoute> { backStackEntry ->
-            val vm: AuthenticationViewModel? = remember {
-                try {
-                    val apiRequestSerialized =
-                        backStackEntry.toRoute<DCAPIAuthenticationConsentRoute>().apiRequestSerialized
-                    val dcApiWalletRequest: DCAPIWalletRequest.IsoMdoc = catching {
-                        vckJsonSerializer.decodeFromString<DCAPIWalletRequest.IsoMdoc>(apiRequestSerialized)
-                    }.getOrThrow()
-
-                    NewDCAPIAuthenticationViewModel(
-                        isoMdocRequest = dcApiWalletRequest,
-                        navigateUp = navigateBack,
-                        navigateToAuthenticationSuccessPage = {
-                            navigate(AuthenticationSuccessRoute(it, false))
-                        },
-                        walletMain = walletMain,
-                        navigateToHomeScreen = {
-                            popBackStack(HomeScreenRoute)
-                        },
-                        onClickLogo = onClickLogo,
-                        onClickSettings = { navigate(SettingsRoute) }
-                    ).also { it.initWithDeviceRequest(dcApiWalletRequest.isoMdocRequest.deviceRequest) }
-
-                } catch (e: Throwable) {
-                    Napier.e("error", e)
-                    onError(e)
-                    null
-                }
-            }
-
-            if (vm != null) {
-                AuthenticationView(
-                    vm = vm,
-                    onError = onError,
-                )
-            }
+        composable<DCAPIPresentationViewRoute> {
+            DCAPIPresentationGraphView(
+                onError = onError,
+                onClickLogo = onClickLogo,
+                onClickSettings = {
+                    navigate(SettingsRoute)
+                },
+                koinScope = koinScope,
+                onNavigateUp = {
+                    popBackStack(HomeScreenRoute)
+                },
+            )
         }
 
         composable<LocalPresentationAuthenticationConsentRoute> { backStackEntry ->
@@ -530,7 +479,8 @@ private fun WalletNavHost(
                     onError = { e ->
                         popBackStack(HomeScreenRoute)
                         walletMain.errorService.emit(e)
-                    })
+                    }
+                )
             }
         }
 
@@ -538,8 +488,7 @@ private fun WalletNavHost(
             AuthenticationSuccessView(
                 navigateUp = navigateBack,
                 onClickLogo = onClickLogo,
-                onClickSettings = { navigate(SettingsRoute) },
-                koinScope = koinScope
+                onClickSettings = { navigate(SettingsRoute) }
             )
         }
 
@@ -785,20 +734,22 @@ private fun WalletNavHost(
         }
 
         composable<DCAPIAuthorizationIntentRoute> { backStackEntry ->
-            DCAPIAuthorizationIntentView(remember {
-                DCAPIAuthorizationIntentViewModel(
-                    walletMain = walletMain,
-                    uri = backStackEntry.toRoute<DCAPIAuthorizationIntentRoute>().uri,
-                    onSuccess = { route ->
-                        Napier.d("valid authentication request")
-                        navigateBack()
-                        navigate(route)
-                    },
-                    onFailure = { e ->
-                        walletMain.errorService.emit(e)
-                    })
-            })
-
+            DCAPIAuthorizationIntentView(
+                remember {
+                    DCAPIAuthorizationIntentViewModel(
+                        walletMain = walletMain,
+                        uri = backStackEntry.toRoute<DCAPIAuthorizationIntentRoute>().uri,
+                        onSuccess = { route ->
+                            Napier.d("valid authentication request")
+                            navigateBack()
+                            navigate(route)
+                        },
+                        onFailure = { e ->
+                            walletMain.errorService.emit(e)
+                        },
+                    )
+                }
+            )
         }
 
         composable<PresentationIntentRoute> { backStackEntry ->
@@ -895,22 +846,19 @@ private fun WalletNavHost(
                 })
         }
         composable<QrCodeScannerRoute> { backStackEntry ->
-            QrCodeScannerView(remember {
-                QrCodeScannerViewModel(
-                    navigateUp = navigateBack,
-                    onSuccess = { route ->
-                        navigateBack()
-                        navigate(route)
-                    },
-                    onFailure = { error ->
-                        walletMain.errorService.emit(error)
-                    },
-                    walletMain = walletMain,
-                    onClickLogo = onClickLogo,
-                    onClickSettings = { navigate(SettingsRoute) },
-                    mode = backStackEntry.toRoute<QrCodeScannerRoute>().mode
-                )
-            })
+            QrCodeScannerView(
+                koinScope = koinScope,
+                onNavigateUp = navigateBack,
+                onClickLogo = onClickLogo,
+                onClickSettings = { navigate(SettingsRoute) },
+                onNavigateToRoute = {
+                    navigateBack()
+                    navigate(it)
+                },
+                onError = {
+                    walletMain.errorService.emit(it)
+                },
+            )
         }
         composable<CapabilitiesRoute> { backStackEntry ->
             backStackEntry.toRoute<CapabilitiesRoute>().prerequisites.let { prerequisites ->
