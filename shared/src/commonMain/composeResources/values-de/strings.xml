@@ -517,10 +517,8 @@
     <string name="info_text_capabilities_missing_capabilities">Ihr Gerät unterstützt zur Zeit nicht alle Funktionen.</string>
     <string name="info_text_capabilities_continue">Passen Sie die Einstellungen an um fortzufahren.</string>
     <string name="info_text_capabilities_no_camera">Der Zugriff auf die Kamera wurde verweigert. Bitte passen Sie die Einstellungen an.</string>
-
     <string name="button_label_capabilities_settings">Geräteeinstellungen</string>
     <string name="additional_text_other_untranslated_claims">weitere Attribute</string>
-    <string name="button_label_capabilities_settings">Geräteeinstellungen</string>
   
     <!--  Refresh views  -->
     <string name="refresh_center_title">Ausweise aktualisieren</string>
