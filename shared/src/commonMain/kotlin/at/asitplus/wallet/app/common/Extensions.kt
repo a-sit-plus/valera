@@ -386,8 +386,9 @@ fun ConstantIndex.CredentialRepresentation.getMetadataLocalization(
 ) = when (claimReference) {
     is JsonClaimReference -> claimReference.normalizedJsonPath.segments.filterIsInstance<NameSegment>()
         .firstOrNull()?.let {
-            val jwtClaimDefinition = JwtClaimDefinition.valueOfClaimNameOrNull(it.memberName) ?: return null
-            JwtClaimDefinitionTranslator().translate(jwtClaimDefinition)
+            JwtClaimDefinition.valueOfClaimNameOrNull(it.memberName)?.let { claimDefinition ->
+                JwtClaimDefinitionTranslator().translate(claimDefinition)
+            }
         }
 
     is MdocClaimReference -> null
