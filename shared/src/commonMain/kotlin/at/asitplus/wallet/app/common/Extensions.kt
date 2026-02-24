@@ -12,6 +12,7 @@ import at.asitplus.dif.InputDescriptor
 import at.asitplus.iso.DocRequest
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
+import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.*
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.NameSegment
 import at.asitplus.openid.CredentialFormatEnum
 import at.asitplus.openid.dcql.*
@@ -129,6 +130,7 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
 
         is DCQLSdJwtCredentialQuery -> meta.vctValues
             .firstNotNullOfOrNull { AttributeIndex.resolveSdJwtAttributeType(it) }
+
         is DCQLJwtVcCredentialQuery -> meta.typeValues.list.flatten()
             .filterNot { it == VERIFIABLE_CREDENTIAL }
             .firstNotNullOfOrNull { AttributeIndex.resolveAttributeType(it) }
@@ -136,6 +138,7 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
         is DCQLIsoMdocCredentialQuery -> IsoMdocFallbackCredentialScheme(isoDocType = meta.doctypeValue)
         is DCQLSdJwtCredentialQuery -> meta.vctValues
             .firstNotNullOfOrNull { SdJwtFallbackCredentialScheme(sdJwtType = it) }
+
         is DCQLJwtVcCredentialQuery -> meta.typeValues.list.flatten()
             .filterNot { it == VERIFIABLE_CREDENTIAL }
             .firstNotNullOfOrNull { VcFallbackCredentialScheme(vcType = it) }
@@ -147,7 +150,7 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
             is DCQLJsonClaimsQuery -> JsonClaimReference(
                 NormalizedJsonPath(it.path.map {
                     when (it) {
-                        is DCQLClaimsPathPointerSegment.IndexSegment -> NormalizedJsonPathSegment.IndexSegment(it.index)
+                        is DCQLClaimsPathPointerSegment.IndexSegment -> IndexSegment(it.index)
                         is DCQLClaimsPathPointerSegment.NameSegment -> NameSegment(it.name)
                         DCQLClaimsPathPointerSegment.NullSegment -> null
                     }
@@ -156,13 +159,9 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
                 }.filterNotNull())
             )
 
-            is DCQLIsoMdocClaimsQuery -> MdocClaimReference(
-                namespace = it.namespace ?: return@associateWith null,
-                claimName = it.claimName ?: return@associateWith null,
-            )
+            is DCQLIsoMdocClaimsQuery -> MdocClaimReference(namespace = it.namespace, claimName = it.claimName)
 
-            // TODO in vck: maybe make this class sealed?
-            else -> throw IllegalStateException("Unsupported claims query format: $it")
+            is DCQLAmbiguousClaimsQuery -> throw IllegalStateException("Unsupported claims query format: $it")
         }
     }
     return Triple(representation, scheme, singleReferenceClaimsQueries?.values)
@@ -337,7 +336,8 @@ fun NormalizedJsonPath.minus(name: String) =
     NormalizedJsonPath(this.segments.filter {
         (it as NameSegment).memberName != name
     }
-)
+    )
+
 fun Array<DocRequest>.toDifInputDescriptorList() = this.map {
     val itemsRequest = it.itemsRequest.value
     DifInputDescriptor(
@@ -386,9 +386,9 @@ fun ConstantIndex.CredentialRepresentation.getMetadataLocalization(
 ) = when (claimReference) {
     is JsonClaimReference -> claimReference.normalizedJsonPath.segments.filterIsInstance<NameSegment>()
         .firstOrNull()?.let {
-        val jwtClaimDefinition = JwtClaimDefinition.valueOfClaimNameOrNull(it.memberName) ?: return null
-        JwtClaimDefinitionTranslator().translate(jwtClaimDefinition)
-    }
+            val jwtClaimDefinition = JwtClaimDefinition.valueOfClaimNameOrNull(it.memberName) ?: return null
+            JwtClaimDefinitionTranslator().translate(jwtClaimDefinition)
+        }
 
     is MdocClaimReference -> null
 }

@@ -24,8 +24,8 @@ import at.asitplus.valera.resources.error_unsatisfiable_dcql_query
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.openid.DCQLMatchingResult
 import org.jetbrains.compose.resources.stringResource
-import ui.models.CredentialFreshnessSummaryUiModel
 import ui.composables.DCQLCredentialQuerySubmissionSelection
+import ui.models.CredentialFreshnessSummaryUiModel
 import ui.state.savers.rememberMutableStateListOf
 import ui.views.authentication.AuthenticationSelectionViewScaffold
 
@@ -51,7 +51,7 @@ fun AuthenticationSelectionDCQLView(
         return onError(UnsupportedOperationException(stringResource(Res.string.error_complex_dcql_query)))
     }
     val submissionOptions = credentialSetQuery.options.first().associateWith { credentialQueryIdentifier ->
-        matchingResult.dcqlQueryResult.credentialQueryMatches[credentialQueryIdentifier]?.ifEmpty { null }
+        matchingResult.matchingResult.credentialQueryMatches[credentialQueryIdentifier]?.ifEmpty { null }
             ?: return onError(IllegalArgumentException(stringResource(Res.string.error_unsatisfiable_dcql_query)))
     }
 

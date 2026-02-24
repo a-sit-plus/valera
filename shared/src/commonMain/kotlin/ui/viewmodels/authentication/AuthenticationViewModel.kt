@@ -12,7 +12,6 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import at.asitplus.wallet.lib.extensions.toDefaultSubmission
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.CredentialMatchingResult
 import at.asitplus.wallet.lib.openid.DCQLMatchingResult
@@ -51,21 +50,21 @@ abstract class AuthenticationViewModel(
 
         when (val matching = matchingCredentials) {
             is DCQLMatchingResult -> {
-                matching.dcqlQueryResult.toDefaultSubmission(allowsMultiple = listOf())
+                matching.matchingResult.toDefaultSubmission(matching.presentationRequest.dcqlQuery)
                 // TODO: create default selection?
                 // matching fails if query is not satisfiable, so we know that selection is the next step
                 viewState = AuthenticationViewState.Selection
             }
 
             is PresentationExchangeMatchingResult -> {
-                if (matching.matchingInputDescriptorCredentials.values.find { it.size != 1 } == null) {
-                    defaultCredentialSelection = matching.matchingInputDescriptorCredentials.entries.associate {
+                if (matching.matchingResult.inputDescriptorMatches.values.find { it.size != 1 } == null) {
+                    defaultCredentialSelection = matching.matchingResult.inputDescriptorMatches.entries.associate {
                         val requestId = it.key
                         val credential = it.value.keys.first()
                         requestId to credential
                     }.toMap()
                     viewState = AuthenticationViewState.Selection
-                } else if (matching.matchingInputDescriptorCredentials.values.find { it.isEmpty() } == null) {
+                } else if (matching.matchingResult.inputDescriptorMatches.values.find { it.isEmpty() } == null) {
                     viewState = AuthenticationViewState.Selection
                 } else {
                     viewState = AuthenticationViewState.NoMatchingCredential
