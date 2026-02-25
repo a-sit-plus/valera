@@ -24,7 +24,7 @@ jobs:
             ~/.m2/repository
           key: Android-${{ hashFiles('./gradle/libs.versions.toml', './gradle.properties', './gradle/wrapper/gradle-wrapper.properties') }}
       - name: Build apk
-        run: ./gradlew :androidApp:assemble
+        run: ./gradlew -U :androidApp:assemble
         env:
           ANDROID_CERT_PASSWORD: ${{ secrets.ANDROID_CERT_PASSWORD }}
           CI: true
