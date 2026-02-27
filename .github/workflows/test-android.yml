@@ -1,49 +1,51 @@
-name: Build and test Android
-on: [push]
+name: Build and Test Android
+
+on:
+  workflow_call:
+    inputs:
+      override-cache:
+        description: "Override Cache?"
+        required: false
+        default: false
+        type: boolean
+      kotlin-version:
+        description: "Override Kotlin version?"
+        required: false
+        default: ""
+        type: string
+      testballoon-version:
+        description: "Override TestBalloon version (full version string)?"
+        required: false
+        default: ""
+        type: string
+
 jobs:
-  build:
+  build-and-test-android:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    env:
+      KOTLIN_VERSION_ENV: ${{ inputs.kotlin-version }}
+      TESTBALLOON_VERSION_OVERRIDE: ${{ inputs.testballoon-version }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Common setup
+        uses: a-sit-plus/internal-workflows/.github/actions/common-setup@feature/modularTests
         with:
-          submodules: recursive
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-      - name: Cache gradle files
-        uses: actions/cache@v4
-        env:
-          cache-name: cache-gradle
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            ~/.m2/repository
-          key: Android-${{ hashFiles('./gradle/libs.versions.toml', './gradle.properties', './gradle/wrapper/gradle-wrapper.properties') }}
+          override-cache: ${{ inputs.override-cache }}
+          enable-kvm: true
+
       - name: Build apk
         run: ./gradlew -U :androidApp:assemble
         env:
           ANDROID_CERT_PASSWORD: ${{ secrets.ANDROID_CERT_PASSWORD }}
           CI: true
-      - name: Enable KVM
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-      - name: Test KMP on Android
-        run: ./gradlew pixel2api35AndroidDeviceTest
-      - name: Test Report
-        uses: dorny/test-reporter@v2
+
+      - name: Run Android tests
+        run: ./gradlew -Dkotlin.build.report.json.directory="$PWD/metrics" pixel2api35AndroidDeviceTest
         env:
-          NODE_OPTIONS: --max-old-space-size=8192
-        if: success() || failure()
+          ANDROID_CERT_PASSWORD: ${{ secrets.ANDROID_CERT_PASSWORD }}
+          CI: true
+
+      - name: Reporting
+        uses: a-sit-plus/internal-workflows/.github/actions/common-reporting@feature/modularTests
         with:
-          name: Android Device Tests
-          path: 'shared/build/outputs/androidTest-results/managedDevice/**/TEST*.xml'
-          reporter: java-junit
-          list-suites: failed
-          list-tests: failed
-          use-actions-summary: true
+          report-name: ${{ github.workflow }}
+          matrix-identifier: ${{ runner.os }}-androidRunner-${{ runner.arch }}

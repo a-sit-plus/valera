@@ -1,7 +1,12 @@
-name: Test Everything (All OS/Arch)
+name: Build and Test Everything (All OS/Arch)
 
 on:
+  #For caching
   push:
+    branches:
+      - main
+      - development
+  pull_request:
   workflow_dispatch:
     inputs:
       kotlin-version:
@@ -16,10 +21,18 @@ on:
         type: string
 
 jobs:
-  test-everything:
-    uses: a-sit-plus/internal-workflows/.github/workflows/test-everything.yml@feature/modularTests
+  build-and-test-android:
+    uses: ./.github/workflows/test-android.yml
     with:
       override-cache: ${{ github.ref_name == 'development' || github.ref_name == 'main' }}
-      matrix-file-name: ".github/test-strategy-matrix.json"
       kotlin-version: ${{ inputs.kotlin-version }}
       testballoon-version: ${{ inputs.testballoon-version }}
+    secrets: inherit
+
+  build-and-test-ios:
+    uses: ./.github/workflows/test-ios.yml
+    with:
+      override-cache: ${{ github.ref_name == 'development' || github.ref_name == 'main' }}
+      kotlin-version: ${{ inputs.kotlin-version }}
+      testballoon-version: ${{ inputs.testballoon-version }}
+    secrets: inherit
