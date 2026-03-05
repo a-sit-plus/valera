@@ -6,6 +6,7 @@
  * DC API: Support requests with multiple protocols
  * Add: Support refreshing of credentials
  * Add: Support presentation for general DCQL queries
+ * Add: Debug version now allows for localhost cleartext transmissions - supporting local test environments
  
 # Release 5.7.5
  * Update to VC-K 5.10.1
