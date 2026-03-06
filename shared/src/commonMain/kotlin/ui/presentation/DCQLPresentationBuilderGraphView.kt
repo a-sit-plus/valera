@@ -39,7 +39,7 @@ fun DCQLPresentationBuilderGraphView(
     viewModel: DCQLPresentationBuilderGraphViewModel = koinViewModel(),
     onError: (Throwable) -> Unit,
     onNavigateUp: () -> Unit,
-    onSubmit: (Map<DCQLCredentialQueryIdentifier, List<UInt>>) -> Unit,
+    onSubmit: (Map<DCQLCredentialQueryIdentifier, Set<UInt>>) -> Unit,
 ) {
     BackHandler(viewModel.selectionStack.isNotEmpty()) {
         viewModel.selectionStack.removeLast()
@@ -68,7 +68,7 @@ fun DCQLPresentationBuilderGraphView(
         }
     }.toMap()
 
-    val selectedSubmissionIndices = mutableMapOf<DCQLCredentialQueryIdentifier, List<UInt>>().apply {
+    val selectedSubmissionIndices = mutableMapOf<DCQLCredentialQueryIdentifier, Set<UInt>>().apply {
         viewModel.selectionStack.forEach {
             when (it) {
                 is DCQLPresentationBuilderGraphViewModelAction.SelectRequiredCredentialSetQueryOption,

@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import at.asitplus.data.NonEmptyList
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.section_heading_requested_data
 import at.asitplus.valera.resources.text_label_mandatory_dataset
@@ -27,7 +28,7 @@ import ui.composables.ScreenHeading
 fun DCQLPresentationCredentialSetQueryOptionSelectionPageContent(
     isCredentialSetQueryRequired: Boolean,
     selectedOptionIndex: UInt?,
-    credentialSetQueryOptionUiModels: List<CredentialSetQueryOptionUiModel>,
+    credentialSetQueryOptionUiModels: NonEmptyList<CredentialSetQueryOptionUiModel>,
     onSelectCredentialSetQueryOptionAtIndex: (UInt) -> Unit,
     onAbort: () -> Unit,
     onContinue: () -> Unit,
@@ -49,7 +50,7 @@ fun DCQLPresentationCredentialSetQueryOptionSelectionPageContent(
         ) {
             ScreenHeading(stringResource(Res.string.section_heading_requested_data))
 
-            val (datasetLabel, datasetLabelDescription) = if(isCredentialSetQueryRequired) {
+            val (datasetLabel, datasetLabelDescription) = if (isCredentialSetQueryRequired) {
                 Res.string.text_label_mandatory_dataset to Res.string.text_label_mandatory_dataset_description
             } else {
                 Res.string.text_label_optional_dataset to Res.string.text_label_optional_dataset_description

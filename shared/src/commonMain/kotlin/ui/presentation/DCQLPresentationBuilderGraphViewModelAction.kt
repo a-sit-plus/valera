@@ -15,6 +15,6 @@ sealed interface DCQLPresentationBuilderGraphViewModelAction {
 
     data class SelectSubmissions(
         val queryIdentifier: DCQLCredentialQueryIdentifier,
-        val submissionIndices: List<UInt>,
+        val submissionIndices: Set<UInt>,
     ) : DCQLPresentationBuilderGraphViewModelAction
 }

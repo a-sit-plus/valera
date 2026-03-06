@@ -2,44 +2,60 @@ package ui.presentation
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import at.asitplus.openid.dcql.DCQLCredentialQuery
 
 @ExperimentalMaterial3Api
 @Composable
 fun AuthenticationCredentialQueryCredentialSelection(
-    credentialQuery: DCQLCredentialQuery,
+    credentialQueryUiModel: DCQLCredentialQueryUiModel,
+    allowMultiSelection: Boolean,
     selectableCredentialSubmissionCards: List<SelectableCredentialSubmissionCard>?,
     onAbort: () -> Unit,
-    onContinue: (List<UInt>) -> Unit,
+    onContinue: (Set<UInt>) -> Unit,
 ) {
-    val allowMultiSelection = credentialQuery.multiple
-
-    val selectedIndices = rememberSaveable {
-        mutableStateListOf<UInt>()
+    var selectedIndices by rememberSaveable(
+        credentialQueryUiModel,
+        stateSaver = listSaver(
+            save = {
+                it.toList()
+            },
+            restore = {
+                it.toSet()
+            }
+        )
+    ) {
+        mutableStateOf<Set<UInt>>(setOf())
     }
 
     AuthenticationCredentialQueryCredentialSelectionPageContent(
+        credentialQueryUiModel = credentialQueryUiModel,
         selectableCredentialSubmissionCards = selectableCredentialSubmissionCards,
         allowMultiSelection = allowMultiSelection,
         onToggleCredentialOptionSelectedAtIndex = {
-            if(allowMultiSelection) {
-                if(it in selectedIndices) {
-                    selectedIndices.remove(it)
+            if (allowMultiSelection) {
+                if (it in selectedIndices) {
+                    selectedIndices = selectedIndices - it
                 } else {
-                    selectedIndices.add(it)
+                    selectedIndices = selectedIndices + it
                 }
             } else {
-                selectedIndices.clear()
-                selectedIndices.add(it)
+                selectedIndices = setOf(it)
             }
         },
         isCredentialOptionAtIndexSelected = {
             it in selectedIndices
         },
         onAbort = onAbort,
-        onContinue = if(selectedIndices.isNotEmpty()) {
+        onContinue = if (selectedIndices.also {
+                println("selected indices: $selectedIndices")
+            }.isNotEmpty()) {
             {
                 onContinue(selectedIndices)
             }
