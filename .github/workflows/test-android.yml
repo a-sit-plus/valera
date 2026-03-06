@@ -27,7 +27,7 @@ jobs:
       TESTBALLOON_VERSION_OVERRIDE: ${{ inputs.testballoon-version }}
     steps:
       - name: Common setup
-        uses: a-sit-plus/internal-workflows/.github/actions/common-setup@feature/modularTests
+        uses: a-sit-plus/internal-workflows/.github/actions/common-setup@v2
         with:
           override-cache: ${{ inputs.override-cache }}
           enable-kvm: true
@@ -45,7 +45,7 @@ jobs:
           CI: true
 
       - name: Reporting
-        uses: a-sit-plus/internal-workflows/.github/actions/common-reporting@feature/modularTests
+        uses: a-sit-plus/internal-workflows/.github/actions/common-reporting@v2
         with:
           report-name: ${{ github.workflow }}
           matrix-identifier: ${{ runner.os }}-androidRunner-${{ runner.arch }}
