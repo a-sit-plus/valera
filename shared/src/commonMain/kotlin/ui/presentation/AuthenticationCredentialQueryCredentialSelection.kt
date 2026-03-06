@@ -14,7 +14,7 @@ fun AuthenticationCredentialQueryCredentialSelection(
     onAbort: () -> Unit,
     onContinue: (List<UInt>) -> Unit,
 ) {
-    val allowMultiSelection = credentialQuery.multiple ?: false
+    val allowMultiSelection = credentialQuery.multiple
 
     val selectedIndices = rememberSaveable {
         mutableStateListOf<UInt>()
