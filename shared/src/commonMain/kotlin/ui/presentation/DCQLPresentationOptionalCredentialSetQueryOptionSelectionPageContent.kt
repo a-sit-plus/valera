@@ -6,6 +6,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import at.asitplus.data.NonEmptyList
+import at.asitplus.data.NonEmptyList.Companion.toNonEmptyList
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.text_label_select_no_optional_credential_set_query_option
 import org.jetbrains.compose.resources.stringResource
@@ -13,7 +15,7 @@ import org.jetbrains.compose.resources.stringResource
 @ExperimentalMaterial3Api
 @Composable
 fun DCQLPresentationOptionalCredentialSetQueryOptionSelectionPageContent(
-    credentialSetQueryOptionUiModels: List<CredentialSetQueryOptionUiModel>,
+    credentialSetQueryOptionUiModels: NonEmptyList<CredentialSetQueryOptionUiModel>,
     onAbort: () -> Unit,
     onContinue: (UInt?) -> Unit,
 ) {
@@ -38,7 +40,7 @@ fun DCQLPresentationOptionalCredentialSetQueryOptionSelectionPageContent(
                     )
                 )
             )
-        ) + credentialSetQueryOptionUiModels,
+        ).plus(credentialSetQueryOptionUiModels).toNonEmptyList(),
         onSelectCredentialSetQueryOptionAtIndex = {
             selectedOptionIndex = it
         },

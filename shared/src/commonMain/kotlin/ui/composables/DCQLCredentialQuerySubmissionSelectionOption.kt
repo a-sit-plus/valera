@@ -56,7 +56,6 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
         value = CredentialFreshnessValidationStateUiModel.Done(checkCredentialFreshness(option.credential))
     }
 
-
     val credential = option.credential
     val matchingResult = option.matchingResult
 

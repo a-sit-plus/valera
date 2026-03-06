@@ -6,11 +6,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import at.asitplus.data.NonEmptyList
 
 @ExperimentalMaterial3Api
 @Composable
 fun DCQLPresentationRequiredCredentialSetQueryOptionSelectionPageContent(
-    credentialSetQueryOptionUiModels: List<CredentialSetQueryOptionUiModel>,
+    credentialSetQueryOptionUiModels: NonEmptyList<CredentialSetQueryOptionUiModel>,
     onAbort: () -> Unit,
     onContinue: (UInt) -> Unit,
 ) {

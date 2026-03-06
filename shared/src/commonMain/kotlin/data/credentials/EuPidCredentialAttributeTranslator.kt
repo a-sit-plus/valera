@@ -56,7 +56,10 @@ import org.jetbrains.compose.resources.StringResource
 
 class EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
     override fun translateSingleClaimReference(claimReference: SingleClaimReference) = when(claimReference) {
-        is JsonClaimReference -> null
+        is JsonClaimReference -> EuPidCredentialSdJwtClaimDefinitionResolver().resolveOrNull(
+            claimReference.normalizedJsonPath
+        )?.stringResourceOrNull()
+
         is MdocClaimReference -> EuPidCredentialMdocClaimDefinitionResolver().resolveOrNull(
             namespace = claimReference.namespace,
             claimName = claimReference.claimName

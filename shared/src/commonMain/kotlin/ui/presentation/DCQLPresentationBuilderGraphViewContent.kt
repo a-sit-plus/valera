@@ -5,10 +5,12 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.ExperimentalComposeUiApi
+import at.asitplus.data.NonEmptyList.Companion.toNonEmptyList
 import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.openid.dcql.DCQLQuery
 import at.asitplus.wallet.app.common.extractConsentData
 import at.asitplus.wallet.app.common.toCredentialQueryUiModel
+import ui.presentation.CredentialSetQueryOptionSelectionCardCredentialQueryContent
 
 @ExperimentalComposeUiApi
 @ExperimentalMaterial3Api
@@ -26,10 +28,10 @@ fun DCQLPresentationBuilderGraphViewContent(
     satisfiableCredentialQueries: Collection<DCQLCredentialQueryIdentifier>,
     onNavigateUp: () -> Unit,
     onError: (Throwable) -> Unit,
-    onSelectSubmissions: (DCQLCredentialQueryIdentifier, List<UInt>) -> Unit,
+    onSelectSubmissions: (DCQLCredentialQueryIdentifier, Set<UInt>) -> Unit,
     onSelectRequiredCredentialSetQueryOption: (UInt, UInt) -> Unit,
     onSelectOptionalCredentialSetQueryOption: (UInt, UInt?) -> Unit,
-    selectedSubmissionIndices: Map<DCQLCredentialQueryIdentifier, List<UInt>>,
+    selectedSubmissionIndices: Map<DCQLCredentialQueryIdentifier, Set<UInt>>,
     selectedCredentialSetQueryOptionIndices: Map<UInt, UInt>,
     onSubmit: () -> Unit,
 ) {
@@ -76,6 +78,16 @@ fun DCQLPresentationBuilderGraphViewContent(
         } ?: listOf()
     }.flatten()
 
+    val credentialQueryUiModels = dcqlQuery.credentials.associate {
+        it.id to try { // TODO: improve on this by storing it somewhere?
+            it.extractConsentData()
+        } catch (e: Throwable) {
+            return LaunchedEffect(Unit) {
+                onError(e)
+            }
+        }.toCredentialQueryUiModel()
+    }
+
     requestedCredentialQueries.firstOrNull {
         selectedSubmissionIndices[it]?.isEmpty() ?: true
     }?.let { unfulfilledRequestedCredentialQuery ->
@@ -84,28 +96,27 @@ fun DCQLPresentationBuilderGraphViewContent(
         } ?: return LaunchedEffect(Unit) {
             onError(IllegalStateException("Credential query with id `$unfulfilledRequestedCredentialQuery` not found in request $dcqlQuery"))
         }
+        val credentialQueryUiModel = credentialQueryUiModels[credentialQuery.id] ?: return LaunchedEffect(Unit) {
+            onError(IllegalStateException("Credential query model for query with id `$unfulfilledRequestedCredentialQuery` not found."))
+        }
 
         return AuthenticationCredentialQueryCredentialSelection(
-            credentialQuery = credentialQuery,
+            credentialQueryUiModel = credentialQueryUiModel,
+            allowMultiSelection = credentialQuery.multiple,
             selectableCredentialSubmissionCards = selectableCredentialSubmissionCards[unfulfilledRequestedCredentialQuery],
             onAbort = onNavigateUp,
             onContinue = { selections ->
-                onSelectSubmissions(
-                    unfulfilledRequestedCredentialQuery,
-                    selections,
-                )
+                if(selections.isNotEmpty()) {
+                    println("Valid selection, is not empty: $selections")
+                    onSelectSubmissions(
+                        unfulfilledRequestedCredentialQuery,
+                        selections,
+                    )
+                } else {
+                    println("Invalid selection, must not be empty: $selections")
+                }
             }
         )
-    }
-
-    val credentialQueries = dcqlQuery.credentials.associate {
-        it.id to try { // TODO: improve on this by storing it somewhere?
-            it.extractConsentData()
-        } catch (e: Throwable) {
-            return LaunchedEffect(Unit) {
-                onError(e)
-            }
-        }.toCredentialQueryUiModel()
     }
 
     credentialSetQueries.withIndex().firstOrNull { (_, it) ->
@@ -119,7 +130,7 @@ fun DCQLPresentationBuilderGraphViewContent(
             it - selectedSubmissionIndices.filter {
                 it.value.isNotEmpty()
             }.keys
-        }
+        }.toNonEmptyList()
 
         return DCQLPresentationRequiredCredentialSetQueryOptionSelectionPageContent(
             credentialSetQueryOptionUiModels = missingQueriesPerOption.map {
@@ -128,14 +139,14 @@ fun DCQLPresentationBuilderGraphViewContent(
                         it in satisfiableCredentialQueries
                     },
                     credentialQueries = it.map { identifier ->
-                        credentialQueries[identifier] ?: return LaunchedEffect(Unit) {
+                        credentialQueryUiModels[identifier] ?: return LaunchedEffect(Unit) {
                             onError(
                                 IllegalStateException("Unable to find credential query ui model for id `$identifier`")
                             )
                         }
                     }
                 )
-            },
+            }.toNonEmptyList(),
             onAbort = onNavigateUp,
             onContinue = {
                 onSelectRequiredCredentialSetQueryOption(
@@ -166,14 +177,14 @@ fun DCQLPresentationBuilderGraphViewContent(
                         it in satisfiableCredentialQueries
                     },
                     credentialQueries = it.map { identifier ->
-                        credentialQueries[identifier] ?: return LaunchedEffect(Unit) {
+                        credentialQueryUiModels[identifier] ?: return LaunchedEffect(Unit) {
                             onError(
                                 IllegalStateException("Unable to find credential query ui model for id `$identifier`")
                             )
                         }
                     }
                 )
-            },
+            }.toNonEmptyList(),
             onAbort = onNavigateUp,
             onContinue = {
                 onSelectOptionalCredentialSetQueryOption(

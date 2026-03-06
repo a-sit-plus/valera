@@ -60,12 +60,10 @@ import ui.navigation.routes.RoutePrerequisites.CRYPTO
 import ui.presentation.DCAPIPresentationGraphView
 import ui.presentation.DefaultPresentationGraphView
 import ui.viewmodels.*
-import ui.viewmodels.authentication.NewDCAPIAuthenticationViewModel
 import ui.viewmodels.authentication.PresentationViewModel
 import ui.viewmodels.intents.*
 import ui.views.*
 import ui.views.authentication.AuthenticationSuccessView
-import ui.views.authentication.AuthenticationView
 import ui.views.intents.*
 import ui.views.iso.holder.HolderView
 import ui.views.iso.verifier.VerifierView
