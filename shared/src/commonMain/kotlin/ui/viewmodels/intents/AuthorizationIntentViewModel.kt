@@ -14,7 +14,8 @@ class AuthorizationIntentViewModel(
     suspend fun process() {
         val consentPageBuilder =
             BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
-                presentationService = walletMain.presentationService
+                presentationService = walletMain.presentationService,
+                httpService = walletMain.httpService,
             )
         consentPageBuilder(uri).unwrap().onSuccess {
             onSuccess(it)
