@@ -1,3 +1,4 @@
+import AndroidPlatformAdapter.Companion.openIdArrayKeys
 import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -12,9 +13,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import at.asitplus.wallet.app.common.presentation.NfcDispatchSuppressionMode
-import at.asitplus.wallet.app.common.presentation.NfcTransferState
-import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
@@ -38,6 +37,7 @@ import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.android.dcapi.AndroidDCAPIInvocationData
 import at.asitplus.wallet.app.android.dcapi.CustomRegistry
+import at.asitplus.wallet.app.android.security.RequestTrustAnchorsInitializer
 import at.asitplus.wallet.app.common.*
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
@@ -60,6 +60,9 @@ import java.security.MessageDigest
 
 actual fun getPlatformName(): String = "Android"
 
+private var requestTrustAnchorsInitializationAttempted = false
+private val requestTrustAnchorsInitializer = RequestTrustAnchorsInitializer()
+
 
 // Modified from https://developer.android.com/jetpack/compose/designsystems/material3
 @Composable
@@ -80,6 +83,13 @@ fun MainView(
     intentState: IntentState,
     sessionService: SessionService
 ) {
+    val context = LocalContext.current
+
+    if (!requestTrustAnchorsInitializationAttempted) {
+        requestTrustAnchorsInitializer.initialize(context)
+        requestTrustAnchorsInitializationAttempted = true
+    }
+
     WalletRootView(
         buildContext = buildContext,
         promptModel = promptModel,
