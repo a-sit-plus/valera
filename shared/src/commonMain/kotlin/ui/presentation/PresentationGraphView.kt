@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -103,13 +104,20 @@ fun PresentationGraphView(
                 },
                 onSubmit = {
                     submitPresentation(it) {
-                        navController.navigate(it)
+                        navController.navigate(it) {
+                            popUpTo(PresentationStartRoute::class) {
+                                inclusive = true
+                            }
+                        }
                     }
                 }
             )
         }
 
         composable<PresentationSuccessRoute> {
+            BackHandler {
+                onNavigateUp()
+            }
             AuthenticationSuccessView(
                 navigateUp = onNavigateUp,
                 onClickLogo = onClickLogo,
