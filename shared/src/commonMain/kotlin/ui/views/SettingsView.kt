@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import androidx.compose.material.icons.outlined.Share
@@ -45,6 +46,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.button_label_attestation_config
 import at.asitplus.valera.resources.button_label_clear_log
 import at.asitplus.valera.resources.button_label_confirm
 import at.asitplus.valera.resources.button_label_data_protection_policy
@@ -94,6 +96,7 @@ fun SettingsView(
     onClickFAQs: (() -> Unit)?,
     onClickDataProtectionPolicy: (() -> Unit)?,
     onClickLicenses: (() -> Unit)?,
+    onClickAttestation: () -> Unit,
     koinScope: Scope,
     onReset: () -> Unit,
     settingsViewModel: SettingsViewModel = koinViewModel(scope = koinScope),
@@ -298,6 +301,17 @@ fun SettingsView(
                                     }
                                 }
                             },
+                            modifier = listSpacingModifier.fillMaxWidth(),
+                        )
+                        TextIconButtonListItem(
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Outlined.Key,
+                                    contentDescription = null,
+                                )
+                            },
+                            label = stringResource(Res.string.button_label_attestation_config),
+                            onClick = { onClickAttestation() },
                             modifier = listSpacingModifier.fillMaxWidth(),
                         )
                         TextIconButtonListItem(

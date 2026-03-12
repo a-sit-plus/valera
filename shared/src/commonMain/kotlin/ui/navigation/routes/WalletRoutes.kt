@@ -216,3 +216,5 @@ data class CapabilitiesRoute(val prerequisitesSerialized: String) : Route() {
 
 @Serializable
 object RefreshCenterRoute
+@Serializable
+object AttestationSettingsRoute : Route()

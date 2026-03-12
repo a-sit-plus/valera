@@ -36,6 +36,8 @@ qrose = "1.0.1"
 core-splashscreen = "1.0.1"
 
 authcheckkit = "1.0.0-alpha01"
+warden-supreme = "1.0.0-RC3"
+
 
 # Test if DC API is still working after upgrading the following libraries
 androidx-credentials = "1.6.0-beta03"
@@ -83,6 +85,8 @@ semver = { module = "net.swiftzer.semver:semver", version.ref = "semver" }
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
 back-handler = { module = "org.jetbrains.compose.ui:ui-backhandler", version.ref = "compose-plugin" }
 authcheckkit = { module = "at.asitplus.authcheckkit:core", version.ref = "authcheckkit"}
+warden-supreme = { module = "at.asitplus.warden:supreme-client", version.ref = "warden-supreme" }
+
 
 
 vck = {group= "at.asitplus.wallet", name="vck", version.ref = "vck"}
