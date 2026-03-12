@@ -55,8 +55,9 @@ class AttestationService(
 
     suspend fun loadUnitAttestationPop(input: LoadUnitAttestationPopInput) = catching {
         requestUnitAttestation(input.ttl).let { unitAttestation ->
-            bufferedUnitAttestation.emit(null)
-            unitAttestationHelper.buildProofOfPossession(unitAttestation, input.type, input.payload)
+            unitAttestationHelper.buildProofOfPossession(unitAttestation, input.type, input.payload).also {
+                bufferedUnitAttestation.emit(unitAttestation)
+            }
         }
     }
 
