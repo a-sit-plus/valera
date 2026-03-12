@@ -885,7 +885,10 @@ private fun WalletNavHost(
                 onClickLogo = onClickLogo,
                 onClickBack = navigateBack,
                 onClickSettings = navigateBack,
-                vm  = remember { AttestationSettingsViewModel(walletMain.attestationService) }
+                vm  = remember { AttestationSettingsViewModel(walletMain.attestationService) },
+                onError = {
+                    walletMain.errorService.emit(it)
+                }
             )
         }
     }
