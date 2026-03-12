@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import ui.composables.buttons.BackButton
 import ui.composables.buttons.CancelButton
 import ui.composables.buttons.ContinueButton
 
@@ -21,6 +22,7 @@ fun CommonBottomButtonsAbortContinue(
     text: String?,
     onAbort: () -> Unit,
     onContinue: (() -> Unit)?,
+    useBackButton: Boolean = false,
 ) {
     Surface(
         color = NavigationBarDefaults.containerColor,
@@ -44,7 +46,11 @@ fun CommonBottomButtonsAbortContinue(
                     alignment = Alignment.CenterHorizontally
                 ),
             ) {
-                CancelButton(onAbort)
+                if(useBackButton) {
+                    BackButton(onAbort)
+                } else {
+                    CancelButton(onAbort)
+                }
                 ContinueButton(onContinue)
             }
         }

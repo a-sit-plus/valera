@@ -31,16 +31,15 @@ fun DCQLPresentationCredentialSetQueryOptionSelectionPageContent(
     credentialSetQueryOptionUiModels: NonEmptyList<CredentialSetQueryOptionUiModel>,
     onSelectCredentialSetQueryOptionAtIndex: (UInt) -> Unit,
     onAbort: () -> Unit,
-    onContinue: () -> Unit,
+    onContinue: (() -> Unit)?,
 ) {
     Scaffold(
         bottomBar = {
             CommonBottomButtonsAbortContinue(
                 text = null,
                 onAbort = onAbort,
-                onContinue = onContinue.takeIf {
-                    selectedOptionIndex != null
-                },
+                onContinue = onContinue,
+                useBackButton = true,
             )
         }
     ) {
@@ -63,7 +62,9 @@ fun DCQLPresentationCredentialSetQueryOptionSelectionPageContent(
             )
             Text(stringResource(datasetLabelDescription))
 
-            for ((index, credentialSetQueryOption) in credentialSetQueryOptionUiModels.withIndex()) {
+            for ((index, credentialSetQueryOption) in credentialSetQueryOptionUiModels.withIndex().sortedBy {
+                !it.value.isSatisfiable
+            }) {
                 DCQLCredentialSetQueryOptionSelectionCard(
                     isSatisfiable = credentialSetQueryOption.isSatisfiable,
                     isSelected = index.toUInt() == selectedOptionIndex,

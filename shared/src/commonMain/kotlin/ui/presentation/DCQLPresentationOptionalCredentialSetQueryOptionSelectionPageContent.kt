@@ -17,15 +17,13 @@ import org.jetbrains.compose.resources.stringResource
 fun DCQLPresentationOptionalCredentialSetQueryOptionSelectionPageContent(
     credentialSetQueryOptionUiModels: NonEmptyList<CredentialSetQueryOptionUiModel>,
     onAbort: () -> Unit,
-    onContinue: (UInt?) -> Unit,
+    onContinue: (() -> Unit)?,
+    selectedOptionIndex: UInt?,
+    onSetSelectedOptionIndex: (UInt?) -> Unit
 ) {
-    var selectedOptionIndex by rememberSaveable {
-        mutableStateOf(0u)
-    }
-
     DCQLPresentationCredentialSetQueryOptionSelectionPageContent(
         isCredentialSetQueryRequired = false,
-        selectedOptionIndex = selectedOptionIndex,
+        selectedOptionIndex = selectedOptionIndex?.plus(1u) ?: 0u,
         credentialSetQueryOptionUiModels = listOf(
             CredentialSetQueryOptionUiModel(
                 isSatisfiable = true,
@@ -42,15 +40,11 @@ fun DCQLPresentationOptionalCredentialSetQueryOptionSelectionPageContent(
             )
         ).plus(credentialSetQueryOptionUiModels).toNonEmptyList(),
         onSelectCredentialSetQueryOptionAtIndex = {
-            selectedOptionIndex = it
+            onSetSelectedOptionIndex(it.takeIf {
+                it > 0u
+            }?.minus(1u))
         },
         onAbort = onAbort,
-        onContinue = {
-            onContinue(
-                selectedOptionIndex.takeIf {
-                    it > 0u
-                }?.minus(1u)
-            )
-        }
+        onContinue = onContinue
     )
 }

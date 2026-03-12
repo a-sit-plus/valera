@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -12,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
@@ -24,6 +26,9 @@ import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
 import at.asitplus.valera.resources.heading_label_show_data_third_party
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
+import at.asitplus.wallet.app.common.extractConsentData
+import at.asitplus.wallet.app.common.toCredentialQueryUiModel
+import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.DataDisplaySection
 import ui.composables.ScreenHeading
@@ -37,6 +42,8 @@ fun AuthenticationReceivedStartPageContent(
     additionalDataView: @Composable (() -> Unit)? = null,
     onAbort: () -> Unit,
     onContinue: () -> Unit,
+    presentationRequest: CredentialPresentationRequest?,
+    onError: (Throwable) -> Unit,
 ) {
     Scaffold(
         bottomBar = {
@@ -60,7 +67,7 @@ fun AuthenticationReceivedStartPageContent(
                 ScreenHeading(title)
 
                 Column(
-                    modifier = Modifier.Companion.fillMaxSize().verticalScroll(state = rememberScrollState()),
+                    modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState()).padding(bottom = 8.dp),
                 ) {
                     if (serviceProviderLogo != null) {
                         Box(Modifier.Companion.fillMaxWidth(), contentAlignment = Alignment.Companion.Center) {
@@ -72,6 +79,7 @@ fun AuthenticationReceivedStartPageContent(
                             )
                         }
                     }
+
                     DataDisplaySection(
                         title = stringResource(Res.string.section_heading_data_recipient),
                         data = listOfNotNull(
@@ -82,7 +90,41 @@ fun AuthenticationReceivedStartPageContent(
                         ),
                     )
 
+
+                    when(presentationRequest) {
+                        is CredentialPresentationRequest.DCQLRequest -> Column(
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            presentationRequest.dcqlQuery.credentials.associate {
+                                it.id to try { // TODO: improve on this by storing it somewhere?
+                                    it.extractConsentData()
+                                } catch (e: Throwable) {
+                                    return@Box LaunchedEffect(Unit) {
+                                        onError(e)
+                                    }
+                                }.toCredentialQueryUiModel()
+                            }.forEach { (_, credentialQueryUiModel) ->
+                                CredentialSetQueryOptionSelectionCard(
+                                    credentialRepresentationLocalized = credentialQueryUiModel.credentialRepresentationLocalized,
+                                    credentialSchemeLocalized = credentialQueryUiModel.credentialSchemeLocalized,
+                                    credentialAttributesLocalized = credentialQueryUiModel.requestedAttributesLocalized?.let {
+                                        it.attributesLocalized to it.otherAttributes
+                                    },
+                                )
+                            }
+                        }
+
+                        is CredentialPresentationRequest.PresentationExchangeRequest -> {
+                            // TODO?
+                        }
+
+                        null -> {
+                            // TODO?
+                        }
+                    }
+
                     if (additionalDataView != null) {
+                        Spacer(modifier = Modifier.height(16.dp))
                         additionalDataView()
                     }
                 }

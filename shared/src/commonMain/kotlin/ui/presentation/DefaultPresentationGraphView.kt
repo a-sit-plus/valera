@@ -27,6 +27,13 @@ fun DefaultPresentationGraphView(
         return
     }
 
+    val presentationRequest = try {
+        viewModel.preparationState.getOrThrow().credentialPresentationRequest
+    } catch (throwable: Throwable) {
+        onError(throwable)
+        return
+    }
+
     val spLocation = dcApiRequest?.callingOrigin ?: viewModel.route.recipientLocation
     val spName = dcApiRequest?.callingPackageName
 
@@ -43,6 +50,7 @@ fun DefaultPresentationGraphView(
         onClickLogo = onClickLogo,
         onClickSettings = onClickSettings,
         matchingResult = matchingResult,
+        presentationRequest = presentationRequest,
         submitPresentation = SubmitPresentation { it, navigate ->
             viewModel.confirmSelection(
                 credentialPresentationSubmissions = it,

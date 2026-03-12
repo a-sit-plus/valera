@@ -18,22 +18,10 @@ fun AuthenticationCredentialQueryCredentialSelection(
     allowMultiSelection: Boolean,
     selectableCredentialSubmissionCards: List<SelectableCredentialSubmissionCard>?,
     onAbort: () -> Unit,
-    onContinue: (Set<UInt>) -> Unit,
+    onContinue: (() -> Unit)?,
+    selectedIndices: Set<UInt>,
+    onSelectIndices: (Set<UInt>) -> Unit,
 ) {
-    var selectedIndices by rememberSaveable(
-        credentialQueryUiModel,
-        stateSaver = listSaver(
-            save = {
-                it.toList()
-            },
-            restore = {
-                it.toSet()
-            }
-        )
-    ) {
-        mutableStateOf<Set<UInt>>(setOf())
-    }
-
     AuthenticationCredentialQueryCredentialSelectionPageContent(
         credentialQueryUiModel = credentialQueryUiModel,
         selectableCredentialSubmissionCards = selectableCredentialSubmissionCards,
@@ -41,26 +29,18 @@ fun AuthenticationCredentialQueryCredentialSelection(
         onToggleCredentialOptionSelectedAtIndex = {
             if (allowMultiSelection) {
                 if (it in selectedIndices) {
-                    selectedIndices = selectedIndices - it
+                    onSelectIndices(selectedIndices - it)
                 } else {
-                    selectedIndices = selectedIndices + it
+                    onSelectIndices(selectedIndices + it)
                 }
             } else {
-                selectedIndices = setOf(it)
+                onSelectIndices(setOf(it))
             }
         },
         isCredentialOptionAtIndexSelected = {
             it in selectedIndices
         },
         onAbort = onAbort,
-        onContinue = if (selectedIndices.also {
-                println("selected indices: $selectedIndices")
-            }.isNotEmpty()) {
-            {
-                onContinue(selectedIndices)
-            }
-        } else {
-            null
-        }
+        onContinue = onContinue
     )
 }

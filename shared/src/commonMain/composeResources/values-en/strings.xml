@@ -54,6 +54,7 @@
     <string name="button_label_show_technical_details">Show technical details</string>
     <string name="button_label_hide_technical_details">Hide technical details</string>
     <string name="button_label_sign">Sign</string>
+    <string name="button_label_back">Back</string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Given name</string>
@@ -352,6 +353,8 @@
     <string name="info_text_data_items_missing">missing</string>
     <string name="info_text_authentication_success">The authentication has been carried out successfully.</string>
     <string name="info_text_no_credentials_available">No data is available yet.</string>
+    <string name="info_text_available_credentials">Available data</string>
+    <string name="info_text_requested_credentials">Requested data</string>
     <string name="info_text_redirection_to_browser_for_credential_provisioning">To load your data you will be redirected into your browser.</string>
     <string name="info_text_notice_development_provisioning_using_qr_code_credentials">For development purposes, there is also the option to load data via a QR code.</string>
     <string name="info_text_submission_preview_disabled">Preview of data to be submitted is currently not available.</string>

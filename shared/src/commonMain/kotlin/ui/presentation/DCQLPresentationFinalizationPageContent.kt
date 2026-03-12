@@ -47,6 +47,7 @@ fun DCQLPresentationFinalizationPageContent(
                 text = stringResource(Res.string.prompt_send_above_data),
                 onAbort = onAbort,
                 onContinue = onSubmit,
+                useBackButton = true,
             )
         }
     ) {
@@ -90,7 +91,7 @@ fun DCQLPresentationFinalizationPageContent(
                 }.flatMap {
                     it.value
                 }.forEachIndexed { index, card ->
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                     // TODO: good enough or should we have separate cards for final submissions?
                     //  - if these cards should be reused, then allowMultiSelection shouldn't be relevant with (isSelected, onToggleSelection) = (true, null)
                     //  - Cards should therefore implicitly handle the case (true, *, null) to show the card without any selection specific semantics UI
