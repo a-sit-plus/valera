@@ -17,6 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import at.asitplus.openid.TransactionDataBase64Url
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.openid.CredentialMatchingResult
 import ui.views.authentication.AuthenticationSuccessView
 import ui.views.authentication.TransactionDataView
@@ -37,6 +38,7 @@ fun PresentationGraphView(
     submitPresentation: SubmitPresentation,
     navController: NavHostController = rememberNavController(),
     transactionData: TransactionDataBase64Url?,
+    presentationRequest: CredentialPresentationRequest?,
 ) {
     LaunchedEffect(matchingResult) {
         matchingResult.let {
@@ -59,6 +61,16 @@ fun PresentationGraphView(
                 towards = AnimatedContentTransitionScope.SlideDirection.End,
             )
         },
+        enterTransition = {
+            slideIntoContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Start,
+            )
+        },
+        exitTransition = {
+            slideOutOfContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Start,
+            )
+        },
     ) {
         composable<PresentationStartRoute> {
             CommonPresentationPageScaffold(
@@ -67,13 +79,16 @@ fun PresentationGraphView(
                 onNavigateUp = onNavigateUp,
             ) {
                 AuthenticationReceivedStartPageContent(
+                    presentationRequest = presentationRequest,
                     authenticateAtRelyingParty = authenticateAtRelyingParty,
                     serviceProviderLogo = serviceProviderLogo,
                     serviceProviderLocalizedName = serviceProviderNameLocalized,
                     serviceProviderLocalizedLocation = serviceProviderLocationLocalized,
                     onAbort = onNavigateUp,
                     onContinue = {
-                        navController.navigate(PresentationBuilderGraphRoute)
+                        navController.navigate(PresentationBuilderGraphRoute) {
+                            restoreState = true
+                        }
                     },
                     additionalDataView = if(transactionData != null) {
                         {
@@ -82,7 +97,8 @@ fun PresentationGraphView(
                         }
                     } else {
                         null
-                    }
+                    },
+                    onError = onError,
                 )
             }
         }
@@ -97,10 +113,12 @@ fun PresentationGraphView(
                 onClickSettings = onClickSettings,
                 onError = onError,
                 onNavigateToPresentationStart = {
-                    navController.popBackStack(
-                        inclusive = false,
-                        route = PresentationStartRoute,
-                    )
+                    navController.navigate(PresentationStartRoute) {
+                        popUpTo(PresentationStartRoute) {
+                            saveState = true
+                            inclusive = false
+                        }
+                    }
                 },
                 onSubmit = {
                     submitPresentation(it) {

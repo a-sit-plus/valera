@@ -70,7 +70,6 @@ fun ColumnScope.DCQLCredentialSetQueryOptionSelectionCard(
             RadioButton(
                 selected = isSelected,
                 onClick = onSelectCredentialSetQuery,
-                enabled = isSatisfiable,
             )
         }
     }

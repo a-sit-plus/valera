@@ -16,6 +16,7 @@ import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.CredentialMatchingResult
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -29,9 +30,12 @@ class DefaultPresentationGraphViewModel(
     private val walletMain: WalletMain,
 ) : ViewModel() {
     val route = savedStateHandle.toRoute<AuthenticationViewRoute>()
+    val preparationState = catching {
+        route.authorizationResponsePreparationState
+    }
 
-    val dcApiRequest = catching {
-        when (val request = route.authorizationResponsePreparationState.request) {
+    val dcApiRequest = preparationState.map {
+        when (val request = it.request) {
             is RequestParametersFrom.DcApiSigned -> request.dcApiRequest
             is RequestParametersFrom.DcApiUnsigned -> request.dcApiRequest
             else -> null
@@ -80,6 +84,8 @@ class DefaultPresentationGraphViewModel(
             try {
                 val result = finalizeAuthorization(presentation)
                 onSuccess(result)
+            } catch (_: at.asitplus.signum.supreme.UserInitiatedCancellationReason) {
+                // ignore
             } catch (it: Throwable) {
                 onFailure(it)
             }

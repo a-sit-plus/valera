@@ -24,6 +24,7 @@ fun DCAPIPresentationGraphView(
     } catch (it: Throwable) {
         return onError(it)
     }
+
     val spName = isoMdocRequest.callingPackageName
     val spLocation = isoMdocRequest.callingOrigin
 
@@ -56,6 +57,7 @@ fun DCAPIPresentationGraphView(
                 }
             )
         },
-        transactionData = null
+        transactionData = null,
+        presentationRequest = null
     )
 }

@@ -10,7 +10,6 @@ import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.openid.dcql.DCQLQuery
 import at.asitplus.wallet.app.common.extractConsentData
 import at.asitplus.wallet.app.common.toCredentialQueryUiModel
-import ui.presentation.CredentialSetQueryOptionSelectionCardCredentialQueryContent
 
 @ExperimentalComposeUiApi
 @ExperimentalMaterial3Api
@@ -28,11 +27,14 @@ fun DCQLPresentationBuilderGraphViewContent(
     satisfiableCredentialQueries: Collection<DCQLCredentialQueryIdentifier>,
     onNavigateUp: () -> Unit,
     onError: (Throwable) -> Unit,
+    onContinueWithSelection: () -> Unit,
     onSelectSubmissions: (DCQLCredentialQueryIdentifier, Set<UInt>) -> Unit,
     onSelectRequiredCredentialSetQueryOption: (UInt, UInt) -> Unit,
     onSelectOptionalCredentialSetQueryOption: (UInt, UInt?) -> Unit,
     selectedSubmissionIndices: Map<DCQLCredentialQueryIdentifier, Set<UInt>>,
     selectedCredentialSetQueryOptionIndices: Map<UInt, UInt>,
+    confirmedCredentialSetQueryOptionIndices: Map<UInt, UInt>,
+    confirmedSubmissionIndices: Map<DCQLCredentialQueryIdentifier, Set<UInt>>,
     onSubmit: () -> Unit,
 ) {
     val credentialSetQueries = dcqlQuery.requestedCredentialSetQueries
@@ -40,7 +42,7 @@ fun DCQLPresentationBuilderGraphViewContent(
     val progressRequiredCredentialSetQueries = credentialSetQueries.count {
         it.required && it.options.any {
             it.all {
-                selectedSubmissionIndices[it]?.isNotEmpty() == true
+                confirmedSubmissionIndices[it]?.isNotEmpty() == true
             }
         }
     }
@@ -73,7 +75,7 @@ fun DCQLPresentationBuilderGraphViewContent(
 
     // credentials that are required or chosen through selected credential set queries
     val requestedCredentialQueries = requiredCredentialQueries + credentialSetQueries.mapIndexedNotNull { index, it ->
-        selectedCredentialSetQueryOptionIndices[index.toUInt()]?.let { selectedOptionIndex ->
+        confirmedCredentialSetQueryOptionIndices[index.toUInt()]?.let { selectedOptionIndex ->
             it.options.getOrNull(selectedOptionIndex.toInt())
         } ?: listOf()
     }.flatten()
@@ -89,32 +91,32 @@ fun DCQLPresentationBuilderGraphViewContent(
     }
 
     requestedCredentialQueries.firstOrNull {
-        selectedSubmissionIndices[it]?.isEmpty() ?: true
-    }?.let { unfulfilledRequestedCredentialQuery ->
+        confirmedSubmissionIndices[it]?.isEmpty() ?: true
+    }?.let { unconfirmedRequestedCredentialQuery ->
         val credentialQuery = dcqlQuery.credentials.firstOrNull {
-            it.id == unfulfilledRequestedCredentialQuery
+            it.id == unconfirmedRequestedCredentialQuery
         } ?: return LaunchedEffect(Unit) {
-            onError(IllegalStateException("Credential query with id `$unfulfilledRequestedCredentialQuery` not found in request $dcqlQuery"))
+            onError(IllegalStateException("Credential query with id `$unconfirmedRequestedCredentialQuery` not found in request $dcqlQuery"))
         }
         val credentialQueryUiModel = credentialQueryUiModels[credentialQuery.id] ?: return LaunchedEffect(Unit) {
-            onError(IllegalStateException("Credential query model for query with id `$unfulfilledRequestedCredentialQuery` not found."))
+            onError(IllegalStateException("Credential query model for query with id `$unconfirmedRequestedCredentialQuery` not found."))
         }
+        val selectedIndices = selectedSubmissionIndices[unconfirmedRequestedCredentialQuery] ?: setOf()
 
         return AuthenticationCredentialQueryCredentialSelection(
             credentialQueryUiModel = credentialQueryUiModel,
             allowMultiSelection = credentialQuery.multiple,
-            selectableCredentialSubmissionCards = selectableCredentialSubmissionCards[unfulfilledRequestedCredentialQuery],
+            selectableCredentialSubmissionCards = selectableCredentialSubmissionCards[unconfirmedRequestedCredentialQuery],
             onAbort = onNavigateUp,
-            onContinue = { selections ->
-                if(selections.isNotEmpty()) {
-                    println("Valid selection, is not empty: $selections")
-                    onSelectSubmissions(
-                        unfulfilledRequestedCredentialQuery,
-                        selections,
-                    )
-                } else {
-                    println("Invalid selection, must not be empty: $selections")
-                }
+            onContinue = onContinueWithSelection.takeIf {
+                selectedIndices.isNotEmpty()
+            },
+            selectedIndices = selectedIndices,
+            onSelectIndices = {
+                onSelectSubmissions(
+                    unconfirmedRequestedCredentialQuery,
+                    it,
+                )
             }
         )
     }
@@ -122,15 +124,18 @@ fun DCQLPresentationBuilderGraphViewContent(
     credentialSetQueries.withIndex().firstOrNull { (_, it) ->
         it.required && it.options.all {
             it.any {
-                selectedSubmissionIndices[it]?.isNotEmpty() != true
+                confirmedSubmissionIndices[it]?.isNotEmpty() != true
             }
         }
     }?.let { unsatisfiedRequiredCredentialSetQuery ->
         val missingQueriesPerOption = unsatisfiedRequiredCredentialSetQuery.value.options.map {
-            it - selectedSubmissionIndices.filter {
+            it - confirmedSubmissionIndices.filter {
                 it.value.isNotEmpty()
             }.keys
         }.toNonEmptyList()
+
+        val selectedOptionIndex =
+            selectedCredentialSetQueryOptionIndices[unsatisfiedRequiredCredentialSetQuery.index.toUInt()]
 
         return DCQLPresentationRequiredCredentialSetQueryOptionSelectionPageContent(
             credentialSetQueryOptionUiModels = missingQueriesPerOption.map {
@@ -148,7 +153,11 @@ fun DCQLPresentationBuilderGraphViewContent(
                 )
             }.toNonEmptyList(),
             onAbort = onNavigateUp,
-            onContinue = {
+            onContinue = onContinueWithSelection.takeIf {
+                selectedOptionIndex != null
+            },
+            selectedOptionIndex = selectedOptionIndex,
+            onSetSelectedOptionIndex = {
                 onSelectRequiredCredentialSetQueryOption(
                     unsatisfiedRequiredCredentialSetQuery.index.toUInt(),
                     it,
@@ -160,15 +169,17 @@ fun DCQLPresentationBuilderGraphViewContent(
     credentialSetQueries.withIndex().firstOrNull { (index, it) ->
         !it.required && it.options.all {
             it.any {
-                selectedSubmissionIndices[it]?.isNotEmpty() != true
+                confirmedSubmissionIndices[it]?.isNotEmpty() != true
             }
         } && index.toUInt() !in selectedCredentialSetQueryOptionIndices.keys
     }?.let { nonSelectedOptionalCredentialSetQuery ->
         val missingQueriesPerOption = nonSelectedOptionalCredentialSetQuery.value.options.map {
-            it - selectedSubmissionIndices.filter {
+            it - confirmedSubmissionIndices.filter {
                 it.value.isNotEmpty()
             }.keys
         }
+        val selectedOptionIndex =
+            selectedCredentialSetQueryOptionIndices[nonSelectedOptionalCredentialSetQuery.index.toUInt()]
 
         return DCQLPresentationOptionalCredentialSetQueryOptionSelectionPageContent(
             credentialSetQueryOptionUiModels = missingQueriesPerOption.map {
@@ -186,7 +197,11 @@ fun DCQLPresentationBuilderGraphViewContent(
                 )
             }.toNonEmptyList(),
             onAbort = onNavigateUp,
-            onContinue = {
+            onContinue = onContinueWithSelection.takeIf {
+                selectedOptionIndex != null
+            },
+            selectedOptionIndex = selectedOptionIndex,
+            onSetSelectedOptionIndex = {
                 onSelectOptionalCredentialSetQueryOption(
                     nonSelectedOptionalCredentialSetQuery.index.toUInt(),
                     it,
@@ -201,7 +216,7 @@ fun DCQLPresentationBuilderGraphViewContent(
         serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
         dcqlQuery = dcqlQuery,
         selections = selectableCredentialSubmissionCards.mapValues { (id, submissionCards) ->
-            selectedSubmissionIndices[id]?.map {
+            confirmedSubmissionIndices[id]?.map {
                 submissionCards[it.toInt()]
             } ?: listOf()
         },

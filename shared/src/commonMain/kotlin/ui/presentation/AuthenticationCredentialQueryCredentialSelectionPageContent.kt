@@ -18,10 +18,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_credential_selection
+import at.asitplus.valera.resources.info_text_available_credentials
 import at.asitplus.valera.resources.info_text_no_credentials_available
+import at.asitplus.valera.resources.info_text_requested_credentials
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ScreenHeading
 import ui.presentation.CredentialSetQueryOptionSelectionCardCredentialQueryContent
+import ui.theme.LocalExtendedColors
 
 @ExperimentalMaterial3Api
 @Composable
@@ -40,6 +43,7 @@ fun AuthenticationCredentialQueryCredentialSelectionPageContent(
                 text = null,
                 onAbort = onAbort,
                 onContinue = onContinue,
+                useBackButton = true,
             )
         }
     ) {
@@ -49,7 +53,28 @@ fun AuthenticationCredentialQueryCredentialSelectionPageContent(
         ) {
             ScreenHeading(stringResource(Res.string.heading_label_credential_selection))
 
-            if(!selectableCredentialSubmissionCards.isNullOrEmpty()) {
+            Text(stringResource(Res.string.info_text_requested_credentials))
+            CredentialSetQueryOptionSelectionCard(
+                credentialRepresentationLocalized = credentialQueryUiModel.credentialRepresentationLocalized,
+                credentialSchemeLocalized = credentialQueryUiModel.credentialSchemeLocalized,
+                credentialAttributesLocalized = credentialQueryUiModel.requestedAttributesLocalized?.let {
+                    it.attributesLocalized to it.otherAttributes
+                },
+                colors = if(selectableCredentialSubmissionCards.isNullOrEmpty()) {
+                    CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                    )
+                } else {
+                    val extendedColors = LocalExtendedColors.current
+                    CardDefaults.elevatedCardColors(
+                        containerColor = extendedColors.successContainer,
+                        contentColor = extendedColors.onSuccessContainer
+                    )
+                }
+            )
+            if (!selectableCredentialSubmissionCards.isNullOrEmpty()) {
+                Text(stringResource(Res.string.info_text_available_credentials))
                 selectableCredentialSubmissionCards.forEachIndexed { index, credentialCard ->
                     credentialCard(
                         isSelected = isCredentialOptionAtIndexSelected(index.toUInt()),
@@ -59,26 +84,6 @@ fun AuthenticationCredentialQueryCredentialSelectionPageContent(
                     }
                 }
             } else {
-                // No credentials available, show the query that didn't match against anything
-                ElevatedCard(
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(8.dp)
-                    ) {
-                        CredentialSetQueryOptionSelectionCardCredentialQueryContent(
-                            credentialRepresentationLocalized = credentialQueryUiModel.credentialRepresentationLocalized,
-                            credentialSchemeLocalized = credentialQueryUiModel.credentialSchemeLocalized,
-                            credentialAttributesLocalized = credentialQueryUiModel.requestedAttributesLocalized?.let {
-                                it.attributesLocalized to it.otherAttributes
-                            },
-                        )
-                    }
-                }
                 Text(stringResource(Res.string.info_text_no_credentials_available))
             }
         }
