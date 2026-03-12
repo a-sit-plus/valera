@@ -10,6 +10,7 @@ import at.asitplus.signum.indispensable.asn1.commonName
 import at.asitplus.signum.indispensable.josef.KeyAttestationJwt
 import at.asitplus.signum.indispensable.pki.AttributeTypeAndValue
 import at.asitplus.signum.indispensable.pki.X509Certificate
+import at.asitplus.wallet.app.common.attestation.AttestationService
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
@@ -55,6 +56,7 @@ class ProvisioningService(
     private val config: SettingsRepository,
     private val errorService: ErrorService,
     private val httpService: HttpService,
+    private val attestationService: AttestationService,
 ) {
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = httpService.buildHttpClient(cookieStorage = cookieStorage)
