@@ -637,6 +637,7 @@ private fun WalletNavHost(
                 onClickFAQs = null,
                 onClickDataProtectionPolicy = null,
                 onClickLicenses = null,
+                onClickAttestation = { navigate(AttestationSettingsRoute) },
                 onReset = { navigateNewGraph(InitializationRoute) },
                 koinScope = koinScope
             )
@@ -878,6 +879,14 @@ private fun WalletNavHost(
                     prerequisites = prerequisites,
                 )
             }
+        }
+        composable<AttestationSettingsRoute> {
+            AttestationSettingsView(
+                onClickLogo = onClickLogo,
+                onClickBack = navigateBack,
+                onClickSettings = navigateBack,
+                vm  = remember { AttestationSettingsViewModel(walletMain.attestationService) }
+            )
         }
     }
 }
