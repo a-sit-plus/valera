@@ -312,6 +312,7 @@
     <string name="prompt_select_credential">Which Credential should be used?</string>
     <string name="prompt_select_attribute">Which attributes should be transmitted?</string>
 
+    <string name="error_credential_matching_failed">UNSUITABLE</string>
     <string name="error_credential_status_invalid">INVALID</string>
     <string name="error_credential_timeliness_expired">EXPIRED</string>
     <string name="error_credential_timeliness_not_yet_valid">NOT YET VALID</string>

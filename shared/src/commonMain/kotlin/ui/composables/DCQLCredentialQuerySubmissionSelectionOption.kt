@@ -13,10 +13,10 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import at.asitplus.KmmResult
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.openid.dcql.DCQLClaimsQueryResult
 import at.asitplus.openid.dcql.DCQLCredentialQueryMatchingResult
-import at.asitplus.openid.dcql.DCQLCredentialSubmissionOption
 import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.app.common.thirdParty.kotlinx.serialization.json.leafNodeList
@@ -42,46 +42,51 @@ import ui.models.CredentialFreshnessValidationStateUiModel
 fun DCQLCredentialQuerySubmissionSelectionOption(
     isSelected: Boolean,
     onToggleSelection: (() -> Unit)?,
-    option: DCQLCredentialSubmissionOption<SubjectCredentialStore.StoreEntry>,
     modifier: Modifier = Modifier,
     decodeToBitmap: ImageDecoder = koinInject(),
     checkCredentialFreshness: CredentialFreshnessSummaryModelEvaluator = koinInject(),
     allowMultiSelection: Boolean,
+    credential: SubjectCredentialStore.StoreEntry,
+    matchingResult: KmmResult<DCQLCredentialQueryMatchingResult>,
 ) {
     val credentialFreshnessValidationState by produceState(
         CredentialFreshnessValidationStateUiModel.Loading as CredentialFreshnessValidationStateUiModel,
-        option.credential
+        credential
     ) {
         value = CredentialFreshnessValidationStateUiModel.Loading
-        value = CredentialFreshnessValidationStateUiModel.Done(checkCredentialFreshness(option.credential))
+        value = CredentialFreshnessValidationStateUiModel.Done(checkCredentialFreshness(credential))
     }
 
-    val credential = option.credential
-    val matchingResult = option.matchingResult
+    val genericAttributeList: List<Pair<NormalizedJsonPath, Any>> =
+        when (val matchingResult = matchingResult.getOrNull()) {
+            null,
+            DCQLCredentialQueryMatchingResult.AllClaimsMatchingResult -> credential.allClaims().leafNodeList().map {
+                it.normalizedJsonPath to it.value
+            }
 
-    val genericAttributeList: List<Pair<NormalizedJsonPath, Any>> = when (matchingResult) {
-        DCQLCredentialQueryMatchingResult.AllClaimsMatchingResult -> credential.allClaims().leafNodeList().map {
-            it.normalizedJsonPath to it.value
-        }
+            is DCQLCredentialQueryMatchingResult.ClaimsQueryResults -> matchingResult.claimsQueryResults.flatMap {
+                when (it) {
+                    is DCQLClaimsQueryResult.IsoMdocResult -> listOf(
+                        NormalizedJsonPath() + it.namespace + it.claimName to it.claimValue,
+                    )
 
-        is DCQLCredentialQueryMatchingResult.ClaimsQueryResults -> matchingResult.claimsQueryResults.flatMap {
-            when (it) {
-                is DCQLClaimsQueryResult.IsoMdocResult -> listOf(
-                    NormalizedJsonPath() + it.namespace + it.claimName to it.claimValue,
-                )
-
-                is DCQLClaimsQueryResult.JsonResult -> it.nodeList.map {
-                    it.normalizedJsonPath to it.value
+                    is DCQLClaimsQueryResult.JsonResult -> it.nodeList.map {
+                        it.normalizedJsonPath to it.value
+                    }
                 }
             }
         }
-    }
 
     val credentialAdapter = credential.toCredentialAdapter {
         decodeToBitmap(it)
     } ?: FallbackCredentialAdapter(genericAttributeList, credential)
+
     val labeledAttributes = genericAttributeList.mapNotNull { (key, value) ->
-        credentialAdapter.getAttribute(key)?.let { attribute ->
+        try {
+            credentialAdapter.getAttribute(key)
+        } catch (_: Throwable) {
+            null
+        }?.let { attribute ->
             key.segments.lastOrNull()?.let {
                 credential.scheme?.getLocalization(NormalizedJsonPath(it))?.let {
                     stringResource(it)
@@ -93,8 +98,13 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
     }
 
     CredentialSelectionCardLayout(
-        credentialFreshnessValidationState = credentialFreshnessValidationState,
-        onClick = onToggleSelection ?: {}.takeIf {
+        isError = matchingResult.isFailure || when (val it = credentialFreshnessValidationState) {
+            is CredentialFreshnessValidationStateUiModel.Done -> !it.credentialFreshnessSummary.isNotBad
+            CredentialFreshnessValidationStateUiModel.Loading -> false
+        },
+        onClick = onToggleSelection.takeIf {
+            matchingResult.isSuccess
+        } ?: {}.takeIf {
             isSelected // make it look like it is enabled as long as it is selected
         },
         isSelected = isSelected,
@@ -102,6 +112,7 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
     ) {
         CredentialSelectionCardHeader(
             credentialFreshnessValidationState = credentialFreshnessValidationState,
+            matchingException = matchingResult.exceptionOrNull(),
             credential = credential,
             modifier = Modifier.fillMaxWidth(),
             allowMultiSelection = allowMultiSelection,
@@ -112,6 +123,9 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
                 decodeToBitmap(it)
             },
         )
+        matchingResult.exceptionOrNull()?.message?.let {
+            BigErrorText(it)
+        }
         HorizontalDivider(modifier = Modifier.fillMaxWidth())
         AnimatedVisibility(!isSelected) {
             Text(labeledAttributes.joinToString(", ") { it.first })
@@ -128,6 +142,7 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
                     )
                 }
             }
+
         }
     }
 }

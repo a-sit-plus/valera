@@ -7,6 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
+import at.asitplus.openid.dcql.DCQLCredentialSubmissionOption
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.unexpected_screen_text
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -73,25 +74,49 @@ fun PresentationBuilderGraphView(
                 }.keys,
                 onError = onError,
                 onNavigateUp = onNavigateToPresentationStart,
-                selectableCredentialSubmissionCards = matchingResult.value.matchingResult.credentialQueryMatches.mapValues {
-                    it.value.map { option ->
-                        SelectableCredentialSubmissionCard { isSelected, allowMultiSelection, onToggleSelection ->
-                            DCQLCredentialQuerySubmissionSelectionOption(
-                                allowMultiSelection = allowMultiSelection,
-                                isSelected = isSelected,
-                                onToggleSelection = onToggleSelection,
-                                option = option,
-                            )
+//                selectableCredentialSubmissionCards = matchingResult.value.matchingResult.credentialQueryMatches.mapValues {
+//                    it.value.map { option ->
+//                        SelectableCredentialSubmissionCard { isSelected, allowMultiSelection, onToggleSelection ->
+//                            DCQLCredentialQuerySubmissionSelectionOption(
+//                                allowMultiSelection = allowMultiSelection,
+//                                isSelected = isSelected,
+//                                onToggleSelection = onToggleSelection,
+//                                credential = option.credential,
+//                                matchingResult = KmmResult.success(option.matchingResult),
+//                            )
+//                        }
+//                    }
+//                },
+                selectableCredentialSubmissionCards = matchingResult.value.matchingResult.let {
+                    val credentials = it.credentials
+                    it.dcqlQueryMatchingResult.credentialMatchingResults.mapValues {
+                        it.value.zip(credentials) { matchingResult, credential ->
+                            matchingResult.isSuccess to SelectableCredentialSubmissionCard { isSelected, allowMultiSelection, onToggleSelection ->
+                                DCQLCredentialQuerySubmissionSelectionOption(
+                                    allowMultiSelection = allowMultiSelection,
+                                    isSelected = isSelected,
+                                    onToggleSelection = onToggleSelection,
+                                    credential = credential,
+                                    matchingResult = matchingResult,
+                                )
+                            }
                         }
                     }
                 },
                 onSubmit = {
                     val submissions = it.mapValues { (queryId, submissionIndices) ->
-                        val matches = matchingResult.value.matchingResult.credentialQueryMatches[queryId]
+                        val matches = matchingResult.value.matchingResult.dcqlQueryMatchingResult.credentialMatchingResults[queryId]
                             ?: return@DCQLPresentationBuilderGraphView onError(IllegalStateException("Failed to find submission options for unknown credential query identifier $queryId"))
                         submissionIndices.map {
-                            matches.getOrNull(it.toInt()) ?: return@DCQLPresentationBuilderGraphView onError(
+                            val credentialMatchingResult = matches.getOrNull(it.toInt())?.getOrNull() ?: return@DCQLPresentationBuilderGraphView onError(
                                 IllegalStateException("Failed to find submission option index $it for credential query identifier $queryId")
+                            )
+                            val credential = matchingResult.value.matchingResult.credentials.getOrNull(it.toInt()) ?: return@DCQLPresentationBuilderGraphView onError(
+                                IllegalStateException("Failed to find credential at index $it")
+                            )
+                            DCQLCredentialSubmissionOption(
+                                credential = credential,
+                                matchingResult = credentialMatchingResult,
                             )
                         }
                     }
