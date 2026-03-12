@@ -106,7 +106,7 @@ fun DCQLPresentationBuilderGraphViewContent(
         return AuthenticationCredentialQueryCredentialSelection(
             credentialQueryUiModel = credentialQueryUiModel,
             allowMultiSelection = credentialQuery.multiple,
-            selectableCredentialSubmissionCards = selectableCredentialSubmissionCards[unconfirmedRequestedCredentialQuery],
+            selectableCredentialSubmissionCards = selectableCredentialSubmissionCards[unconfirmedRequestedCredentialQuery] ?: listOf(),
             onAbort = onNavigateUp,
             onContinue = onContinueWithSelection.takeIf {
                 selectedIndices.isNotEmpty()

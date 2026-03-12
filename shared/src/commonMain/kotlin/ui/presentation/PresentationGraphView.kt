@@ -87,6 +87,9 @@ fun PresentationGraphView(
                     onAbort = onNavigateUp,
                     onContinue = {
                         navController.navigate(PresentationBuilderGraphRoute) {
+                            popUpTo(PresentationStartRoute) {
+                                inclusive = false
+                            }
                             restoreState = true
                         }
                     },
@@ -118,6 +121,8 @@ fun PresentationGraphView(
                             saveState = true
                             inclusive = false
                         }
+                        // for some reason this is needed to make the popEnter animation for the start route
+                        launchSingleTop = true
                     }
                 },
                 onSubmit = {
