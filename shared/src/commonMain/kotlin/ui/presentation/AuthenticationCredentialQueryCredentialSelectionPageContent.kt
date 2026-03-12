@@ -26,7 +26,7 @@ import ui.theme.LocalExtendedColors
 @ExperimentalMaterial3Api
 @Composable
 fun AuthenticationCredentialQueryCredentialSelectionPageContent(
-    selectableCredentialSubmissionCards: List<Pair<Boolean, SelectableCredentialSubmissionCard>>?,
+    selectableCredentialSubmissionCards: List<Pair<Boolean, SelectableCredentialSubmissionCard>>,
     allowMultiSelection: Boolean,
     onToggleCredentialOptionSelectedAtIndex: (UInt) -> Unit,
     isCredentialOptionAtIndexSelected: (UInt) -> Boolean,
@@ -57,7 +57,7 @@ fun AuthenticationCredentialQueryCredentialSelectionPageContent(
                 credentialAttributesLocalized = credentialQueryUiModel.requestedAttributesLocalized?.let {
                     it.attributesLocalized to it.otherAttributes
                 },
-                colors = if(selectableCredentialSubmissionCards.isNullOrEmpty()) {
+                colors = if(selectableCredentialSubmissionCards.all { it.first == false }) {
                     CardDefaults.elevatedCardColors(
                         containerColor = MaterialTheme.colorScheme.errorContainer,
                         contentColor = MaterialTheme.colorScheme.onErrorContainer,
@@ -70,7 +70,7 @@ fun AuthenticationCredentialQueryCredentialSelectionPageContent(
                     )
                 }
             )
-            if (!selectableCredentialSubmissionCards.isNullOrEmpty()) {
+            if (selectableCredentialSubmissionCards.isNotEmpty()) {
                 Text(stringResource(Res.string.info_text_available_credentials))
                 selectableCredentialSubmissionCards.withIndex().sortedBy {
                     !it.value.first

@@ -2,11 +2,8 @@ package ui.presentation
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.backhandler.BackHandler
@@ -33,17 +30,13 @@ fun DCQLPresentationBuilderGraphView(
     onNavigateUp: () -> Unit,
     onSubmit: (Map<DCQLCredentialQueryIdentifier, Set<UInt>>) -> Unit,
 ) {
-    var counter by rememberSaveable {
-        mutableStateOf(0)
-    }
-    counter += 1
-    val viewModel = rememberSaveable(saver = DCQLPresentationBuilderGraphViewNavigationManager.Saver) {
+    val navigationManager = rememberSaveable(saver = DCQLPresentationBuilderGraphViewNavigationManager.Saver) {
         DCQLPresentationBuilderGraphViewNavigationManager(listOf())
     }
 
-    val selectionStack = viewModel.selectionStack
+    val selectionStack = navigationManager.selectionStack
     BackHandler(selectionStack.isNotEmpty()) {
-        viewModel.popSelection()
+        navigationManager.popSelection()
     }
 
     // for optional credential set queries, 0 represents "none" and all other indices need to subtract 1
@@ -61,7 +54,7 @@ fun DCQLPresentationBuilderGraphView(
         onClickLogo = onClickLogo,
         onClickSettings = onClickSettings,
         onNavigateUp = {
-            viewModel.popSelectionsUntilConfirmationInclusive {
+            navigationManager.popSelectionsUntilConfirmationInclusive {
                 onNavigateUp()
             }
         },
@@ -78,7 +71,7 @@ fun DCQLPresentationBuilderGraphView(
             confirmedSubmissionIndices = confirmedSubmissionIndices,
             satisfiableCredentialQueries = satisfiableCredentialQueries,
             onSelectSubmissions = { unfulfilledRequestedCredentialQuery, selections ->
-                viewModel.pushSelection(
+                navigationManager.pushSelection(
                     DCQLPresentationBuilderGraphViewModelSelection.SelectSubmissions(
                         queryIdentifier = unfulfilledRequestedCredentialQuery,
                         submissionIndices = selections
@@ -86,7 +79,7 @@ fun DCQLPresentationBuilderGraphView(
                 )
             },
             onSelectRequiredCredentialSetQueryOption = { credentialSetQueryIndex, optionIndex ->
-                viewModel.pushSelection(
+                navigationManager.pushSelection(
                     DCQLPresentationBuilderGraphViewModelSelection.SelectRequiredCredentialSetQueryOption(
                         credentialSetQueryIndex = credentialSetQueryIndex,
                         credentialSetQueryOptionIndex = optionIndex,
@@ -94,7 +87,7 @@ fun DCQLPresentationBuilderGraphView(
                 )
             },
             onSelectOptionalCredentialSetQueryOption = { credentialSetQueryIndex, optionIndex ->
-                viewModel.pushSelection(
+                navigationManager.pushSelection(
                     DCQLPresentationBuilderGraphViewModelSelection.SelectOptionalCredentialSetQueryOption(
                         credentialSetQueryIndex = credentialSetQueryIndex,
                         credentialSetQueryOptionIndex = optionIndex,
@@ -102,12 +95,12 @@ fun DCQLPresentationBuilderGraphView(
                 )
             },
             onContinueWithSelection = {
-                viewModel.pushSelection(
+                navigationManager.pushSelection(
                     DCQLPresentationBuilderGraphViewModelSelection.ContinueWithSelection
                 )
             },
             onNavigateUp = {
-                viewModel.popSelectionsUntilConfirmationInclusive {
+                navigationManager.popSelectionsUntilConfirmationInclusive {
                     onNavigateUp()
                 }
             },
@@ -166,60 +159,5 @@ private fun SnapshotStateList<DCQLPresentationBuilderGraphViewModelSelection>.po
         removeRange(lastContinue, size)
     } else {
         clear()
-    }
-}
-
-class DCQLPresentationBuilderGraphViewNavigationState(
-    private var navigationStack: List<DCQLPresentationBuilderGraphViewNavigationAction>
-) {
-    val selectionStack: List<DCQLPresentationBuilderGraphViewModelSelection>
-        get() = navigationStack.fold(
-            emptyList<DCQLPresentationBuilderGraphViewModelSelection>()
-        ) { privateSelectionStack, action ->
-            when (action) {
-
-                DCQLPresentationBuilderGraphViewNavigationAction.PopSelection ->
-                    privateSelectionStack.subList(0, privateSelectionStack.lastIndex)
-
-                DCQLPresentationBuilderGraphViewNavigationAction.PopSelectionsUntilConfirmationInclusive ->
-                    privateSelectionStack.subList(
-                        0,
-                        privateSelectionStack.lastIndexOf(
-                            DCQLPresentationBuilderGraphViewModelSelection.ContinueWithSelection
-                        ).coerceAtLeast(0)
-                    )
-
-                is DCQLPresentationBuilderGraphViewNavigationAction.PushSelection ->
-                    privateSelectionStack + action.action
-            }
-        }
-
-    fun pushSelection(selection: DCQLPresentationBuilderGraphViewModelSelection) {
-        navigationStack =
-            if (
-                navigationStack.lastOrNull()
-                == DCQLPresentationBuilderGraphViewNavigationAction.PopSelectionsUntilConfirmationInclusive &&
-                selection == DCQLPresentationBuilderGraphViewModelSelection.ContinueWithSelection
-            ) {
-                navigationStack.subList(0, navigationStack.lastIndex)
-            } else {
-                navigationStack + DCQLPresentationBuilderGraphViewNavigationAction.PushSelection(selection)
-            }
-    }
-
-    fun popSelection() {
-        navigationStack += DCQLPresentationBuilderGraphViewNavigationAction.PopSelection
-    }
-
-    fun popSelectionsUntilConfirmationInclusive() {
-        navigationStack +=
-            DCQLPresentationBuilderGraphViewNavigationAction.PopSelectionsUntilConfirmationInclusive
-    }
-
-    companion object {
-        val Saver = listSaver(
-            save = { it.navigationStack },
-            restore = { DCQLPresentationBuilderGraphViewNavigationState(it) }
-        )
     }
 }
