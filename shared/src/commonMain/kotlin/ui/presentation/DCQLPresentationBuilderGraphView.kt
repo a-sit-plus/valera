@@ -1,8 +1,6 @@
 package ui.presentation
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,7 +12,6 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.backhandler.BackHandler
 import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.openid.dcql.DCQLQuery
-import org.koin.compose.viewmodel.koinViewModel
 
 @ExperimentalComposeUiApi
 @ExperimentalMaterial3Api
@@ -30,7 +27,7 @@ fun DCQLPresentationBuilderGraphView(
      * This delegates to library users how to display the credential cards.
      * A library user may also include credentials that did not match and simply not invoke the selection function.
      */
-    selectableCredentialSubmissionCards: Map<DCQLCredentialQueryIdentifier, List<SelectableCredentialSubmissionCard>>,
+    selectableCredentialSubmissionCards: Map<DCQLCredentialQueryIdentifier, List<Pair<Boolean, SelectableCredentialSubmissionCard>>>,
     satisfiableCredentialQueries: Collection<DCQLCredentialQueryIdentifier>,
     onError: (Throwable) -> Unit,
     onNavigateUp: () -> Unit,

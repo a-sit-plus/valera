@@ -52,13 +52,17 @@ fun CredentialSelectionCard(
         },
         modifier = Modifier,
         isSelected = selected.value,
-        credentialFreshnessValidationState = credentialFreshnessValidationState
+        isError = when(val it = credentialFreshnessValidationState) {
+            is CredentialFreshnessValidationStateUiModel.Done -> !it.credentialFreshnessSummary.isNotBad
+            CredentialFreshnessValidationStateUiModel.Loading -> false
+        },
     ) {
         CredentialSelectionCardHeader(
             credentialFreshnessValidationState = credentialFreshnessValidationState,
             credential = credential.key,
             modifier = Modifier.fillMaxWidth(),
             allowMultiSelection = false,
+            matchingException = null,
         )
         CredentialSummaryCardContent(
             credential = credential.key,

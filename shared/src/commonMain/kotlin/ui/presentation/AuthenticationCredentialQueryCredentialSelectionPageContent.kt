@@ -3,12 +3,10 @@ package ui.presentation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -23,13 +21,12 @@ import at.asitplus.valera.resources.info_text_no_credentials_available
 import at.asitplus.valera.resources.info_text_requested_credentials
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ScreenHeading
-import ui.presentation.CredentialSetQueryOptionSelectionCardCredentialQueryContent
 import ui.theme.LocalExtendedColors
 
 @ExperimentalMaterial3Api
 @Composable
 fun AuthenticationCredentialQueryCredentialSelectionPageContent(
-    selectableCredentialSubmissionCards: List<SelectableCredentialSubmissionCard>?,
+    selectableCredentialSubmissionCards: List<Pair<Boolean, SelectableCredentialSubmissionCard>>?,
     allowMultiSelection: Boolean,
     onToggleCredentialOptionSelectedAtIndex: (UInt) -> Unit,
     isCredentialOptionAtIndexSelected: (UInt) -> Boolean,
@@ -75,13 +72,21 @@ fun AuthenticationCredentialQueryCredentialSelectionPageContent(
             )
             if (!selectableCredentialSubmissionCards.isNullOrEmpty()) {
                 Text(stringResource(Res.string.info_text_available_credentials))
-                selectableCredentialSubmissionCards.forEachIndexed { index, credentialCard ->
+                selectableCredentialSubmissionCards.withIndex().sortedBy {
+                    !it.value.first
+                }.forEach { (index, value) ->
+                    val (isSelectable, credentialCard) = value
                     credentialCard(
                         isSelected = isCredentialOptionAtIndexSelected(index.toUInt()),
                         allowMultiSelection = allowMultiSelection,
-                    ) {
-                        onToggleCredentialOptionSelectedAtIndex(index.toUInt())
-                    }
+                        onToggleSelection = if(isSelectable) {
+                            {
+                                onToggleCredentialOptionSelectedAtIndex(index.toUInt())
+                            }
+                        } else {
+                            null
+                        }
+                    )
                 }
             } else {
                 Text(stringResource(Res.string.info_text_no_credentials_available))
