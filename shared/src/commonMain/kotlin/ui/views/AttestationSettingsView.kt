@@ -22,6 +22,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,8 +55,11 @@ fun AttestationSettingsView(
     onClickLogo: () -> Unit,
     onClickBack: () -> Unit,
     onClickSettings: () -> Unit,
+    onError: (Throwable) -> Unit,
     vm: AttestationSettingsViewModel
 ) {
+    LaunchedEffect(null) { vm.onError.collect { onError(it) } }
+
     val bufferedInstanceAttestation = vm.attestationService.bufferedInstanceAttestation.collectAsState(null)
     val bufferedUnitAttestation = vm.attestationService.bufferedUnitAttestation.collectAsState(null)
 
