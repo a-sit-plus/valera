@@ -69,60 +69,56 @@ fun DCQLPresentationBuilderGraphView(
             }
         },
     ) {
-        Column {
-            Text("$counter")
-            Text("${viewModel.selectionStack.size}")
-            DCQLPresentationBuilderGraphViewContent(
-                authenticateAtRelyingParty = authenticateAtRelyingParty,
-                serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
-                serviceProviderLocalizedName = serviceProviderLocalizedName,
-                dcqlQuery = dcqlQuery,
-                selectableCredentialSubmissionCards = selectableCredentialSubmissionCards,
-                selectedCredentialSetQueryOptionIndices = selectedCredentialSetQueryOptions,
-                selectedSubmissionIndices = selectedSubmissionIndices,
-                confirmedCredentialSetQueryOptionIndices = confirmedCredentialSetQueryOptions,
-                confirmedSubmissionIndices = confirmedSubmissionIndices,
-                satisfiableCredentialQueries = satisfiableCredentialQueries,
-                onSelectSubmissions = { unfulfilledRequestedCredentialQuery, selections ->
-                    viewModel.pushSelection(
-                        DCQLPresentationBuilderGraphViewModelSelection.SelectSubmissions(
-                            queryIdentifier = unfulfilledRequestedCredentialQuery,
-                            submissionIndices = selections
-                        )
+        DCQLPresentationBuilderGraphViewContent(
+            authenticateAtRelyingParty = authenticateAtRelyingParty,
+            serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
+            serviceProviderLocalizedName = serviceProviderLocalizedName,
+            dcqlQuery = dcqlQuery,
+            selectableCredentialSubmissionCards = selectableCredentialSubmissionCards,
+            selectedCredentialSetQueryOptionIndices = selectedCredentialSetQueryOptions,
+            selectedSubmissionIndices = selectedSubmissionIndices,
+            confirmedCredentialSetQueryOptionIndices = confirmedCredentialSetQueryOptions,
+            confirmedSubmissionIndices = confirmedSubmissionIndices,
+            satisfiableCredentialQueries = satisfiableCredentialQueries,
+            onSelectSubmissions = { unfulfilledRequestedCredentialQuery, selections ->
+                viewModel.pushSelection(
+                    DCQLPresentationBuilderGraphViewModelSelection.SelectSubmissions(
+                        queryIdentifier = unfulfilledRequestedCredentialQuery,
+                        submissionIndices = selections
                     )
-                },
-                onSelectRequiredCredentialSetQueryOption = { credentialSetQueryIndex, optionIndex ->
-                    viewModel.pushSelection(
-                        DCQLPresentationBuilderGraphViewModelSelection.SelectRequiredCredentialSetQueryOption(
-                            credentialSetQueryIndex = credentialSetQueryIndex,
-                            credentialSetQueryOptionIndex = optionIndex,
-                        )
+                )
+            },
+            onSelectRequiredCredentialSetQueryOption = { credentialSetQueryIndex, optionIndex ->
+                viewModel.pushSelection(
+                    DCQLPresentationBuilderGraphViewModelSelection.SelectRequiredCredentialSetQueryOption(
+                        credentialSetQueryIndex = credentialSetQueryIndex,
+                        credentialSetQueryOptionIndex = optionIndex,
                     )
-                },
-                onSelectOptionalCredentialSetQueryOption = { credentialSetQueryIndex, optionIndex ->
-                    viewModel.pushSelection(
-                        DCQLPresentationBuilderGraphViewModelSelection.SelectOptionalCredentialSetQueryOption(
-                            credentialSetQueryIndex = credentialSetQueryIndex,
-                            credentialSetQueryOptionIndex = optionIndex,
-                        )
+                )
+            },
+            onSelectOptionalCredentialSetQueryOption = { credentialSetQueryIndex, optionIndex ->
+                viewModel.pushSelection(
+                    DCQLPresentationBuilderGraphViewModelSelection.SelectOptionalCredentialSetQueryOption(
+                        credentialSetQueryIndex = credentialSetQueryIndex,
+                        credentialSetQueryOptionIndex = optionIndex,
                     )
-                },
-                onContinueWithSelection = {
-                    viewModel.pushSelection(
-                        DCQLPresentationBuilderGraphViewModelSelection.ContinueWithSelection
-                    )
-                },
-                onNavigateUp = {
-                    viewModel.popSelectionsUntilConfirmationInclusive {
-                        onNavigateUp()
-                    }
-                },
-                onError = onError,
-                onSubmit = {
-                    onSubmit(selectedSubmissionIndices)
-                },
-            )
-        }
+                )
+            },
+            onContinueWithSelection = {
+                viewModel.pushSelection(
+                    DCQLPresentationBuilderGraphViewModelSelection.ContinueWithSelection
+                )
+            },
+            onNavigateUp = {
+                viewModel.popSelectionsUntilConfirmationInclusive {
+                    onNavigateUp()
+                }
+            },
+            onError = onError,
+            onSubmit = {
+                onSubmit(selectedSubmissionIndices)
+            },
+        )
     }
 }
 
