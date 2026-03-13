@@ -13,8 +13,12 @@ import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.lib.agent.SignerBasedKeyMaterial
 import at.asitplus.wallet.lib.oidvci.WalletService.LoadUnitAttestationPopInput
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
@@ -30,6 +34,8 @@ class AttestationService(
     val unitAttestationHelper = UnitAttestationHelper(config.walletProviderHost, httpService, keyMaterial)
     var bufferedInstanceAttestation = MutableStateFlow<JwsSigned<JsonWebToken>?>(null)
     var bufferedUnitAttestation = MutableStateFlow<JwsSigned<KeyAttestationJwt>?>(null)
+
+    private val scope = CoroutineScope(Dispatchers.IO)
 
     suspend fun preloadAttestation() = catching {
         Napier.d("AttestationService: Preload attestation")
@@ -63,7 +69,11 @@ class AttestationService(
 
 
     fun getWalletProviderHost() = config.walletProviderHost
-    fun setWalletProviderHost(host: String) = config.set(walletProviderHost = host)
+    fun setWalletProviderHost(host: String) = scope.launch {
+        config.set(walletProviderHost = host)
+        bufferedUnitAttestation.emit(null)
+        bufferedInstanceAttestation.emit(null)
+    }
 
     private suspend fun requestInstanceAttestation(): JwsSigned<JsonWebToken> {
         bufferedInstanceAttestation.firstOrNull()?.let { buffer ->

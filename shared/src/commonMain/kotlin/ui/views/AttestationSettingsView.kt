@@ -16,7 +16,6 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -30,7 +29,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.modifier.modifierLocalProvider
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
@@ -116,15 +114,30 @@ fun AttestationSettingsView(
                     Spacer(Modifier.height(10.dp))
                     bufferedInstanceAttestation.value?.let {
                         Text(stringResource(Res.string.text_label_instance_attestation), fontWeight = FontWeight.Bold)
-                        LabeledText(text = "${it.payload.issuedAt}", label = stringResource(Res.string.text_label_attestation_issued))
-                        LabeledText(text = "${it.payload.expiration}", label = stringResource(Res.string.text_label_attestation_expiration))
+                        LabeledText(
+                            text = "${it.payload.issuedAt}",
+                            label = stringResource(Res.string.text_label_attestation_issued)
+                        )
+                        LabeledText(
+                            text = "${it.payload.expiration}",
+                            label = stringResource(Res.string.text_label_attestation_expiration)
+                        )
                     }
                     Spacer(Modifier.height(20.dp))
                     bufferedUnitAttestation.value?.let {
                         Text(stringResource(Res.string.text_label_unit_attestation), fontWeight = FontWeight.Bold)
-                        LabeledText(text = "${it.payload.issuedAt}", label = stringResource(Res.string.text_label_attestation_issued))
-                        LabeledText(text = "${it.payload.expiration}", label = stringResource(Res.string.text_label_attestation_expiration))
-                        LabeledText(text = "${it.payload.eudiWalletInfo?.keyStorageInfo?.storageType}", label = stringResource(Res.string.text_label_attestation_storage_type))
+                        LabeledText(
+                            text = "${it.payload.issuedAt}",
+                            label = stringResource(Res.string.text_label_attestation_issued)
+                        )
+                        LabeledText(
+                            text = "${it.payload.expiration}",
+                            label = stringResource(Res.string.text_label_attestation_expiration)
+                        )
+                        LabeledText(
+                            text = "${it.payload.eudiWalletInfo?.keyStorageInfo?.storageType}",
+                            label = stringResource(Res.string.text_label_attestation_storage_type)
+                        )
                     }
                     if (bufferedUnitAttestation.value == null || bufferedInstanceAttestation.value == null) {
                         Button(onClick = {
