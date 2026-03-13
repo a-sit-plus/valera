@@ -11,7 +11,6 @@ import at.asitplus.openid.dcql.DCQLCredentialSubmissionOption
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.unexpected_screen_text
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.openid.CredentialMatchingResult
 import at.asitplus.wallet.lib.openid.DCQLMatchingResult
 import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
 import org.jetbrains.compose.resources.stringResource
@@ -29,14 +28,14 @@ fun PresentationBuilderGraphView(
     authenticateAtRelyingParty: Boolean,
     serviceProviderLocalizedName: String?,
     serviceProviderLocalizedLocation: String,
-    matchingResult: UiState<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>>,
+    selectionProvider: UiState<CredentialSelectionProvider<SubjectCredentialStore.StoreEntry>>,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
     onError: (Throwable) -> Unit,
     onNavigateToPresentationStart: () -> Unit,
     onSubmit: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>) -> Unit,
 ) {
-    when (matchingResult) {
+    when (selectionProvider) {
         is UiStateError -> CommonPresentationPageScaffold(
             onClickLogo = onClickLogo,
             onClickSettings = onClickSettings,
@@ -61,68 +60,83 @@ fun PresentationBuilderGraphView(
             LoadingView()
         }
 
-        is UiStateSuccess -> when (matchingResult.value) {
-            is DCQLMatchingResult -> DCQLPresentationBuilderGraphView(
-                authenticateAtRelyingParty = authenticateAtRelyingParty,
-                serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
-                serviceProviderLocalizedName = serviceProviderLocalizedName,
-                onClickLogo = onClickLogo,
-                onClickSettings = onClickSettings,
-                dcqlQuery = matchingResult.value.presentationRequest.dcqlQuery,
-                satisfiableCredentialQueries = matchingResult.value.matchingResult.credentialQueryMatches.filter {
-                    it.value.isNotEmpty()
-                }.keys,
-                onError = onError,
-                onNavigateUp = onNavigateToPresentationStart,
-                selectableCredentialSubmissionCards = matchingResult.value.matchingResult.let {
-                    val credentials = it.credentials
-                    it.dcqlQueryMatchingResult.credentialMatchingResults.mapValues {
-                        it.value.zip(credentials) { matchingResult, credential ->
-                            matchingResult.isSuccess to SelectableCredentialSubmissionCard { isSelected, allowMultiSelection, onToggleSelection ->
-                                DCQLCredentialQuerySubmissionSelectionOption(
-                                    allowMultiSelection = allowMultiSelection,
-                                    isSelected = isSelected,
-                                    onToggleSelection = onToggleSelection,
-                                    credential = credential,
-                                    matchingResult = matchingResult,
-                                )
+        is UiStateSuccess -> {
+            when (val queryMatchingResult = selectionProvider.value.queryMatchingResult) {
+                is DCQLMatchingResult -> {
+                    DCQLPresentationBuilderGraphView(
+                        authenticateAtRelyingParty = authenticateAtRelyingParty,
+                        serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
+                        serviceProviderLocalizedName = serviceProviderLocalizedName,
+                        onClickLogo = onClickLogo,
+                        onClickSettings = onClickSettings,
+                        dcqlQuery = queryMatchingResult.presentationRequest.dcqlQuery,
+                        satisfiableCredentialQueries = queryMatchingResult.matchingResult.credentialQueryMatches.filter {
+                            it.value.isNotEmpty()
+                        }.keys,
+                        onError = onError,
+                        onNavigateUp = onNavigateToPresentationStart,
+                        selectableCredentialSubmissionCards = queryMatchingResult.let {
+                            val credentials = it.matchingResult.credentials.zip(selectionProvider.value.credentialFreshnessProviders)
+                            it.matchingResult.dcqlQueryMatchingResult.credentialMatchingResults.mapValues {
+                                it.value.zip(credentials) { matchingResult, (credential, freshnessState) ->
+                                    object : SelectableCredentialSubmissionCard {
+                                        @Composable
+                                        override fun invoke(
+                                            isSelected: Boolean,
+                                            allowMultiSelection: Boolean,
+                                            onToggleSelection: (() -> Unit)?
+                                        ) {
+                                            DCQLCredentialQuerySubmissionSelectionOption(
+                                                allowMultiSelection = allowMultiSelection,
+                                                isSelected = isSelected,
+                                                onToggleSelection = onToggleSelection,
+                                                credential = credential,
+                                                matchingResult = matchingResult,
+                                                freshnessState = freshnessState,
+                                            )
+                                        }
+
+                                        override val credentialFreshnessSummary = freshnessState
+                                        override val matchingException = matchingResult.exceptionOrNull()
+                                    }
+                                }
                             }
-                        }
-                    }
-                },
-                onSubmit = {
-                    val submissions = it.mapValues { (queryId, submissionIndices) ->
-                        val matches = matchingResult.value.matchingResult.dcqlQueryMatchingResult.credentialMatchingResults[queryId]
-                            ?: return@DCQLPresentationBuilderGraphView onError(IllegalStateException("Failed to find submission options for unknown credential query identifier $queryId"))
-                        submissionIndices.map {
-                            val credentialMatchingResult = matches.getOrNull(it.toInt())?.getOrNull() ?: return@DCQLPresentationBuilderGraphView onError(
-                                IllegalStateException("Failed to find submission option index $it for credential query identifier $queryId")
-                            )
-                            val credential = matchingResult.value.matchingResult.credentials.getOrNull(it.toInt()) ?: return@DCQLPresentationBuilderGraphView onError(
-                                IllegalStateException("Failed to find credential at index $it")
-                            )
-                            DCQLCredentialSubmissionOption(
-                                credential = credential,
-                                matchingResult = credentialMatchingResult,
-                            )
-                        }
-                    }
+                        },
+                        onSubmit = {
+                            val submissions = it.mapValues { (queryId, submissionIndices) ->
+                                val matches = selectionProvider.value.queryMatchingResult.matchingResult.dcqlQueryMatchingResult.credentialMatchingResults[queryId]
+                                    ?: return@DCQLPresentationBuilderGraphView onError(IllegalStateException("Failed to find submission options for unknown credential query identifier $queryId"))
+                                submissionIndices.map {
+                                    val credentialMatchingResult = matches.getOrNull(it.toInt())?.getOrNull() ?: return@DCQLPresentationBuilderGraphView onError(
+                                        IllegalStateException("Failed to find submission option index $it for credential query identifier $queryId")
+                                    )
+                                    val credential = selectionProvider.value.queryMatchingResult.matchingResult.credentials.getOrNull(it.toInt()) ?: return@DCQLPresentationBuilderGraphView onError(
+                                        IllegalStateException("Failed to find credential at index $it")
+                                    )
+                                    DCQLCredentialSubmissionOption(
+                                        credential = credential,
+                                        matchingResult = credentialMatchingResult,
+                                    )
+                                }
+                            }
 
-                    onSubmit(DCQLCredentialSubmissions(submissions))
+                            onSubmit(DCQLCredentialSubmissions(submissions))
+                        }
+                    )
                 }
-            )
 
-            is PresentationExchangeMatchingResult -> PresentationExchangePresentationBuilderGraphView(
-                authenticateAtRelyingParty = authenticateAtRelyingParty,
-                serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
-                serviceProviderLocalizedName = serviceProviderLocalizedName,
-                onClickLogo = onClickLogo,
-                onClickSettings = onClickSettings,
-                matchingResult = matchingResult.value,
-                onError = onError,
-                onNavigateUp = onNavigateToPresentationStart,
-                onSubmit = onSubmit,
-            )
+                is PresentationExchangeMatchingResult -> PresentationExchangePresentationBuilderGraphView(
+                    authenticateAtRelyingParty = authenticateAtRelyingParty,
+                    serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
+                    serviceProviderLocalizedName = serviceProviderLocalizedName,
+                    onClickLogo = onClickLogo,
+                    onClickSettings = onClickSettings,
+                    matchingResult = selectionProvider.value.queryMatchingResult,
+                    onError = onError,
+                    onNavigateUp = onNavigateToPresentationStart,
+                    onSubmit = onSubmit,
+                )
+            }
         }
     }
 }

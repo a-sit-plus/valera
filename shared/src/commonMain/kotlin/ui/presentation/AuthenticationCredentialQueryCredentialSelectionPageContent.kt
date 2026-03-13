@@ -21,12 +21,13 @@ import at.asitplus.valera.resources.info_text_no_credentials_available
 import at.asitplus.valera.resources.info_text_requested_credentials
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ScreenHeading
+import ui.models.CredentialFreshnessValidationStateUiModel
 import ui.theme.LocalExtendedColors
 
 @ExperimentalMaterial3Api
 @Composable
 fun AuthenticationCredentialQueryCredentialSelectionPageContent(
-    selectableCredentialSubmissionCards: List<Pair<Boolean, SelectableCredentialSubmissionCard>>,
+    selectableCredentialSubmissionCards: List<SelectableCredentialSubmissionCard>,
     allowMultiSelection: Boolean,
     onToggleCredentialOptionSelectedAtIndex: (UInt) -> Unit,
     isCredentialOptionAtIndexSelected: (UInt) -> Boolean,
@@ -57,7 +58,7 @@ fun AuthenticationCredentialQueryCredentialSelectionPageContent(
                 credentialAttributesLocalized = credentialQueryUiModel.requestedAttributesLocalized?.let {
                     it.attributesLocalized to it.otherAttributes
                 },
-                colors = if(selectableCredentialSubmissionCards.all { it.first == false }) {
+                colors = if (selectableCredentialSubmissionCards.all { it.matchingException != null }) {
                     CardDefaults.elevatedCardColors(
                         containerColor = MaterialTheme.colorScheme.errorContainer,
                         contentColor = MaterialTheme.colorScheme.onErrorContainer,
@@ -72,19 +73,31 @@ fun AuthenticationCredentialQueryCredentialSelectionPageContent(
             )
             if (selectableCredentialSubmissionCards.isNotEmpty()) {
                 Text(stringResource(Res.string.info_text_available_credentials))
-                selectableCredentialSubmissionCards.withIndex().sortedBy {
-                    !it.value.first
-                }.forEach { (index, value) ->
-                    val (isSelectable, credentialCard) = value
+                val sortedValidTimelyFirstThenUntimelyThenMatchingExceptions =
+                    selectableCredentialSubmissionCards.withIndex().sortedBy {
+                        when (val uiState = it.value.credentialFreshnessSummary.value) {
+                            is CredentialFreshnessValidationStateUiModel.Done -> if (uiState.credentialFreshnessSummary.isNotBad) {
+                                0
+                            } else {
+                                2
+                            }
+                            CredentialFreshnessValidationStateUiModel.Loading -> 1
+                        }
+                    }.sortedBy {
+                        if (it.value.matchingException == null) {
+                            0
+                        } else {
+                            1
+                        }
+                    }
+                sortedValidTimelyFirstThenUntimelyThenMatchingExceptions.forEach { (index, credentialCard) ->
                     credentialCard(
                         isSelected = isCredentialOptionAtIndexSelected(index.toUInt()),
                         allowMultiSelection = allowMultiSelection,
-                        onToggleSelection = if(isSelectable) {
-                            {
-                                onToggleCredentialOptionSelectedAtIndex(index.toUInt())
-                            }
-                        } else {
-                            null
+                        onToggleSelection = {
+                            onToggleCredentialOptionSelectedAtIndex(index.toUInt())
+                        }.takeIf {
+                            credentialCard.matchingException == null
                         }
                     )
                 }

@@ -30,7 +30,7 @@ fun DCAPIPresentationGraphView(
 
     val authenticateAtRelyingParty = spLocation != "Local Presentation"
 
-    val matchingResult by viewModel.matchingResult.collectAsState()
+    val matchingResult by viewModel.selectionProvider.collectAsState()
     PresentationGraphView(
         serviceProviderLogo = null,
         serviceProviderNameLocalized = spName,
@@ -40,7 +40,7 @@ fun DCAPIPresentationGraphView(
         onError = onError,
         onClickLogo = onClickLogo,
         onClickSettings = onClickSettings,
-        matchingResult = matchingResult.map {
+        selectionProvider = matchingResult.map {
             it.second
         },
         submitPresentation = SubmitPresentation { it, navigate ->

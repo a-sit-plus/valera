@@ -16,7 +16,6 @@ import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
-import at.asitplus.wallet.lib.openid.CredentialMatchingResult
 import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -38,7 +37,7 @@ class DCAPIPresentationGraphViewModel(
         vckJsonSerializer.decodeFromString<DCAPIWalletRequest.IsoMdoc>(apiRequestSerialized)
     }
 
-    val matchingResult = MutableStateFlow<UiState<Pair<DCAPIWalletRequest.IsoMdoc, CredentialMatchingResult<SubjectCredentialStore.StoreEntry>>>>(
+    val selectionProvider = MutableStateFlow<UiState<Pair<DCAPIWalletRequest.IsoMdoc, CredentialSelectionProvider<SubjectCredentialStore.StoreEntry>>>>(
         UiStateLoading
     ).apply {
         viewModelScope.launch {
@@ -60,8 +59,10 @@ class DCAPIPresentationGraphViewModel(
                         matchingResult = walletMain.holderAgent.matchInputDescriptorsAgainstCredentialStoreV2(
                             inputDescriptors = presentationRequest.presentationDefinition.inputDescriptors,
                             fallbackFormatHolder = null,
-                        ).getOrThrow()
-                    )
+                        ).getOrThrow(),
+                    ).toCredentialSelectionProvider(viewModelScope) {
+                        walletMain.checkCredentialFreshness(it)
+                    }
                 )
             } catch (it: Throwable) {
                 UiStateError(it)
@@ -74,8 +75,8 @@ class DCAPIPresentationGraphViewModel(
         onSuccess: (OpenId4VpWallet.AuthenticationSuccess) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-        val (request, matchingResult) = (matchingResult.value as? UiStateSuccess)?.value ?: return
-        val presentationRequest = matchingResult.presentationRequest
+        val (request, matchingResult) = (selectionProvider.value as? UiStateSuccess)?.value ?: return
+        val presentationRequest = matchingResult.queryMatchingResult.presentationRequest
         val presentation = try {
             when (credentialPresentationSubmissions) {
                 is DCQLCredentialSubmissions -> CredentialPresentation.DCQLPresentation(
