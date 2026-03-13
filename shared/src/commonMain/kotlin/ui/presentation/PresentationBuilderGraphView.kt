@@ -74,19 +74,6 @@ fun PresentationBuilderGraphView(
                 }.keys,
                 onError = onError,
                 onNavigateUp = onNavigateToPresentationStart,
-//                selectableCredentialSubmissionCards = matchingResult.value.matchingResult.credentialQueryMatches.mapValues {
-//                    it.value.map { option ->
-//                        SelectableCredentialSubmissionCard { isSelected, allowMultiSelection, onToggleSelection ->
-//                            DCQLCredentialQuerySubmissionSelectionOption(
-//                                allowMultiSelection = allowMultiSelection,
-//                                isSelected = isSelected,
-//                                onToggleSelection = onToggleSelection,
-//                                credential = option.credential,
-//                                matchingResult = KmmResult.success(option.matchingResult),
-//                            )
-//                        }
-//                    }
-//                },
                 selectableCredentialSubmissionCards = matchingResult.value.matchingResult.let {
                     val credentials = it.credentials
                     it.dcqlQueryMatchingResult.credentialMatchingResults.mapValues {
