@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 fun AuthenticationCredentialQueryCredentialSelection(
     credentialQueryUiModel: DCQLCredentialQueryUiModel,
     allowMultiSelection: Boolean,
-    selectableCredentialSubmissionCards: List<Pair<Boolean, SelectableCredentialSubmissionCard>>,
+    selectableCredentialSubmissionCards: List<SelectableCredentialSubmissionCard>,
     onAbort: () -> Unit,
     onContinue: (() -> Unit)?,
     selectedIndices: Set<UInt>,

@@ -18,7 +18,6 @@ import androidx.navigation.compose.rememberNavController
 import at.asitplus.openid.TransactionDataBase64Url
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import at.asitplus.wallet.lib.openid.CredentialMatchingResult
 import ui.views.authentication.AuthenticationSuccessView
 import ui.views.authentication.TransactionDataView
 
@@ -34,14 +33,14 @@ fun PresentationGraphView(
     onError: (Throwable) -> Unit,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
-    matchingResult: UiState<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>>,
+    selectionProvider: UiState<CredentialSelectionProvider<SubjectCredentialStore.StoreEntry>>,
     submitPresentation: SubmitPresentation,
     navController: NavHostController = rememberNavController(),
     transactionData: TransactionDataBase64Url?,
     presentationRequest: CredentialPresentationRequest?,
 ) {
-    LaunchedEffect(matchingResult) {
-        matchingResult.let {
+    LaunchedEffect(selectionProvider) {
+        selectionProvider.let {
             if (it is UiStateError) {
                 onError(it.throwable)
             }
@@ -111,7 +110,7 @@ fun PresentationGraphView(
                 authenticateAtRelyingParty = authenticateAtRelyingParty,
                 serviceProviderLocalizedName = serviceProviderNameLocalized,
                 serviceProviderLocalizedLocation = serviceProviderLocationLocalized,
-                matchingResult = matchingResult,
+                selectionProvider = selectionProvider,
                 onClickLogo = onClickLogo,
                 onClickSettings = onClickSettings,
                 onError = onError,

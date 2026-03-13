@@ -11,12 +11,11 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
-import at.asitplus.wallet.lib.openid.CredentialMatchingResult
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -28,6 +27,7 @@ import ui.viewmodels.authentication.PresentationExchangeCredentialSubmissions
 class DefaultPresentationGraphViewModel(
     savedStateHandle: SavedStateHandle,
     private val walletMain: WalletMain,
+    private val validator: Validator,
 ) : ViewModel() {
     val route = savedStateHandle.toRoute<AuthenticationViewRoute>()
     val preparationState = catching {
@@ -42,7 +42,7 @@ class DefaultPresentationGraphViewModel(
         } as? DCAPIWalletRequest
     }
 
-    val matchingResult = MutableStateFlow<UiState<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>>>(
+    val selectionProvider = MutableStateFlow<UiState<CredentialSelectionProvider<SubjectCredentialStore.StoreEntry>>>(
         UiStateLoading
     ).apply {
         viewModelScope.launch {
@@ -50,7 +50,11 @@ class DefaultPresentationGraphViewModel(
                 UiStateSuccess(
                     walletMain.presentationService.getMatchingCredentials(
                         preparationState = route.authorizationResponsePreparationState
-                    ).getOrThrow()
+                    ).getOrThrow().toCredentialSelectionProvider(
+                        scope = viewModelScope
+                    ) {
+                        validator.checkCredentialFreshness(it)
+                    }
                 )
             } catch (it: Throwable) {
                 UiStateError(it)
@@ -58,13 +62,14 @@ class DefaultPresentationGraphViewModel(
         }
     }
 
+
     fun confirmSelection(
         credentialPresentationSubmissions: CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>,
         onSuccess: (OpenId4VpWallet.AuthenticationSuccess) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-        val matchingResult = matchingResult.value as? UiStateSuccess ?: return
-        val presentationRequest = matchingResult.value.presentationRequest
+        val selectionProvider = selectionProvider.value as? UiStateSuccess ?: return
+        val presentationRequest = selectionProvider.value.queryMatchingResult.presentationRequest
         val presentation = try {
             when (credentialPresentationSubmissions) {
                 is DCQLCredentialSubmissions -> CredentialPresentation.DCQLPresentation(

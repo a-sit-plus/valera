@@ -8,8 +8,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -27,6 +27,7 @@ import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.jws.SdJwtSigned
 import data.credentials.FallbackCredentialAdapter
 import data.credentials.toCredentialAdapter
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToJsonElement
 import org.jetbrains.compose.resources.stringResource
@@ -34,7 +35,6 @@ import org.koin.compose.koinInject
 import ui.composables.credentials.CredentialSelectionCardHeader
 import ui.composables.credentials.CredentialSelectionCardLayout
 import ui.composables.credentials.CredentialSummaryCardContent
-import ui.models.CredentialFreshnessSummaryModelEvaluator
 import ui.models.CredentialFreshnessValidationStateUiModel
 
 
@@ -44,18 +44,12 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
     onToggleSelection: (() -> Unit)?,
     modifier: Modifier = Modifier,
     decodeToBitmap: ImageDecoder = koinInject(),
-    checkCredentialFreshness: CredentialFreshnessSummaryModelEvaluator = koinInject(),
     allowMultiSelection: Boolean,
     credential: SubjectCredentialStore.StoreEntry,
     matchingResult: KmmResult<DCQLCredentialQueryMatchingResult>,
+    freshnessState: StateFlow<CredentialFreshnessValidationStateUiModel>,
 ) {
-    val credentialFreshnessValidationState by produceState(
-        CredentialFreshnessValidationStateUiModel.Loading as CredentialFreshnessValidationStateUiModel,
-        credential
-    ) {
-        value = CredentialFreshnessValidationStateUiModel.Loading
-        value = CredentialFreshnessValidationStateUiModel.Done(checkCredentialFreshness(credential))
-    }
+    val credentialFreshnessValidationState by freshnessState.collectAsState()
 
     val genericAttributeList: List<Pair<NormalizedJsonPath, Any>> =
         when (val matchingResult = matchingResult.getOrNull()) {

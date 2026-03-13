@@ -23,7 +23,7 @@ fun DCQLPresentationBuilderGraphViewContent(
      * This delegates to library users how to display the credential cards.
      * A library user may also include credentials that did not match and simply not invoke the selection function.
      */
-    selectableCredentialSubmissionCards: Map<DCQLCredentialQueryIdentifier, List<Pair<Boolean, SelectableCredentialSubmissionCard>>>,
+    selectableCredentialSubmissionCards: Map<DCQLCredentialQueryIdentifier, List<SelectableCredentialSubmissionCard>>,
     satisfiableCredentialQueries: Collection<DCQLCredentialQueryIdentifier>,
     onNavigateUp: () -> Unit,
     onError: (Throwable) -> Unit,
@@ -217,7 +217,7 @@ fun DCQLPresentationBuilderGraphViewContent(
         dcqlQuery = dcqlQuery,
         selections = selectableCredentialSubmissionCards.mapValues { (id, submissionCards) ->
             confirmedSubmissionIndices[id]?.map {
-                submissionCards[it.toInt()].second
+                submissionCards[it.toInt()]
             } ?: listOf()
         },
         onAbort = onNavigateUp,

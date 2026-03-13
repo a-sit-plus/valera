@@ -50,7 +50,7 @@ fun CredentialSelectionCardLayout(
 
     Card(
         onClick = onClick ?: {},
-        enabled = onClick != null || isError,
+        enabled = onClick != null,
         modifier = modifier,
         elevation = CardDefaults.elevatedCardElevation(),
         colors = CardDefaults.elevatedCardColors(containerColor = containerColor.value),

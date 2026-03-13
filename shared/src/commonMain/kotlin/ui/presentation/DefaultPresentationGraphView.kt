@@ -6,6 +6,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.ExperimentalComposeUiApi
+import at.asitplus.wallet.lib.agent.Validator
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope
 
@@ -19,6 +21,7 @@ fun DefaultPresentationGraphView(
     onClickSettings: () -> Unit,
     koinScope: Scope,
     viewModel: DefaultPresentationGraphViewModel = koinViewModel(scope = koinScope),
+    credentialValidator: Validator = koinInject(),
 ) {
     val dcApiRequest = try {
         viewModel.dcApiRequest.getOrThrow()
@@ -39,7 +42,8 @@ fun DefaultPresentationGraphView(
 
     val authenticateAtRelyingParty = spLocation != "Local Presentation"
 
-    val matchingResult by viewModel.matchingResult.collectAsState()
+    val selectionProvider by viewModel.selectionProvider.collectAsState()
+
     PresentationGraphView(
         serviceProviderLogo = null,
         serviceProviderNameLocalized = spName,
@@ -49,7 +53,7 @@ fun DefaultPresentationGraphView(
         onError = onError,
         onClickLogo = onClickLogo,
         onClickSettings = onClickSettings,
-        matchingResult = matchingResult,
+        selectionProvider = selectionProvider,
         presentationRequest = presentationRequest,
         submitPresentation = SubmitPresentation { it, navigate ->
             viewModel.confirmSelection(
