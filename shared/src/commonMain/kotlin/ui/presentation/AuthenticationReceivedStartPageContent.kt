@@ -31,6 +31,7 @@ import at.asitplus.wallet.app.common.toCredentialQueryUiModel
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.DataDisplaySection
+import ui.composables.PresentationRequestPreview
 import ui.composables.ScreenHeading
 
 @Composable
@@ -114,9 +115,7 @@ fun AuthenticationReceivedStartPageContent(
                             }
                         }
 
-                        is CredentialPresentationRequest.PresentationExchangeRequest -> {
-                            // TODO?
-                        }
+                        is CredentialPresentationRequest.PresentationExchangeRequest -> PresentationRequestPreview(presentationRequest, onError = onError)
 
                         null -> {
                             // TODO?
