@@ -47,7 +47,7 @@ class DCQLPresentationBuilderGraphViewNavigationManager(
         //  -> this inverse relation is the only reason for making this so complicated
         if (navigationStack.lastOrNull() == DCQLPresentationBuilderGraphViewNavigationAction.PopSelectionsUntilConfirmationInclusive && selection == DCQLPresentationBuilderGraphViewModelSelection.ContinueWithSelection) {
             navigationStack.removeLast()
-        } else {
+        } else if(navigationStack.lastOrNull() != selection) {
             navigationStack.add(DCQLPresentationBuilderGraphViewNavigationAction.PushSelection(selection))
         }
     }
