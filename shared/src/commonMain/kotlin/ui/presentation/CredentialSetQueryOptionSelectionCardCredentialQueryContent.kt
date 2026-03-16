@@ -21,26 +21,19 @@ import org.jetbrains.compose.resources.stringResource
 import ui.composables.LabeledText
 import ui.presentation.CredentialSetQueryOptionSelectionCardCredentialQueryContent
 
-
 @Composable
 fun ColumnScope.CredentialSetQueryOptionSelectionCardCredentialQueryContent(
     credentialSchemeLocalized: String,
     credentialAttributesLocalized: Pair<List<String>, Int>?,
     credentialRepresentationLocalized: String? = null,
 ) {
-    if(credentialRepresentationLocalized != null) {
+    if (credentialRepresentationLocalized != null) {
         LabeledText(
             text = credentialSchemeLocalized,
             label = credentialRepresentationLocalized,
         )
     } else {
-        Text(
-            text = credentialSchemeLocalized,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Bold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+        BoldCredentialSchemeText(credentialSchemeLocalized)
     }
     credentialAttributesLocalized?.let { (attributeNames, otherClaimReferences) ->
         Column(
@@ -49,7 +42,7 @@ fun ColumnScope.CredentialSetQueryOptionSelectionCardCredentialQueryContent(
             attributeNames.forEachIndexed { index, it ->
                 Text(it)
             }
-            if(otherClaimReferences > 0) {
+            if (otherClaimReferences > 0) {
                 Text("+$otherClaimReferences " + stringResource(Res.string.additional_text_other_untranslated_claims))
             }
         }
