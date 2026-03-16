@@ -1,3 +1,25 @@
+require File.expand_path("xcconfig_helper", __dir__)
+
+extend XcconfigHelper
+
+def required_xcconfig_value(key)
+  value = xcconfig_value(key)
+  UI.user_error!("Missing required Fastlane setting: #{key}") if value.to_s.empty?
+  value
+end
+
+def release_provisioning_profile
+  required_xcconfig_value("SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER")
+end
+
+def app_bundle_identifier
+  required_xcconfig_value("APP_BUNDLE_IDENTIFIER")
+end
+
+def signing_development_team
+  required_xcconfig_value("SIGNING_DEVELOPMENT_TEAM")
+end
+
 lane :test do
   run_tests
 end
@@ -16,10 +38,14 @@ lane :build do
     keychain_name: "fastlane_tmp_keychain"
   )
   get_provisioning_profile(
-    provisioning_name: "Compose Wallet Distribution"
+    app_identifier: app_bundle_identifier,
+    team_id: signing_development_team,
+    provisioning_name: release_provisioning_profile
   )
   update_project_provisioning(
-    build_configuration: "Release"
+    build_configuration: "Release",
+    profile: release_provisioning_profile,
+    target_filter: "iosApp"
   )
   build_app(
     xcargs: "-allowProvisioningUpdates",
@@ -42,13 +68,17 @@ lane :deploy do
     keychain_name: "fastlane_tmp_keychain"
   )
   get_provisioning_profile(
-    provisioning_name: "Compose Wallet Distribution"
+    app_identifier: app_bundle_identifier,
+    team_id: signing_development_team,
+    provisioning_name: release_provisioning_profile
   )
   increment_build_number(
     build_number: latest_testflight_build_number + 1
   )
   update_project_provisioning(
-    build_configuration: "Release"
+    build_configuration: "Release",
+    profile: release_provisioning_profile,
+    target_filter: "iosApp"
   )
   build_app(
     xcargs: "-allowProvisioningUpdates",
@@ -59,4 +89,3 @@ lane :deploy do
     skip_waiting_for_build_processing: true
   )
 end
-

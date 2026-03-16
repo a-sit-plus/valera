@@ -29,9 +29,52 @@ sdk.dir=<path-to-android-sdk>
 android.cert.password=<your-keystore-password>
 ```
 
+## iOS signing
+
+The repository is configured so public contributors can build the iOS app for the Simulator without access to the A-SIT Apple Developer team.
+
+Public contributors:
+* Open `iosApp/iosApp.xcodeproj` in Xcode and run the `iosApp` scheme on an iOS Simulator.
+* Simulator builds should work without any additional signing setup.
+* Public contributors do not need `Signing.local.xcconfig`.
+* Device builds and release archives for the official app identifier require access to the A-SIT Apple Developer team.
+
+Internal team members:
+* Device builds use Xcode automatic signing in the `Debug` configuration.
+* Copy [iosApp/Configuration/Signing.example.xcconfig](iosApp/Configuration/Signing.example.xcconfig) to `iosApp/Configuration/Signing.local.xcconfig`.
+* Set `SIGNING_DEVELOPMENT_TEAM` in `Signing.local.xcconfig`.
+* Set `SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER` in `Signing.local.xcconfig` if you want to create release archives locally.
+
+Minimal `Signing.local.xcconfig` for internal users:
+
+```xcconfig
+APP_BUNDLE_IDENTIFIER = at.asitplus.wallet.compose
+SIGNING_DEVELOPMENT_TEAM = 9CYHJNG644
+SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER = Compose Wallet Distribution
+```
+
+For release builds:
+* The `Release` configuration uses manual signing.
+* Maintainers can provide `SIGNING_DEVELOPMENT_TEAM` and `SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER` in the untracked `iosApp/Configuration/Signing.local.xcconfig`.
+* CI should inject the signing certificate and provisioning profile from secrets at runtime instead of committing signing material to the repository.
+
+Do not commit any of the following:
+* `iosApp/Configuration/Signing.local.xcconfig`
+* `*.mobileprovision`
+* `*.p12`
+* `*.cer`
+
+Recommended GitHub Actions secret names for iOS release signing:
+* `APPLE_CERT_CONTENT`
+* `APPLE_CERT_PASSWORD`
+* `APPLE_API_KEY_CONTENT`
+* `APPLE_API_KEY_ID`
+* `APPLE_API_ISSUER_ID`
+* `APPLE_ID`
+
 ## Deployments
 
-We use [fastlane](https://fastlane.tools/) to build the iOS App. The CI pipeline and secrets on this GitHub repository are already set up correctly. No need to do it again!
+We use [fastlane](https://fastlane.tools/) to build the iOS App. The CI pipeline and secrets on this GitHub repository are already set up correctly.
 
 Setup:
  - Get an Apple Development Account
@@ -55,6 +98,15 @@ Create provisioning profiles:
  - Download the provisioning profiles in XCode and set them for the project, instead of `automatically manage signing`
  - Use `Compose Wallet Development` for debug builds
  - Use `Compose Wallet Distribution` for release builds
+
+Local Fastlane release builds for internal users:
+ - Copy `iosApp/Configuration/Signing.example.xcconfig` to `iosApp/Configuration/Signing.local.xcconfig`
+ - Set `SIGNING_DEVELOPMENT_TEAM = 9CYHJNG644`
+ - Set `SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER = Compose Wallet Distribution`
+ - Place the exported signing certificate at `iosApp/cert.p12`
+ - Export `APPLE_CERT_PASSWORD`
+ - Export `APPLE_ID`, `APPLE_API_KEY_ID`, `APPLE_API_ISSUER_ID`, and `APPLE_API_KEY_CONTENT`
+ - Run `cd iosApp && fastlane build` for a release build or `cd iosApp && fastlane deploy` to upload to TestFlight
 
 Required secrets for GitHub Actions:
 - `APPLE_ID` with your Apple Development mail address

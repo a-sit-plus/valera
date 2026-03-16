@@ -1,0 +1,14 @@
+// Copy this file to Signing.local.xcconfig for local device builds or archives.
+// Keep Signing.local.xcconfig untracked.
+
+// Shared app identifier. Forks can override this locally if needed.
+APP_BUNDLE_IDENTIFIER = at.asitplus.wallet.compose
+
+// Apple Developer team for local device builds and release archives.
+SIGNING_DEVELOPMENT_TEAM =
+
+// Optional for Debug device builds. Leave empty when using automatic signing.
+SIGNING_DEBUG_PROVISIONING_PROFILE_SPECIFIER =
+
+// Required for manual Release signing if you archive locally.
+SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER =
