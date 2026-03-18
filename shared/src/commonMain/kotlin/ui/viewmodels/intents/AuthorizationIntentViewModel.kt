@@ -18,7 +18,6 @@ class AuthorizationIntentViewModel(
             )
         consentPageBuilder(uri).unwrap().onSuccess {
             onSuccess(it)
-
         }.onFailure {
             onFailure(it)
         }

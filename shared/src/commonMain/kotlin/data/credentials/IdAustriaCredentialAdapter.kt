@@ -7,6 +7,7 @@ import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
+import at.asitplus.wallet.lib.data.vckJsonSerializer
 import data.Attribute
 import io.github.aakira.napier.Napier
 import io.ktor.util.decodeBase64Bytes
@@ -16,6 +17,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.decodeFromJsonElement
 
 sealed class IdAustriaCredentialAdapter(
     private val decodePortrait: (ByteArray) -> Result<ImageBitmap>,
@@ -56,30 +58,22 @@ sealed class IdAustriaCredentialAdapter(
                 throw IllegalArgumentException("credential")
             }
             return when (storeEntry) {
-                is SubjectCredentialStore.StoreEntry.Vc -> {
-                    (storeEntry.vc.vc.credentialSubject as? IdAustriaCredential)?.let {
-                        IdAustriaCredentialVcAdapter(it, decodeImage = decodeImage)
-                    } ?: throw IllegalArgumentException("credential")
+                is SubjectCredentialStore.StoreEntry.Vc -> (storeEntry.vc.vc.credentialSubject).let {
+                    vckJsonSerializer.decodeFromJsonElement<IdAustriaCredential>(it).let {
+                        IdAustriaCredentialVcAdapter(it, decodeImage)
+                    }
                 }
 
-                is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                    IdAustriaCredentialSdJwtAdapter(
-                        storeEntry.toAttributeMap(),
-                        decodeImage = decodeImage,
-                    )
-                }
+                is SubjectCredentialStore.StoreEntry.SdJwt ->
+                    IdAustriaCredentialSdJwtAdapter(storeEntry.toAttributeMap(), decodeImage)
 
-                is SubjectCredentialStore.StoreEntry.Iso -> {
-                    IdAustriaCredentialIsoMdocAdapter(
-                        storeEntry.toNamespaceAttributeMap(),
-                        decodeImage = decodeImage,
-                    )
-                }
+                is SubjectCredentialStore.StoreEntry.Iso ->
+                    IdAustriaCredentialIsoMdocAdapter(storeEntry.toNamespaceAttributeMap(), decodeImage)
             }
         }
     }
 
-    private fun IdAustriaCredentialClaimDefinition.toAttribute() = when(this) {
+    private fun IdAustriaCredentialClaimDefinition.toAttribute() = when (this) {
         IdAustriaCredentialClaimDefinition.BPK -> Attribute.fromValue(bpk)
         IdAustriaCredentialClaimDefinition.FIRSTNAME -> Attribute.fromValue(givenName)
         IdAustriaCredentialClaimDefinition.LASTNAME -> Attribute.fromValue(familyName)

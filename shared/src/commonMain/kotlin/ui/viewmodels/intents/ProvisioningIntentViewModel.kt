@@ -17,7 +17,9 @@ class ProvisioningIntentViewModel(
         catchingUnwrapped {
             walletMain.keyMaterial.promptText =
                 getString(Res.string.biometric_authentication_prompt_to_bind_credentials_title)
-            walletMain.provisioningService.resumeWithAuthCode(uri)
+            walletMain.provisioningService.resumeWithAuthCode(uri)  { storeId, status ->
+                walletMain.credentialValidityService.updateStatus(storeId, status)
+            }
             walletMain.snackbarService.showSnackbar(getString(Res.string.snackbar_credential_loaded_successfully))
         }.onSuccess {
             onSuccess()

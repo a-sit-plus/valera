@@ -1,6 +1,7 @@
 package at.asitplus.wallet.app
 
 import AndroidPlatformAdapter
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -16,6 +17,7 @@ actual fun getPlatformAdapter(): PlatformAdapter {
     return AndroidPlatformAdapter(context, IntentState())
 }
 
+@ExperimentalMaterial3Api
 @OptIn(ExperimentalTestApi::class)
 val AndroidComposeUiTest by testSuite {
     test("EndToEnd") {

@@ -1,8 +1,10 @@
 # Release 5.7.6 (unreleased)
- * Update to VC-K 5.11.0
+ * Update to VC-K 5.12.0-SNAPSHOT
  * Credentials: Fix displaying age verification credential
  * Support URL scheme `av` for age verification
- * Use vck serializers for DC API
+ * Add: Support refreshing of credentials
+ * Add: Support presentation for general DCQL queries
+ * Add: Debug version now allows for localhost cleartext transmissions - supporting local test environments
  * DC API:
    * Support requests with multiple protocols
    * Use vck data classes to (de-)serialize received/emitted data

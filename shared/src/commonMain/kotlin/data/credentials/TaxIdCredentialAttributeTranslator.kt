@@ -23,6 +23,11 @@ import org.jetbrains.compose.resources.StringResource
 
 
 class TaxIdCredentialAttributeTranslator : CredentialAttributeTranslator {
+    override fun translateSingleClaimReference(claimReference: SingleClaimReference) = when(claimReference) {
+        is JsonClaimReference -> translate(claimReference.normalizedJsonPath)
+        is MdocClaimReference -> null
+    }
+
     override fun translate(
         attributeName: NormalizedJsonPath
     ) = TaxIdCredentialSdJwtClaimDefinitionResolver().resolveOrNull(

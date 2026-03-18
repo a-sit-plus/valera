@@ -8,7 +8,6 @@ import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeListEntry
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.agent.representation
 import at.asitplus.wallet.ehic.EhicScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
@@ -23,14 +22,12 @@ import io.github.aakira.napier.Napier
 import kotlinx.serialization.json.jsonObject
 
 class AuthenticationSelectionPresentationExchangeViewModel(
-    val walletMain: WalletMain,
     val credentialMatchingResult: PresentationExchangeMatchingResult<SubjectCredentialStore.StoreEntry>,
     val confirmSelections: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>) -> Unit,
     val navigateUp: () -> Unit,
-    val navigateToHomeScreen: () -> Unit,
 ) {
     val requests: Map<String, Map<SubjectCredentialStore.StoreEntry, Map<ConstraintField, List<NodeListEntry>>>> =
-        credentialMatchingResult.matchingInputDescriptorCredentials
+        credentialMatchingResult.matchingResult.inputDescriptorMatches
 
     val requestIterator = mutableStateOf(0)
     val iterableRequests = requests.toList()

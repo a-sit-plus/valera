@@ -1,4 +1,5 @@
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.Lifecycle
@@ -19,6 +20,7 @@ internal object AppTestTags {
     const val rootScaffold = "rootScaffold"
 }
 
+@ExperimentalMaterial3Api
 @Composable
 fun App(
     koinModule: Module,
@@ -45,6 +47,15 @@ fun App(
         }
 
         WalletTheme {
+//            Scaffold {
+//                Box(modifier = Modifier.padding(it)) {
+//                    Box(
+//                        modifier = Modifier.align(Alignment.Center)
+//                    ) {
+//                        CredentialSetQueryOptionSelectionCardPreview()
+//                    }
+//                }
+//            }
             WalletNavigation(
                 koinScope = koinScope,
                 intentState = intentState

@@ -59,6 +59,7 @@ class WalletMain(
     val settingsRepository: SettingsRepository,
     val sessionService: SessionService,
     val capabilitiesService: CapabilitiesService,
+    val credentialValidityService: CredentialValidityService,
 ) {
     val appReady = MutableStateFlow<Boolean?>(null)
 
@@ -75,6 +76,7 @@ class WalletMain(
 
     init {
         startListeningForNewCredentialsDCAPI()
+        credentialValidityService.startChecking()
         if (keyMaterial.keyMaterial is FallBackKeyMaterial) {
             Napier.e("FallBackKeyMaterial: ${keyMaterial.keyMaterial.reason}")
         }

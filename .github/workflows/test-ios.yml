@@ -49,7 +49,7 @@ jobs:
           name: xcode.log
           path: "/Users/runner/Library/Logs/gym/Valera-iosApp.log"
       - name: Test KMP on iOS
-        run: ./gradlew :shared:iosSimulatorArm64Test
+        run: ./gradlew -U :shared:iosSimulatorArm64Test
       - name: Test Report from KMP on iOS
         uses: dorny/test-reporter@v2
         if: success() || failure()

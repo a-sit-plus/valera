@@ -20,6 +20,14 @@ import org.jetbrains.compose.resources.StringResource
 
 
 class AgeVerificationCredentialAttributeTranslator : CredentialAttributeTranslator {
+    override fun translateSingleClaimReference(claimReference: SingleClaimReference) = when(claimReference) {
+        is JsonClaimReference -> null
+        is MdocClaimReference -> AgeVerificationCredentialMdocClaimDefinitionResolver().resolveOrNull(
+            namespace = claimReference.namespace,
+            claimName = claimReference.claimName
+        )?.stringResourceOrNull()
+    }
+
     override fun translate(attributeName: NormalizedJsonPath): StringResource? =
         attributeName.minus(AgeVerificationScheme.isoNamespace).let {
             it.memberName(0)?.let { claim ->

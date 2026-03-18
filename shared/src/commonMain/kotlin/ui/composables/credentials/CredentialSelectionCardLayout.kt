@@ -14,12 +14,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import ui.models.CredentialFreshnessValidationStateUiModel
 
 @Composable
 fun CredentialSelectionCardLayout(
-    credentialFreshnessValidationState: CredentialFreshnessValidationStateUiModel,
-    onClick: () -> Unit,
+    isError: Boolean,
+    onClick: (() -> Unit)?,
     modifier: Modifier,
     isSelected: Boolean,
     content: @Composable ColumnScope.() -> Unit,
@@ -28,43 +27,30 @@ fun CredentialSelectionCardLayout(
     val borderStroke: MutableState<BorderStroke?> = mutableStateOf(null)
 
     if (isSelected) {
-        containerColor.value = when (credentialFreshnessValidationState) {
-            CredentialFreshnessValidationStateUiModel.Loading -> MaterialTheme.colorScheme.primaryContainer
-            is CredentialFreshnessValidationStateUiModel.Done -> if (credentialFreshnessValidationState.credentialFreshnessSummary.isNotBad) {
-                MaterialTheme.colorScheme.primaryContainer
-            } else {
-                MaterialTheme.colorScheme.errorContainer
-            }
+        containerColor.value = if (!isError) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.errorContainer
         }
 
         val width = 2.dp
-        borderStroke.value = when (credentialFreshnessValidationState) {
-            CredentialFreshnessValidationStateUiModel.Loading -> BorderStroke(
-                width = width,
-                color = MaterialTheme.colorScheme.inversePrimary,
-            )
-
-            is CredentialFreshnessValidationStateUiModel.Done -> if (credentialFreshnessValidationState.credentialFreshnessSummary.isNotBad) {
-                BorderStroke(width = width, color = MaterialTheme.colorScheme.inversePrimary)
-            } else {
-                BorderStroke(width = width, color = MaterialTheme.colorScheme.error)
-            }
+        borderStroke.value = if (!isError) {
+            BorderStroke(width = width, color = MaterialTheme.colorScheme.inversePrimary)
+        } else {
+            BorderStroke(width = width, color = MaterialTheme.colorScheme.error)
         }
-
     } else {
-        containerColor.value = when (credentialFreshnessValidationState) {
-            CredentialFreshnessValidationStateUiModel.Loading -> Color.Unspecified
-            is CredentialFreshnessValidationStateUiModel.Done -> if (credentialFreshnessValidationState.credentialFreshnessSummary.isNotBad) {
-                Color.Unspecified
-            } else {
-                MaterialTheme.colorScheme.errorContainer
-            }
+        containerColor.value = if (!isError) {
+            Color.Unspecified
+        } else {
+            MaterialTheme.colorScheme.errorContainer
         }
         borderStroke.value = null
     }
 
     Card(
-        onClick = onClick,
+        onClick = onClick ?: {},
+        enabled = onClick != null,
         modifier = modifier,
         elevation = CardDefaults.elevatedCardElevation(),
         colors = CardDefaults.elevatedCardColors(containerColor = containerColor.value),

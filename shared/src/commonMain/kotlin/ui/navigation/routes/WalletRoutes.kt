@@ -38,7 +38,7 @@ enum class RoutePrerequisites {
 object InitializationRoute : Route()
 
 @Serializable
-object HomeScreenRoute : PrerequisiteRoute(setOf(RoutePrerequisites.CRYPTO))
+object HomeScreenRoute : Route()
 
 @Serializable
 object AddCredentialRoute : PrerequisiteRoute(
@@ -147,6 +147,11 @@ data class DCAPIAuthenticationConsentRoute(
 ) : Route()
 
 @Serializable
+data class DCAPIPresentationViewRoute(
+    val apiRequestSerialized: String
+) : Route()
+
+@Serializable
 data class LocalPresentationAuthenticationConsentRoute(
     val presentationRequestSerialized: String
 ) : Route() {
@@ -227,3 +232,6 @@ data class CapabilitiesRoute(val prerequisitesSerialized: String) : Route() {
     val prerequisites: Set<RoutePrerequisites>
         get() = vckJsonSerializer.decodeFromString(prerequisitesSerialized)
 }
+
+@Serializable
+object RefreshCenterRoute

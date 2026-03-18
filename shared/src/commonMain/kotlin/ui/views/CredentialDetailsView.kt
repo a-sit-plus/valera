@@ -47,6 +47,7 @@ import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.*
+import ui.models.CredentialFreshnessSummaryUiModel
 import ui.viewmodels.CredentialDetailsViewModel
 
 @Composable
@@ -54,6 +55,8 @@ fun CredentialDetailsView(
     vm: CredentialDetailsViewModel,
 ) {
     val storeEntry by vm.storeEntry.collectAsState(null)
+    val credentialTimelinessesStates by vm.credentialTimelinessesStates.collectAsState()
+    val credentialFreshnessSummary = credentialTimelinessesStates[vm.storeEntryId]
 
     CredentialDetailsScaffold(
         isStoreEntryAvailable = storeEntry != null,
@@ -63,7 +66,14 @@ fun CredentialDetailsView(
             vm.navigateUp()
         },
         onClickLogo = vm.onClickLogo,
-        onClickSettings = vm.onClickSettings
+        onClickSettings = vm.onClickSettings,
+        credentialFreshnessSummaryModel = credentialFreshnessSummary,
+        onRefresh = {
+            storeEntry?.let { entry ->
+                vm.walletMain.credentialValidityService.refreshSingle(entry, vm.storeEntryId)
+                vm.navigateUp()
+            }
+        }
     ) {
         storeEntry?.let {
             CredentialDetailsSummaryView(
@@ -87,6 +97,8 @@ fun CredentialDetailsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CredentialDetailsScaffold(
+    credentialFreshnessSummaryModel: CredentialFreshnessSummaryUiModel?,
+    onRefresh: () -> Unit,
     isStoreEntryAvailable: Boolean,
     navigateUp: () -> Unit,
     onDelete: () -> Unit,
@@ -112,7 +124,9 @@ fun CredentialDetailsScaffold(
                 actions = {
                     if (isStoreEntryAvailable) {
                         CredentialCardActionMenu(
-                            onDelete = onDelete
+                            onDelete = onDelete,
+                            onRefresh = onRefresh,
+                            credentialFreshnessSummaryModel = credentialFreshnessSummaryModel
                         )
                         Logo(onClick = onClickLogo)
                         Column(modifier = Modifier.clickable(onClick = onClickSettings)) {

@@ -1,7 +1,7 @@
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -111,6 +111,7 @@ fun initLogger(isDebug: Boolean) {
     )*/
 }
 
+@ExperimentalMaterial3Api
 fun MainViewController(
     buildContext: BuildContext,
 ): UIViewController {

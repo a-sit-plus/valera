@@ -1,6 +1,8 @@
 package at.asitplus.wallet.app
 
 import App
+import Globals
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -85,6 +87,7 @@ import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 
+@ExperimentalMaterial3Api
 @OptIn(ExperimentalTestApi::class)
 fun ComposeUiTest.endToEndTest() {
     val startText = runBlocking { getString(Res.string.button_label_start) }

@@ -84,9 +84,8 @@ class PresentationService(
 
         val presentationResult = holderAgent.createPresentation(
             request = PresentationRequestParameters(
-                // TODO which nonce? isoMdocRequest.parsedEncryptionInfo.encryptionParameters.nonce?
                 nonce = isoMdocWalletRequest.isoMdocRequest.encryptionInfo.encryptionParameters.nonce
-                    .encodeToString(Base64UrlStrict),
+                    ?.encodeToString(Base64UrlStrict) ?: throw IllegalArgumentException("no nonce"),
                 audience = callingOrigin,
                 calcIsoDeviceSignaturePlain = { input ->
                     val deviceAuthentication = DeviceAuthentication(
