@@ -44,7 +44,7 @@ import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodBle
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodNfc
 import org.multipaz.mdoc.engagement.DeviceEngagement
 import org.multipaz.mdoc.nfc.scanMdocReader
-import org.multipaz.mdoc.request.buildDeviceRequest
+import org.multipaz.mdoc.request.DeviceRequest
 import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.sessionencryption.SessionEncryption
 import org.multipaz.mdoc.transport.MdocTransport
@@ -118,8 +118,7 @@ class TransferManager(
                     MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEJpvqZslMcf8dng9d9RPB4bzZIbH2
                     EF83n2ZcYC10D6gjsTvlTzl1Tii9HVMvpB8k+SD/zTgIdN/HKAFToBj0+A==
                     -----END PUBLIC KEY-----
-                    """.trimIndent().trim(),
-                EcCurve.P256
+                    """.trimIndent().trim()
             )
         )
     }
@@ -145,7 +144,11 @@ class TransferManager(
         )
     }
 
-    private val readerKey: EcPrivateKey = Crypto.createEcPrivateKey(EcCurve.P256)
+    private val readerKey: EcPrivateKey by lazy {
+        runBlocking {
+            Crypto.createEcPrivateKey(EcCurve.P256)
+        }
+    }
     private val readerRootKeyCertified: AsymmetricKey.X509CertifiedExplicit by lazy {
         AsymmetricKey.X509CertifiedExplicit(
             certChain = X509CertChain(listOf(readerRootCert)),
@@ -393,21 +396,22 @@ class TransferManager(
         readerSessionEncryption.value = sessionEncryption
         this.readerSessionTranscript = encodedSessionTranscript
 
-        val deviceRequest = buildDeviceRequest(
+        val readerAuthKey = AsymmetricKey.X509CertifiedExplicit(
+            certChain = X509CertChain(listOf(readerCert, readerRootCert)),
+            privateKey = readerKey
+        )
+        val deviceRequestBuilder = DeviceRequest.Builder(
             sessionTranscript = encodedSessionTranscript.toDataItem()
-        ) {
-            documentRequestList.getAll().forEach { requestDocument ->
-                addDocRequest(
-                    docType = requestDocument.docType,
-                    nameSpaces = requestDocument.itemsToRequest,
-                    docRequestInfo = null,
-                    readerKey = AsymmetricKey.X509CertifiedExplicit(
-                        certChain = X509CertChain(listOf(readerCert, readerRootCert)),
-                        privateKey = readerKey
-                    )
-                )
-            }
+        )
+        documentRequestList.getAll().forEach { requestDocument ->
+            deviceRequestBuilder.addDocRequest(
+                docType = requestDocument.docType,
+                nameSpaces = requestDocument.itemsToRequest,
+                docRequestInfo = null,
+                readerKey = readerAuthKey
+            )
         }
+        val deviceRequest = deviceRequestBuilder.build()
         val encodedDeviceRequest = Cbor.encode(deviceRequest.toDataItem())
 
         try {

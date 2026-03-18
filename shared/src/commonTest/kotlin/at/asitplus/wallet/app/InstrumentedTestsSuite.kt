@@ -1,7 +1,6 @@
 package at.asitplus.wallet.app
 
 import App
-import Globals
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -79,9 +78,8 @@ import org.koin.core.module.dsl.scopedOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.binds
 import org.koin.dsl.module
-import org.multipaz.prompt.PassphraseRequest
 import org.multipaz.prompt.PromptModel
-import org.multipaz.prompt.SinglePromptModel
+import org.multipaz.prompt.Reason
 import ui.navigation.routes.RoutePrerequisites
 import kotlin.test.assertTrue
 import kotlin.time.Clock
@@ -254,12 +252,31 @@ class TestLifecycleOwner : LifecycleOwner {
 
 // Based on the identity-credential sample code
 // https://github.com/openwallet-foundation-labs/identity-credential/tree/main/samples/testapp
-class TestPromptModel : PromptModel {
-    override val passphrasePromptModel = SinglePromptModel<PassphraseRequest, String?>()
+class TestPromptModel private constructor(
+    builder: Builder,
+) : PromptModel(builder) {
+    constructor() : this(Builder())
+
     override val promptModelScope = CoroutineScope(Dispatchers.Default + SupervisorJob() + this)
 
     fun onClose() {
         promptModelScope.cancel()
+    }
+
+    private class Builder : PromptModel.Builder(
+        toHumanReadable = { _, _ ->
+            Reason.HumanReadable(
+                title = "",
+                subtitle = "",
+                requireConfirmation = false
+            )
+        }
+    ) {
+        init {
+            addCommonDialogs()
+        }
+
+        override fun build(): PromptModel = TestPromptModel(this)
     }
 }
 
