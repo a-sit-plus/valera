@@ -10,8 +10,7 @@ import IdentityDocumentServices
             let registration = MobileDocumentRegistration(
                 mobileDocumentType: docType,
                 supportedAuthorityKeyIdentifiers: [],
-                documentIdentifier: id//,
-                //invalidationDate: storedDocument.invalidationDate
+                documentIdentifier: id
             )
 
             try await store.addRegistration(registration)
@@ -22,7 +21,7 @@ import IdentityDocumentServices
         return true
     }
 
-    /*@objc public func removeDocuments(_ documentIds: [String]) -> Boolean {
+    @objc public func removeDocuments(_ documentIds: [String]) -> Boolean {
         let store = IdentityDocumentProviderRegistrationStore()
 
         do {
@@ -42,5 +41,5 @@ import IdentityDocumentServices
             return false
         }
         return true
-    }*/
+    }
 }

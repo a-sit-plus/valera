@@ -19,5 +19,4 @@ fun communicationsModule(shouldListen: Boolean) = module {
     }
     singleOf(::SigningService)
     single { DCAPIExportService(get(), shouldListen) }
-    //singleOf(::DCAPIExportService)
 }
