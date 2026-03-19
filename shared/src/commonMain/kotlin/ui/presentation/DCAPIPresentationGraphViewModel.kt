@@ -56,7 +56,7 @@ class DCAPIPresentationGraphViewModel(
                                 inputDescriptors = presentationRequest.presentationDefinition.inputDescriptors,
                             )
                         ),
-                        matchingResult = walletMain.holderAgent.matchInputDescriptorsAgainstCredentialStoreV2(
+                        matchingResult = walletMain.holderAgent.matchInputDescriptorsAgainstCredentialStoreV3(
                             inputDescriptors = presentationRequest.presentationDefinition.inputDescriptors,
                             fallbackFormatHolder = null,
                         ).getOrThrow(),

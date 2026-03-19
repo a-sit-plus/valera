@@ -305,32 +305,32 @@ public class AndroidPlatformAdapter(
 
             Napier.d("DC API: Got request ${option.requestJson} for selection $selectionInfo")
 
-            val credentialId = selectionInfo.documentIds[0]
+            val credentialIds = selectionInfo.documentIds
 
             when (digitalCredentialGetRequest) {
                 is DigitalCredentialGetRequest.OpenId4VpSigned -> {
-                    Napier.d("Using OpenID4VP Signed, got request $digitalCredentialGetRequest for credential ID $credentialId")
+                    Napier.d("Using OpenID4VP Signed, got request $digitalCredentialGetRequest for credential IDs $credentialIds")
                     DCAPIWalletRequest.OpenId4VpSigned(
                         request = digitalCredentialGetRequest.request,
-                        credentialId = credentialId,
+                        credentialId = credentialIds,
                         callingPackageName = callingPackageName,
                         callingOrigin = callingOrigin
                     )
                 }
                 is DigitalCredentialGetRequest.OpenId4VpUnsigned -> {
-                    Napier.d("Using OpenID4VP Unsigned, got request $digitalCredentialGetRequest for credential ID $credentialId")
+                    Napier.d("Using OpenID4VP Unsigned, got request $digitalCredentialGetRequest for credential IDs $credentialIds")
                     DCAPIWalletRequest.OpenId4VpUnsigned(
                         request = digitalCredentialGetRequest.request,
-                        credentialId = credentialId,
+                        credentialId = credentialIds,
                         callingPackageName = callingPackageName,
                         callingOrigin = callingOrigin
                     )
                 }
                 is DigitalCredentialGetRequest.IsoMdoc -> {
-                    Napier.d("Using Iso 18013-7 Annex C, got request $digitalCredentialGetRequest for credential ID $credentialId")
+                    Napier.d("Using Iso 18013-7 Annex C, got request $digitalCredentialGetRequest for credential IDs $credentialIds")
                     DCAPIWalletRequest.IsoMdoc(
                         isoMdocRequest = digitalCredentialGetRequest.request,
-                        credentialId = credentialId,
+                        credentialId = credentialIds,
                         callingPackageName = callingPackageName,
                         callingOrigin = callingOrigin
                     )
