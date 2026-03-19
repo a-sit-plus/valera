@@ -59,6 +59,7 @@ class DCAPIPresentationGraphViewModel(
                         matchingResult = walletMain.holderAgent.matchInputDescriptorsAgainstCredentialStoreV3(
                             inputDescriptors = presentationRequest.presentationDefinition.inputDescriptors,
                             fallbackFormatHolder = null,
+                            filterByIds = unwrappedDcApiWalletRequest.credentialId
                         ).getOrThrow(),
                     ).toCredentialSelectionProvider(viewModelScope) {
                         walletMain.checkCredentialFreshness(it)
