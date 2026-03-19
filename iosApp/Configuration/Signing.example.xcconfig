@@ -7,8 +7,16 @@ APP_BUNDLE_IDENTIFIER = at.asitplus.wallet.compose
 // Apple Developer team for local device builds and release archives.
 SIGNING_DEVELOPMENT_TEAM =
 
+// Public contributors should keep the reduced Debug entitlements so personal
+// teams can sign the app. Internal users can change this to
+// iosApp/iosApp/iosApp.entitlements when they need Associated Domains and NFC.
+SIGNING_DEBUG_ENTITLEMENTS_FILE = iosApp/iosApp.debug.entitlements
+
 // Optional for Debug device builds. Leave empty when using automatic signing.
 SIGNING_DEBUG_PROVISIONING_PROFILE_SPECIFIER =
+
+// Release archives always use the full app entitlements.
+SIGNING_RELEASE_ENTITLEMENTS_FILE = iosApp/iosApp.entitlements
 
 // Required for manual Release signing if you archive locally.
 SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER =
