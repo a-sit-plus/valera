@@ -16,13 +16,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: Set up Ruby gems
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.1'
-          bundler-cache: true
-        env:
-          BUNDLE_GEMFILE: ${{ github.workspace }}/iosApp/Gemfile
       - name: Cache gradle files
         uses: actions/cache@v4
         env:
@@ -33,31 +26,22 @@ jobs:
             ~/.gradle/wrapper
             ~/.m2/repository
           key: iOS-${{ hashFiles('./gradle/libs.versions.toml', './gradle.properties', './gradle/wrapper/gradle-wrapper.properties') }}
-      - name: Prepare files from secrets
+      - name: Build iOS App for Simulator
         run: |
-          echo "${{ secrets.APPLE_CERT_CONTENT }}" > iosApp/cert.b64
-          base64 -d -i iosApp/cert.b64 > iosApp/cert.p12
-      - name: Build iOS App
-        run: bundle exec fastlane build
-        working-directory: iosApp
-        env:
-          APP_BUNDLE_IDENTIFIER: at.asitplus.wallet.compose
-          FASTLANE_OPT_OUT_USAGE: true
-          FASTLANE_XCODE_LIST_TIMEOUT: 120
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
-          APPLE_API_KEY_CONTENT: ${{ secrets.APPLE_API_KEY_CONTENT }}
-          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
-          APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
-          SIGNING_DEVELOPMENT_TEAM: 9CYHJNG644
-          SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER: Compose Wallet Distribution
-          CI: true
+          xcodebuild \
+            -project iosApp/iosApp.xcodeproj \
+            -scheme iosApp \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination "generic/platform=iOS Simulator" \
+            CODE_SIGNING_ALLOWED=NO \
+            build | tee /tmp/iosApp-simulator-build.log
       - name: Upload logs (Build iOS App)
         uses: actions/upload-artifact@v4
         if: success() || failure()
         with:
           name: xcode.log
-          path: "/Users/runner/Library/Logs/gym/Valera-iosApp.log"
+          path: /tmp/iosApp-simulator-build.log
       - name: Test KMP on iOS
         run: ./gradlew -U :shared:iosSimulatorArm64Test
       - name: Test Report from KMP on iOS
