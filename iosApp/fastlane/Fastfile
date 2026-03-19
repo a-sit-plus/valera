@@ -37,7 +37,7 @@ lane :build do
     certificate_password: ENV['APPLE_CERT_PASSWORD'],
     keychain_name: "fastlane_tmp_keychain"
   )
-  get_provisioning_profile(
+  profile_path = get_provisioning_profile(
     app_identifier: app_bundle_identifier,
     team_id: signing_development_team,
     provisioning_name: release_provisioning_profile,
@@ -45,7 +45,7 @@ lane :build do
   )
   update_project_provisioning(
     build_configuration: "Release",
-    profile: release_provisioning_profile,
+    profile: profile_path,
     target_filter: "iosApp"
   )
   build_app(
@@ -67,7 +67,7 @@ lane :deploy do
     certificate_password: ENV['APPLE_CERT_PASSWORD'],
     keychain_name: "fastlane_tmp_keychain"
   )
-  get_provisioning_profile(
+  profile_path = get_provisioning_profile(
     app_identifier: app_bundle_identifier,
     team_id: signing_development_team,
     provisioning_name: release_provisioning_profile,
@@ -78,7 +78,7 @@ lane :deploy do
   )
   update_project_provisioning(
     build_configuration: "Release",
-    profile: release_provisioning_profile,
+    profile: profile_path,
     target_filter: "iosApp"
   )
   build_app(
