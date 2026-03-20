@@ -60,6 +60,9 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
         SD_JWT -> vctConstraint()?.filter?.referenceValues()
         ISO_MDOC -> listOf(this.id)
     } ?: throw Throwable("Missing Pattern")
+    check(credentialIdentifiers.isNotEmpty()) {
+        "Presentation definition input descriptor '$id' does not declare any credential identifier"
+    }
 
     // TODO: How to properly handle the case with multiple applicable schemes?
     val scheme = AttributeIndex.schemeSet.firstOrNull {

@@ -20,6 +20,11 @@ class LoadCredentialViewModel(
     val onClickLogo: () -> Unit,
     val onClickSettings: () -> Unit,
 ) {
+    init {
+        check(credentialIdentifiers.isNotEmpty()) {
+            "Issuer '$hostString' did not provide any credential configuration that can be loaded"
+        }
+    }
 
     companion object {
         suspend fun init(
