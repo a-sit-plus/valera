@@ -39,7 +39,10 @@ class AuthenticationSelectionPresentationExchangeViewModel(
         requests.forEach {
             attributeSelection[it.key] = mutableStateMapOf()
             val matchingCredentials = it.value
-            val defaultCredential = matchingCredentials.keys.first()
+            val defaultCredential = matchingCredentials.keys.firstOrNull()
+                ?: throw IllegalStateException(
+                    "Presentation definition input descriptor '${it.key}' did not match any stored credential"
+                )
             credentialSelection[it.key] = mutableStateOf(defaultCredential)
         }
     }
