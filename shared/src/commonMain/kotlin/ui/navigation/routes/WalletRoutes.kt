@@ -82,6 +82,9 @@ data class AddCredentialDcApiRoute(
 }
 
 @Serializable
+object AddCredentialDcApiSuccessRoute : Route()
+
+@Serializable
 data class AddCredentialWithLinkRoute(val uri: String) : Route()
 
 @Serializable

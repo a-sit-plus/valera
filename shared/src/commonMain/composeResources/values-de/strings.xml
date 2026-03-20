@@ -264,6 +264,7 @@
     <string name="heading_label_show_data">Daten Vorzeigen</string>
     <string name="heading_label_show_data_third_party">Daten vorzeigen an dritte Bürger</string>
     <string name="heading_label_authentication_success">Angemeldet</string>
+    <string name="heading_label_credential_added_screen">Credential hinzugefügt</string>
     <string name="heading_label_settings_screen">Einstellungen</string>
     <string name="heading_label_error_screen">Fehler</string>
     <string name="heading_label_loading_screen">Laden</string>
@@ -351,6 +352,7 @@
     <string name="info_text_error_cause_reset_app">Aufgrund technischer Verbesserungen muss die App zurückgesetzt werden.</string>
     <string name="info_text_data_items_missing">fehlend</string>
     <string name="info_text_authentication_success">Die Anmeldung wurde erfolgreich durchgeführt.</string>
+    <string name="info_text_credential_added">Das Credential wurde erfolgreich hinzugefügt.</string>
     <string name="info_text_no_credentials_available">Es sind noch keine Daten verfügbar.</string>
     <string name="info_text_available_credentials">Verfügbare Daten</string>
     <string name="info_text_requested_credentials">Angefragte Daten</string>

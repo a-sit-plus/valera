@@ -41,10 +41,12 @@ import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult
+import data.storage.StoreEntryId
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -711,7 +713,7 @@ private fun WalletNavHost(
                                         authorizationServerMetadata = offer.authorizationServerMetadata
                                     )
                                     if (issuanceResult is CredentialIssuanceResult.Success) {
-                                        dcapiVm.handleDCAPIIssuingResult(true, null)
+                                        navigate(AddCredentialDcApiSuccessRoute)
                                     } else {
                                         dcapiVm.handleDCAPIIssuingResult(false, null)
                                     }
@@ -752,6 +754,25 @@ private fun WalletNavHost(
             }?.let { vm ->
                 LoadCredentialView(vm)
             }
+        }
+
+        composable<AddCredentialDcApiSuccessRoute> {
+            val onAcknowledge = {
+                if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
+                    val response = vckJsonSerializer.encodeToString(DigitalCredentialOfferReturn.success())
+                    walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, true)
+                }
+                invocationAwareBackHandler()
+            }
+
+            BackHandler(onBack = onAcknowledge)
+
+            CredentialAddedView(
+                onAutoDismiss = onAcknowledge,
+                onClickButton = onAcknowledge,
+                onClickLogo = onClickLogo,
+                onClickSettings = { navigate(SettingsRoute) }
+            )
         }
 
         composable<CredentialDetailsRoute> { backStackEntry ->
