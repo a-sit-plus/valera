@@ -31,10 +31,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import at.asitplus.catching
 import at.asitplus.catchingUnwrapped
 import at.asitplus.dcapi.issuance.DigitalCredentialOfferReturn
-import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_error_action_return_to_invoker
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
@@ -187,6 +185,14 @@ fun WalletNavigation(
         intentState.dcapiInvocationData.value != null
     }
 
+    val invocationAwareBackHandler: () -> Unit = {
+        if (shouldFinishToCaller()) {
+            intentState.finishApp?.invoke() ?: navigateBack()
+        } else {
+            navigateBack()
+        }
+    }
+
     val startDestination = remember(initialLink) {
         if (initialLink != null) {
             try {
@@ -220,6 +226,7 @@ fun WalletNavigation(
             startDestination,
             navigate,
             navigateBack,
+            invocationAwareBackHandler,
             popBackStack,
             navigatePending,
             navigateNewGraph,
@@ -298,6 +305,7 @@ private fun WalletNavHost(
     startDestination: Route,
     navigate: (Route) -> Unit,
     navigateBack: () -> Unit,
+    invocationAwareBackHandler: () -> Unit,
     popBackStack: (Route) -> Unit,
     navigatePending: () -> Unit,
     navigateNewGraph: (Route) -> Unit,
@@ -493,12 +501,6 @@ private fun WalletNavHost(
         }
 
         composable<AuthenticationViewRoute> {
-            val navigateUpFromAuth = if (shouldFinishToCaller()) {
-                { intentState.finishApp?.invoke() ?: navigateBack() }
-            } else {
-                navigateBack
-            }
-
             DefaultPresentationGraphView(
                 onError = onError,
                 onClickLogo = onClickLogo,
@@ -506,7 +508,7 @@ private fun WalletNavHost(
                     navigate(SettingsRoute)
                 },
                 koinScope = koinScope,
-                onNavigateUp = navigateUpFromAuth,
+                onNavigateUp = invocationAwareBackHandler,
             )
         }
 
@@ -518,9 +520,7 @@ private fun WalletNavHost(
                     navigate(SettingsRoute)
                 },
                 koinScope = koinScope,
-                onNavigateUp = {
-                    popBackStack(HomeScreenRoute)
-                },
+                onNavigateUp = invocationAwareBackHandler,
             )
         }
 
@@ -562,13 +562,8 @@ private fun WalletNavHost(
         }
 
         composable<AuthenticationSuccessRoute> { backStackEntry ->
-            val navigateUpFromSuccess = if (shouldFinishToCaller()) {
-                { intentState.finishApp?.invoke() ?: navigateBack() }
-            } else {
-                navigateBack
-            }
             AuthenticationSuccessView(
-                navigateUp = navigateUpFromSuccess,
+                navigateUp = invocationAwareBackHandler,
                 onClickLogo = onClickLogo,
                 onClickSettings = { navigate(SettingsRoute) }
             )
