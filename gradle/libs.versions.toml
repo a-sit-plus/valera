@@ -2,7 +2,7 @@
 vck="5.12.0-SNAPSHOT"
 
 agp = "8.12.3"
-kotlin = "2.3.0"
+kotlin = "2.3.20"
 compose-plugin = "1.10.2"
 koin = "4.1.1"
 testballoon = "0.7.1-K2.3.0"
@@ -16,7 +16,7 @@ core-ktx = "1.18.0"
 
 camera-camera2 = "1.5.3"
 datastore-preferences-core = "1.2.1"
-multipaz = "0.97.0"
+multipaz = "0.98.0"
 navigation-compose = "2.9.2"
 semver = "2.1.0"
 

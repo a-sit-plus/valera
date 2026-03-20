@@ -188,10 +188,13 @@
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
             android:exported="false"
+            tools:replace="android:authorities"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
+                tools:replace="android:resource"
                 android:resource="@xml/filepaths" />
+            <!-- tools:replace=… is a workaround for multipaz-compose 0.98.0 registering their own file provider -->
         </provider>
 
         <service
