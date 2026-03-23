@@ -35,7 +35,7 @@ The repository is configured so public contributors can build the iOS app for th
 
 Public contributors:
 * Open `iosApp/iosApp.xcodeproj` in Xcode and run the `iosApp` scheme on an iOS Simulator.
-* Simulator builds should work without any additional signing setup.
+* Simulator builds for Apple Silicon should work without any additional signing setup.
 * Running on the Simulator does not require an Apple Developer team, provisioning profile, or bundle identifier changes.
 * Public contributors do not need `Signing.local.xcconfig`.
 * Optional device builds with a Personal Team or another external team can use a local `Signing.local.xcconfig` with a unique bundle identifier and team id.
@@ -135,6 +135,7 @@ Required secrets for GitHub Actions:
 - `APPLE_API_KEY_CONTENT` with the Base64-encoded content of the `p8` file from the App Store Connect API Key
 - `APPLE_CERT_CONTENT` with the Base64-encoded content of the `p12` certificate you've exported
 - `APPLE_CERT_PASSWORD` with the password of the certificate you've exported
+- `APPLE_DEVELOPMENT_TEAM` wtih the Apple Team ID
 
 For Android we use a keystore to sign and build the app. The keystore is checked in, the password needs to be set as a environment variable.
 

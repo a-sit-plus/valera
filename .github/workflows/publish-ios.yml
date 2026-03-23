@@ -49,7 +49,7 @@ jobs:
           APPLE_API_KEY_CONTENT: ${{ secrets.APPLE_API_KEY_CONTENT }}
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
-          SIGNING_DEVELOPMENT_TEAM: 9CYHJNG644
+          SIGNING_DEVELOPMENT_TEAM: ${{ secrets.APPLE_DEVELOPMENT_TEAM }}
           SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER: Compose Wallet Distribution
           CI: true
       - name: Upload logs
