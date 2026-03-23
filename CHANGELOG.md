@@ -10,7 +10,6 @@
    * Use vck data classes to (de-)serialize received/emitted data
    * Add preliminary support for iOS using ISO/IEC 18013-7 protocol. Known issues:
      * iOS-specific pre-request is shown in a separate rather rudimentary UI
-     * Content in the pre-request is not yet compared with the content in the full request
      * Sharing UI does not always open after approving the pre-request
    * Add support for issuance via the DC API based on the preliminary spec defined in https://github.com/openid/OpenID4VCI/pull/476
  

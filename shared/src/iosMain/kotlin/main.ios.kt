@@ -22,6 +22,7 @@ import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.RealCapabilitiesService
 import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.WalletDependencyProvider
+import at.asitplus.wallet.app.dcapi.IosParsedMdocRequestSummary
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.common.di.appModule
@@ -457,6 +458,12 @@ class IosPlatformAdapter(
             try {
                 val isoMdocRequest = it.rawRequest?.let { request -> Json.decodeFromString<IsoMdocRequest>(request) }
                     ?: throw IllegalStateException("No request data available")
+                val parsedRequestSummary = it.parsedRequestSummary?.let { summary ->
+                    Json.decodeFromString<IosParsedMdocRequestSummary>(summary)
+                } ?: throw IllegalStateException("No parsed request summary available")
+                require(parsedRequestSummary.isConsistentWith(isoMdocRequest)) {
+                    "Parsed ISO18013 mobile document pre-request is inconsistent with rawRequest"
+                }
                 //TODO check added nullability of DCAPIWalletRequest in Android code and terminal sp
                 val walletRequest = DCAPIWalletRequest.IsoMdoc(
                     isoMdocRequest = isoMdocRequest,
@@ -478,14 +485,14 @@ class IosPlatformAdapter(
         Napier.w("Got error response: $response")
         //TODO is there a way to convey error responses via ISO18013-7?
         // send empty response for now
-        (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let { (_, _, sendCredentialResponseToInvoker) ->
+        (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let { (_, _, _, sendCredentialResponseToInvoker) ->
             sendCredentialResponseToInvoker.invoke(ByteArray(0).toNSData())
             MdocSessionManager.clearSession()
         } ?: throw IllegalStateException("Callback for response not found")
     }
 
     override fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean) =
-        (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let { (_, _, sendCredentialResponseToInvoker) ->
+        (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let { (_, _, _, sendCredentialResponseToInvoker) ->
             Napier.d("prepareDCAPICredentialResponse called with $response")
             val encodedResponse = coseCompliantSerializer.encodeToByteArray(response)
             Napier.d("encodedResponse: ${encodedResponse.toHexString()}")

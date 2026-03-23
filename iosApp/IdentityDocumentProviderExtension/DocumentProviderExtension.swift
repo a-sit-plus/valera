@@ -35,6 +35,45 @@ class StatefulViewController: UIViewController {
     }
 }
 
+private struct ParsedRequestSummaryData {
+    let summaryJson: String?
+    let requestedElements: [String]
+}
+
+private func buildParsedRequestSummaryData(from requestContext: ISO18013MobileDocumentRequestContext) -> ParsedRequestSummaryData {
+    var requestedElements: [String] = []
+    let documentRequests: [[String: Any]] = requestContext.request.presentmentRequests.flatMap { presentmentRequest in
+        presentmentRequest.documentRequestSets.flatMap { documentRequestSet in
+            documentRequestSet.requests.map { documentRequest in
+                let namespaces = Dictionary(
+                    uniqueKeysWithValues: documentRequest.namespaces.map { namespace, elements in
+                        for (elementIdentifier, _) in elements {
+                            requestedElements.append(elementIdentifier)
+                        }
+                        return (namespace, elements)
+                    }
+                )
+                return [
+                    "docType": documentRequest.docType,
+                    "namespaces": namespaces
+                ]
+            }
+        }
+    }
+
+    let summary: [String: Any] = [
+        "documentRequests": documentRequests
+    ]
+
+    let summaryJson = try? JSONSerialization.data(withJSONObject: summary)
+        .flatMap { String(data: $0, encoding: .utf8) }
+
+    return ParsedRequestSummaryData(
+        summaryJson: summaryJson,
+        requestedElements: requestedElements
+    )
+}
+
 @main
 struct DocumentProviderExtension: IdentityDocumentProvider {
 
@@ -70,21 +109,9 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
             )
 
             let statefulViewController = StatefulViewController()
-            
+
             let originString: String? = requestContext.requestingWebsiteOrigin?.absoluteString
-            
-            var requestedElements: [String] = []
-            if let presentmentRequest = requestContext.request.presentmentRequests.first {
-                for docRequestSet in presentmentRequest.documentRequestSets {
-                    for docRequest in docRequestSet.requests {
-                        for (_, elements) in docRequest.namespaces {
-                            for (elementIdentifier, _) in elements {
-                                requestedElements.append(elementIdentifier)
-                            }
-                        }
-                    }
-                }
-            }
+            let parsedRequestSummary = buildParsedRequestSummaryData(from: requestContext)
 
             let onSendResponse: (Data) -> Void = { payload in
                 if context.coordinator.onSendResponseCalled {
@@ -108,7 +135,12 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                                     continuation.resume(returning: data ?? Data())
                                 }
                                 
-                                let invocationData = IosDCAPIInvocationData(rawRequest: (String(decoding: rawRequest.requestData, as: UTF8.self)), origin: originString, onFinish: onFinish)
+                                let invocationData = IosDCAPIInvocationData(
+                                    rawRequest: String(decoding: rawRequest.requestData, as: UTF8.self),
+                                    parsedRequestSummary: parsedRequestSummary.summaryJson,
+                                    origin: originString,
+                                    onFinish: onFinish
+                                )
                                 MdocSessionManager.shared.setSession(data: invocationData)
                                 
                                 Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "Before displaying MainViewController")
@@ -136,7 +168,7 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
 
             let mdocRequestViewController = Main_iosKt.MdocRequestViewController(
                 requestingWebsiteOrigin: originString,
-                requestedElements: requestedElements,
+                requestedElements: parsedRequestSummary.requestedElements,
                 onSendResponse: onSendResponse,
                 onCancel: onCancel
             )
