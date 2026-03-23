@@ -5,7 +5,7 @@ agp = "8.12.3"
 kotlin = "2.3.20"
 compose-plugin = "1.10.2"
 koin = "4.1.1"
-testballoon = "0.7.1-K2.3.0"
+testballoon = "0.8.4-K2.3.20"
 
 accompanist-permissions = "0.37.3"
 activity-compose = "1.13.0"
