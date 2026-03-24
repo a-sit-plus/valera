@@ -146,7 +146,6 @@ kotlin {
             implementation("androidx.compose.ui:ui-test-manifest")
         }
         iosMain.dependencies {
-            api(project(":interop"))
             implementation(ktor("client-darwin"))
         }
     }
@@ -179,7 +178,6 @@ exportXCFramework(
     )
 ) {
     binaryOption("bundleId", "at.asitplus.wallet.shared")
-    linkerOpts("-ld_classic")
     freeCompilerArgs += listOf("-Xoverride-konan-properties=minVersion.ios=18.5;minVersionSinceXcode15.ios=18.5")
 }
 

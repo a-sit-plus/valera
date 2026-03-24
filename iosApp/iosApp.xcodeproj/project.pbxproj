@@ -68,7 +68,18 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		E1B7FF692EF073D5006DA318 /* IdentityDocumentProviderExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E1B7FF6D2EF073D5006DA318 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = IdentityDocumentProviderExtension; sourceTree = "<group>"; };
+		E1B7FF692EF073D5006DA318 /* IdentityDocumentProviderExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				E1B7FF6D2EF073D5006DA318 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = IdentityDocumentProviderExtension;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -269,7 +280,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :shared:embedAndSignAppleFrameworkForXcode";
+			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :shared:embedAndSignAppleFrameworkForXcode\n";
 		};
 		E1B7FF572EEF0519006DA318 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -286,7 +297,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/sh\nset -e\n\n# This script prepares Compose resources in an intermediate directory.\n# Xcode will then copy them into the bundle via a folder reference.\n\n# 1. Define the intermediate output directory.\nOUTPUT_DIR=\"$SRCROOT/../build/extension_compose_resources/compose-resources\"\n\n# 2. Define the root path where KMP stores all generated resources.\nKMP_RESOURCES_ROOT=\"$SRCROOT/../shared/build/kotlin-multiplatform-resources/aggregated-resources\"\n\n# 3. Determine the correct architecture-specific source directory.\nSOURCE_RESOURCES_DIR=\"$KMP_RESOURCES_ROOT/iosArm64/composeResources\" # Default to device\nif [ \"$PLATFORM_NAME\" == \"iphonesimulator\" ]; then\n    if [ \"$ARCHS\" == \"x86_64\" ]; then\n        SOURCE_RESOURCES_DIR=\"$KMP_RESOURCES_ROOT/iosX64/composeResources\"\n    else\n        SOURCE_RESOURCES_DIR=\"$KMP_RESOURCES_ROOT/iosSimulatorArm64/composeResources\"\n    fi\nfi\n\n# 4. Sync the resources. This creates the structure \".../extension_compose_resources/composeResources\"\nif [ -d \"$SOURCE_RESOURCES_DIR\" ]; then\n  mkdir -p \"$OUTPUT_DIR\"\n  rsync -a --delete \"$SOURCE_RESOURCES_DIR\" \"$OUTPUT_DIR/\"\nelse\n  echo \"warning: Compose resources directory not found at $SOURCE_RESOURCES_DIR. Creating empty directory to avoid build errors.\"\n  mkdir -p \"$OUTPUT_DIR\"\nfi\n";
+			shellScript = "#!/bin/sh\nset -e\n\n# This script prepares Compose resources in an intermediate directory.\n# Xcode will then copy them into the bundle via a folder reference.\n\n# 1. Define the intermediate output directory.\nOUTPUT_DIR=\"$SRCROOT/../build/extension_compose_resources/compose-resources\"\n\n# 2. Define the root path where KMP stores all generated resources.\nKMP_RESOURCES_ROOT=\"$SRCROOT/../shared/build/kotlin-multiplatform-resources/aggregated-resources\"\n\n# 3. Determine the correct architecture-specific source directory.\nSOURCE_RESOURCES_DIR=\"$KMP_RESOURCES_ROOT/iosArm64/composeResources\"\nif [ \"$PLATFORM_NAME\" = \"iphonesimulator\" ]; then\n    SOURCE_RESOURCES_DIR=\"$KMP_RESOURCES_ROOT/iosSimulatorArm64/composeResources\"\nfi\n\n# 4. Sync the resources. This creates the structure \".../extension_compose_resources/composeResources\"\nif [ -d \"$SOURCE_RESOURCES_DIR\" ]; then\n  mkdir -p \"$OUTPUT_DIR\"\n  rsync -a --delete \"$SOURCE_RESOURCES_DIR\" \"$OUTPUT_DIR/\"\nelse\n  echo \"warning: Compose resources directory not found at $SOURCE_RESOURCES_DIR. Creating empty directory to avoid build errors.\"\n  mkdir -p \"$OUTPUT_DIR\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -447,7 +458,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
-				DEVELOPMENT_TEAM = 9CYHJNG644;
+				DEVELOPMENT_TEAM = "${TEAM_ID}";
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -465,6 +476,7 @@
 					"$(inherited)",
 					"-framework",
 					shared,
+					"-lsqlite3",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = at.asitplus.wallet.compose;
 				PRODUCT_NAME = "${APP_NAME}";
@@ -505,6 +517,7 @@
 					"$(inherited)",
 					"-framework",
 					shared,
+					"-lsqlite3",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = at.asitplus.wallet.compose;
 				PRODUCT_NAME = "${APP_NAME}";
@@ -521,15 +534,6 @@
 		E147A2B32EB4FD5A00D88306 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
-				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-framework",
-					shared,
-				);
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_ENTITLEMENTS = IdentityDocumentProviderExtension/IdentityDocumentProviderExtension.entitlements;
@@ -541,6 +545,10 @@
 				DEVELOPMENT_TEAM = 9CYHJNG644;
 				ENABLE_ON_DEMAND_RESOURCES = NO;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
+				);
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = IdentityDocumentProviderExtension/Info.plist;
@@ -554,6 +562,12 @@
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					shared,
+					"-lsqlite3",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = at.asitplus.wallet.compose.IdentityDocumentProviderExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -570,15 +584,6 @@
 		E147A2B42EB4FD5A00D88306 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
-				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-framework",
-					shared,
-				);
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_ENTITLEMENTS = IdentityDocumentProviderExtension/IdentityDocumentProviderExtension.entitlements;
@@ -589,6 +594,10 @@
 				DEVELOPMENT_TEAM = 9CYHJNG644;
 				ENABLE_ON_DEMAND_RESOURCES = NO;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
+				);
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = IdentityDocumentProviderExtension/Info.plist;
@@ -602,6 +611,12 @@
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					shared,
+					"-lsqlite3",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = at.asitplus.wallet.compose.IdentityDocumentProviderExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;

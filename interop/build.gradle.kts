@@ -5,11 +5,10 @@ plugins {
 kotlin {
     val isMacHost = System.getProperty("os.name").lowercase().contains("mac")
 
-    val iosTargets = listOf(iosX64(), iosArm64(), iosSimulatorArm64())
+    val iosTargets = listOf(iosArm64(), iosSimulatorArm64())
 
     iosTargets.forEach { target ->
         val platform = when (target.name) {
-            "iosX64" -> "iphonesimulator"
             "iosArm64" -> "iphoneos"
             "iosSimulatorArm64" -> "iphonesimulator"
             else -> error("Unsupported target ${target.name}")

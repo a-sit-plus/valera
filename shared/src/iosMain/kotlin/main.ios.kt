@@ -31,7 +31,9 @@ import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.dcapi.request.IsoMdocRequest
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.app.common.BuildContext
+import at.asitplus.wallet.app.common.BuildType
 import at.asitplus.wallet.app.common.CapabilitiesService
+import at.asitplus.wallet.app.common.DebugCapabilitiesService
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
@@ -43,15 +45,11 @@ import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.common.di.appModule
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
-import at.asitplus.wallet.app.ios.DigitalCredentials
 import data.storage.RealDataStoreService
 import data.storage.createDataStore
 import io.github.aakira.napier.Napier
 import kotlinx.cinterop.*
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.scopedOf
@@ -68,7 +66,6 @@ import platform.darwin.dispatch_get_main_queue
 import ui.navigation.IntentService.Companion.IOS_DC_API_CALL
 import ui.theme.darkScheme
 import ui.theme.lightScheme
-import kotlin.coroutines.resume
 import kotlin.experimental.ExperimentalNativeApi
 
 
@@ -145,7 +142,10 @@ fun MainViewController(
     )
     val capabilitiesModule = module {
         scope(named(SESSION_NAME)) {
-            scopedOf(::RealCapabilitiesService) binds arrayOf(CapabilitiesService::class)
+            when (buildContext.buildType) {
+                BuildType.DEBUG -> scopedOf(::DebugCapabilitiesService) binds arrayOf(CapabilitiesService::class)
+                BuildType.RELEASE -> scopedOf(::RealCapabilitiesService) binds arrayOf(CapabilitiesService::class)
+            }
         }
     }
     val module = appModule(walletDependencyProvider, capabilitiesModule)
@@ -435,36 +435,10 @@ class IosPlatformAdapter(
         entries: CredentialRegistry,
         scope: CoroutineScope
     ) {
-        scope.launch(Dispatchers.Default) {
-            for (entry in entries.credentials) {
-                val id = entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
-                val docType = entry.isoEntry?.docType ?: entry.sdJwtEntry?.verifiableCredentialType
-                if (id != null && docType != null) {
-                    storeDocumentFromSwift(id, docType)
-                }
-            }
-        }
-    }
-
-    @OptIn(ExperimentalForeignApi::class)
-    private suspend fun storeDocumentFromSwift(id: String, docType: String): Boolean = suspendCancellableCoroutine { cont ->
-        try {
-            Napier.d("storeDocumentFromSwift invoked")
-            if (docType !in SUPPORTED_DOC_TYPES) {
-                Napier.w("DocType '$docType' is not supported on iOS, will not add it to Wallet")
-                if (cont.isActive) cont.resume(false)
-                return@suspendCancellableCoroutine
-            }
-            DigitalCredentials.storeDocumentWithId(id, docType) { success ->
-                Napier.d("storeDocumentFromSwift callback with $success")
-                if (cont.isActive) cont.resume(success)
-            }
-            Napier.d("storeDocumentFromSwift got back from swift")
-
-        } catch (e: Throwable) {
-            Napier.e("Error while invoking Swift code", e)
-        }
-
+        Napier.w(
+            "Digital Credentials registration is disabled in shared iosMain to avoid linking " +
+                "IdentityDocumentServices into the main app target. Entries=${entries.credentials.size}"
+        )
     }
 
     override fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIWalletRequest> {
