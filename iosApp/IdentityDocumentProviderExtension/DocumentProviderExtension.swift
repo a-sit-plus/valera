@@ -54,7 +54,7 @@ private func buildParsedRequestSummaryData(from requestContext: ISO18013MobileDo
                     }
                 )
                 return [
-                    "docType": documentRequest.docType,
+                    "docType": documentRequest.documentType,
                     "namespaces": namespaces
                 ]
             }
@@ -65,7 +65,7 @@ private func buildParsedRequestSummaryData(from requestContext: ISO18013MobileDo
         "documentRequests": documentRequests
     ]
 
-    let summaryJson = try? JSONSerialization.data(withJSONObject: summary)
+    let summaryJson = (try? JSONSerialization.data(withJSONObject: summary))
         .flatMap { String(data: $0, encoding: .utf8) }
 
     return ParsedRequestSummaryData(

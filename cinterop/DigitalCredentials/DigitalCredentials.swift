@@ -20,26 +20,4 @@ import IdentityDocumentServices
 
         return true
     }
-
-    @objc public func removeDocuments(_ documentIds: [String]) -> Boolean {
-        let store = IdentityDocumentProviderRegistrationStore()
-
-        do {
-            let storedRegistrations = try await store.registrations
-
-            let matchingRegistration = storedRegistrations.first { storedRegistration in
-                // Your app logic to determine which registration to remove.
-            }
-
-            guard let documentIdentifier = matchingRegistration?.documentIdentifier else {
-                // Throw an error.
-            }
-
-            try await registrationStore.removeRegistration(forDocumentIdentifier: documentIdentifier)
-        } catch {
-            // Handle the error.
-            return false
-        }
-        return true
-    }
 }
