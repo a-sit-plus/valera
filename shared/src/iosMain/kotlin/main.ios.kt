@@ -1,17 +1,12 @@
-import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,7 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeUIViewController
 import at.asitplus.catching
@@ -66,18 +60,9 @@ import platform.darwin.dispatch_get_main_queue
 import ui.navigation.IntentService.Companion.IOS_DC_API_CALL
 import ui.theme.darkScheme
 import ui.theme.lightScheme
-import kotlin.experimental.ExperimentalNativeApi
 
 
 actual fun getPlatformName(): String = "iOS"
-
-private val SUPPORTED_DOC_TYPES = listOf(
-    "eu.europa.ec.av.1",
-    "eu.europa.ec.eudi.pid.1",
-    "org.iso.23220.photoid.1",
-    "org.iso.23220.1.jp.mnc",
-    "org.iso.18013.5.1.mDL"
-)
 
 @Composable
 actual fun getColorScheme(): ColorScheme {
@@ -106,23 +91,6 @@ object MdocSessionManager {
         iosIntentState.appLink.value = null
         Napier.d("MdocSessionManager: Session cleared")
     }
-}
-
-
-@OptIn(ExperimentalNativeApi::class)
-fun initLogger(isDebug: Boolean) {
-    setUnhandledExceptionHook { throwable ->
-        val msg = throwable.message ?: throwable.toString()
-        Napier.e(
-            message = "UNCAUGHT: $msg",
-        )
-    }
-    /*Napier.base(
-        when {
-            isDebug -> OsLogAntilog()        // use OSLog in debug too if you want
-            else -> OsLogAntilog()
-        }
-    )*/
 }
 
 @ExperimentalMaterial3Api
@@ -168,49 +136,6 @@ data class MdocRequestSession(
     val onCancel: () -> Unit
 )
 
-@Composable
-private fun ComposeApp(session: MdocRequestSession?) {
-    // Minimal surface to demonstrate reading values and invoking callbacks
-    MaterialTheme(colorScheme = if (isSystemInDarkTheme()) darkScheme else lightScheme) {
-        Surface(modifier = Modifier.fillMaxSize()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .windowInsetsPadding(WindowInsets.systemBars)
-                    .background(Color(0xFF101010))
-            ) {
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text("ISO 18013 Request", color = Color.White)
-                    Spacer(Modifier.height(8.dp))
-                    Text("Origin: ${session?.requestingWebsiteOrigin ?: "-"}", color = Color.White)
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        "Request: ${session?.requestDescription ?: (session?.requestPayload?.let { "${it.length} bytes" } ?: "-")}",
-                        color = Color.White
-                    )
-                    Spacer(Modifier.height(24.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        // Send a dummy response for now; host app should provide real CBOR/bytes payload from Kotlin logic
-                        Button(onClick = {
-                            // For demo, echo back an empty NSData; real implementation should construct correct payload
-                            session?.onSendResponse(NSData())
-                        }) {
-                            Text("Send Response")
-                        }
-                        Button(onClick = { session?.onCancel?.invoke() }) {
-                            Text("Cancel")
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
 @Composable
 private fun MdocRequestUI(
