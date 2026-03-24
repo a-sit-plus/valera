@@ -1,3 +1,7 @@
-app_identifier "at.asitplus.wallet.compose"
+require File.expand_path("xcconfig_helper", __dir__)
+
+extend XcconfigHelper
+
+app_identifier(ENV["APP_BUNDLE_IDENTIFIER"] || xcconfig_value("APP_BUNDLE_IDENTIFIER"))
 apple_id ENV["APPLE_ID"] # from secrets
-team_id "9CYHJNG644"
+team_id(ENV["SIGNING_DEVELOPMENT_TEAM"] || xcconfig_value("SIGNING_DEVELOPMENT_TEAM"))
