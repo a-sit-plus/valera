@@ -258,6 +258,7 @@ private fun WalletNavHost(
                 onConfirm = {
                     processedItemIds = processedItemIds + item.storeEntryId
                     walletMain.credentialValidityService.refreshSingleWithStatus(item)
+                    navController.navigate(RefreshCenterRoute) { launchSingleTop = true }
                 },
                 onDismiss = {
                     walletMain.credentialValidityService.removeRefreshRequest(item)
