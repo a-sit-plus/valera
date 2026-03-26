@@ -66,7 +66,7 @@ class PresentationViewModel(
                         inputDescriptors = presentationRequest.presentationDefinition.inputDescriptors,
                     )
                 ),
-                matchingResult = walletMain.holderAgent.matchInputDescriptorsAgainstCredentialStoreV3(
+                matchingResult = walletMain.holderAgent.matchInputDescriptorsAgainstCredentialStoreV2(
                     inputDescriptors = presentationRequest.presentationDefinition.inputDescriptors,
                     fallbackFormatHolder = null,
                 ).getOrThrow()

@@ -312,7 +312,7 @@ public class AndroidPlatformAdapter(
                     Napier.d("Using OpenID4VP Signed, got request $digitalCredentialGetRequest for credential IDs $credentialIds")
                     DCAPIWalletRequest.OpenId4VpSigned(
                         request = digitalCredentialGetRequest.request,
-                        credentialId = credentialIds,
+                        credentialIds = credentialIds,
                         callingPackageName = callingPackageName,
                         callingOrigin = callingOrigin
                     )
@@ -321,7 +321,7 @@ public class AndroidPlatformAdapter(
                     Napier.d("Using OpenID4VP Unsigned, got request $digitalCredentialGetRequest for credential IDs $credentialIds")
                     DCAPIWalletRequest.OpenId4VpUnsigned(
                         request = digitalCredentialGetRequest.request,
-                        credentialId = credentialIds,
+                        credentialIds = credentialIds,
                         callingPackageName = callingPackageName,
                         callingOrigin = callingOrigin
                     )
@@ -330,7 +330,7 @@ public class AndroidPlatformAdapter(
                     Napier.d("Using Iso 18013-7 Annex C, got request $digitalCredentialGetRequest for credential IDs $credentialIds")
                     DCAPIWalletRequest.IsoMdoc(
                         isoMdocRequest = digitalCredentialGetRequest.request,
-                        credentialId = credentialIds,
+                        credentialIds = credentialIds,
                         callingPackageName = callingPackageName,
                         callingOrigin = callingOrigin
                     )
