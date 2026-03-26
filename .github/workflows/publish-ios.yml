@@ -16,6 +16,13 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+      - name: Set up Ruby gems
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1'
+          bundler-cache: true
+        env:
+          BUNDLE_GEMFILE: ${{ github.workspace }}/iosApp/Gemfile
       - name: Cache gradle
         uses: actions/cache@v4
         env:
@@ -31,9 +38,10 @@ jobs:
           echo "${{ secrets.APPLE_CERT_CONTENT }}" > iosApp/cert.b64
           base64 -d -i iosApp/cert.b64 > iosApp/cert.p12
       - name: Upload to testflight
-        run: fastlane deploy
+        run: bundle exec fastlane deploy
         working-directory: iosApp
         env:
+          APP_BUNDLE_IDENTIFIER: at.asitplus.wallet.compose
           FASTLANE_OPT_OUT_USAGE: true
           FASTLANE_XCODE_LIST_TIMEOUT: 120
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -41,6 +49,8 @@ jobs:
           APPLE_API_KEY_CONTENT: ${{ secrets.APPLE_API_KEY_CONTENT }}
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
+          SIGNING_DEVELOPMENT_TEAM: ${{ secrets.APPLE_DEVELOPMENT_TEAM }}
+          SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER: Compose Wallet Distribution
           CI: true
       - name: Upload logs
         uses: actions/upload-artifact@v4

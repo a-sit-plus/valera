@@ -125,7 +125,6 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                     do {
                         try await requestContext.sendResponse { rawRequest in
                             // TODO show pre-request inside our UI so that we can use user-friendly names for the requested attributes and
-                            // TODO Compare the consistency of the parsed request on ISO18013MobileDocumentRequestContext against the received rawRequest.
                             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse handler started")
                             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "rawRequest: \(String(decoding: rawRequest.requestData, as: UTF8.self))")
                             let finalResponseData = await withCheckedContinuation { continuation in

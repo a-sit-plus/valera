@@ -16,6 +16,10 @@ iosApp/iosApp.xcworkspace/*
 iosApp/iosApp.xcodeproj/*
 !iosApp/iosApp.xcodeproj/xcshareddata
 !iosApp/iosApp.xcodeproj/project.pbxproj
+iosApp/Configuration/Signing.local.xcconfig
+*.mobileprovision
+*.p12
+*.cer
 shared/shared.podspec
 ## User settings
 xcuserdata/
