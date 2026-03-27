@@ -367,7 +367,7 @@ class IosPlatformAdapter(
     }
 
     override fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIWalletRequest> {
-        Napier.d("getCurrentDCAPIData called")
+        Napier.d("getCurrentDCAPIVerificationData called")
         // TODO update code so that getCurrentDCAPIData is invoked, i.e. open the right views
         return (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let {
             try {
@@ -379,7 +379,6 @@ class IosPlatformAdapter(
                 require(parsedRequestSummary.isConsistentWith(isoMdocRequest)) {
                     "Parsed ISO18013 mobile document pre-request is inconsistent with rawRequest"
                 }
-                //TODO check added nullability of DCAPIWalletRequest in Android code and terminal sp
                 val walletRequest = DCAPIWalletRequest.IsoMdoc(
                     isoMdocRequest = isoMdocRequest,
                     callingOrigin = it.origin ?: throw IllegalStateException("No origin received"),

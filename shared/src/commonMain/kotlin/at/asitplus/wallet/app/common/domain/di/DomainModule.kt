@@ -8,6 +8,6 @@ import org.koin.dsl.module
 
 fun domainModule(walletDependencyProvider: WalletDependencyProvider) = module {
     includes(platformModule(walletDependencyProvider))
-    includes(communicationsModule(walletDependencyProvider.shouldListen))
+    includes(communicationsModule())
     includes(vckModule())
 }
