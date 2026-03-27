@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.konan.target.HostManager
 }
 
 val disableAppleTargets by envExtra
+val iosLinkerOpts = listOf("-lsqlite3")
 
 kotlin {
     jvmToolchain(17)
@@ -62,10 +63,10 @@ kotlin {
 
     if ("true" != disableAppleTargets) {
         iosArm64().binaries.all {
-            linkerOpts("-lsqlite3")
+            linkerOpts(*iosLinkerOpts.toTypedArray())
         }
         iosSimulatorArm64().binaries.all {
-            linkerOpts("-lsqlite3")
+            linkerOpts(*iosLinkerOpts.toTypedArray())
         }
     }
 
