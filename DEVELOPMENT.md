@@ -143,4 +143,30 @@ Setup:
  - Create a new keystore, e.g. from Android Studio
 
 Required secrets for GitHub Actions:
- - `ANDROID_CERT_PASSWORD` with the password for the keystore you've exported
+- `ANDROID_CERT_PASSWORD` with the password for the keystore you've exported
+
+## DC API matcher
+
+Android uses custom WebAssembly matchers for the Digital Credentials API integration.
+These matchers are loaded from app assets by [`CustomRegistry`](./shared/src/androidMain/kotlin/at/asitplus/wallet/app/android/dcapi/CustomRegistry.kt).
+
+There are currently two separate matcher binaries:
+* Verification matcher: `androidApp/src/androidMain/assets/dcapimatcher.wasm`
+* Issuance matcher: `androidApp/src/androidMain/assets/dcapimatcher_issuing_hardcoded.wasm`
+
+Source locations:
+* Verification matcher: [`shared/src/androidMain/kotlin/matcher`](./shared/src/androidMain/kotlin/matcher)
+* Issuance matcher: [`shared/src/androidMain/kotlin/matcher_issuance_hardcoded`](./shared/src/androidMain/kotlin/matcher_issuance_hardcoded)
+* Build instructions:
+  [`shared/src/androidMain/kotlin/matcher/README.md`](./shared/src/androidMain/kotlin/matcher/README.md)
+  and
+  [`shared/src/androidMain/kotlin/matcher_issuance_hardcoded/README.md`](./shared/src/androidMain/kotlin/matcher_issuance_hardcoded/README.md)
+
+Prerequisites:
+* Install [WASI SDK](https://github.com/WebAssembly/wasi-sdk/releases), version 20
+* The Makefiles assume it is available under `~/wasi-sdk-20.0`
+
+Notes:
+* The verification matcher parses DCQL requests in native code, mainly in [`dcql.cpp`](./shared/src/androidMain/kotlin/matcher/dcql.cpp) and [`Request.cpp`](./shared/src/androidMain/kotlin/matcher/Request.cpp).
+* If you change the native matcher sources, rebuild the `.wasm` binary and copy it into the Android assets, otherwise the app will continue using the previously bundled matcher.
+* Complex DCQL requests are only supported to the extent implemented in the matcher and UI.
