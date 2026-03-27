@@ -163,7 +163,7 @@ class TransferManager(
             serial = ASN1Integer(1L),
             validFrom = LocalDate.parse("2025-06-26").atTime(10, 0).toInstant(TimeZone.UTC),
             validUntil = LocalDate.parse("2027-06-26").atStartOfDayIn(TimeZone.UTC),
-            dnsName = "a-sit.at",
+            dnsName = "wallet.a-sit.at",
         )
     }
 
