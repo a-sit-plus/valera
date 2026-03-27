@@ -61,8 +61,12 @@ kotlin {
     jvmToolchain(17)
 
     if ("true" != disableAppleTargets) {
-        iosArm64()
-        iosSimulatorArm64()
+        iosArm64().binaries.all {
+            linkerOpts("-lsqlite3")
+        }
+        iosSimulatorArm64().binaries.all {
+            linkerOpts("-lsqlite3")
+        }
     }
 
     sourceSets {
