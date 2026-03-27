@@ -25,9 +25,7 @@ import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.dcapi.request.IsoMdocRequest
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.app.common.BuildContext
-import at.asitplus.wallet.app.common.BuildType
 import at.asitplus.wallet.app.common.CapabilitiesService
-import at.asitplus.wallet.app.common.DebugCapabilitiesService
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
@@ -110,10 +108,7 @@ fun MainViewController(
     )
     val capabilitiesModule = module {
         scope(named(SESSION_NAME)) {
-            when (buildContext.buildType) {
-                BuildType.DEBUG -> scopedOf(::DebugCapabilitiesService) binds arrayOf(CapabilitiesService::class)
-                BuildType.RELEASE -> scopedOf(::RealCapabilitiesService) binds arrayOf(CapabilitiesService::class)
-            }
+            scopedOf(::RealCapabilitiesService) binds arrayOf(CapabilitiesService::class)
         }
     }
     val module = appModule(walletDependencyProvider, capabilitiesModule)
@@ -382,6 +377,7 @@ class IosPlatformAdapter(
                 val walletRequest = DCAPIWalletRequest.IsoMdoc(
                     isoMdocRequest = isoMdocRequest,
                     callingOrigin = it.origin ?: throw IllegalStateException("No origin received"),
+                    credentialIds = null
                 )
                 KmmResult.success(walletRequest)
             } catch (e: Throwable) {
