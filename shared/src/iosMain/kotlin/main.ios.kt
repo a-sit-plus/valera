@@ -363,7 +363,6 @@ class IosPlatformAdapter(
 
     override fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIWalletRequest> {
         Napier.d("getCurrentDCAPIVerificationData called")
-        // TODO update code so that getCurrentDCAPIData is invoked, i.e. open the right views
         return (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let {
             try {
                 val isoMdocRequest = it.rawRequest?.let { request -> Json.decodeFromString<IsoMdocRequest>(request) }
