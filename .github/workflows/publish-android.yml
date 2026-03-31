@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Common setup
-        uses: a-sit-plus/internal-workflows/.github/actions/common-setup@v2
+        uses: a-sit-plus/internal-workflows/.github/actions/common-setup@feature/bumpXcode
       - name: Build apk
         run: ./gradlew :androidApp:assemble
         env:
