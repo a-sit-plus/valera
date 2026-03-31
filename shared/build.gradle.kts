@@ -21,6 +21,8 @@ import org.jetbrains.kotlin.konan.target.HostManager
 }
 
 val disableAppleTargets by envExtra
+val appleMinVersionOverride =
+    "-Xoverride-konan-properties=minVersion.ios=18.5;minVersionSinceXcode15.ios=18.5"
 
 kotlin {
     jvmToolchain(17)
@@ -60,9 +62,19 @@ kotlin {
     }
     jvmToolchain(17)
 
-    if ("true" != disableAppleTargets) {
-        iosArm64()
-        iosSimulatorArm64()
+    val appleTargets = if ("true" != disableAppleTargets) {
+        listOf(
+            iosArm64(),
+            iosSimulatorArm64(),
+        )
+    } else {
+        emptyList()
+    }
+
+    appleTargets.forEach { target ->
+        target.binaries.all {
+            freeCompilerArgs += appleMinVersionOverride
+        }
     }
 
     sourceSets {
@@ -178,7 +190,7 @@ exportXCFramework(
     )
 ) {
     binaryOption("bundleId", "at.asitplus.wallet.shared")
-    freeCompilerArgs += listOf("-Xoverride-konan-properties=minVersion.ios=18.5;minVersionSinceXcode15.ios=18.5")
+    freeCompilerArgs += appleMinVersionOverride
 }
 
 tasks.register<Exec>("iosBootSimulator") {
