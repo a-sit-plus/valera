@@ -31,7 +31,7 @@ jobs:
         with:
           override-cache: ${{ inputs.override-cache }}
 
-      - name: Prepare files from secrets
+      - name: Build iOS App for simulator
         run: |
           xcodebuild \
             -project iosApp/iosApp.xcodeproj \
@@ -41,6 +41,7 @@ jobs:
             -destination "generic/platform=iOS Simulator" \
             CODE_SIGNING_ALLOWED=NO \
             build | tee /tmp/iosApp-simulator-build.log
+
       - name: Upload logs (Build iOS App)
         uses: actions/upload-artifact@v4
         if: success() || failure()
