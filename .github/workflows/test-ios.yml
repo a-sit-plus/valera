@@ -37,8 +37,6 @@ jobs:
             -project iosApp/iosApp.xcodeproj \
             -scheme iosApp \
             -configuration Debug \
-            -sdk iphonesimulator \
-            -destination "generic/platform=iOS Simulator" \
             CODE_SIGNING_ALLOWED=NO \
             build | tee /tmp/iosApp-simulator-build.log
       - name: Upload logs (Build iOS App)
