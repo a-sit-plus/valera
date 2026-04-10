@@ -27,7 +27,7 @@ jobs:
       TESTBALLOON_VERSION_OVERRIDE: ${{ inputs.testballoon-version }}
     steps:
       - name: Common setup
-        uses: gp-iaik/internal-workflows/.github/actions/common-setup@main
+        uses: a-sit-plus/internal-workflows/.github/actions/common-setup@feature/bumpXcode
         with:
           override-cache: ${{ inputs.override-cache }}
 
