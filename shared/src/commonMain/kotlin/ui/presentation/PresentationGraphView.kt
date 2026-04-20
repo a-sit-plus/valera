@@ -114,6 +114,7 @@ fun PresentationGraphView(
                 onClickLogo = onClickLogo,
                 onClickSettings = onClickSettings,
                 onError = onError,
+                onNavigateUp = onNavigateUp,
                 onNavigateToPresentationStart = {
                     navController.navigate(PresentationStartRoute) {
                         popUpTo(PresentationStartRoute) {
@@ -148,4 +149,3 @@ fun PresentationGraphView(
         }
     }
 }
-

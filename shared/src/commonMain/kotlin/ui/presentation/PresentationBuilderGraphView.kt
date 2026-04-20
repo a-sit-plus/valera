@@ -16,8 +16,10 @@ import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.DCQLCredentialQuerySubmissionSelectionOption
 import ui.composables.DelayedComposable
+import ui.viewmodels.authentication.AuthenticationNoCredentialViewModel
 import ui.viewmodels.authentication.CredentialPresentationSubmissions
 import ui.viewmodels.authentication.DCQLCredentialSubmissions
+import ui.views.authentication.AuthenticationNoCredentialView
 import ui.views.LoadingView
 import kotlin.time.Duration.Companion.seconds
 
@@ -32,6 +34,7 @@ fun PresentationBuilderGraphView(
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
     onError: (Throwable) -> Unit,
+    onNavigateUp: () -> Unit,
     onNavigateToPresentationStart: () -> Unit,
     onSubmit: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>) -> Unit,
 ) {
@@ -125,19 +128,30 @@ fun PresentationBuilderGraphView(
                     )
                 }
 
-                is PresentationExchangeMatchingResult -> PresentationExchangePresentationBuilderGraphView(
-                    authenticateAtRelyingParty = authenticateAtRelyingParty,
-                    serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
-                    serviceProviderLocalizedName = serviceProviderLocalizedName,
-                    onClickLogo = onClickLogo,
-                    onClickSettings = onClickSettings,
-                    matchingResult = selectionProvider.value.queryMatchingResult,
-                    onError = onError,
-                    onNavigateUp = onNavigateToPresentationStart,
-                    onSubmit = onSubmit,
-                )
+                is PresentationExchangeMatchingResult -> if (
+                    hasMissingPresentationExchangeInputDescriptorMatches(
+                        queryMatchingResult.matchingResult.inputDescriptorMatches
+                    )
+                ) {
+                    AuthenticationNoCredentialView(
+                        AuthenticationNoCredentialViewModel(
+                            navigateToHomeScreen = onNavigateUp,
+                        )
+                    )
+                } else {
+                    PresentationExchangePresentationBuilderGraphView(
+                        authenticateAtRelyingParty = authenticateAtRelyingParty,
+                        serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
+                        serviceProviderLocalizedName = serviceProviderLocalizedName,
+                        onClickLogo = onClickLogo,
+                        onClickSettings = onClickSettings,
+                        matchingResult = selectionProvider.value.queryMatchingResult,
+                        onError = onError,
+                        onNavigateUp = onNavigateToPresentationStart,
+                        onSubmit = onSubmit,
+                    )
+                }
             }
         }
     }
 }
-
