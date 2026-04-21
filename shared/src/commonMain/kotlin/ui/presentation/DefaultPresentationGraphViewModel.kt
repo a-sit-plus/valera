@@ -16,6 +16,7 @@ import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
+import at.asitplus.wallet.lib.openid.AuthenticationResponseResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -120,12 +121,13 @@ class DefaultPresentationGraphViewModel(
         authenticationResult: OpenId4VpWallet.AuthenticationForward,
     ): OpenId4VpWallet.AuthenticationSuccess {
         authenticationResult.authenticationResponseResult.params.let {
-            val serializedResponse = vckJsonSerializer.encodeToString(it)
-            walletMain.presentationService.finalizeOpenId4VpDCAPIPresentation(serializedResponse)
+            walletMain.presentationService.finalizeOpenId4VpDCAPIPresentation(vckJsonSerializer.encodeToString(it))
         }
         return OpenId4VpWallet.AuthenticationSuccess()
     }
 }
 
-
+internal fun serializeDcApiPresentationResponse(
+    authenticationResponseResult: AuthenticationResponseResult.DcApi,
+) = vckJsonSerializer.encodeToString(authenticationResponseResult.params.data)
 

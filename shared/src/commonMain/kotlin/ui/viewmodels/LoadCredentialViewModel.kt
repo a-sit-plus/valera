@@ -23,6 +23,13 @@ class LoadCredentialViewModel(
     val onClickLogo: () -> Unit,
     val onClickSettings: () -> Unit,
 ) {
+    
+    init {
+        check(credentialIdentifiers.isNotEmpty()) {
+            "Issuer '$hostString' did not provide any credential configuration that can be loaded"
+        }
+    }
+    
     fun handleDCAPIIssuingResult(success: Boolean, error: Throwable? = null) {
         if (!walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
             return

@@ -113,7 +113,8 @@ class PresentationService(
         val presentation =
             presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
 
-        val deviceResponse = when (val firstResult = presentation.presentationResults[0]) {
+        val deviceResponse = when (val firstResult = presentation.presentationResults.firstOrNull()
+            ?: throw PresentationException(IllegalStateException("Presentation did not return any device response"))) {
             is CreatePresentationResult.DeviceResponse -> firstResult.deviceResponse
             else -> throw PresentationException(IllegalStateException("Must be a device response"))
         }
@@ -193,7 +194,8 @@ class PresentationService(
         val presentation =
             presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
 
-        val deviceResponse = when (val firstResult = presentation.presentationResults[0]) {
+        val deviceResponse = when (val firstResult = presentation.presentationResults.firstOrNull()
+            ?: throw PresentationException(IllegalStateException("Presentation did not return any device response"))) {
             is CreatePresentationResult.DeviceResponse -> coseCompliantSerializer.encodeToByteArray(
                 firstResult.deviceResponse
             )
