@@ -64,10 +64,9 @@ fun AuthenticationCredentialQueryCredentialSelectionPageContent(
                         contentColor = MaterialTheme.colorScheme.onErrorContainer,
                     )
                 } else {
-                    val extendedColors = LocalExtendedColors.current
                     CardDefaults.elevatedCardColors(
-                        containerColor = extendedColors.successContainer,
-                        contentColor = extendedColors.onSuccessContainer
+                        containerColor = LocalExtendedColors.current.successContainer,
+                        contentColor = LocalExtendedColors.current.onSuccessContainer
                     )
                 }
             )
@@ -76,19 +75,13 @@ fun AuthenticationCredentialQueryCredentialSelectionPageContent(
                 val sortedValidTimelyFirstThenUntimelyThenMatchingExceptions =
                     selectableCredentialSubmissionCards.withIndex().sortedBy {
                         when (val uiState = it.value.credentialFreshnessSummary.value) {
-                            is CredentialFreshnessValidationStateUiModel.Done -> if (uiState.credentialFreshnessSummary.isNotBad) {
-                                0
-                            } else {
-                                2
-                            }
+                            is CredentialFreshnessValidationStateUiModel.Done ->
+                                if (uiState.credentialFreshnessSummary.isNotBad) 0 else 2
+
                             CredentialFreshnessValidationStateUiModel.Loading -> 1
                         }
                     }.sortedBy {
-                        if (it.value.matchingException == null) {
-                            0
-                        } else {
-                            1
-                        }
+                        if (it.value.matchingException == null) 0 else 1
                     }
                 sortedValidTimelyFirstThenUntimelyThenMatchingExceptions.forEach { (index, credentialCard) ->
                     credentialCard(

@@ -55,7 +55,7 @@ import org.jetbrains.compose.resources.StringResource
 
 
 class EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
-    override fun translateSingleClaimReference(claimReference: SingleClaimReference) = when(claimReference) {
+    override fun translateSingleClaimReference(claimReference: SingleClaimReference) = when (claimReference) {
         is JsonClaimReference -> EuPidCredentialSdJwtClaimDefinitionResolver().resolveOrNull(
             claimReference.normalizedJsonPath
         )?.stringResourceOrNull()
@@ -70,13 +70,13 @@ class EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
         attributeName.minus(EuPidScheme.isoNamespace).let {
             it.memberName(0)?.let { claim ->
                 EuPidCredentialMdocClaimDefinitionResolver().resolveOrNull(EuPidScheme.isoNamespace, claim)
-                    ?.stringResourceOrNull() ?: EuPidCredentialSdJwtClaimDefinitionResolver().resolveOrNull(it)
                     ?.stringResourceOrNull()
-            }
+                    ?: EuPidCredentialSdJwtClaimDefinitionResolver().resolveOrNull(it)?.stringResourceOrNull()
+            } ?: EuPidCredentialSdJwtClaimDefinitionResolver().resolveOrNull(it)?.stringResourceOrNull()
         }
 
 
-    private fun EuPidCredentialClaimDefinition.stringResourceOrNull() = when(this) {
+    private fun EuPidCredentialClaimDefinition.stringResourceOrNull() = when (this) {
         EuPidCredentialClaimDefinition.FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
         EuPidCredentialClaimDefinition.GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
         EuPidCredentialClaimDefinition.BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth

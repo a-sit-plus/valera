@@ -369,9 +369,7 @@ fun Triple<CredentialRepresentation, ConstantIndex.CredentialScheme, Collection<
         credentialSchemeLocalized = scheme.uiLabel(),
         requestedAttributesLocalized = attributePaths?.let { claimReferences ->
             DCQLCredentialQueryUiModelAttributeLabels(
-                otherAttributes = claimReferences.count {
-                    it == null
-                },
+                otherAttributes = claimReferences.count { it == null },
                 attributesLocalized = claimReferences.filterNotNull().map { path ->
                     catchingUnwrapped {
                         (scheme.getLocalization(path) ?: representation.getMetadataLocalization(path))

@@ -71,9 +71,8 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
             }
         }
 
-    val credentialAdapter = credential.toCredentialAdapter {
-        decodeToBitmap(it)
-    } ?: FallbackCredentialAdapter(genericAttributeList, credential)
+    val credentialAdapter = credential.toCredentialAdapter { decodeToBitmap(it) }
+        ?: FallbackCredentialAdapter(genericAttributeList, credential)
 
     val labeledAttributes = genericAttributeList.mapNotNull { (key, value) ->
         try {
@@ -82,9 +81,9 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
             null
         }?.let { attribute ->
             key.segments.lastOrNull()?.let {
-                credential.scheme?.getLocalization(NormalizedJsonPath(it))?.let {
-                    stringResource(it)
-                }
+                credential.scheme?.getLocalization(key)?.let { stringResource(it) }
+                    ?: credential.scheme?.getLocalization(NormalizedJsonPath(it))?.let { stringResource(it) }
+
             }?.let { it to attribute }
         }
     }.sortedBy {
