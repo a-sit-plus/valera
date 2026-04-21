@@ -30,7 +30,7 @@ jobs:
         uses: a-sit-plus/internal-workflows/.github/actions/common-setup@feature/bumpXcode
         with:
           override-cache: ${{ inputs.override-cache }}
-
+          setup-xcode: "true"
       - name: Prepare files from secrets
         run: |
           xcodebuild \
