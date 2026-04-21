@@ -22,6 +22,24 @@ import org.jetbrains.kotlin.konan.target.HostManager
 
 val disableAppleTargets by envExtra
 val iosLinkerOpts = listOf("-lsqlite3")
+val isMacHost = System.getProperty("os.name").lowercase().contains("mac")
+val developerDir = if (isMacHost) {
+    project.providers.environmentVariable("DEVELOPER_DIR")
+        .map { it.trim() }
+        .orElse(
+            project.providers.exec {
+                commandLine("xcode-select", "-p")
+            }.standardOutput.asText.map { it.trim() }
+        )
+        .orNull
+        ?.ifBlank { null }
+} else {
+    null
+}
+val iosSimulatorSwiftLibPath = developerDir
+    ?.let { "$it/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator/" }
+val iosDeviceSwiftLibPath = developerDir
+    ?.let { "$it/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/" }
 
 kotlin {
     jvmToolchain(17)
@@ -63,10 +81,24 @@ kotlin {
 
     if ("true" != disableAppleTargets) {
         iosArm64().binaries.all {
-            linkerOpts(*iosLinkerOpts.toTypedArray())
+            val opts = buildList {
+                addAll(iosLinkerOpts)
+                if (iosDeviceSwiftLibPath != null) {
+                    add("-rpath")
+                    add(iosDeviceSwiftLibPath)
+                }
+            }
+            linkerOpts(*opts.toTypedArray())
         }
         iosSimulatorArm64().binaries.all {
-            linkerOpts(*iosLinkerOpts.toTypedArray())
+            val opts = buildList {
+                addAll(iosLinkerOpts)
+                if (iosSimulatorSwiftLibPath != null) {
+                    add("-rpath")
+                    add(iosSimulatorSwiftLibPath)
+                }
+            }
+            linkerOpts(*opts.toTypedArray())
         }
     }
 

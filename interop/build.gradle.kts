@@ -65,6 +65,8 @@ kotlin {
                         add("-platform_version")
                         addAll(platformVersion.split(" "))
                         add("-L$swiftLibPath")
+                        add("-rpath")
+                        add(swiftLibPath)
                     }
                     add("-L${rootDir}/cinterop/build/Release-${platform}")
                     add("-lDigitalCredentials")
