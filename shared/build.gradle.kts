@@ -186,16 +186,8 @@ exportXCFramework(
     freeCompilerArgs += listOf("-Xoverride-konan-properties=minVersion.ios=18.5;minVersionSinceXcode15.ios=18.5")
 }
 
-tasks.register<Exec>("iosBootSimulator") {
-    runCatching {
-        commandLine("xcrun", "simctl", "boot", "iPhone 16")
-    }
-}
-
 if ("true" != disableAppleTargets) {
     tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).configure {
-        dependsOn("iosBootSimulator")
-        standalone.set(false)
         device.set("iPhone 16")
     }
 }

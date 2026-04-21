@@ -33,6 +33,7 @@ jobs:
           setup-xcode: "true"
       - name: Prepare files from secrets
         run: |
+          set -o pipefail
           xcodebuild \
             -project iosApp/iosApp.xcodeproj \
             -scheme iosApp \
