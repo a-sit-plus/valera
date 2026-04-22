@@ -133,22 +133,32 @@ fun ComposeUiTest.endToEndTest() {
         // D. Use LaunchedEffect for one-time, asynchronous setup tasks.
         //    This is the correct way to run non-UI suspend functions from a Composable.
         LaunchedEffect(Unit) {
+            println("InstrumentedTests: starting credential issuance setup")
             val issuer = IssuerAgent(
                 keyMaterial = EphemeralKeyWithoutCert(),
                 statusListBaseUrl = "https://wallet.a-sit.at/m7/credentials/status",
                 identifier = "https://issuer.example.com/".toUri(),
             )
-            holderAgent.storeCredential(
-                issuer.issueCredential(
-                    CredentialToBeIssued.VcSd(
-                        getAttributes(),
-                        Clock.System.now().plus(60.minutes),
-                        EuPidSdJwtScheme,
-                        holderAgent.keyMaterial.publicKey,
-                        OidcUserInfoExtended(userInfo = OidcUserInfo(subject = ""))
+            runCatching {
+                holderAgent.storeCredential(
+                    issuer.issueCredential(
+                        CredentialToBeIssued.VcSd(
+                            getAttributes(),
+                            Clock.System.now().plus(60.minutes),
+                            EuPidSdJwtScheme,
+                            holderAgent.keyMaterial.publicKey,
+                            OidcUserInfoExtended(userInfo = OidcUserInfo(subject = ""))
+                        )
                     )
-                ).getOrThrow().toStoreCredentialInput()
-            )
+                        .getOrThrow()
+                        .toStoreCredentialInput()
+                )
+            }.onSuccess {
+                println("InstrumentedTests: credential issuance setup completed")
+            }.onFailure {
+                println("InstrumentedTests: credential issuance setup failed: ${it::class.simpleName}: ${it.message}")
+                throw it
+            }
         }
     }
     waitUntilExactlyOneExists(hasText(startText))
@@ -161,10 +171,18 @@ fun ComposeUiTest.endToEndTest() {
     onNodeWithText("11.10.1965").assertExists()
 
     val responseGenerateRequest = runBlocking {
-        client.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }.body<JsonObject>()
+        val url = "https://apps.egiz.gv.at/customverifier/transaction/create"
+        println("InstrumentedTests: POST $url")
+        runCatching {
+            client.post(url) {
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }.body<JsonObject>()
+        }.onSuccess {
+            println("InstrumentedTests: POST $url succeeded")
+        }.onFailure {
+            println("InstrumentedTests: POST $url failed: ${it::class.simpleName}: ${it.message}")
+        }.getOrThrow()
     }
 
     val firstProfile = responseGenerateRequest["profiles"]?.jsonArray?.first()?.jsonObject
@@ -178,7 +196,16 @@ fun ComposeUiTest.endToEndTest() {
     onNodeWithText(continueText).performClick()
 
     val url = "https://apps.egiz.gv.at/customverifier/customer-success.html?id=$id"
-    val responseSuccess = runBlocking { client.get(url) }
+    val responseSuccess = runBlocking {
+        println("InstrumentedTests: GET $url")
+        runCatching {
+            client.get(url)
+        }.onSuccess {
+            println("InstrumentedTests: GET $url succeeded")
+        }.onFailure {
+            println("InstrumentedTests: GET $url failed: ${it::class.simpleName}: ${it.message}")
+        }.getOrThrow()
+    }
     assertTrue { responseSuccess.status.value in 200..299 }
 }
 
