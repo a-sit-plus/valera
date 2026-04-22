@@ -42,6 +42,13 @@ val iosSimulatorSwiftLibPath = developerDir
     ?.let { "$it/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator/" }
 val iosDeviceSwiftLibPath = developerDir
     ?.let { "$it/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/" }
+val swiftStdLibToolPath = developerDir
+    ?.let {
+        sequenceOf(
+            "$it/Toolchains/XcodeDefault.xctoolchain/usr/bin/builtin-swiftStdLibTool",
+            "$it/usr/bin/builtin-swiftStdLibTool",
+        ).map(::File).firstOrNull(File::exists)
+    }
 
 fun commandOutput(vararg command: String): String {
     val stdout = ByteArrayOutputStream()
@@ -89,6 +96,14 @@ fun findSwiftDylib(name: String, searchRoots: List<File>): File? {
     }
     return fallback
 }
+
+fun simulatorRuntimeProvidesSwiftDylib(name: String, runtimeRoots: List<File>): Boolean =
+    runtimeRoots.any { root ->
+        sequenceOf(
+            root.resolve("usr/lib/swift/$name"),
+            root.resolve("usr/lib/$name"),
+        ).any(File::exists)
+    }
 
 kotlin {
     jvmToolchain(17)
@@ -280,31 +295,40 @@ if ("true" != disableAppleTargets) {
             doLast {
                 val executable = testExecutable.get()
                 val frameworksDir = executable.parentFile.resolve("Frameworks")
+                val runtimeRoots = file("/Library/Developer/CoreSimulator/Profiles/Runtimes")
+                    .takeIf(File::exists)
+                    ?.walkTopDown()
+                    ?.filter { candidate ->
+                        candidate.isDirectory && candidate.path.endsWith("/Contents/Resources/RuntimeRoot")
+                    }
+                    ?.toList()
+                    .orEmpty()
                 val searchRoots = listOf(
                     file("$developerDir/Toolchains/XcodeDefault.xctoolchain/usr/lib"),
                     file("$developerDir/Platforms/iPhoneSimulator.platform"),
-                    file("/Library/Developer/CoreSimulator/Profiles/Runtimes"),
-                )
+                ) + runtimeRoots
 
                 delete(frameworksDir)
                 frameworksDir.mkdirs()
 
-                val swiftStdLibToolResult = tryCommand(
-                    "builtin-swiftStdLibTool",
-                    "--copy",
-                    "--verbose",
-                    "--scan-executable",
-                    executable.absolutePath,
-                    "--scan-folder",
-                    frameworksDir.absolutePath,
-                    "--platform",
-                    "iphonesimulator",
-                    "--toolchain",
-                    "$developerDir/Toolchains/XcodeDefault.xctoolchain",
-                    "--destination",
-                    frameworksDir.absolutePath,
-                    "--back-deploy-swift-span",
-                )
+                val swiftStdLibToolResult = swiftStdLibToolPath?.let { tool ->
+                    tryCommand(
+                        tool.absolutePath,
+                        "--copy",
+                        "--verbose",
+                        "--scan-executable",
+                        executable.absolutePath,
+                        "--scan-folder",
+                        frameworksDir.absolutePath,
+                        "--platform",
+                        "iphonesimulator",
+                        "--toolchain",
+                        "$developerDir/Toolchains/XcodeDefault.xctoolchain",
+                        "--destination",
+                        frameworksDir.absolutePath,
+                        "--back-deploy-swift-span",
+                    )
+                } ?: Result.failure(IllegalStateException("Could not locate builtin-swiftStdLibTool under $developerDir"))
 
                 val copiedByTool = frameworksDir.resolve("libswift_Concurrency.dylib").exists()
                 if (!copiedByTool) {
@@ -318,6 +342,9 @@ if ("true" != disableAppleTargets) {
                     while (pending.isNotEmpty()) {
                         val dylibName = pending.removeFirst()
                         if (!copied.add(dylibName)) {
+                            continue
+                        }
+                        if (simulatorRuntimeProvidesSwiftDylib(dylibName, runtimeRoots)) {
                             continue
                         }
 
