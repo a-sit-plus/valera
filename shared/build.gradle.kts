@@ -5,8 +5,10 @@ import at.asitplus.gradle.kmmresult
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
 import org.gradle.kotlin.dsl.invoke
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
-import org.jetbrains.kotlin.konan.target.HostManager
+import java.io.ByteArrayOutputStream
+import java.io.File
 
 
  plugins {
@@ -40,6 +42,53 @@ val iosSimulatorSwiftLibPath = developerDir
     ?.let { "$it/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator/" }
 val iosDeviceSwiftLibPath = developerDir
     ?.let { "$it/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/" }
+
+fun commandOutput(vararg command: String): String {
+    val stdout = ByteArrayOutputStream()
+    val process = ProcessBuilder(*command)
+        .redirectErrorStream(true)
+        .start()
+
+    process.inputStream.use { input ->
+        input.copyTo(stdout)
+    }
+
+    check(process.waitFor() == 0) {
+        "Command `${command.joinToString(" ")}` failed:\n${stdout.toString()}"
+    }
+
+    return stdout.toString().trim()
+}
+
+fun tryCommand(vararg command: String): Result<String> = runCatching {
+    commandOutput(*command)
+}
+
+fun referencedSwiftDylibs(binary: File): Set<String> {
+    val dylibNameRegex = Regex("""(?:^|/)(libswift_[^\s/]+\.dylib)\s""")
+    return commandOutput("otool", "-L", binary.absolutePath)
+        .lineSequence()
+        .mapNotNull { line -> dylibNameRegex.find(line.trim())?.groupValues?.get(1) }
+        .toSet()
+}
+
+fun findSwiftDylib(name: String, searchRoots: List<File>): File? {
+    var fallback: File? = null
+    searchRoots.filter(File::exists).forEach { root ->
+        root.walkTopDown().forEach { candidate ->
+            if (!candidate.isFile || candidate.name != name) {
+                return@forEach
+            }
+            if (candidate.path.contains("iphonesimulator", ignoreCase = true)) {
+                return candidate
+            }
+            if (fallback == null) {
+                fallback = candidate
+            }
+        }
+    }
+    return fallback
+}
 
 kotlin {
     jvmToolchain(17)
@@ -219,8 +268,81 @@ exportXCFramework(
 }
 
 if ("true" != disableAppleTargets) {
-    tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).configure {
-        device.set("iPhone 16")
+    if (isMacHost && developerDir != null) {
+        val iosSimulatorLinkTask = tasks.named("linkDebugTestIosSimulatorArm64", KotlinNativeLink::class.java)
+        val copySwiftRuntimeForIosSimulatorTest = tasks.register("copySwiftRuntimeForIosSimulatorTest") {
+            dependsOn(iosSimulatorLinkTask)
+
+            val testExecutable = iosSimulatorLinkTask.flatMap { it.outputFile }
+            inputs.file(testExecutable)
+            inputs.property("developerDir", developerDir)
+
+            doLast {
+                val executable = testExecutable.get()
+                val frameworksDir = executable.parentFile.resolve("Frameworks")
+                val searchRoots = listOf(
+                    file("$developerDir/Toolchains/XcodeDefault.xctoolchain/usr/lib"),
+                    file("$developerDir/Platforms/iPhoneSimulator.platform"),
+                    file("/Library/Developer/CoreSimulator/Profiles/Runtimes"),
+                )
+
+                delete(frameworksDir)
+                frameworksDir.mkdirs()
+
+                val swiftStdLibToolResult = tryCommand(
+                    "builtin-swiftStdLibTool",
+                    "--copy",
+                    "--verbose",
+                    "--scan-executable",
+                    executable.absolutePath,
+                    "--scan-folder",
+                    frameworksDir.absolutePath,
+                    "--platform",
+                    "iphonesimulator",
+                    "--toolchain",
+                    "$developerDir/Toolchains/XcodeDefault.xctoolchain",
+                    "--destination",
+                    frameworksDir.absolutePath,
+                    "--back-deploy-swift-span",
+                )
+
+                val copiedByTool = frameworksDir.resolve("libswift_Concurrency.dylib").exists()
+                if (!copiedByTool) {
+                    swiftStdLibToolResult.exceptionOrNull()?.let { error ->
+                        logger.warn("builtin-swiftStdLibTool failed for $executable; falling back to manual Swift runtime copy.", error)
+                    }
+
+                    val copied = mutableSetOf<String>()
+                    val pending = ArrayDeque(referencedSwiftDylibs(executable))
+
+                    while (pending.isNotEmpty()) {
+                        val dylibName = pending.removeFirst()
+                        if (!copied.add(dylibName)) {
+                            continue
+                        }
+
+                        val source = findSwiftDylib(dylibName, searchRoots)
+                            ?: error("Could not locate $dylibName in simulator Swift runtime paths for $developerDir.")
+                        val destination = frameworksDir.resolve(dylibName)
+                        source.copyTo(destination, overwrite = true)
+
+                        referencedSwiftDylibs(destination)
+                            .filterNot(copied::contains)
+                            .filterNot { frameworksDir.resolve(it).exists() }
+                            .forEach(pending::addLast)
+                    }
+                }
+            }
+        }
+
+        tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).configure {
+            dependsOn(copySwiftRuntimeForIosSimulatorTest)
+            device.set("iPhone 16")
+        }
+    } else {
+        tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).configure {
+            device.set("iPhone 16")
+        }
     }
 }
 
