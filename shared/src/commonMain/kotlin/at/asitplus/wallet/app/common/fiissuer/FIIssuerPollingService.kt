@@ -3,11 +3,16 @@ package at.asitplus.wallet.app.common.fiissuer
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.SnackbarService
-import at.asitplus.wallet.lib.agent.HolderAgent
-import at.asitplus.wallet.lib.agent.Issuer
-import at.asitplus.wallet.lib.agent.toStoreCredentialInput
+import at.asitplus.wallet.lib.agent.SdJwtDecoded
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.AttributeIndex
+import at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme
+import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
+import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
 import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.wallet.lib.jws.SdJwtSigned
 import data.storage.DataStoreService
+import data.storage.WalletSubjectCredentialStore
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -21,6 +26,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromJsonElement
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 
@@ -40,8 +47,8 @@ private const val FIIssuerTimedOutMessage = "FIIssuer request timed out before a
 
 class FIIssuerPollingService(
     private val dataStoreService: DataStoreService,
+    private val subjectCredentialStore: WalletSubjectCredentialStore,
     private val fiIssuerService: FIIssuerService,
-    private val holderAgent: HolderAgent,
     private val errorService: ErrorService,
     private val snackbarService: SnackbarService,
 ) {
@@ -160,8 +167,33 @@ class FIIssuerPollingService(
 
     private suspend fun importApprovedCredential(serializedCredential: String) {
         runCatching {
-            val issuedCredential = vckJsonSerializer.decodeFromString<Issuer.IssuedCredential>(serializedCredential)
-            holderAgent.storeCredential(issuedCredential.toStoreCredentialInput())
+            val sdJwtImportJson = Json { ignoreUnknownKeys = true }
+
+            val parsed = SdJwtSigned.parseCatching(serializedCredential).onFailure {
+                Napier.e("SD-JWT import: parse failed", it)
+            }.getOrThrow()
+
+            val decoded = SdJwtDecoded(parsed)
+            val payload = decoded.reconstructedJsonObject
+                ?: error("SD-JWT payload could not be reconstructed")
+
+            val sdJwt = sdJwtImportJson.decodeFromJsonElement<VerifiableCredentialSdJwt>(payload)
+            Napier.d("SD-JWT import: decoded vc type='${sdJwt.verifiableCredentialType}'")
+
+            val scheme = AttributeIndex.resolveSdJwtAttributeType(sdJwt.verifiableCredentialType)
+                ?: SdJwtFallbackCredentialScheme
+            Napier.d("SD-JWT import: resolved scheme='${scheme.schemaUri}'")
+
+            val store = subjectCredentialStore as? SubjectCredentialStore
+                ?: error("SubjectCredentialStore is not available for direct import")
+
+            store.storeCredential(
+                vc = sdJwt,
+                vcSerialized = serializedCredential,
+                disclosures = emptyMap<String, SelectiveDisclosureItem?>(),
+                scheme = scheme,
+            )
+            Napier.d("SD-JWT import: credential stored successfully")
         }.onFailure { error ->
             errorService.emit(error)
             throw error
