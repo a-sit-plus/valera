@@ -1,6 +1,7 @@
 # Release 5.7.6 (unreleased)
  * Update to VC-K 5.12.0-SNAPSHOT
  * Credentials: Fix displaying age verification credential
+ * Credentials: Remove support for ID Austria credential
  * Support URL scheme `av` for age verification
  * DC API: Use VC-K serializers
  * DC API: Support requests with multiple protocols
