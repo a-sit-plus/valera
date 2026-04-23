@@ -53,6 +53,19 @@ object AddCredentialRoute : PrerequisiteRoute(
 )
 
 @Serializable
+object LoadWithFIIssuerRoute : PrerequisiteRoute(
+    setOf(
+        RoutePrerequisites.INTERNET,
+        RoutePrerequisites.CRYPTO
+    )
+)
+
+@Serializable
+object ImportSdJwtRoute : PrerequisiteRoute(
+    setOf(RoutePrerequisites.CRYPTO)
+)
+
+@Serializable
 class LoadCredentialRoute(val host: String) : Route()
 
 @Serializable

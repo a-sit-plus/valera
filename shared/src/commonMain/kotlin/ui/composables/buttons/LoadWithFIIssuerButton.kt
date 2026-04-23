@@ -1,0 +1,36 @@
+@file:OptIn(ExperimentalResourceApi::class)
+
+package ui.composables.buttons
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.button_label_load_with_fiissuer
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.stringResource
+import ui.composables.TextIconButton
+
+@Composable
+fun LoadWithFIIssuerButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    TextIconButton(
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Download,
+                contentDescription = null,
+            )
+        },
+        text = {
+            Text(stringResource(Res.string.button_label_load_with_fiissuer))
+        },
+        onClick = onClick,
+        modifier = modifier,
+    )
+}
+

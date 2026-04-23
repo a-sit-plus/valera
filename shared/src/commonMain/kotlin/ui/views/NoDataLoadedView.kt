@@ -20,11 +20,15 @@ import ui.composables.buttons.CancelButton
 import ui.composables.buttons.LoadDataButton
 import ui.composables.buttons.LoadDataIdaButton
 import ui.composables.buttons.LoadDataQrButton
+import ui.composables.buttons.LoadWithFIIssuerButton
+import ui.composables.buttons.LoadDataSdJwtButton
 
 @Composable
 fun NoDataLoadedView(
     navigateToAddCredentialsPage: () -> Unit,
-    navigateToQrAddCredentialsPage: () -> Unit
+    navigateToFIIssuerPage: () -> Unit,
+    navigateToQrAddCredentialsPage: () -> Unit,
+    navigateToSdJwtImportPage: () -> Unit,
 ) {
     val selection = rememberSaveable{mutableStateOf(false)}
 
@@ -36,7 +40,11 @@ fun NoDataLoadedView(
         if (selection.value) {
             LoadDataIdaButton(navigateToAddCredentialsPage)
             Spacer(modifier = Modifier.height(5.dp))
+            LoadWithFIIssuerButton(navigateToFIIssuerPage)
+            Spacer(modifier = Modifier.height(5.dp))
             LoadDataQrButton(navigateToQrAddCredentialsPage)
+            Spacer(modifier = Modifier.height(5.dp))
+            LoadDataSdJwtButton(navigateToSdJwtImportPage)
             Spacer(modifier = Modifier.height(20.dp))
             CancelButton(onClick = {selection.value = false})
         } else {

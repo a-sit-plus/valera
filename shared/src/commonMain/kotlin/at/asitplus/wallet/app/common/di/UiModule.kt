@@ -10,6 +10,7 @@ import ui.viewmodels.AddCredentialViewModel
 import ui.viewmodels.CapabilitiesViewModel
 import ui.viewmodels.CredentialsViewModel
 import ui.viewmodels.InitializationViewModel
+import ui.viewmodels.LoadWithFIIssuerViewModel
 import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.SignatureRequestsViewModel
 import ui.viewmodels.authentication.AuthenticationSuccessViewModel
@@ -31,6 +32,7 @@ fun uiModule() = module {
     viewModelOf(::AddCredentialViewModel)
     viewModelOf(::CapabilitiesViewModel)
     viewModelOf(::InitializationViewModel)
+    viewModelOf(::LoadWithFIIssuerViewModel)
     viewModelOf(::UserProfileViewModel)
     viewModelOf(::SignatureRequestsViewModel)
 }

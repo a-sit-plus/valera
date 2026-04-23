@@ -9,6 +9,7 @@ import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.dcapi.DCAPIExportService
+import at.asitplus.wallet.app.common.fiissuer.FIIssuerPollingService
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -53,6 +54,7 @@ class WalletMain(
     val presentationService: PresentationService,
     val signingService: SigningService,
     val dcApiExportService: DCAPIExportService,
+    val fiIssuerPollingService: FIIssuerPollingService,
     val errorService: ErrorService,
     val snackbarService: SnackbarService,
     val settingsRepository: SettingsRepository,
@@ -74,6 +76,7 @@ class WalletMain(
 
     init {
         startListeningForNewCredentialsDCAPI()
+        fiIssuerPollingService.resumePendingRequests()
         if (keyMaterial.keyMaterial is FallBackKeyMaterial) {
             Napier.e("FallBackKeyMaterial: ${keyMaterial.keyMaterial.reason}")
         }
@@ -85,11 +88,13 @@ class WalletMain(
         subjectCredentialStore.reset()
         signingService.reset()
         capabilitiesService.reset()
+        fiIssuerPollingService.reset()
 
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_USER_PROFILE)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_VCS)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_COOKIES)
+        dataStoreService.deletePreference(Configuration.DATASTORE_KEY_FIIssuer_PENDING_REQUESTS)
         KeystoreService.clearKeyMaterial()
 
         settingsRepository.reset()

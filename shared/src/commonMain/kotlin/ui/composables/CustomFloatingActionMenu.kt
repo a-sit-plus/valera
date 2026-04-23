@@ -38,11 +38,18 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import ui.composables.buttons.LoadDataIdaButton
 import ui.composables.buttons.LoadDataQrButton
+import ui.composables.buttons.LoadDataSdJwtButton
+import ui.composables.buttons.LoadWithFIIssuerButton
 
 // Modified from https://developer.android.com/develop/ui/compose/animation/composables-modifiers
 
 @Composable
-fun CustomFloatingActionMenu(addCredentialQr: () -> Unit, addCredential: () -> Unit) {
+fun CustomFloatingActionMenu(
+    addCredentialQr: () -> Unit,
+    addCredential: () -> Unit,
+    addCredentialFIIssuer: () -> Unit,
+    addCredentialSdJwt: () -> Unit,
+) {
     var expanded by remember { mutableStateOf(false) }
 
     val onChangeExpanded: (Boolean) -> Unit = { bool ->
@@ -81,8 +88,18 @@ fun CustomFloatingActionMenu(addCredentialQr: () -> Unit, addCredential: () -> U
                         )
                         Spacer(modifier = Modifier.height(5.dp))
                         SecondaryFloatingActionButton(
-                            onClick = { addCredential() },
+                            onClick = { addCredentialFIIssuer() },
+                            content = { LoadWithFIIssuerButton(onClick = { addCredentialFIIssuer() }) },
+                        )
+                        Spacer(modifier = Modifier.height(5.dp))
+                        SecondaryFloatingActionButton(
+                            onClick = { addCredentialQr() },
                             content = { LoadDataQrButton(onClick = { addCredentialQr() }) },
+                        )
+                        Spacer(modifier = Modifier.height(5.dp))
+                        SecondaryFloatingActionButton(
+                            onClick = { addCredentialSdJwt() },
+                            content = { LoadDataSdJwtButton(onClick = { addCredentialSdJwt() }) },
                         )
                     }
                 }
