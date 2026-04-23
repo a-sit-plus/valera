@@ -11,7 +11,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 
 
- plugins {
+plugins {
     kotlin("multiplatform")
     id("com.android.kotlin.multiplatform.library")
     alias(libs.plugins.jetbrainsCompose)
@@ -20,6 +20,12 @@ import java.io.File
     id("kotlin-parcelize")
     kotlin("plugin.serialization")
     id("de.infix.testBalloon")
+}
+
+configurations.configureEach {
+    exclude(group = "org.jetbrains.compose.material", module = "material-icons-extended")
+    exclude(group = "androidx.compose.material", module = "material-icons-extended")
+    exclude(group = "androidx.compose.material", module = "material-icons-extended-android")
 }
 
 val disableAppleTargets by envExtra
