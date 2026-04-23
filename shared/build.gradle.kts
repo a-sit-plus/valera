@@ -185,13 +185,12 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.datetime.compat)
 
-            @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
-            implementation(compose.components.resources)
-            implementation(compose.runtime)
-            implementation(compose.foundation)
+            implementation(libs.compose.components.resources)
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
             implementation(libs.back.handler)
-            implementation(compose.material3)
-            implementation(compose.materialIconsExtended)
+            implementation(libs.compose.material3)
+            implementation(libs.compose.material.icons.core)
             api(libs.vck.openid.ktor)
             api(libs.atomicfu)
             api(libs.credential.mdl)
@@ -232,8 +231,7 @@ kotlin {
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(kotlin("test-common"))
-            @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
-            implementation(compose.uiTest)
+            implementation(libs.compose.ui.test)
             implementation(libs.koin.test)
             implementation(libs.testballoon)
         }

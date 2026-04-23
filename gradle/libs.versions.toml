@@ -4,6 +4,7 @@ vck="5.12.0-SNAPSHOT"
 agp = "8.12.3"
 kotlin = "2.3.0"
 compose-plugin = "1.10.2"
+compose-material-icons-core = "1.7.3"
 koin = "4.1.1"
 testballoon = "0.8.2-K2.3.0"
 
@@ -87,6 +88,12 @@ semver = { module = "net.swiftzer.semver:semver", version.ref = "semver" }
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
 back-handler = { module = "org.jetbrains.compose.ui:ui-backhandler", version.ref = "compose-plugin" }
 authcheckkit = { module = "at.asitplus.authcheckkit:core", version.ref = "authcheckkit"}
+compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "compose-plugin" }
+compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "compose-plugin" }
+compose-material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version.ref = "compose-material-icons-core" }
+compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "compose-plugin" }
+compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose-plugin" }
+compose-ui-test = { module = "org.jetbrains.compose.ui:ui-test", version.ref = "compose-plugin" }
 
 
 vck = {group= "at.asitplus.wallet", name="vck", version.ref = "vck"}
