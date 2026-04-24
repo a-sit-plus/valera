@@ -36,7 +36,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_cancel
@@ -138,8 +137,8 @@ fun LoadWithFIIssuerView(
             state.selectedCredentialTypeDetails?.requiredClaimKeys.orEmpty().forEach { key ->
                 val currentValue = state.claimValues[key].orEmpty()
                 OutlinedTextField(
-                    value = TextFieldValue(currentValue),
-                    onValueChange = { vm.updateClaimValue(key, it.text) },
+                    value = currentValue,
+                    onValueChange = { vm.updateClaimValue(key, it) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 12.dp),
@@ -218,5 +217,3 @@ private fun CredentialTypeDropdown(
         }
     }
 }
-
-
