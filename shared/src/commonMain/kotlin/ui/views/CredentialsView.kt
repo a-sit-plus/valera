@@ -46,7 +46,6 @@ fun CredentialsView(
     navigateToAddCredentialsPage: () -> Unit,
     navigateToFIIssuerPage: () -> Unit,
     navigateToQrAddCredentialsPage: () -> Unit,
-    navigateToSdJwtImportPage: () -> Unit,
     navigateToCredentialDetailsPage: (Long) -> Unit,
     onClickLogo: () -> Unit,
     onClickPersonalData: () -> Unit,
@@ -96,7 +95,6 @@ fun CredentialsView(
                             addCredential = navigateToAddCredentialsPage,
                             addCredentialFIIssuer = navigateToFIIssuerPage,
                             addCredentialQr = navigateToQrAddCredentialsPage,
-                            addCredentialSdJwt = navigateToSdJwtImportPage,
                         )
                     }
                 }
@@ -129,7 +127,6 @@ fun CredentialsView(
                             navigateToAddCredentialsPage = navigateToAddCredentialsPage,
                             navigateToFIIssuerPage = navigateToFIIssuerPage,
                             navigateToQrAddCredentialsPage = navigateToQrAddCredentialsPage,
-                            navigateToSdJwtImportPage = navigateToSdJwtImportPage,
                         )
                     } else {
                         LazyColumn {

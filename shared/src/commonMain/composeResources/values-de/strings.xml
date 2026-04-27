@@ -48,7 +48,6 @@
     <string name="button_label_clear_log">Log löschen</string>
     <string name="button_label_provision_credential_browser">Über Browser beziehen</string>
     <string name="button_label_provision_credential_qr">Mit QR-Code beziehen</string>
-    <string name="button_label_provision_credential_sd_jwt">SD-JWT laden</string>
     <string name="button_label_load_with_fiissuer">Mit FIIssuer laden</string>
     <string name="button_label_select">Auswählen</string>
     <string name="button_label_show_technical_details">Technische Details einblenden</string>

@@ -10,7 +10,6 @@ import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import data.storage.StoreEntryId
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import ui.viewmodels.QrCodeScannerMode
 
 @Serializable
@@ -58,11 +57,6 @@ object LoadWithFIIssuerRoute : PrerequisiteRoute(
         RoutePrerequisites.INTERNET,
         RoutePrerequisites.CRYPTO
     )
-)
-
-@Serializable
-object ImportSdJwtRoute : PrerequisiteRoute(
-    setOf(RoutePrerequisites.CRYPTO)
 )
 
 @Serializable

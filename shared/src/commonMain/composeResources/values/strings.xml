@@ -48,7 +48,6 @@
     <string name="button_label_clear_log">Clear Log</string>
     <string name="button_label_provision_credential_browser">Load via Browser</string>
     <string name="button_label_provision_credential_qr">Load via QR-Code</string>
-    <string name="button_label_provision_credential_sd_jwt">Load SD-JWT</string>
     <string name="button_label_load_with_fiissuer">Load with FIIssuer</string>
     <string name="button_label_select">Select</string>
     <string name="button_label_show_technical_details">Show technical details</string>

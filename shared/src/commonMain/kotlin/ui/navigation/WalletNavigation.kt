@@ -268,9 +268,6 @@ private fun WalletNavHost(
                 navigateToQrAddCredentialsPage = {
                     navigate(QrCodeScannerRoute(QrCodeScannerMode.PROVISIONING))
                 },
-                navigateToSdJwtImportPage = {
-                    navigate(ImportSdJwtRoute)
-                },
                 navigateToCredentialDetailsPage = {
                     navigate(CredentialDetailsRoute(it))
                 },
@@ -495,18 +492,6 @@ private fun WalletNavHost(
                 onClickLogo = onClickLogo,
                 onClickSettings = { navigate(SettingsRoute) },
                 onSuccess = { popBackStack(HomeScreenRoute) },
-                koinScope = koinScope,
-            )
-        }
-
-        composable<ImportSdJwtRoute> {
-            ui.views.ImportSdJwtView(
-                navigateUp = navigateBack,
-                onClickLogo = onClickLogo,
-                onClickSettings = { navigate(SettingsRoute) },
-                onSuccess = {
-                    popBackStack(HomeScreenRoute)
-                },
                 koinScope = koinScope,
             )
         }

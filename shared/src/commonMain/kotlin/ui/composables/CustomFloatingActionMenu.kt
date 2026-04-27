@@ -38,7 +38,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import ui.composables.buttons.LoadDataIdaButton
 import ui.composables.buttons.LoadDataQrButton
-import ui.composables.buttons.LoadDataSdJwtButton
 import ui.composables.buttons.LoadWithFIIssuerButton
 
 // Modified from https://developer.android.com/develop/ui/compose/animation/composables-modifiers
@@ -48,7 +47,6 @@ fun CustomFloatingActionMenu(
     addCredentialQr: () -> Unit,
     addCredential: () -> Unit,
     addCredentialFIIssuer: () -> Unit,
-    addCredentialSdJwt: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -95,11 +93,6 @@ fun CustomFloatingActionMenu(
                         SecondaryFloatingActionButton(
                             onClick = { addCredentialQr() },
                             content = { LoadDataQrButton(onClick = { addCredentialQr() }) },
-                        )
-                        Spacer(modifier = Modifier.height(5.dp))
-                        SecondaryFloatingActionButton(
-                            onClick = { addCredentialSdJwt() },
-                            content = { LoadDataSdJwtButton(onClick = { addCredentialSdJwt() }) },
                         )
                     }
                 }
