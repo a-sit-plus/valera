@@ -1,7 +1,7 @@
 package ui.navigation
 
 import at.asitplus.wallet.app.common.PlatformAdapter
-import ui.navigation.routes.AddCredentialPreAuthnRoute
+import io.github.aakira.napier.Napier
 import ui.navigation.routes.AddCredentialWithLinkRoute
 import ui.navigation.routes.AuthorizationIntentRoute
 import ui.navigation.routes.DCAPIAuthorizationIntentRoute

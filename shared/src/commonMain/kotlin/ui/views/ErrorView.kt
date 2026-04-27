@@ -127,7 +127,7 @@ fun ErrorView(
                         .background(color = MaterialTheme.colorScheme.tertiaryContainer)
                 ) {
                     Text(
-                        vm.message ?: "Unknown Message",
+                        vm.message,
                         modifier = Modifier.padding(
                             top = 5.dp,
                             bottom = 5.dp,

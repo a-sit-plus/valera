@@ -30,6 +30,7 @@ class WalletConfig(
         // Rewrite old issuing service to new instance
         if (it.host == "https://wallet.a-sit.at/m6") "https://wallet.a-sit.at/m7" else it.host
     }
+    override val clientId: Flow<String> = config.map { it.clientId }
 
     override val isConditionsAccepted: Flow<Boolean> = config.map { it.isConditionsAccepted }
     override val presentmentUseNegotiatedHandover: Flow<Boolean> = config.map { it.presentmentUseNegotiatedHandover }
@@ -44,6 +45,7 @@ class WalletConfig(
 
     override fun set(
         host: String?,
+        clientId: String?,
         isConditionsAccepted: Boolean?,
         presentmentUseNegotiatedHandover: Boolean?,
         presentmentBleCentralClientModeEnabled: Boolean?,
@@ -59,6 +61,7 @@ class WalletConfig(
         runBlocking {
             val newConfig = ConfigData(
                 host = host ?: this@WalletConfig.host.first(),
+                clientId = clientId ?: this@WalletConfig.clientId.first(),
                 isConditionsAccepted = isConditionsAccepted
                     ?: this@WalletConfig.isConditionsAccepted.first(),
                 presentmentUseNegotiatedHandover = presentmentUseNegotiatedHandover
@@ -124,6 +127,7 @@ class WalletConfig(
 @Serializable
 private data class ConfigData(
     val host: String,
+    val clientId: String = SettingsRepository.DEFAULT_CLIENT_ID,
     val isConditionsAccepted: Boolean = false,
     val presentmentUseNegotiatedHandover: Boolean = true,
     val presentmentBleCentralClientModeEnabled: Boolean = true,
@@ -138,5 +142,6 @@ private data class ConfigData(
 
 private val ConfigDataDefaults = ConfigData(
     host = "https://wallet.a-sit.at/m7",
+    clientId = SettingsRepository.DEFAULT_CLIENT_ID,
     isConditionsAccepted = false,
 )

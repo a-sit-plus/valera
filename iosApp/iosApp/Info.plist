@@ -17,7 +17,7 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>5.7.5</string>
+	<string>5.7.6</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -68,6 +68,16 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>haip-vci</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>issuance.av</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>av</string>
 			</array>
 		</dict>
 		<dict>

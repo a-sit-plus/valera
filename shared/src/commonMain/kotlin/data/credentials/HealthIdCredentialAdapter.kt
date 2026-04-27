@@ -1,7 +1,8 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
+import at.asitplus.wallet.app.common.memberName
+import at.asitplus.wallet.app.common.minus
 import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.healthid.HealthIdScheme.Attributes
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -14,15 +15,13 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 
 sealed class HealthIdCredentialAdapter : CredentialAdapter() {
-    override fun getAttribute(path: NormalizedJsonPath): Attribute? {
-        val claimName = (path.segments.firstOrNull() as? NormalizedJsonPathSegment.NameSegment)?.memberName
-            ?: return null
-
-        return HealthIdCredentialMdocClaimDefinitionResolver().resolveOrNull(
-            namespace = HealthIdScheme.isoNamespace,
-            claimName = claimName
-        )?.toAttribute()
-    }
+    override fun getAttribute(path: NormalizedJsonPath) =
+        path.minus(HealthIdScheme.isoNamespace).let {
+            it.memberName(0)?.let { claim ->
+                HealthIdCredentialMdocClaimDefinitionResolver().resolveOrNull(HealthIdScheme.isoNamespace, claim)
+                    ?.toAttribute()
+            }
+        }
 
     abstract val healthInsuranceId: String?
     abstract val patientId: String?

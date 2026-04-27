@@ -10,7 +10,6 @@ import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import data.storage.StoreEntryId
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import ui.viewmodels.QrCodeScannerMode
 
 @Serializable
@@ -39,7 +38,7 @@ enum class RoutePrerequisites {
 object InitializationRoute : Route()
 
 @Serializable
-object HomeScreenRoute : PrerequisiteRoute(setOf(RoutePrerequisites.CRYPTO))
+object HomeScreenRoute : Route()
 
 @Serializable
 object AddCredentialRoute : PrerequisiteRoute(
@@ -133,6 +132,11 @@ data class DCAPIAuthenticationConsentRoute(
 ) : Route()
 
 @Serializable
+data class DCAPIPresentationViewRoute(
+    val apiRequestSerialized: String
+) : Route()
+
+@Serializable
 data class LocalPresentationAuthenticationConsentRoute(
     val presentationRequestSerialized: String
 ) : Route() {
@@ -210,3 +214,6 @@ data class CapabilitiesRoute(val prerequisitesSerialized: String) : Route() {
     val prerequisites: Set<RoutePrerequisites>
         get() = vckJsonSerializer.decodeFromString(prerequisitesSerialized)
 }
+
+@Serializable
+object RefreshCenterRoute

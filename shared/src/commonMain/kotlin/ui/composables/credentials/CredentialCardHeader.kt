@@ -10,6 +10,7 @@ import ui.composables.CredentialCardActionMenu
 import ui.composables.LabeledText
 import ui.composables.PersonAttributeDetailCardHeading
 import ui.composables.PersonAttributeDetailCardHeadingIcon
+import ui.models.CredentialFreshnessSummaryUiModel
 
 
 @Composable
@@ -17,6 +18,8 @@ fun ColumnScope.CredentialCardHeader(
     credential: SubjectCredentialStore.StoreEntry,
     showLoadingSpinner: Boolean,
     onDelete: () -> Unit,
+    onRefresh: () -> Unit,
+    credentialFreshnessSummaryModel: CredentialFreshnessSummaryUiModel?
 ) {
     PersonAttributeDetailCardHeading(
         icon = {
@@ -31,7 +34,9 @@ fun ColumnScope.CredentialCardHeader(
     ) {
         CredentialCardActionMenu(
             showLoadingSpinner = showLoadingSpinner,
-            onDelete = onDelete
+            onDelete = onDelete,
+            onRefresh = onRefresh,
+            credentialFreshnessSummaryModel = credentialFreshnessSummaryModel
         )
     }
 }

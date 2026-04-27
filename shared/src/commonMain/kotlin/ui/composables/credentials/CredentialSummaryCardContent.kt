@@ -9,7 +9,6 @@ import at.asitplus.wallet.ehic.EhicScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
-import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
@@ -22,11 +21,10 @@ fun CredentialSummaryCardContent(
 ) {
     @Suppress("DEPRECATION")
     when (credential.scheme) {
-        is IdAustriaScheme -> IdAustriaCredentialSummaryCardContent(credential, decodeToBitmap)
         is EuPidScheme -> EuPidCredentialSummaryCardContent(credential, decodeToBitmap)
         is EuPidSdJwtScheme -> EuPidCredentialSummaryCardContent(credential, decodeToBitmap)
         is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialSummaryCardContent(credential, decodeToBitmap)
-        is AgeVerificationScheme -> AgeVerificationCredentialSummaryCardContent(credential, decodeToBitmap)
+        is AgeVerificationScheme -> AgeVerificationCredentialSummaryCardContent(credential)
         is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialSummaryCardContent(credential)
         is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialSummaryCardContent(credential)
         is CompanyRegistrationScheme -> CompanyRegistrationCredentialSummaryCardContent(credential)

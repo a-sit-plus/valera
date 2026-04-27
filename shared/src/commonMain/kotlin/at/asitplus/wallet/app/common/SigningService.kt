@@ -185,11 +185,9 @@ class SigningService(
 
     suspend fun resumeWithCredentialAuthCode(url: String) {
         val credentialToken = getTokenFromAuthCode(url)
-        val credentialInfo = config.getCurrent().credentialInfo?.toSigningCredential() ?: throw Throwable("Missing credentialInfo")
-
-        val signAlgorithm =
-            credentialInfo.supportedSigningAlgorithms?.first() ?: X509SignatureAlgorithm.RS512
-
+        val credentialInfo = config.getCurrent().credentialInfo?.toSigningCredential()
+            ?: throw Throwable("Missing credentialInfo")
+        val signAlgorithm = credentialInfo.supportedSigningAlgorithms.first()
         val signHashRequest = rqesWalletService.createSignHashRequestParameters(
             dtbsr = (this.dtbsrAuthenticationDetails as CscAuthorizationDetails).documentDigests.map { it.hash },
             sad = credentialToken.accessToken,
@@ -344,11 +342,10 @@ class SigningService(
         }
         val credentialListResponse = credentialResponse.body<CredentialListResponse>()
 
-        if (credentialListResponse.credentialInfos.isNullOrEmpty()) {
-            return getSingleCredentialInfo(token, credentialListResponse.credentialIDs.first())
-
+        return if (credentialListResponse.credentialInfos.isNullOrEmpty()) {
+            getSingleCredentialInfo(token, credentialListResponse.credentialIDs.first())
         } else {
-            return credentialListResponse.credentialInfos?.first()
+            credentialListResponse.credentialInfos?.first()
                 ?: throw Throwable("Missing credentialInfos")
         }
     }
@@ -379,7 +376,8 @@ class SigningService(
     }
 
     private suspend fun createCredentialAuthRequest(): String {
-        val signingCredential = config.getCurrent().credentialInfo?.toSigningCredential() ?: throw Throwable("Missing credentialInfo")
+        val signingCredential =
+            config.getCurrent().credentialInfo?.toSigningCredential() ?: throw Throwable("Missing credentialInfo")
 
         val credentialSigningAlgorithms = signingCredential.supportedSigningAlgorithms
         val commonSigningAlgorithm =
@@ -437,7 +435,7 @@ data class SigningConfig(
     fun hasValidCertificate(): Boolean {
         getCurrent().credentialInfo?.certParameters?.validTo?.let {
             val now = Clock.System.now().toLocalDateTime(TimeZone.UTC)
-            return LocalDateTime.parse(it, format = qesDateTime).compareTo(now) > 0
+            return LocalDateTime.parse(it, format = qesDateTime) > now
         }
         return false
     }

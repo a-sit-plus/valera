@@ -157,13 +157,11 @@ fun PresentationView(
                         is PresentationExchangeMatchingResult -> {
                             AuthenticationSelectionPresentationExchangeView(
                                 vm = AuthenticationSelectionPresentationExchangeViewModel(
-                                    walletMain = presentationViewModel.walletMain,
                                     confirmSelections = { selections ->
                                         presentationViewModel.confirmSelection(selections)
                                     },
                                     navigateUp = { presentationViewModel.viewState = AuthenticationViewState.Consent },
-                                    credentialMatchingResult = matching,
-                                    navigateToHomeScreen = presentationViewModel.navigateToHomeScreen
+                                    credentialMatchingResult = matching
                                 ),
                                 onError = onError,
                                 onClickLogo = presentationViewModel.onClickLogo,

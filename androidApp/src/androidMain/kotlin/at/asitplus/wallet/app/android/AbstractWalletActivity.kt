@@ -60,16 +60,18 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
                 )
             }
         } else {
+            Napier.e("Creating error response for DC API. Error: $resultStr")
             sendErrorResponse(resultStr, resultData)
         }
 
+        Napier.d("Successfully returned response to DC API invoker. Response: $resultStr")
         setResult(RESULT_OK, resultData)
         finish()
     }
 
     private fun sendErrorResponse(resultStr: String, resultData: Intent) {
         /* TODO check with SP that supports exceptions whether this works
-              * otherwise try with the Google GMS library (see above)
+              * otherwise try with the Google GMS library
             */
         Napier.v("Returning error response: $resultStr")
         PendingIntentHandler.setGetCredentialException(

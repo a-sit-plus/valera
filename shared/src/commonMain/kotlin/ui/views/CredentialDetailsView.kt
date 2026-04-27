@@ -36,7 +36,6 @@ import at.asitplus.wallet.ehic.EhicScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
-import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
@@ -47,6 +46,7 @@ import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.*
+import ui.models.CredentialFreshnessSummaryUiModel
 import ui.viewmodels.CredentialDetailsViewModel
 
 @Composable
@@ -54,6 +54,8 @@ fun CredentialDetailsView(
     vm: CredentialDetailsViewModel,
 ) {
     val storeEntry by vm.storeEntry.collectAsState(null)
+    val credentialTimelinessesStates by vm.credentialTimelinessesStates.collectAsState()
+    val credentialFreshnessSummary = credentialTimelinessesStates[vm.storeEntryId]
 
     CredentialDetailsScaffold(
         isStoreEntryAvailable = storeEntry != null,
@@ -63,7 +65,14 @@ fun CredentialDetailsView(
             vm.navigateUp()
         },
         onClickLogo = vm.onClickLogo,
-        onClickSettings = vm.onClickSettings
+        onClickSettings = vm.onClickSettings,
+        credentialFreshnessSummaryModel = credentialFreshnessSummary,
+        onRefresh = {
+            storeEntry?.let { entry ->
+                vm.walletMain.credentialValidityService.refreshSingle(entry, vm.storeEntryId)
+                vm.navigateUp()
+            }
+        }
     ) {
         storeEntry?.let {
             CredentialDetailsSummaryView(
@@ -87,6 +96,8 @@ fun CredentialDetailsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CredentialDetailsScaffold(
+    credentialFreshnessSummaryModel: CredentialFreshnessSummaryUiModel?,
+    onRefresh: () -> Unit,
     isStoreEntryAvailable: Boolean,
     navigateUp: () -> Unit,
     onDelete: () -> Unit,
@@ -112,7 +123,9 @@ fun CredentialDetailsScaffold(
                 actions = {
                     if (isStoreEntryAvailable) {
                         CredentialCardActionMenu(
-                            onDelete = onDelete
+                            onDelete = onDelete,
+                            onRefresh = onRefresh,
+                            credentialFreshnessSummaryModel = credentialFreshnessSummaryModel
                         )
                         Logo(onClick = onClickLogo)
                         Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
@@ -142,7 +155,6 @@ fun CredentialDetailsSummaryView(
     Column(modifier = Modifier.padding(horizontal = 8.dp)) {
         @Suppress("DEPRECATION")
         when (storeEntry.scheme) {
-            is IdAustriaScheme -> IdAustriaCredentialView(storeEntry, imageDecoder)
             is EuPidScheme -> EuPidCredentialView(storeEntry, imageDecoder)
             is EuPidSdJwtScheme -> EuPidCredentialView(storeEntry, imageDecoder)
             is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialView(storeEntry, imageDecoder)

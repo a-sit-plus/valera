@@ -1,4 +1,14 @@
-TEAM_ID=9CYHJNG644
-BUNDLE_ID=at.asitplus.wallet.compose
-APP_NAME=Valera
-PRODUCT_NAME=Valera
+APP_NAME = Valera
+PRODUCT_NAME = Valera
+APP_BUNDLE_IDENTIFIER = at.asitplus.wallet.compose
+
+// Signing defaults are intentionally blank in the tracked config.
+// Contributors should be able to build for the iOS Simulator without
+// any team membership or provisioning profile.
+SIGNING_DEBUG_ENTITLEMENTS_FILE = iosApp/iosApp.debug.entitlements
+SIGNING_RELEASE_ENTITLEMENTS_FILE = iosApp/iosApp.entitlements
+SIGNING_DEVELOPMENT_TEAM =
+SIGNING_DEBUG_PROVISIONING_PROFILE_SPECIFIER =
+SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER =
+
+#include? "Signing.local.xcconfig"

@@ -13,8 +13,6 @@ import at.asitplus.wallet.app.common.iso.transfer.method.DeviceEngagementMethods
 import at.asitplus.wallet.app.common.iso.transfer.state.VerifierState
 import at.asitplus.wallet.app.common.iso.verifier.DeviceResponseException
 import at.asitplus.wallet.app.common.iso.verifier.VerifyResponseException
-import at.asitplus.wallet.lib.agent.ValidatorVcJws
-import at.asitplus.wallet.lib.agent.Verifier.VerifyPresentationResult
 import at.asitplus.wallet.lib.agent.VerifierAgent
 import at.asitplus.wallet.lib.data.IsoDocumentParsed
 import data.document.RequestDocumentBuilder
@@ -100,27 +98,20 @@ class VerifierViewModel(
             true
         }
         walletMain.scope.launch(Dispatchers.IO) {
-            try {
-                val verifierAgent = VerifierAgent("Proximity Verifier")
-                when (val result = verifierAgent.verifyPresentationIsoMdoc(deviceResponse, verifyDocument)) {
-                    is VerifyPresentationResult.SuccessIso -> {
-                        responseDocumentList.addAll(result.documents)
+            VerifierAgent("Proximity Verifier").verifyPresentationIsoMdoc(deviceResponse, verifyDocument)
+                .fold(
+                    onSuccess = {
+                        responseDocumentList.addAll(it.documents)
                         setState(VerifierState.Presentation)
-                    }
-                    is VerifyPresentationResult.ValidationError -> {
-                        handleError(VerifyResponseException("Verification failed: ValidationError", result.cause))
-                        return@launch
-                    }
-                    else -> {
+                    },
+                    onFailure = {
                         handleError(VerifyResponseException("Unsupported verification result"))
                         return@launch
                     }
-                }
-            } catch (e: Exception) {
-                handleError(VerifyResponseException("Verification of response failed", e))
-            }
+                )
         }
     }
+
 
     fun onRequestSelected(request: SelectableRequest) {
         _requestDocumentList.addRequestDocument(

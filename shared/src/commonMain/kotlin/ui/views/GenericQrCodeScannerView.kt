@@ -76,6 +76,5 @@ fun GenericQrCodeScannerView(
                 modifier = Modifier.fillMaxSize(),
             )
         }
-
     }
 }

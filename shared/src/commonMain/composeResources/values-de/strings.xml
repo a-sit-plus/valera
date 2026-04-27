@@ -1,4 +1,6 @@
 <resources>
+    <string name="unexpected_screen_text">Diese Ansicht sollte nie vorkommen, bitte wenden Sie sich an den App-Hersteller.</string>
+
     <string name="dictionary_yes">Ja</string>
     <string name="dictionary_no">Nein</string>
 
@@ -45,12 +47,14 @@
     <string name="button_label_share_log_file">Log-Datei teilen</string>
     <string name="button_label_reset_app">App zurücksetzen</string>
     <string name="button_label_clear_log">Log löschen</string>
+    <string name="button_label_default">Standard</string>
     <string name="button_label_provision_credential_browser">Über Browser beziehen</string>
     <string name="button_label_provision_credential_qr">Mit QR-Code beziehen</string>
     <string name="button_label_select">Auswählen</string>
     <string name="button_label_show_technical_details">Technische Details einblenden</string>
     <string name="button_label_hide_technical_details">Technische Details ausblenden</string>
     <string name="button_label_sign">Signieren</string>
+    <string name="button_label_back">Zurück</string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Vorname</string>
@@ -112,15 +116,6 @@
     <string name="attribute_friendly_name_patient_id">Patientennummer</string>
     <string name="attribute_friendly_name_e_prescription_code">ePrescription Nummer</string>
     <string name="attribute_friendly_name_valid_until">Gültig bis</string>
-
-    <string name="id_austria_credential_attribute_friendly_name_main_address_street">Straße</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_house_number">Hausnummer</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_stair">Stiege</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_door">Tür</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_postal_code">Postleitzahl</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_location">Ortschaft</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_municipality_name">Gemeindebezeichnung</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_municipality_code">Gemeindekennziffer</string>
 
     <string name="attribute_friendly_name_legal_person_identifier">Name der juristischen Person</string>
     <string name="attribute_friendly_name_legal_name">Identifier der juristischen Person</string>
@@ -192,13 +187,11 @@
 
     <string name="credential_scheme_icon_label_av">AV</string>
     <string name="credential_scheme_icon_label_mdl">mDL</string>
-    <string name="credential_scheme_label_av">AV</string>
+    <string name="credential_scheme_label_av">Age Verification</string>
     <string name="credential_scheme_label_mdl">mDL</string>
     <string name="credential_scheme_icon_label_eu_pid">PID</string>
     <string name="credential_scheme_label_eu_pid">PID</string>
     <string name="credential_scheme_label_eu_pid_sdjwt">PID (ARF 1.8.0)</string>
-    <string name="credential_scheme_icon_label_id_austria">IDA</string>
-    <string name="credential_scheme_label_id_austria">IDA Credential</string>
     <string name="credential_scheme_icon_label_power_of_representation">POR</string>
     <string name="credential_scheme_label_power_of_representation">Power of representation</string>
     <string name="credential_scheme_icon_label_certificate_of_residence">COR</string>
@@ -223,6 +216,7 @@
     <string name="id_format_iso_mdoc_label">ISO_MDOC</string>
 
     <string name="text_label_issuing_service">Ausstellservice</string>
+    <string name="text_label_client_identifier">Client-ID</string>
     <string name="text_label_id_identifier">Bezeichnung</string>
     <string name="text_label_id_format">Datenrepräsentation</string>
     <string name="text_label_id_scheme">Credential Typ</string>
@@ -251,7 +245,9 @@
     <string name="text_label_status_idx">Status Index</string>
     <string name="text_label_vcType">VcType</string>
     <string name="text_label_docType">DocType</string>
+    <string name="text_label_select_no_optional_credential_set_query_option">Nichts senden</string>
 
+    <string name="heading_label_credential_selection">Welche Daten sollen präsentiert werden?</string>
     <string name="heading_label_authenticate_at_device_title">Anmelden</string>
     <string name="heading_label_authenticate_at_device_subtitle">an Service Provider</string>
     <string name="heading_label_show_data">Daten Vorzeigen</string>
@@ -300,6 +296,7 @@
     <string name="prompt_select_credential">Welches Credential soll verwendet werden?</string>
     <string name="prompt_select_attribute">Welche Attribute sollen übermittelt werden?</string>
 
+    <string name="error_credential_matching_failed">UNPASSEND</string>
     <string name="error_credential_status_invalid">UNGÜLTIG</string>
     <string name="error_credential_timeliness_expired">ABGELAUFEN</string>
     <string name="error_credential_timeliness_not_yet_valid">NOCH NICHT GÜLTIG</string>
@@ -342,6 +339,8 @@
     <string name="info_text_data_items_missing">fehlend</string>
     <string name="info_text_authentication_success">Die Anmeldung wurde erfolgreich durchgeführt.</string>
     <string name="info_text_no_credentials_available">Es sind noch keine Daten verfügbar.</string>
+    <string name="info_text_available_credentials">Verfügbare Daten</string>
+    <string name="info_text_requested_credentials">Angefragte Daten</string>
     <string name="info_text_redirection_to_browser_for_credential_provisioning">Zur Abfrage Ihrer Daten werden Sie in den Browser weitergeleitet.</string>
     <string name="info_text_notice_development_provisioning_using_qr_code_credentials">Zu Entwicklungszwecken gibt es auch die Möglichkeit, Daten über einen QR-Code zu laden.</string>
     <string name="info_text_submission_preview_disabled">Vorschau von Übermittelten Daten ist derzeit nicht verfügbar.</string>
@@ -363,6 +362,7 @@
     <string name="section_heading_present_data_title">Daten vorzeigen an</string>
     <string name="section_heading_present_data_to_executive_subtitle">Exekutive</string>
     <string name="section_heading_present_data_to_other_citizen_subtitle">dritte Bürger</string>
+    <string name="section_heading_general">Allgemein</string>
     <string name="section_heading_actions">Aktionen</string>
     <string name="section_heading_information">Information</string>
     <string name="section_heading_requested_data">Angefragte Daten</string>
@@ -485,6 +485,8 @@
     <string name="button_add_request">Anfrage hinzufügen</string>
     <string name="text_label_all_attributes">Alle Attribute</string>
     <string name="text_label_mandatory_attributes">Notwendige Attribute</string>
+    <string name="text_label_mandatory_dataset">Notwendiges Datenset</string>
+    <string name="text_label_optional_dataset">Optionales Datenset</string>
     <string name="text_label_requests">Anfragen</string>
     <string name="info_text_no_requests">Keine Anfragen</string>
     <string name="info_text_credential_status_valid">GÜLTIG</string>
@@ -508,9 +510,30 @@
     <string name="info_text_capabilities_missing_capabilities">Ihr Gerät unterstützt zur Zeit nicht alle Funktionen.</string>
     <string name="info_text_capabilities_continue">Passen Sie die Einstellungen an um fortzufahren.</string>
     <string name="info_text_capabilities_no_camera">Der Zugriff auf die Kamera wurde verweigert. Bitte passen Sie die Einstellungen an.</string>
-
     <string name="button_label_capabilities_settings">Geräteeinstellungen</string>
-
-
-
+    <string name="additional_text_other_untranslated_claims">weitere Attribute</string>
+  
+    <!--  Refresh views  -->
+    <string name="refresh_center_title">Ausweise aktualisieren</string>
+    <string name="button_clear_and_close">Leeren &amp; Schließen</string>
+    <string name="refresh_center_empty_state">Keine Ausweise müssen aktualisiert werden.</string>
+    <string name="refresh_status_pending">Update erforderlich</string>
+    <string name="refresh_status_in_progress">Aktualisierung läuft…</string>
+    <string name="refresh_status_succeeded">Erfolgreich aktualisiert</string>
+    <string name="refresh_status_failed">Fehlgeschlagen: %1$s</string>
+    <string name="error_unknown">Unbekannter Fehler</string>
+    <string name="button_dismiss">Verwerfen</string>
+    <string name="button_remove">Entfernen</string>
+    <string name="button_refresh">Aktualisieren</string>
+    <string name="refresh_dialog_title_single">Update verfügbar</string>
+    <string name="refresh_dialog_title_multiple">Updates verfügbar</string>
+    <string name="refresh_dialog_message_single">Eine neue Version von '%1$s' ist verfügbar. Möchten Sie diese jetzt aktualisieren?</string>
+    <string name="refresh_dialog_message_multiple">Für mehrere Ausweise sind neue Versionen verfügbar. Möchten Sie diese jetzt aktualisieren?</string>
+    <string name="refresh_dialog_confirm">Jetzt aktualisieren</string>
+    <string name="refresh_dialog_dismiss">Später</string>
+    <string name="error_no_refresh_token">Kein Refresh-Token verfügbar</string>
+    <string name="success_refreshed">Aktualisiert</string>
+    <string name="success_reissued">Neu ausgestellt</string>
+    <string name="error_reissue_failed">Neuausstellung fehlgeschlagen</string>
+    <string name="error_refresh_failed">Aktualisierung fehlgeschlagen</string>
 </resources>

@@ -19,6 +19,7 @@ kotlin {
             implementation(libs.datastore.preferences.core)
         }
     }
+    jvmToolchain(17)
 }
 
 val apkSignerPassword =
