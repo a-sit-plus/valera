@@ -5,9 +5,6 @@ import at.asitplus.gradle.kmmresult
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
-import java.io.ByteArrayOutputStream
-import java.io.File
-
 
 plugins {
     kotlin("multiplatform")
@@ -28,27 +25,10 @@ configurations.configureEach {
 
 val disableAppleTargets by envExtra
 val iosLinkerOpts = listOf("-lsqlite3")
-val isMacHost = System.getProperty("os.name").lowercase().contains("mac")
-val developerDir = if (isMacHost) {
-    project.providers.environmentVariable("DEVELOPER_DIR")
-        .map { it.trim() }
-        .orElse(
-            project.providers.exec {
-                commandLine("xcode-select", "-p")
-            }.standardOutput.asText.map { it.trim() }
-        )
-        .orNull
-        ?.ifBlank { null }
-} else {
-    null
-}
-val iosSimulatorSwiftLibPath = developerDir
-    ?.let { "$it/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator/" }
-val iosDeviceSwiftLibPath = developerDir
-    ?.let { "$it/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/" }
 
 kotlin {
     jvmToolchain(17)
+
     androidLibrary {
         namespace = "at.asitplus.wallet.app.common"
 
@@ -83,28 +63,18 @@ kotlin {
             }
         }
     }
-    jvmToolchain(17)
 
     if ("true" != disableAppleTargets) {
         iosArm64().binaries.all {
-            val opts = buildList {
-                addAll(iosLinkerOpts)
-                if (iosDeviceSwiftLibPath != null) {
-                    add("-rpath")
-                    add(iosDeviceSwiftLibPath)
-                }
-            }
-            linkerOpts(*opts.toTypedArray())
+            linkerOpts(*iosLinkerOpts.toTypedArray())
         }
+
         iosSimulatorArm64().binaries.all {
-            val opts = buildList {
-                addAll(iosLinkerOpts)
-                if (iosSimulatorSwiftLibPath != null) {
-                    add("-rpath")
-                    add(iosSimulatorSwiftLibPath)
-                }
-            }
-            linkerOpts(*opts.toTypedArray())
+            linkerOpts(
+                "-lsqlite3",
+                "-rpath",
+                "/usr/lib/swift",
+            )
         }
     }
 
@@ -186,19 +156,21 @@ kotlin {
             implementation("androidx.compose.ui:ui-test-junit4")
             implementation("androidx.compose.ui:ui-test-manifest")
         }
+
         iosMain.dependencies {
             implementation(ktor("client-darwin"))
         }
     }
 }
 
-
 compose.resources {
     packageOfResClass = "at.asitplus.valera.resources"
 }
 
 exportXCFramework(
-    name = "shared", transitiveExports = false, static = true,
+    name = "shared",
+    transitiveExports = false,
+    static = true,
     additionalExports = arrayOf(
         libs.vck,
         libs.vck.openid,
@@ -223,14 +195,8 @@ exportXCFramework(
 }
 
 if ("true" != disableAppleTargets) {
-    if (isMacHost && developerDir != null) {
-        tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).configure {
-            device.set("iPhone 16")
-        }
-    } else {
-        tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).configure {
-            device.set("iPhone 16")
-        }
+    tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).configure {
+        device.set("iPhone 16")
     }
 }
 
