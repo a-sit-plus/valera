@@ -46,7 +46,6 @@
     <string name="button_label_share_log_file">Share Log-File</string>
     <string name="button_label_reset_app">Reset App</string>
     <string name="button_label_clear_log">Clear Log</string>
-    <string name="button_label_provision_credential_browser">Load via Browser</string>
     <string name="button_label_provision_credential_qr">Load via QR-Code</string>
     <string name="button_label_load_with_fiissuer">Load with FIIssuer</string>
     <string name="button_label_select">Select</string>

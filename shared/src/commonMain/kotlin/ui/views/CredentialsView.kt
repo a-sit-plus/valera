@@ -124,7 +124,6 @@ fun CredentialsView(
                     }
                     if (credentials.isEmpty()) {
                         NoDataLoadedView(
-                            navigateToAddCredentialsPage = navigateToAddCredentialsPage,
                             navigateToFIIssuerPage = navigateToFIIssuerPage,
                             navigateToQrAddCredentialsPage = navigateToQrAddCredentialsPage,
                         )

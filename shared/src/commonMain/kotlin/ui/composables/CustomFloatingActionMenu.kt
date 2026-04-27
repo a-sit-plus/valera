@@ -36,7 +36,6 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import ui.composables.buttons.LoadDataIdaButton
 import ui.composables.buttons.LoadDataQrButton
 import ui.composables.buttons.LoadWithFIIssuerButton
 
@@ -80,11 +79,6 @@ fun CustomFloatingActionMenu(
                     )
                 ) {
                     Column(modifier = Modifier.padding(end = 5.dp)) {
-                        SecondaryFloatingActionButton(
-                            onClick = { addCredential() },
-                            content = { LoadDataIdaButton(onClick = { addCredential() }) },
-                        )
-                        Spacer(modifier = Modifier.height(5.dp))
                         SecondaryFloatingActionButton(
                             onClick = { addCredentialFIIssuer() },
                             content = { LoadWithFIIssuerButton(onClick = { addCredentialFIIssuer() }) },

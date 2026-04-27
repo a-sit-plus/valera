@@ -18,13 +18,11 @@ import at.asitplus.valera.resources.info_text_no_credentials_available
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.CancelButton
 import ui.composables.buttons.LoadDataButton
-import ui.composables.buttons.LoadDataIdaButton
 import ui.composables.buttons.LoadDataQrButton
 import ui.composables.buttons.LoadWithFIIssuerButton
 
 @Composable
 fun NoDataLoadedView(
-    navigateToAddCredentialsPage: () -> Unit,
     navigateToFIIssuerPage: () -> Unit,
     navigateToQrAddCredentialsPage: () -> Unit,
 ) {
@@ -36,8 +34,6 @@ fun NoDataLoadedView(
         modifier = Modifier.fillMaxSize(),
     ) {
         if (selection.value) {
-            LoadDataIdaButton(navigateToAddCredentialsPage)
-            Spacer(modifier = Modifier.height(5.dp))
             LoadWithFIIssuerButton(navigateToFIIssuerPage)
             Spacer(modifier = Modifier.height(5.dp))
             LoadDataQrButton(navigateToQrAddCredentialsPage)
