@@ -111,21 +111,6 @@ fun simulatorRuntimeProvidesSwiftDylib(name: String, runtimeRoots: List<File>): 
         ).any(File::exists)
     }
 
-fun collectSimulatorRuntimeRoots(): List<File> =
-    listOf(
-        File("/Library/Developer/CoreSimulator/Profiles/Runtimes"),
-        File("/Library/Developer/CoreSimulator/Volumes"),
-    )
-        .filter(File::exists)
-        .flatMap { base ->
-            base.walkTopDown()
-                .filter { candidate ->
-                    candidate.isDirectory && candidate.path.endsWith("/Contents/Resources/RuntimeRoot")
-                }
-                .toList()
-        }
-        .distinctBy { it.absolutePath }
-
 kotlin {
     jvmToolchain(17)
     androidLibrary {
@@ -314,7 +299,14 @@ if ("true" != disableAppleTargets) {
             doLast {
                 val executable = testExecutable.get()
                 val frameworksDir = executable.parentFile.resolve("Frameworks")
-                val runtimeRoots = collectSimulatorRuntimeRoots()
+                val runtimeRoots = file("/Library/Developer/CoreSimulator/Profiles/Runtimes")
+                    .takeIf(File::exists)
+                    ?.walkTopDown()
+                    ?.filter { candidate ->
+                        candidate.isDirectory && candidate.path.endsWith("/Contents/Resources/RuntimeRoot")
+                    }
+                    ?.toList()
+                    .orEmpty()
                 val searchRoots = listOf(
                     file("$developerDir/Toolchains/XcodeDefault.xctoolchain/usr/lib"),
                     file("$developerDir/Platforms/iPhoneSimulator.platform"),
@@ -371,20 +363,6 @@ if ("true" != disableAppleTargets) {
                             .forEach(pending::addLast)
                     }
                 }
-
-                frameworksDir.listFiles()
-                    ?.filter { candidate ->
-                        candidate.isFile &&
-                            candidate.name.startsWith("libswift_") &&
-                            candidate.extension == "dylib" &&
-                            simulatorRuntimeProvidesSwiftDylib(candidate.name, runtimeRoots)
-                    }
-                    ?.forEach { duplicate ->
-                        logger.lifecycle(
-                            "Removing simulator-provided Swift runtime library ${duplicate.name} from ${frameworksDir.absolutePath}"
-                        )
-                        duplicate.delete()
-                    }
             }
         }
 
