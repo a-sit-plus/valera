@@ -7,7 +7,6 @@ import at.asitplus.wallet.lib.agent.SdJwtDecoded
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme
-import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
 import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.jws.SdJwtSigned
@@ -190,7 +189,7 @@ class FIIssuerPollingService(
             store.storeCredential(
                 vc = sdJwt,
                 vcSerialized = serializedCredential,
-                disclosures = emptyMap<String, SelectiveDisclosureItem?>(),
+                disclosures = decoded.validDisclosures,
                 scheme = scheme,
             )
             Napier.d("SD-JWT import: credential stored successfully")
@@ -231,13 +230,3 @@ class FIIssuerPollingService(
         mutex.withLock { jobs.remove(transactionId) }
     }
 }
-
-
-
-
-
-
-
-
-
-
