@@ -18,13 +18,13 @@ import at.asitplus.valera.resources.info_text_no_credentials_available
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.CancelButton
 import ui.composables.buttons.LoadDataButton
-import ui.composables.buttons.LoadDataIdaButton
 import ui.composables.buttons.LoadDataQrButton
+import ui.composables.buttons.LoadWithFIIssuerButton
 
 @Composable
 fun NoDataLoadedView(
-    navigateToAddCredentialsPage: () -> Unit,
-    navigateToQrAddCredentialsPage: () -> Unit
+    navigateToFIIssuerPage: () -> Unit,
+    navigateToQrAddCredentialsPage: () -> Unit,
 ) {
     val selection = rememberSaveable{mutableStateOf(false)}
 
@@ -34,9 +34,10 @@ fun NoDataLoadedView(
         modifier = Modifier.fillMaxSize(),
     ) {
         if (selection.value) {
-            LoadDataIdaButton(navigateToAddCredentialsPage)
+            LoadWithFIIssuerButton(navigateToFIIssuerPage)
             Spacer(modifier = Modifier.height(5.dp))
             LoadDataQrButton(navigateToQrAddCredentialsPage)
+            Spacer(modifier = Modifier.height(5.dp))
             Spacer(modifier = Modifier.height(20.dp))
             CancelButton(onClick = {selection.value = false})
         } else {

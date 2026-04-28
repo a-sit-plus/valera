@@ -46,12 +46,21 @@
     <string name="button_label_share_log_file">Share Log-File</string>
     <string name="button_label_reset_app">Reset App</string>
     <string name="button_label_clear_log">Clear Log</string>
-    <string name="button_label_provision_credential_browser">Load via Browser</string>
     <string name="button_label_provision_credential_qr">Load via QR-Code</string>
+    <string name="button_label_load_with_fiissuer">Load with FIIssuer</string>
     <string name="button_label_select">Select</string>
     <string name="button_label_show_technical_details">Show technical details</string>
     <string name="button_label_hide_technical_details">Hide technical details</string>
     <string name="button_label_sign">Sign</string>
+    <string name="button_label_submit_request">Send request</string>
+    <string name="snackbar_fiissuer_request_submitted">FIIssuer request submitted. The credential will appear automatically once approved.</string>
+    <string name="snackbar_fiissuer_approved">FIIssuer credential approved and added to your wallet.</string>
+    <string name="snackbar_fiissuer_rejected">FIIssuer request was rejected.</string>
+    <string name="snackbar_fiissuer_expired">FIIssuer request expired before approval.</string>
+    <string name="snackbar_fiissuer_timed_out">FIIssuer request timed out before approval.</string>
+    <string name="prompt_confirm_fiissuer_request">Send the request to FIIssuer now?</string>
+    <string name="text_label_credential_type">Credential type</string>
+    <string name="text_label_optional_for_now">Optional for now</string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Given name</string>
@@ -293,6 +302,7 @@
     <string name="heading_label_navigate_back">Back</string>
     <string name="heading_label_load_data_screen">Load data</string>
     <string name="heading_label_add_credential_screen">Load data</string>
+    <string name="heading_label_fiissuer_screen">Load with FIIssuer</string>
     <string name="heading_label_refresh_data_screen">Load data</string>
     <string name="heading_label_authenticate_at_device_screen">Authenticate at\nrelying party</string>
     <string name="heading_label_sign_document">Sign document</string>

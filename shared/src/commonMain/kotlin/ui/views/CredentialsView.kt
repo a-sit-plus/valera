@@ -44,6 +44,7 @@ import ui.viewmodels.CredentialsViewModel
 @Composable
 fun CredentialsView(
     navigateToAddCredentialsPage: () -> Unit,
+    navigateToFIIssuerPage: () -> Unit,
     navigateToQrAddCredentialsPage: () -> Unit,
     navigateToCredentialDetailsPage: (Long) -> Unit,
     onClickLogo: () -> Unit,
@@ -92,7 +93,8 @@ fun CredentialsView(
                     if (it.credentials.isNotEmpty()) {
                         CustomFloatingActionMenu(
                             addCredential = navigateToAddCredentialsPage,
-                            addCredentialQr = navigateToQrAddCredentialsPage
+                            addCredentialFIIssuer = navigateToFIIssuerPage,
+                            addCredentialQr = navigateToQrAddCredentialsPage,
                         )
                     }
                 }
@@ -121,7 +123,10 @@ fun CredentialsView(
                         }
                     }
                     if (credentials.isEmpty()) {
-                        NoDataLoadedView(navigateToAddCredentialsPage, navigateToQrAddCredentialsPage)
+                        NoDataLoadedView(
+                            navigateToFIIssuerPage = navigateToFIIssuerPage,
+                            navigateToQrAddCredentialsPage = navigateToQrAddCredentialsPage,
+                        )
                     } else {
                         LazyColumn {
                             items(
