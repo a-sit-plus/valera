@@ -27,13 +27,13 @@ jobs:
       TESTBALLOON_VERSION_OVERRIDE: ${{ inputs.testballoon-version }}
     steps:
       - name: Common setup
-        uses: a-sit-plus/internal-workflows/.github/actions/common-setup@feature/bumpXcode
+        uses: a-sit-plus/internal-workflows/.github/actions/common-setup@xcode-26
         with:
           override-cache: ${{ inputs.override-cache }}
           setup-xcode: "true"
+
       - name: Prepare files from secrets
         run: |
-          set -o pipefail
           xcodebuild \
             -project iosApp/iosApp.xcodeproj \
             -scheme iosApp \
