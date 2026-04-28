@@ -29,6 +29,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 @Serializable
 private data class PendingFIIssuerRequest(
@@ -111,8 +112,8 @@ class FIIssuerPollingService(
                     error,
                 )
                 errorService.emit(error)
-                if (isPollingActive() && nextAttempt < 10) {
-                    delay(1.minutes)
+                if (isPollingActive() && nextAttempt < 20) {
+                    delay(30.seconds)
                 }
             }.onSuccess { offer ->
                 Napier.d(
@@ -121,7 +122,7 @@ class FIIssuerPollingService(
                 when (offer.status) {
                     FIIssuerCredentialRequestStatus.PENDING -> {
                         if (nextAttempt < 10) {
-                            delay(1.minutes)
+                            delay(30.seconds)
                         } else {
                             clearPendingRequest(currentRequest.transactionId)
                             snackbarService.showSnackbar(FIIssuerTimedOutMessage)
