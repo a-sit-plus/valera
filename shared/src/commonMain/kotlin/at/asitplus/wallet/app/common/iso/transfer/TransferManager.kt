@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
@@ -37,12 +38,13 @@ import org.multipaz.crypto.EcPublicKey
 import org.multipaz.crypto.X500Name
 import org.multipaz.crypto.X509Cert
 import org.multipaz.crypto.X509CertChain
+import org.multipaz.crypto.AsymmetricKey
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethod
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodBle
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodNfc
 import org.multipaz.mdoc.engagement.DeviceEngagement
-import org.multipaz.mdoc.nfc.scanNfcMdocReader
-import org.multipaz.mdoc.request.buildDeviceRequest
+import org.multipaz.mdoc.nfc.scanMdocReader
+import org.multipaz.mdoc.request.DeviceRequest
 import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.sessionencryption.SessionEncryption
 import org.multipaz.mdoc.transport.MdocTransport
@@ -51,7 +53,7 @@ import org.multipaz.mdoc.transport.MdocTransportFactory
 import org.multipaz.mdoc.transport.MdocTransportOptions
 import org.multipaz.mdoc.transport.NfcTransportMdocReader
 import org.multipaz.mdoc.util.MdocUtil
-import org.multipaz.nfc.scanNfcTag
+import org.multipaz.nfc.NfcTagReader
 import org.multipaz.util.Constants
 import org.multipaz.util.UUID
 import org.multipaz.util.fromBase64Url
@@ -116,8 +118,7 @@ class TransferManager(
                     MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEJpvqZslMcf8dng9d9RPB4bzZIbH2
                     EF83n2ZcYC10D6gjsTvlTzl1Tii9HVMvpB8k+SD/zTgIdN/HKAFToBj0+A==
                     -----END PUBLIC KEY-----
-                    """.trimIndent().trim(),
-                EcCurve.P256
+                    """.trimIndent().trim()
             )
         )
     }
@@ -143,16 +144,28 @@ class TransferManager(
         )
     }
 
-    private val readerKey: EcPrivateKey = Crypto.createEcPrivateKey(EcCurve.P256)
-    private val readerCert: X509Cert = MdocUtil.generateReaderCertificate(
-        readerRootCert = readerRootCert,
-        readerRootKey = readerRootKey,
-        readerKey = readerKey.publicKey,
-        subject = X500Name.fromName("CN=Valera Reader Cert"),
-        serial = ASN1Integer(1L),
-        validFrom = LocalDate.parse("2025-06-26").atTime(10, 0).toInstant(TimeZone.UTC),
-        validUntil = LocalDate.parse("2026-06-26").atStartOfDayIn(TimeZone.UTC),
-    )
+    private val readerKey: EcPrivateKey by lazy {
+        runBlocking {
+            Crypto.createEcPrivateKey(EcCurve.P256)
+        }
+    }
+    private val readerRootKeyCertified: AsymmetricKey.X509CertifiedExplicit by lazy {
+        AsymmetricKey.X509CertifiedExplicit(
+            certChain = X509CertChain(listOf(readerRootCert)),
+            privateKey = readerRootKey
+        )
+    }
+    private val readerCert: X509Cert = runBlocking {
+        MdocUtil.generateReaderCertificate(
+            readerRootKey = readerRootKeyCertified,
+            readerKey = readerKey.publicKey,
+            subject = X500Name.fromName("CN=Valera Reader Cert"),
+            serial = ASN1Integer(1L),
+            validFrom = LocalDate.parse("2025-06-26").atTime(10, 0).toInstant(TimeZone.UTC),
+            validUntil = LocalDate.parse("2027-06-26").atStartOfDayIn(TimeZone.UTC),
+            dnsName = "wallet.a-sit.at",
+        )
+    }
 
     fun startNfcEngagement(
         documentRequestList: RequestDocumentList,
@@ -192,8 +205,8 @@ class TransferManager(
                         )
                     )
                 }
-
-                val scanResult = scanNfcMdocReader(
+                val nfcReader = NfcTagReader.getReaders().first()
+                val scanResult = nfcReader.scanMdocReader(
                     message = getString(Res.string.info_text_nfc_mdoc_reader),
                     options = MdocTransportOptions(
                         bleUseL2CAP = config.bleUseL2CAPEnabled.first(),
@@ -317,7 +330,7 @@ class TransferManager(
                 selectConnectionMethod(connectionMethods)
             }
             if (connectionMethod == null) {
-                // If user canceled
+                // If user cancelled
                 return
             }
             val transport = MdocTransportFactory.Default.createTransport(
@@ -329,7 +342,8 @@ class TransferManager(
                 )
             )
             if (transport is NfcTransportMdocReader) {
-                scanNfcTag(
+                val nfcReader = NfcTagReader.getReaders().first()
+                nfcReader.scan(
                     message = "QR engagement with NFC Data Transfer. Move into NFC field of the mdoc",
                     tagInteractionFunc = { tag ->
                         transport.setTag(tag)
@@ -383,20 +397,22 @@ class TransferManager(
         readerSessionEncryption.value = sessionEncryption
         this.readerSessionTranscript = encodedSessionTranscript
 
-        val deviceRequest = buildDeviceRequest(
+        val readerAuthKey = AsymmetricKey.X509CertifiedExplicit(
+            certChain = X509CertChain(listOf(readerCert, readerRootCert)),
+            privateKey = readerKey
+        )
+        val deviceRequestBuilder = DeviceRequest.Builder(
             sessionTranscript = encodedSessionTranscript.toDataItem()
-        ) {
-            documentRequestList.getAll().forEach { requestDocument ->
-                addDocRequest(
-                    docType = requestDocument.docType,
-                    nameSpaces = requestDocument.itemsToRequest,
-                    docRequestInfo = null,
-                    readerKey = readerKey,
-                    signatureAlgorithm = readerKey.curve.defaultSigningAlgorithm,
-                    readerKeyCertificateChain = X509CertChain(listOf(readerCert, readerRootCert))
-                )
-            }
+        )
+        documentRequestList.getAll().forEach { requestDocument ->
+            deviceRequestBuilder.addDocRequest(
+                docType = requestDocument.docType,
+                nameSpaces = requestDocument.itemsToRequest,
+                docRequestInfo = null,
+                readerKey = readerAuthKey
+            )
         }
+        val deviceRequest = deviceRequestBuilder.build()
         val encodedDeviceRequest = Cbor.encode(deviceRequest.toDataItem())
 
         try {

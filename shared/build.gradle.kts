@@ -4,9 +4,7 @@ import at.asitplus.gradle.ktor
 import at.asitplus.gradle.kmmresult
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
-import org.gradle.kotlin.dsl.invoke
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
-
 
 plugins {
     kotlin("multiplatform")
@@ -19,9 +17,18 @@ plugins {
     id("de.infix.testBalloon")
 }
 
+configurations.configureEach {
+    exclude(group = "org.jetbrains.compose.material", module = "material-icons-extended")
+    exclude(group = "androidx.compose.material", module = "material-icons-extended")
+    exclude(group = "androidx.compose.material", module = "material-icons-extended-android")
+}
+
 val disableAppleTargets by envExtra
+val iosLinkerOpts = listOf("-lsqlite3")
 
 kotlin {
+    jvmToolchain(17)
+
     androidLibrary {
         namespace = "at.asitplus.wallet.app.common"
 
@@ -56,24 +63,31 @@ kotlin {
             }
         }
     }
-    jvmToolchain(17)
 
     if ("true" != disableAppleTargets) {
-        iosArm64()
-        iosSimulatorArm64()
+        iosArm64().binaries.all {
+            linkerOpts(*iosLinkerOpts.toTypedArray())
+        }
+
+        iosSimulatorArm64().binaries.all {
+            linkerOpts(
+                "-lsqlite3",
+                "-rpath",
+                "/usr/lib/swift",
+            )
+        }
     }
 
     sourceSets {
         commonMain.dependencies {
             implementation(libs.datetime.compat)
 
-            @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
-            implementation(compose.components.resources)
-            implementation(compose.runtime)
-            implementation(compose.foundation)
+            implementation(libs.compose.components.resources)
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
             implementation(libs.back.handler)
-            implementation(compose.material3)
-            implementation(compose.materialIconsExtended)
+            implementation(libs.compose.material3)
+            implementation(libs.compose.material.icons.core)
             api(libs.vck.openid.ktor)
             api(libs.atomicfu)
             api(libs.credential.mdl)
@@ -114,8 +128,7 @@ kotlin {
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(kotlin("test-common"))
-            @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
-            implementation(compose.uiTest)
+            implementation(libs.compose.ui.test)
             implementation(libs.koin.test)
             implementation(libs.testballoon)
         }
@@ -132,33 +145,32 @@ kotlin {
             implementation(libs.androidx.camera.view)
             implementation(libs.accompanist.permissions)
             implementation(libs.barcode.scanning)
-
-            // bcpkix-jdk18on is included in signum which enforces to a specific version
-            implementation("org.multipaz:multipaz-android-legacy:0.92.0") {
-                exclude(group = "org.bouncycastle", module = "bcpkix-jdk18on")
-            }
             implementation(libs.core.splashscreen)
-
             implementation(libs.androidx.credentials)
             implementation(libs.androidx.credentials.registry.provider)
             implementation(libs.androidx.registry.provider.play.services)
+            implementation(libs.androidx.browser)
         }
 
         getByName("androidDeviceTest").dependencies {
             implementation("androidx.compose.ui:ui-test-junit4")
             implementation("androidx.compose.ui:ui-test-manifest")
         }
-        iosMain.dependencies { implementation(ktor("client-darwin")) }
+
+        iosMain.dependencies {
+            implementation(ktor("client-darwin"))
+        }
     }
 }
-
 
 compose.resources {
     packageOfResClass = "at.asitplus.valera.resources"
 }
 
 exportXCFramework(
-    name = "shared", transitiveExports = false, static = true,
+    name = "shared",
+    transitiveExports = false,
+    static = true,
     additionalExports = arrayOf(
         libs.vck,
         libs.vck.openid,
@@ -179,20 +191,11 @@ exportXCFramework(
     )
 ) {
     binaryOption("bundleId", "at.asitplus.wallet.shared")
-    linkerOpts("-ld_classic")
     freeCompilerArgs += listOf("-Xoverride-konan-properties=minVersion.ios=18.5;minVersionSinceXcode15.ios=18.5")
-}
-
-tasks.register<Exec>("iosBootSimulator") {
-    runCatching {
-        commandLine("xcrun", "simctl", "boot", "iPhone 16")
-    }
 }
 
 if ("true" != disableAppleTargets) {
     tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).configure {
-        dependsOn("iosBootSimulator")
-        standalone.set(false)
         device.set("iPhone 16")
     }
 }
@@ -215,4 +218,32 @@ tasks.register("findDependency") {
                 if (result) println("${project.path}:${cfg.name}")
             }
     }
+}
+
+//work no stand-alone needs manual booting and we manually shutdown
+val shutdownIosSimulator by tasks.registering {
+    doLast {
+        providers.exec {
+            commandLine("xcrun", "simctl", "shutdown", "iPhone 16")
+            isIgnoreExitValue = true
+        }.result.get()
+    }
+}
+
+//remove --standalon from simulator to cast out demons. but then we need to boot manually
+tasks.withType<KotlinNativeSimulatorTest>().configureEach {
+    standalone.set(false)
+
+    doFirst {
+        providers.exec {
+            commandLine("xcrun", "simctl", "boot", device.get())
+            isIgnoreExitValue = true
+        }.result.get()
+
+        providers.exec {
+            commandLine("xcrun", "simctl", "bootstatus", device.get(), "-b")
+        }.result.get().assertNormalExitValue()
+    }
+
+    finalizedBy(shutdownIosSimulator)
 }

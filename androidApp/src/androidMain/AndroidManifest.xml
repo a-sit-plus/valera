@@ -22,10 +22,10 @@
         android:maxSdkVersion="30" />
     <!-- Bluetooth permissions for Android 12+ -->
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
-        android:usesPermissionFlags="neverForLocation"
-        tools:targetApi="s"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+                     android:usesPermissionFlags="neverForLocation"
+                     tools:targetApi="s"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
 
     <application
         android:allowBackup="false"
@@ -47,6 +47,18 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- Used when jumping back from browser after authenticating at the credential issuer in OID4VCI -->
+                <data
+                    android:host="wallet.a-sit.at"
+                    android:pathPrefix="/app"
+                    android:scheme="asitplus-wallet" />
             </intent-filter>
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.MAIN" />
@@ -71,18 +83,6 @@
                     android:host="wallet.a-sit.at"
                     android:pathPrefix="/remote"
                     android:scheme="https" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <!-- Used when jumping back from browser after authenticating at the credential issuer in OID4VCI -->
-                <data
-                    android:host="wallet.a-sit.at"
-                    android:pathPrefix="/app"
-                    android:scheme="asitplus-wallet" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -179,15 +179,22 @@
                 <action android:name="androidx.credentials.registry.provider.action.GET_CREDENTIAL" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.credentials.registry.provider.action.CREATE_CREDENTIAL" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
             android:exported="false"
+            tools:replace="android:authorities"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
+                tools:replace="android:resource"
                 android:resource="@xml/filepaths" />
+            <!-- tools:replace=… is a workaround for multipaz-compose 0.98.0 registering their own file provider -->
         </provider>
 
         <service

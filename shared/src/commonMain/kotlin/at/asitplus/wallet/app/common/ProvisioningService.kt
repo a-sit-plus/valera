@@ -2,6 +2,8 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.catching
 import at.asitplus.openid.CredentialOffer
+import at.asitplus.openid.IssuerMetadata
+import at.asitplus.openid.OAuth2AuthorizationServerMetadata
 import at.asitplus.openid.OpenIdConstants
 import at.asitplus.signum.indispensable.asn1.Asn1Primitive
 import at.asitplus.signum.indispensable.asn1.Asn1String
@@ -139,6 +141,13 @@ class ProvisioningService(
         openId4VciClient().loadCredentialMetadata(host).getOrThrow()
 
     /**
+     * Parses issuer metadata into credential identifier info.
+     */
+    @Throws(Throwable::class)
+    suspend fun parseCredentialMetadata(issuerMetadata: IssuerMetadata) =
+        openId4VciClient().parseCredentialMetadata(issuerMetadata).getOrThrow()
+
+    /**
      * Starts the issuing process at [credentialIssuer]
      */
     @Throws(Throwable::class)
@@ -241,24 +250,30 @@ class ProvisioningService(
      * @param credentialOffer as loaded and decoded from the QR Code
      * @param credentialIdentifierInfo as selected by the user from the issuer's metadata
      * @param transactionCode if required from Issuing service, i.e. transmitted out-of-band to the user
+     * @param authorizationServerMetadata oauthMetadata optionally transmitted via the DC API. Set to null for other flows.
+     *
      */
     @Throws(Throwable::class)
     suspend fun loadCredentialWithOffer(
         credentialOffer: CredentialOffer,
         credentialIdentifierInfo: CredentialIdentifierInfo,
-        transactionCode: String? = null
-    ) {
-        openId4VciClient().loadCredentialWithOfferReturningResult(
+        transactionCode: String? = null,
+        authorizationServerMetadata: OAuth2AuthorizationServerMetadata? = null
+    ): CredentialIssuanceResult {
+        return openId4VciClient().loadCredentialWithOfferReturningResult(
             credentialOffer,
             credentialIdentifierInfo,
-            transactionCode
+            transactionCode,
+            authorizationServerMetadata
         ).getOrThrow().run {
-            when (this) {
-                is CredentialIssuanceResult.OpenUrlForAuthnRequest -> storeContextOpenIntent()
-                is CredentialIssuanceResult.Success -> {
-                    credentials.forEach {
-                        holderAgent.storeCredential(it).onFailure { ex ->
-                            Napier.e("storeCredential failed", ex)
+            this.also {
+                when (this) {
+                    is CredentialIssuanceResult.OpenUrlForAuthnRequest -> storeContextOpenIntent()
+                    is CredentialIssuanceResult.Success -> {
+                        credentials.forEach {
+                            holderAgent.storeCredential(it).onFailure { ex ->
+                                Napier.e("storeCredential failed", ex)
+                            }
                         }
                     }
                 }

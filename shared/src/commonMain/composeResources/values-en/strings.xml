@@ -268,6 +268,7 @@
     <string name="heading_label_show_data">Show Data</string>
     <string name="heading_label_show_data_third_party">Present data to third-party citizens</string>
     <string name="heading_label_authentication_success">Authenticated</string>
+    <string name="heading_label_credential_added_screen">Credential added</string>
     <string name="heading_label_settings_screen">Settings</string>
     <string name="heading_label_error_screen">Error</string>
     <string name="heading_label_loading_screen">Loading</string>
@@ -350,9 +351,12 @@
     <string name="info_text_error_occurred">An error occurred.</string>
     <string name="info_text_error_action_start_screen">You will be redirected to the start screen.</string>
     <string name="info_text_error_action_reset_app">You will be redirected to the initialization screen.</string>
+    <string name="info_text_error_action_close_intent">You will be returned to the previous screen.</string>
+    <string name="info_text_error_action_return_to_invoker">You will be returned to the requesting app/website.</string>
     <string name="info_text_error_cause_reset_app">Due to breaking changes the App needs a reset.</string>
     <string name="info_text_data_items_missing">missing</string>
     <string name="info_text_authentication_success">The authentication has been carried out successfully.</string>
+    <string name="info_text_credential_added">The credential was added successfully.</string>
     <string name="info_text_no_credentials_available">No data is available yet.</string>
     <string name="info_text_available_credentials">Available data</string>
     <string name="info_text_requested_credentials">Requested data</string>

@@ -59,6 +59,7 @@ class DCAPIPresentationGraphViewModel(
                         matchingResult = walletMain.holderAgent.matchInputDescriptorsAgainstCredentialStoreV2(
                             inputDescriptors = presentationRequest.presentationDefinition.inputDescriptors,
                             fallbackFormatHolder = null,
+                            filterByIds = unwrappedDcApiWalletRequest.credentialIds
                         ).getOrThrow(),
                     ).toCredentialSelectionProvider(viewModelScope) {
                         walletMain.checkCredentialFreshness(it)
@@ -120,7 +121,7 @@ class DCAPIPresentationGraphViewModel(
     private suspend fun finalizationMethod(
         credentialPresentation: CredentialPresentation,
         request: DCAPIWalletRequest.IsoMdoc
-    ): OpenId4VpWallet.AuthenticationSuccess = walletMain.presentationService.finalizeDCAPIIsoMdocPresentation(
+    ): OpenId4VpWallet.AuthenticationSuccess = walletMain.presentationService.finalizeIsoMdocDCAPIPresentation(
         credentialPresentation = when (credentialPresentation) {
             is CredentialPresentation.PresentationExchangePresentation -> credentialPresentation
             else -> throw IllegalArgumentException()

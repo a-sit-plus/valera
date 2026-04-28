@@ -3,21 +3,24 @@ vck="5.12.0-SNAPSHOT"
 
 agp = "8.12.3"
 kotlin = "2.3.0"
-compose-plugin = "1.8.2"
+compose-plugin = "1.10.3"
+compose-material-icons-core = "1.7.3"
+compose-material3 = "1.10.0-alpha05"
 koin = "4.1.1"
-testballoon = "0.7.1-K2.3.0"
+# TestBallon has to be the same version as in vck, otherwise tests in composite builds may fail
+testballoon = "0.8.2-K2.3.0"
 
 accompanist-permissions = "0.37.3"
-activity-compose = "1.10.1"
+activity-compose = "1.13.0"
 appcompat = "1.7.1"
 barcode-scanning = "17.3.0"
 biometric = "1.2.0-alpha05"
-core-ktx = "1.16.0"
+core-ktx = "1.18.0"
 
-camera-camera2 = "1.4.2"
-datastore-preferences-core = "1.1.7"
-multipaz = "0.94.0"
-navigation-compose = "2.8.0-alpha13"
+camera-camera2 = "1.5.3"
+datastore-preferences-core = "1.2.1"
+multipaz = "0.98.0"
+navigation-compose = "2.9.2"
 semver = "2.1.0"
 
 mdl = "1.3.0"
@@ -34,13 +37,14 @@ taxid = "1.2.0"
 
 atomicfu = "0.29.0"
 qrose = "1.0.1"
-core-splashscreen = "1.0.1"
+core-splashscreen = "1.2.0"
+androidx-browser = "1.9.0"
 
 authcheckkit = "1.0.0-alpha01"
 
-# Test if DC API is still working after upgrading the following libraries
-androidx-credentials = "1.6.0-beta03"
-androidx-credentials-registry-provider = "1.0.0-alpha03"
+# Test if DC API verification and issuing are still working after upgrading the following libraries:
+androidx-credentials = "1.6.0-rc02"
+androidx-credentials-registry-provider = "1.0.0-alpha04"
 
 
 [libraries]
@@ -51,6 +55,7 @@ androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "b
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camera-camera2" }
 androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "camera-camera2" }
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camera-camera2" }
+androidx-browser = { module = "androidx.browser:browser", version.ref = "androidx-browser" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
 androidx-credentials = { module = "androidx.credentials:credentials", version.ref="androidx-credentials" }
 androidx-credentials-registry-provider = { module = "androidx.credentials.registry:registry-provider", version.ref = "androidx-credentials-registry-provider" }
@@ -85,6 +90,12 @@ semver = { module = "net.swiftzer.semver:semver", version.ref = "semver" }
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
 back-handler = { module = "org.jetbrains.compose.ui:ui-backhandler", version.ref = "compose-plugin" }
 authcheckkit = { module = "at.asitplus.authcheckkit:core", version.ref = "authcheckkit"}
+compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "compose-plugin" }
+compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "compose-plugin" }
+compose-material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version.ref = "compose-material-icons-core" }
+compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "compose-material3" }
+compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose-plugin" }
+compose-ui-test = { module = "org.jetbrains.compose.ui:ui-test", version.ref = "compose-plugin" }
 
 
 vck = {group= "at.asitplus.wallet", name="vck", version.ref = "vck"}

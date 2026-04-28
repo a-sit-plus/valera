@@ -6,28 +6,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.ErrorService
+import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.dcapi.DCAPIInvocationData
 import io.github.aakira.napier.Napier
-import kotlinx.coroutines.flow.MutableStateFlow
 import org.koin.compose.KoinApplication
 import org.koin.compose.koinInject
 import org.koin.core.module.Module
 import ui.navigation.WalletNavigation
 import ui.theme.WalletTheme
-import ui.viewmodels.authentication.PresentationStateModel
-
-/**
- * Global variables which help to channel information from platform-specific code
- * to compose whenever the app gets called from native code, such as via an associated domain,
- * NFC or the DC API
- */
-object Globals {
-    var appLink = MutableStateFlow<String?>(null)
-    var dcapiInvocationData = MutableStateFlow<DCAPIInvocationData?>(null)
-    var presentationStateModel = MutableStateFlow<PresentationStateModel?>(null)
-}
 
 internal object AppTestTags {
     const val rootScaffold = "rootScaffold"
@@ -35,7 +22,10 @@ internal object AppTestTags {
 
 @ExperimentalMaterial3Api
 @Composable
-fun App(koinModule: Module) {
+fun App(
+    koinModule: Module,
+    intentState: IntentState
+) {
     KoinApplication({
         modules(koinModule)
     }) {
@@ -66,7 +56,10 @@ fun App(koinModule: Module) {
 //                    }
 //                }
 //            }
-            WalletNavigation(koinScope = koinScope)
+            WalletNavigation(
+                koinScope = koinScope,
+                intentState = intentState
+            )
         }
     }
 }

@@ -18,5 +18,5 @@ fun communicationsModule() = module {
         scopedOf(::PresentationService)
     }
     singleOf(::SigningService)
-    singleOf(::DCAPIExportService)
+    single { DCAPIExportService(get()) }
 }

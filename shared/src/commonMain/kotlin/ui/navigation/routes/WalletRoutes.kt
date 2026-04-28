@@ -67,6 +67,24 @@ data class AddCredentialPreAuthnRoute(
 }
 
 @Serializable
+data class AddCredentialDcApiRoute(
+    val credentialOfferSerialized: String
+) : Route(
+) {
+    constructor(
+        credentialOffer: CredentialOffer
+    ) : this(
+        joseCompliantSerializer.encodeToString(credentialOffer)
+    )
+
+    val credentialOffer: CredentialOffer
+        get() = joseCompliantSerializer.decodeFromString(credentialOfferSerialized)
+}
+
+@Serializable
+object AddCredentialDcApiSuccessRoute : Route()
+
+@Serializable
 data class AddCredentialWithLinkRoute(val uri: String) : Route()
 
 @Serializable
@@ -168,6 +186,9 @@ data class AuthorizationIntentRoute(val uri: String) : Route()
 
 @Serializable
 data class DCAPIAuthorizationIntentRoute(val uri: String) : Route()
+
+@Serializable
+data class DCAPIIssuingIntentRoute(val uri: String) : Route()
 
 @Serializable
 data class PresentationIntentRoute(val uri: String) : Route()

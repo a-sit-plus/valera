@@ -2,8 +2,9 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
+import at.asitplus.dcapi.EncryptedResponse
 import at.asitplus.dcapi.request.DCAPIWalletRequest
-import at.asitplus.iso.EncryptionParameters
+import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
@@ -196,7 +197,7 @@ interface PlatformAdapter {
     fun openUrl(url: String)
 
     /**
-     * Writes an user defined string to a file in a specific folder
+     * Writes a user defined string to a file in a specific folder
      * @param text is the content of the new file or the content which gets append to an existing file
      * @param fileName the name of the file
      * @param folderName the name of the folder in which the file resides
@@ -219,7 +220,7 @@ interface PlatformAdapter {
     fun clearFile(fileName: String, folderName: String)
 
     /**
-     * Opens the platform specific share dialog
+     * Opens the platform-specific share dialog
      */
     fun shareLog()
 
@@ -233,18 +234,52 @@ interface PlatformAdapter {
     /**
      * Retrieves request from the digital credentials browser API
      */
-    fun getCurrentDCAPIData(): KmmResult<DCAPIWalletRequest>
+    fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIWalletRequest>
 
-    fun prepareDCAPIIsoMdocCredentialResponse(
-        responseJson: ByteArray,
-        sessionTranscript: ByteArray,
-        encryptionParameters: EncryptionParameters
-    )
+    /**
+     * Retrieves creation request from the digital credentials browser API
+     */
+    fun getCurrentDCAPIIssuingData(): KmmResult<DCAPIIssuingRequest>
 
-    fun prepareDCAPIOid4vpCredentialResponse(responseJson: String, success: Boolean)
+    /**
+     * Returns a Digital Credentials API credential response (OpenID4VP / generic) to the invoker.
+     *
+     * @param response serialized response payload
+     * @param success whether the request completed successfully
+     */
+    fun prepareDCAPICredentialResponse(response: String, success: Boolean)
 
+    /**
+     * Returns an ISO mdoc Digital Credentials API response to the invoker.
+     *
+     * @param response encrypted ISO mdoc response payload
+     * @param success whether the request completed successfully
+     */
+    fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean)
+
+    /**
+     * Returns a Digital Credentials API issuing response to the invoker.
+     *
+     * @param response serialized issuing result payload
+     * @param success whether issuing completed successfully
+     */
+    fun prepareDCAPIIssuingResponse(response: String, success: Boolean)
+
+    /**
+     * Indicates whether there is an active DC API issuing request waiting for a response.
+     */
+    fun hasPendingDCAPIIssuingRequest(): Boolean
+
+    /**
+     * Opens the platform's application/system settings screen.
+     */
     fun openDeviceSettings()
 
+    /**
+     * Returns current camera permission state.
+     *
+     * @return `true` if granted, `false` if denied/restricted, `null` if not determined yet
+     */
     fun getCameraPermission(): Boolean?
 
 }
@@ -269,18 +304,25 @@ class DummyPlatformAdapter : PlatformAdapter {
     override fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope) {
     }
 
-    override fun getCurrentDCAPIData(): KmmResult<DCAPIWalletRequest> {
+    override fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIWalletRequest> {
         return KmmResult.failure(IllegalStateException("Using dummy platform adapter"))
     }
 
-    override fun prepareDCAPIIsoMdocCredentialResponse(
-        responseJson: ByteArray,
-        sessionTranscript: ByteArray,
-        encryptionParameters: EncryptionParameters
-    ) {
+    override fun getCurrentDCAPIIssuingData(): KmmResult<DCAPIIssuingRequest> {
+        return KmmResult.failure(IllegalStateException("Using dummy platform adapter"))
     }
 
-    override fun prepareDCAPIOid4vpCredentialResponse(responseJson: String, success: Boolean) {
+    override fun prepareDCAPICredentialResponse(response: String, success: Boolean) {
+    }
+
+    override fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean) {
+    }
+
+    override fun prepareDCAPIIssuingResponse(response: String, success: Boolean) {
+    }
+
+    override fun hasPendingDCAPIIssuingRequest(): Boolean {
+        return false
     }
 
     override fun openDeviceSettings() {

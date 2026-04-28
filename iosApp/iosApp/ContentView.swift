@@ -5,7 +5,7 @@ import shared
 struct ComposeView: UIViewControllerRepresentable {
     
     func makeUIViewController(context: Context) -> UIViewController {
-        #if DEBUG
+         #if DEBUG
         let buildType = BuildType.debug
         #else
         let buildType = BuildType.release_
@@ -15,9 +15,9 @@ struct ComposeView: UIViewControllerRepresentable {
                 buildType: buildType,
                 packageName: Bundle.main.bundleIdentifier ?? "at.asitplus.wallet.compose",
                 versionCode: Bundle.main.infoDictionary?["CFBundleVersion"] as? Int32 ?? 1,
-                versionName: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String  ?? "1.0.0",
+                versionName: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0",
                 osVersion: "iOS " + UIDevice.current.systemVersion
-            )
+            ),
         )
     }
 
@@ -29,8 +29,7 @@ struct ContentView: View {
         ComposeView()
                 .ignoresSafeArea(.all)
                 .onOpenURL { url in
-                    Globals.shared.appLink.setValue(url.absoluteString)
+                    Main_iosKt.getIosIntentState().appLink.setValue(url.absoluteString)
                 }
     }
 }
-

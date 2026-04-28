@@ -1,12 +1,13 @@
 include(":androidApp")
 include(":shared")
+include(":cinterop")
+include("interop")
 
 pluginManagement {
     repositories {
         gradlePluginPortal()
         mavenCentral()
         google()
-        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven("https://raw.githubusercontent.com/a-sit-plus/gradle-conventions-plugin/mvn/repo")
     }
 }
@@ -16,8 +17,8 @@ plugins {
 }
 
 
-val vckDir= file("../vck")
-val signumFile=file("../vck/signum/build.gradle.kts")
+val vckDir = file("../vck")
+val signumFile = file("../vck/signum/build.gradle.kts")
 if (vckDir.isDirectory && signumFile.exists()) {
     logger.warn("Detected VC-K in ${vckDir.absolutePath}.")
     logger.warn("Including VC-K and Signum as composite build.")
@@ -28,7 +29,6 @@ if (vckDir.isDirectory && signumFile.exists()) {
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
-        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven("https://central.sonatype.com/repository/maven-snapshots/")
     }
 }
