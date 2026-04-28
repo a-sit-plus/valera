@@ -1,5 +1,6 @@
 # Release 5.7.6 (unreleased)
  * Update to VC-K 5.12.0-SNAPSHOT
+ * Raise iOS target from 16.0 to 18.6 (iOS 18 is the oldest version to still receive security updates)
  * Credentials: Fix displaying age verification credential
  * Support URL scheme `av` for age verification
  * Add: Support refreshing of credentials

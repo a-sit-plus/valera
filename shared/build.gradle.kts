@@ -4,12 +4,7 @@ import at.asitplus.gradle.ktor
 import at.asitplus.gradle.kmmresult
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
-import org.gradle.kotlin.dsl.invoke
-import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
-import java.io.ByteArrayOutputStream
-import java.io.File
-
 
 plugins {
     kotlin("multiplatform")
@@ -30,89 +25,10 @@ configurations.configureEach {
 
 val disableAppleTargets by envExtra
 val iosLinkerOpts = listOf("-lsqlite3")
-val isMacHost = System.getProperty("os.name").lowercase().contains("mac")
-val developerDir = if (isMacHost) {
-    project.providers.environmentVariable("DEVELOPER_DIR")
-        .map { it.trim() }
-        .orElse(
-            project.providers.exec {
-                commandLine("xcode-select", "-p")
-            }.standardOutput.asText.map { it.trim() }
-        )
-        .orNull
-        ?.ifBlank { null }
-} else {
-    null
-}
-val iosSimulatorSwiftLibPath = developerDir
-    ?.let { "$it/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator/" }
-val iosDeviceSwiftLibPath = developerDir
-    ?.let { "$it/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/" }
-val swiftStdLibToolPath = developerDir
-    ?.let {
-        sequenceOf(
-            "$it/Toolchains/XcodeDefault.xctoolchain/usr/bin/builtin-swiftStdLibTool",
-            "$it/usr/bin/builtin-swiftStdLibTool",
-        ).map(::File).firstOrNull(File::exists)
-    }
-
-fun commandOutput(vararg command: String): String {
-    val stdout = ByteArrayOutputStream()
-    val process = ProcessBuilder(*command)
-        .redirectErrorStream(true)
-        .start()
-
-    process.inputStream.use { input ->
-        input.copyTo(stdout)
-    }
-
-    check(process.waitFor() == 0) {
-        "Command `${command.joinToString(" ")}` failed:\n${stdout.toString()}"
-    }
-
-    return stdout.toString().trim()
-}
-
-fun tryCommand(vararg command: String): Result<String> = runCatching {
-    commandOutput(*command)
-}
-
-fun referencedSwiftDylibs(binary: File): Set<String> {
-    val dylibNameRegex = Regex("""(?:^|/)(libswift_[^\s/]+\.dylib)\s""")
-    return commandOutput("otool", "-L", binary.absolutePath)
-        .lineSequence()
-        .mapNotNull { line -> dylibNameRegex.find(line.trim())?.groupValues?.get(1) }
-        .toSet()
-}
-
-fun findSwiftDylib(name: String, searchRoots: List<File>): File? {
-    var fallback: File? = null
-    searchRoots.filter(File::exists).forEach { root ->
-        root.walkTopDown().forEach { candidate ->
-            if (!candidate.isFile || candidate.name != name) {
-                return@forEach
-            }
-            if (candidate.path.contains("iphonesimulator", ignoreCase = true)) {
-                return candidate
-            }
-            if (fallback == null) {
-                fallback = candidate
-            }
-        }
-    }
-    return fallback
-}
-
-fun simulatorRuntimeProvidesSwiftDylib(name: String, runtimeRoots: List<File>): Boolean =
-    runtimeRoots.any { root ->
-        sequenceOf(
-            root.resolve("usr/lib/swift/$name"),
-            root.resolve("usr/lib/$name"),
-        ).any(File::exists)
-    }
 
 kotlin {
     jvmToolchain(17)
+
     androidLibrary {
         namespace = "at.asitplus.wallet.app.common"
 
@@ -147,28 +63,18 @@ kotlin {
             }
         }
     }
-    jvmToolchain(17)
 
     if ("true" != disableAppleTargets) {
         iosArm64().binaries.all {
-            val opts = buildList {
-                addAll(iosLinkerOpts)
-                if (iosDeviceSwiftLibPath != null) {
-                    add("-rpath")
-                    add(iosDeviceSwiftLibPath)
-                }
-            }
-            linkerOpts(*opts.toTypedArray())
+            linkerOpts(*iosLinkerOpts.toTypedArray())
         }
+
         iosSimulatorArm64().binaries.all {
-            val opts = buildList {
-                addAll(iosLinkerOpts)
-                if (iosSimulatorSwiftLibPath != null) {
-                    add("-rpath")
-                    add(iosSimulatorSwiftLibPath)
-                }
-            }
-            linkerOpts(*opts.toTypedArray())
+            linkerOpts(
+                "-lsqlite3",
+                "-rpath",
+                "/usr/lib/swift",
+            )
         }
     }
 
@@ -250,19 +156,21 @@ kotlin {
             implementation("androidx.compose.ui:ui-test-junit4")
             implementation("androidx.compose.ui:ui-test-manifest")
         }
+
         iosMain.dependencies {
             implementation(ktor("client-darwin"))
         }
     }
 }
 
-
 compose.resources {
     packageOfResClass = "at.asitplus.valera.resources"
 }
 
 exportXCFramework(
-    name = "shared", transitiveExports = false, static = true,
+    name = "shared",
+    transitiveExports = false,
+    static = true,
     additionalExports = arrayOf(
         libs.vck,
         libs.vck.openid,
@@ -287,93 +195,8 @@ exportXCFramework(
 }
 
 if ("true" != disableAppleTargets) {
-    if (isMacHost && developerDir != null) {
-        val iosSimulatorLinkTask = tasks.named("linkDebugTestIosSimulatorArm64", KotlinNativeLink::class.java)
-        val copySwiftRuntimeForIosSimulatorTest = tasks.register("copySwiftRuntimeForIosSimulatorTest") {
-            dependsOn(iosSimulatorLinkTask)
-
-            val testExecutable = iosSimulatorLinkTask.flatMap { it.outputFile }
-            inputs.file(testExecutable)
-            inputs.property("developerDir", developerDir)
-
-            doLast {
-                val executable = testExecutable.get()
-                val frameworksDir = executable.parentFile.resolve("Frameworks")
-                val runtimeRoots = file("/Library/Developer/CoreSimulator/Profiles/Runtimes")
-                    .takeIf(File::exists)
-                    ?.walkTopDown()
-                    ?.filter { candidate ->
-                        candidate.isDirectory && candidate.path.endsWith("/Contents/Resources/RuntimeRoot")
-                    }
-                    ?.toList()
-                    .orEmpty()
-                val searchRoots = listOf(
-                    file("$developerDir/Toolchains/XcodeDefault.xctoolchain/usr/lib"),
-                    file("$developerDir/Platforms/iPhoneSimulator.platform"),
-                ) + runtimeRoots
-
-                delete(frameworksDir)
-                frameworksDir.mkdirs()
-
-                val swiftStdLibToolResult = swiftStdLibToolPath?.let { tool ->
-                    tryCommand(
-                        tool.absolutePath,
-                        "--copy",
-                        "--verbose",
-                        "--scan-executable",
-                        executable.absolutePath,
-                        "--scan-folder",
-                        frameworksDir.absolutePath,
-                        "--platform",
-                        "iphonesimulator",
-                        "--toolchain",
-                        "$developerDir/Toolchains/XcodeDefault.xctoolchain",
-                        "--destination",
-                        frameworksDir.absolutePath,
-                        "--back-deploy-swift-span",
-                    )
-                } ?: Result.failure(IllegalStateException("Could not locate builtin-swiftStdLibTool under $developerDir"))
-
-                val copiedByTool = frameworksDir.resolve("libswift_Concurrency.dylib").exists()
-                if (!copiedByTool) {
-                    swiftStdLibToolResult.exceptionOrNull()?.let { error ->
-                        logger.warn("builtin-swiftStdLibTool failed for $executable; falling back to manual Swift runtime copy.", error)
-                    }
-
-                    val copied = mutableSetOf<String>()
-                    val pending = ArrayDeque(referencedSwiftDylibs(executable))
-
-                    while (pending.isNotEmpty()) {
-                        val dylibName = pending.removeFirst()
-                        if (!copied.add(dylibName)) {
-                            continue
-                        }
-                        if (simulatorRuntimeProvidesSwiftDylib(dylibName, runtimeRoots)) {
-                            continue
-                        }
-
-                        val source = findSwiftDylib(dylibName, searchRoots)
-                            ?: error("Could not locate $dylibName in simulator Swift runtime paths for $developerDir.")
-                        val destination = frameworksDir.resolve(dylibName)
-                        source.copyTo(destination, overwrite = true)
-
-                        referencedSwiftDylibs(destination)
-                            .filterNot(copied::contains)
-                            .filterNot { frameworksDir.resolve(it).exists() }
-                            .forEach(pending::addLast)
-                    }
-                }
-            }
-        }
-
-        tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).configure {
-            dependsOn(copySwiftRuntimeForIosSimulatorTest)
-            device.set("iPhone 16")
-        }
-    } else {
-        tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).configure {
-            device.set("iPhone 16")
-        }
+    tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).configure {
+        device.set("iPhone 16")
     }
 }
 
@@ -395,4 +218,32 @@ tasks.register("findDependency") {
                 if (result) println("${project.path}:${cfg.name}")
             }
     }
+}
+
+//work no stand-alone needs manual booting and we manually shutdown
+val shutdownIosSimulator by tasks.registering {
+    doLast {
+        providers.exec {
+            commandLine("xcrun", "simctl", "shutdown", "iPhone 16")
+            isIgnoreExitValue = true
+        }.result.get()
+    }
+}
+
+//remove --standalon from simulator to cast out demons. but then we need to boot manually
+tasks.withType<KotlinNativeSimulatorTest>().configureEach {
+    standalone.set(false)
+
+    doFirst {
+        providers.exec {
+            commandLine("xcrun", "simctl", "boot", device.get())
+            isIgnoreExitValue = true
+        }.result.get()
+
+        providers.exec {
+            commandLine("xcrun", "simctl", "bootstatus", device.get(), "-b")
+        }.result.get().assertNormalExitValue()
+    }
+
+    finalizedBy(shutdownIosSimulator)
 }
