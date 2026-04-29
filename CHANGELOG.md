@@ -1,3 +1,6 @@
+# Release 5.7.7 (unreleased)
+ * tbd
+
 # Release 5.7.6
  * Update to VC-K 5.12.0
  * Credentials: Fix displaying age verification credential
