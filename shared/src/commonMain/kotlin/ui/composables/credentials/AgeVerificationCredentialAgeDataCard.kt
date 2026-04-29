@@ -40,19 +40,7 @@ fun AgeVerificationCredentialAgeDataCardContent(
     credentialAdapter: AgeVerificationCredentialAdapter,
     modifier: Modifier = Modifier,
 ) {
-    val agesAtLeastN = listOf(
-        12 to credentialAdapter.ageAtLeast12,
-        13 to credentialAdapter.ageAtLeast13,
-        14 to credentialAdapter.ageAtLeast14,
-        16 to credentialAdapter.ageAtLeast16,
-        18 to credentialAdapter.ageAtLeast18,
-        21 to credentialAdapter.ageAtLeast21,
-        25 to credentialAdapter.ageAtLeast25,
-        60 to credentialAdapter.ageAtLeast60,
-        62 to credentialAdapter.ageAtLeast62,
-        65 to credentialAdapter.ageAtLeast65,
-        68 to credentialAdapter.ageAtLeast68,
-    )
+    val agesAtLeastN = credentialAdapter.getAgesAtLeastN()
 
     Column(modifier = modifier) {
         FlowRow(
@@ -84,3 +72,45 @@ fun AgeVerificationCredentialAgeDataCardContent(
         Spacer(modifier = Modifier.height(8.dp))
     }
 }
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun AgeVerificationCredentialAgeDataCardContentOverview(
+    credentialAdapter: AgeVerificationCredentialAdapter,
+    modifier: Modifier = Modifier,
+) {
+    val agesAtLeastN = credentialAdapter.getAgesAtLeastN()
+
+    Column(modifier = modifier) {
+        FlowRow(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            val lastToShow = agesAtLeastN.filter { it.second == true }.maxByOrNull { it.first }
+                ?: agesAtLeastN.filter { it.second == false }.minByOrNull { it.first }
+            lastToShow?.let {
+                SuggestionChip(
+                    label = {
+                        Text(text = lastToShow.let { if (it.second == true) "≥${it.first}" else "<${it.first}" })
+                    },
+                    onClick = {},
+                    modifier = Modifier.padding(end = 8.dp),
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+    }
+}
+
+private fun AgeVerificationCredentialAdapter.getAgesAtLeastN(): List<Pair<Int, Boolean?>> = listOf(
+    12 to ageAtLeast12,
+    13 to ageAtLeast13,
+    14 to ageAtLeast14,
+    16 to ageAtLeast16,
+    18 to ageAtLeast18,
+    21 to ageAtLeast21,
+    25 to ageAtLeast25,
+    60 to ageAtLeast60,
+    62 to ageAtLeast62,
+    65 to ageAtLeast65,
+    68 to ageAtLeast68,
+)

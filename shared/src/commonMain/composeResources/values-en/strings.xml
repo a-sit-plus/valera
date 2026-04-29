@@ -1,4 +1,6 @@
 <resources>
+    <string name="unexpected_screen_text">This view should never be visible, please contact the app creators.</string>
+
     <string name="dictionary_yes">Yes</string>
     <string name="dictionary_no">No</string>
 
@@ -45,12 +47,14 @@
     <string name="button_label_share_log_file">Share Log-File</string>
     <string name="button_label_reset_app">Reset App</string>
     <string name="button_label_clear_log">Clear Log</string>
+    <string name="button_label_default">Default</string>
     <string name="button_label_provision_credential_browser">Load via Browser</string>
     <string name="button_label_provision_credential_qr">Load via QR-Code</string>
     <string name="button_label_select">Select</string>
     <string name="button_label_show_technical_details">Show technical details</string>
     <string name="button_label_hide_technical_details">Hide technical details</string>
     <string name="button_label_sign">Sign</string>
+    <string name="button_label_back">Back</string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Given name</string>
@@ -112,15 +116,6 @@
     <string name="attribute_friendly_name_patient_id">Patient ID</string>
     <string name="attribute_friendly_name_e_prescription_code">ePrescription Code</string>
     <string name="attribute_friendly_name_valid_until">Valid until</string>
-
-    <string name="id_austria_credential_attribute_friendly_name_main_address_street">Street</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_house_number">House Number</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_stair">Stair</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_door">Door</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_postal_code">Postal Code</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_location">Location</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_municipality_name">Municipality Name</string>
-    <string name="id_austria_credential_attribute_friendly_name_main_address_municipality_code">Municipality Code</string>
 
     <string name="attribute_friendly_name_legal_person_identifier">Legal person identifier</string>
     <string name="attribute_friendly_name_legal_name">Legal name</string>
@@ -192,13 +187,11 @@
 
     <string name="credential_scheme_icon_label_av">AV</string>
     <string name="credential_scheme_icon_label_mdl">mDL</string>
-    <string name="credential_scheme_label_av">AV</string>
+    <string name="credential_scheme_label_av">Age Verification</string>
     <string name="credential_scheme_label_mdl">mDL</string>
     <string name="credential_scheme_icon_label_eu_pid">PID</string>
     <string name="credential_scheme_label_eu_pid">PID</string>
     <string name="credential_scheme_label_eu_pid_sdjwt">PID (ARF 1.8.0)</string>
-    <string name="credential_scheme_icon_label_id_austria">IDA</string>
-    <string name="credential_scheme_label_id_austria">IDA Credential</string>
     <string name="credential_scheme_icon_label_power_of_representation">POR</string>
     <string name="credential_scheme_label_power_of_representation">Power of representation</string>
     <string name="credential_scheme_icon_label_certificate_of_residence">COR</string>
@@ -223,6 +216,7 @@
     <string name="id_format_iso_mdoc_label">ISO_MDOC</string>
 
     <string name="text_label_issuing_service">Issuing Service</string>
+    <string name="text_label_client_identifier">Client identifier</string>
     <string name="text_label_id_identifier">Identifier</string>
     <string name="text_label_id_format">Representation</string>
     <string name="text_label_id_scheme">Credential Type</string>
@@ -242,6 +236,10 @@
     <string name="text_label_valid_to">Valid to</string>
     <string name="text_label_optional">Optional</string>
     <string name="text_label_all_claims_requested">All attributes</string>
+    <string name="text_label_mandatory_dataset">Required dataset</string>
+    <string name="text_label_mandatory_dataset_description">The service requires one of the following datasets</string>
+    <string name="text_label_optional_dataset">Optional dataset</string>
+    <string name="text_label_optional_dataset_description">Optionally the service requests one of the following datasets</string>
     <string name="text_label_check_all">Check all</string>
     <string name="text_label_powered_by">POWERED BY</string>
     <string name="text_label_certificate">Certificate</string>
@@ -251,7 +249,9 @@
     <string name="text_label_status_idx">Status Index</string>
     <string name="text_label_vcType">VcType</string>
     <string name="text_label_docType">DocType</string>
+    <string name="text_label_select_no_optional_credential_set_query_option">Send nothing</string>
 
+    <string name="heading_label_credential_selection">Which Data should be used?</string>
     <string name="heading_label_authenticate_at_device_title">Authenticate</string>
     <string name="heading_label_authenticate_at_device_subtitle">at relying party</string>
     <string name="heading_label_show_data">Show Data</string>
@@ -301,6 +301,7 @@
     <string name="prompt_select_credential">Which Credential should be used?</string>
     <string name="prompt_select_attribute">Which attributes should be transmitted?</string>
 
+    <string name="error_credential_matching_failed">UNSUITABLE</string>
     <string name="error_credential_status_invalid">INVALID</string>
     <string name="error_credential_timeliness_expired">EXPIRED</string>
     <string name="error_credential_timeliness_not_yet_valid">NOT YET VALID</string>
@@ -342,6 +343,8 @@
     <string name="info_text_data_items_missing">missing</string>
     <string name="info_text_authentication_success">The authentication has been carried out successfully.</string>
     <string name="info_text_no_credentials_available">No data is available yet.</string>
+    <string name="info_text_available_credentials">Available data</string>
+    <string name="info_text_requested_credentials">Requested data</string>
     <string name="info_text_redirection_to_browser_for_credential_provisioning">To load your data you will be redirected into your browser.</string>
     <string name="info_text_notice_development_provisioning_using_qr_code_credentials">For development purposes, there is also the option to load data via a QR code.</string>
     <string name="info_text_submission_preview_disabled">Preview of data to be submitted is currently not available.</string>
@@ -363,6 +366,7 @@
     <string name="section_heading_present_data_title">Present data to</string>
     <string name="section_heading_present_data_to_executive_subtitle">Executive</string>
     <string name="section_heading_present_data_to_other_citizen_subtitle">other Citizen</string>
+    <string name="section_heading_general">General</string>
     <string name="section_heading_actions">Actions</string>
     <string name="section_heading_information">Information</string>
     <string name="section_heading_requested_data">Requested Data</string>
@@ -499,6 +503,30 @@
     <string name="info_text_capabilities_missing_capabilities">Your device currently does not support all features.</string>
     <string name="info_text_capabilities_continue">Please adjust the settings accordingly to continue.</string>
     <string name="info_text_capabilities_no_camera">Access to the camera was denied. Please adjust the settings.</string>
-
     <string name="button_label_capabilities_settings">Device settings</string>
+    <string name="additional_text_other_untranslated_claims">other claims</string>
+
+    <!--  Refresh views  -->
+    <string name="refresh_center_title">Refresh Credentials</string>
+    <string name="button_clear_and_close">Close</string>
+    <string name="refresh_center_empty_state">No credentials need refreshing.</string>
+    <string name="refresh_status_pending">Update required</string>
+    <string name="refresh_status_in_progress">Refreshing…</string>
+    <string name="refresh_status_succeeded">Successfully Updated</string>
+    <string name="refresh_status_failed">Failed: %1$s</string>
+    <string name="error_unknown">Unknown error</string>
+    <string name="button_dismiss">Dismiss</string>
+    <string name="button_remove">Remove</string>
+    <string name="button_refresh">Refresh</string>
+    <string name="refresh_dialog_title_single">Update Available</string>
+    <string name="refresh_dialog_title_multiple">Updates Available</string>
+    <string name="refresh_dialog_message_single">A refreshment of '%1$s' is required. Would you like to update it now?</string>
+    <string name="refresh_dialog_message_multiple">A refreshments are required for several credentials. Would you like to update them now?</string>
+    <string name="refresh_dialog_confirm">Update Now</string>
+    <string name="refresh_dialog_dismiss">Later</string>
+    <string name="error_no_refresh_token">No refresh token available</string>
+    <string name="success_refreshed">Refreshed</string>
+    <string name="success_reissued">Re-issued</string>
+    <string name="error_reissue_failed">Re-issue failed</string>
+    <string name="error_refresh_failed">Refresh failed</string>
 </resources>

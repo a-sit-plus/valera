@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.content_description_navigate_to_settings
 import at.asitplus.valera.resources.heading_label_my_data_screen
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import data.storage.StoreEntryId
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope
@@ -48,7 +50,8 @@ fun CredentialsView(
     onClickSettings: () -> Unit,
     koinScope: Scope,
     vm: CredentialsViewModel = koinViewModel(scope = koinScope),
-    bottomBar: @Composable () -> Unit
+    bottomBar: @Composable () -> Unit,
+    onRefresh: (SubjectCredentialStore.StoreEntry, StoreEntryId) -> Unit
 ) {
     val credentialsStatus by vm.storeContainer.collectAsState()
     val credentialTimelinessesStates by vm.credentialTimelinessesStates.collectAsState()
@@ -116,14 +119,11 @@ fun CredentialsView(
                         LazyColumn {
                             items(
                                 credentials.size,
-                                key = {
-                                    credentials[it].first
-                                }
+                                key = { credentials[it].first }
                             ) { index ->
                                 val storeEntry = credentials[index]
                                 val storeEntryIdentifier = storeEntry.first
                                 val credential = storeEntry.second
-
                                 val isTokenStatusEvaluated = storeEntryIdentifier in credentialTimelinessesStates
                                 val credentialFreshnessSummary = credentialTimelinessesStates[storeEntryIdentifier]
 
@@ -145,6 +145,7 @@ fun CredentialsView(
                                             end = 16.dp,
                                             bottom = 16.dp
                                         ),
+                                        onRefresh = { onRefresh(credential, storeEntryIdentifier) }
                                     )
                                 }
                             }

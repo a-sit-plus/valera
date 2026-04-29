@@ -86,6 +86,10 @@ Valera, the issuing service and the demo service provider are under active devel
 in tandem with each other.
 Outside contributions are welcome (see [CONTRIBUTING.MD](CONTRIBUTING.md))!
 
+## Development
+
+To set up this project locally see [DEVELOPMENT.md](DEVELOPMENT.md).
+
 ---
 
 | ![eu.svg](assets/eu.svg) <br> Co&#8209;Funded&nbsp;by&nbsp;the<br>European&nbsp;Union |   This project has received funding from the European Union’s <a href="https://digital-strategy.ec.europa.eu/en/activities/digital-programme">Digital Europe Programme (DIGITAL)</a>, Project 101102655 — POTENTIAL.   |

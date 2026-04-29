@@ -2,6 +2,7 @@ package data.storage
 
 import at.asitplus.KmmResult
 import at.asitplus.iso.IssuerSigned
+import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
@@ -46,6 +47,8 @@ class HotWalletSubjectCredentialStore(
         } ?: KmmResult.success(latestCredentials)
     }
 
+    override suspend fun getInvalidCredentials(): List<Pair<StoreEntryId, SubjectCredentialStore.StoreEntry>> = delegate.getInvalidCredentials()
+
     override suspend fun removeStoreEntryById(
         storeEntryId: StoreEntryId,
     ) = delegate.removeStoreEntryById(storeEntryId)
@@ -53,30 +56,36 @@ class HotWalletSubjectCredentialStore(
     override suspend fun storeCredential(
         vc: VerifiableCredentialJws,
         vcSerialized: String,
-        scheme: ConstantIndex.CredentialScheme
+        scheme: ConstantIndex.CredentialScheme,
+        renewalInfo: CredentialRenewalInfo?
     ): SubjectCredentialStore.StoreEntry = delegate.storeCredential(
         vc = vc,
         vcSerialized = vcSerialized,
         scheme = scheme,
+        renewalInfo = renewalInfo,
     )
 
     override suspend fun storeCredential(
         vc: VerifiableCredentialSdJwt,
         vcSerialized: String,
         disclosures: Map<String, SelectiveDisclosureItem?>,
-        scheme: ConstantIndex.CredentialScheme
+        scheme: ConstantIndex.CredentialScheme,
+        renewalInfo: CredentialRenewalInfo?
     ): SubjectCredentialStore.StoreEntry = delegate.storeCredential(
         vc = vc,
         vcSerialized = vcSerialized,
         disclosures = disclosures,
         scheme = scheme,
+        renewalInfo
     )
 
     override suspend fun storeCredential(
         issuerSigned: IssuerSigned,
-        scheme: ConstantIndex.CredentialScheme
+        scheme: ConstantIndex.CredentialScheme,
+        renewalInfo: CredentialRenewalInfo?
     ): SubjectCredentialStore.StoreEntry = delegate.storeCredential(
         issuerSigned = issuerSigned,
         scheme = scheme,
+        renewalInfo = renewalInfo
     )
 }

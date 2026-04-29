@@ -8,14 +8,12 @@ import at.asitplus.wallet.ehic.EhicScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
-import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 import data.PersonalDataCategory
 import data.credentialsdatacard.CompanyRegistrationCredentialAttributeCategorization
-import ui.composables.credentials.AgeVerificationCredentialView
 
 /**
  * The type, `List<AttributeUnpackingInformation>`, is there to
@@ -31,7 +29,6 @@ interface CredentialAttributeCategorization {
             scheme: ConstantIndex.CredentialScheme?,
             representation: ConstantIndex.CredentialRepresentation
         ): Template = when (scheme) {
-            is IdAustriaScheme -> IdAustriaCredentialAttributeCategorization
             is EuPidScheme -> EuPidCredentialAttributeCategorization
             is EuPidSdJwtScheme -> EuPidSdJwtCredentialAttributeCategorization
             is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAttributeCategorization

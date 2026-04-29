@@ -4,7 +4,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.catching
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.app_display_name
-import at.asitplus.wallet.ageverification.AgeVerificationScheme
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialEntry
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
@@ -14,14 +13,12 @@ import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
-import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.credentials.CredentialAdapter.Companion.toAttributeMap
 import data.credentials.CredentialAdapter.Companion.toNamespaceAttributeMap
 import data.credentials.CredentialAttributeTranslator
 import data.credentials.EuPidCredentialAdapter
-import data.credentials.IdAustriaCredentialAdapter
 import data.credentials.MobileDrivingLicenceCredentialAdapter
 import data.storage.StoreContainer
 import io.github.aakira.napier.Napier
@@ -78,8 +75,6 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
         ?: throw IllegalStateException("Attribute translator not implemented")
 
     private fun SubjectCredentialStore.StoreEntry.extractPicture() = when (scheme) {
-        is IdAustriaScheme ->
-            IdAustriaCredentialAdapter.createFromStoreEntry(this, imageDecoder).portraitRaw
         is MobileDrivingLicenceScheme ->
             MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(this, imageDecoder).portraitRaw
         is EuPidSdJwtScheme,

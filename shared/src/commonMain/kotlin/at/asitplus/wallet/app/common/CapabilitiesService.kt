@@ -95,7 +95,7 @@ class RealCapabilitiesService(
 
     private suspend fun getSignerStatus() = keyStoreService.testSigner()
 
-    private suspend fun getAttestationStatus() =
+    private suspend fun getAttestationStatus(): Boolean =
         getAttestationPreference().onSuccess {
             return true
         }.onFailure {

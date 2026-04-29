@@ -1,5 +1,6 @@
 package ui.composables
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
@@ -43,8 +44,8 @@ fun DataDisplaySection(
 fun DataDisplaySection(
     title: String,
     modifier: Modifier = Modifier,
-    content: @Composable() (
-        ColumnScope.() -> Unit)) {
+    content: @Composable() (ColumnScope.() -> Unit),
+) {
     Column(modifier = modifier) {
         Text(
             text = title,

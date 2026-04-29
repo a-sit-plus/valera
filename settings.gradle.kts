@@ -12,15 +12,15 @@ pluginManagement {
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version ("0.4.0")
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
 
-val vckDir= file("../vck")
-val signumFile=file("../vck/signum/build.gradle.kts")
-if (vckDir.isDirectory && signumFile.exists()) {
+val vckDir = file("../vck")
+val vckBuildFile = file("../vck/build.gradle.kts")
+if (vckDir.isDirectory && vckBuildFile.exists()) {
     logger.warn("Detected VC-K in ${vckDir.absolutePath}.")
-    logger.warn("Including VC-K and Signum as composite build.")
+    logger.warn("Including VC-K as composite build.")
     logger.warn("If you do not want this, move the VC-K to another location!")
     includeBuild("../vck")
 }

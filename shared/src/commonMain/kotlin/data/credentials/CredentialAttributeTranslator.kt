@@ -8,7 +8,6 @@ import at.asitplus.wallet.ehic.EhicScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
-import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
@@ -17,11 +16,12 @@ import org.jetbrains.compose.resources.StringResource
 
 @Suppress("DEPRECATION")
 interface CredentialAttributeTranslator {
+    fun translateSingleClaimReference(claimReference: SingleClaimReference): StringResource?
+
     fun translate(attributeName: NormalizedJsonPath): StringResource?
 
     companion object {
         operator fun get(scheme: ConstantIndex.CredentialScheme?) = when(scheme) {
-            is IdAustriaScheme -> IdAustriaCredentialAttributeTranslator()
             is EuPidScheme,
             is EuPidSdJwtScheme -> EuPidCredentialAttributeTranslator()
             is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAttributeTranslator()

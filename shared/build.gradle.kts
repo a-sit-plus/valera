@@ -55,11 +55,10 @@ kotlin {
                 }
             }
         }
-
     }
+    jvmToolchain(17)
 
     if ("true" != disableAppleTargets) {
-        iosX64()
         iosArm64()
         iosSimulatorArm64()
     }
@@ -78,7 +77,6 @@ kotlin {
             api(libs.vck.openid.ktor)
             api(libs.atomicfu)
             api(libs.credential.mdl)
-            api(libs.credential.ida)
             api(libs.credential.eupid)
             api(libs.credential.av)
             api(libs.credential.eupid.sdjwt)
@@ -118,7 +116,7 @@ kotlin {
             @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
             implementation(compose.uiTest)
             implementation(libs.koin.test)
-            implementation("de.infix.testBalloon:testBalloon-framework-shared:0.7.1-K2.2.21")
+            implementation(libs.testballoon)
         }
 
         androidMain.dependencies {
@@ -164,7 +162,6 @@ exportXCFramework(
         libs.vck,
         libs.vck.openid,
         libs.vck.openid.ktor,
-        libs.credential.ida,
         libs.credential.mdl,
         libs.credential.av,
         libs.credential.eupid,
@@ -184,14 +181,9 @@ exportXCFramework(
     freeCompilerArgs += listOf("-Xoverride-konan-properties=minVersion.ios=18.5;minVersionSinceXcode15.ios=18.5")
 }
 
-tasks.register("iosBootSimulator") {
-    doLast {
-        exec {
-            isIgnoreExitValue = true
-            runCatching {
-                commandLine("xcrun", "simctl", "boot", "iPhone 16")
-            }
-        }
+tasks.register<Exec>("iosBootSimulator") {
+    runCatching {
+        commandLine("xcrun", "simctl", "boot", "iPhone 16")
     }
 }
 
@@ -206,7 +198,7 @@ if ("true" != disableAppleTargets) {
 tasks.register("findDependency") {
     group = "help"
     description = "Lists every configuration that resolves the given module"
-    val target = project.providers.gradleProperty("module").forUseAtConfigurationTime()
+    val target = project.providers.gradleProperty("module")
 
     doLast {
         val wanted = target.getOrElse("").takeIf { it.isNotBlank() }

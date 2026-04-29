@@ -1,9 +1,10 @@
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.window.ComposeUIViewController
 import at.asitplus.KmmResult
-import at.asitplus.dcapi.request.DCAPIRequest
+import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.iso.EncryptionParameters
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.CapabilitiesService
@@ -79,6 +80,7 @@ actual fun getColorScheme(): ColorScheme {
     }
 }
 
+@ExperimentalMaterial3Api
 fun MainViewController(
     buildContext: BuildContext,
 ): UIViewController {
@@ -253,7 +255,7 @@ class IosPlatformAdapter(
         //TODO("Not yet implemented")
     }
 
-    override fun getCurrentDCAPIData(): KmmResult<DCAPIRequest> {
+    override fun getCurrentDCAPIData(): KmmResult<DCAPIWalletRequest> {
         return KmmResult.failure(Throwable("Using Swift platform adapter"))
     }
 

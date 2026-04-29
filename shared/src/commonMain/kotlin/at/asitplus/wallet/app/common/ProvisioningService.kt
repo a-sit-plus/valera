@@ -11,6 +11,7 @@ import at.asitplus.signum.indispensable.josef.KeyAttestationJwt
 import at.asitplus.signum.indispensable.pki.AttributeTypeAndValue
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.wallet.app.common.data.SettingsRepository
+import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
@@ -30,12 +31,14 @@ import at.asitplus.wallet.lib.oidvci.BuildClientAttestationJwt
 import at.asitplus.wallet.lib.oidvci.WalletService
 import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
+import data.storage.StoreEntryId
+import data.storage.WalletSubjectCredentialStore
 import io.github.aakira.napier.Napier
-import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import ui.navigation.IntentService
@@ -48,20 +51,34 @@ class ProvisioningService(
     private val dataStoreService: DataStoreService,
     private val keyMaterial: KeyMaterial,
     private val holderAgent: HolderAgent,
+    private val subjectCredentialStore: WalletSubjectCredentialStore,
     private val config: SettingsRepository,
     private val errorService: ErrorService,
-    httpService: HttpService,
+    private val httpService: HttpService,
 ) {
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = httpService.buildHttpClient(cookieStorage = cookieStorage)
 
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback/provisioning"
-    private val clientId = "https://wallet.a-sit.at/app"
+    private var cachedClientId: String? = null
 
     private var clientAttestationJwt = null as String?
-    suspend fun clientAttestationJwt() = clientAttestationJwt ?: BuildClientAttestationJwt(
+    private var openId4VciClientCached = null as OpenId4VciClient?
+    private var walletServiceCached = null as WalletService?
+
+    private suspend fun currentClientId(): String {
+        val clientId = config.clientId.first()
+        if (clientId != cachedClientId) {
+            cachedClientId = clientId
+            clientAttestationJwt = null
+            openId4VciClientCached = null
+        }
+        return clientId
+    }
+
+    private suspend fun clientAttestationJwt() = clientAttestationJwt ?: BuildClientAttestationJwt(
         SignJwt(keyMaterial, JwsHeaderCertOrJwk()),
-        clientId = clientId,
+        clientId = currentClientId(),
         issuer = keyMaterial.getCertificate()?.extractSubjectCn() ?: "https://example.com",
         lifetime = 60.minutes,
         clientKey = keyMaterial.jsonWebKey
@@ -69,19 +86,9 @@ class ProvisioningService(
         clientAttestationJwt = it
     }
 
-    private val openId4VciClient = OpenId4VciClient(
-        engine = HttpClient().engine,
-        cookiesStorage = cookieStorage,
-        httpClientConfig = httpService.loggingConfig,
-        oauth2Client = OAuth2KtorClient(
-            engine = HttpClient().engine,
-            cookiesStorage = cookieStorage,
-            oAuth2Client = OAuth2Client(clientId = clientId, redirectUrl = redirectUrl),
-            httpClientConfig = httpService.loggingConfig,
-            loadClientAttestationJwt = { clientAttestationJwt() },
-            signClientAttestationPop = SignJwt(keyMaterial, JwsHeaderNone()),
-        ),
-        oid4vciService = WalletService(
+    private suspend fun walletService(): WalletService = walletServiceCached ?: run {
+        val clientId = currentClientId()
+        WalletService(
             clientId = clientId,
             keyMaterial = keyMaterial,
             loadKeyAttestation = {
@@ -98,16 +105,38 @@ class ProvisioningService(
                         ).getOrThrow()
                     }
                 }
+            },
+            remoteResourceRetriever = { data ->
+                withContext(Dispatchers.IO) {
+                    client.get(data.url).bodyAsText()
+                }
             }
         )
-    )
+    }.also { walletServiceCached = it }
+
+    private suspend fun openId4VciClient(): OpenId4VciClient = openId4VciClientCached ?: run {
+        OpenId4VciClient(
+            engine = client.engine,
+            cookiesStorage = cookieStorage,
+            httpClientConfig = httpService.loggingConfig,
+            oauth2Client = OAuth2KtorClient(
+                engine = client.engine,
+                cookiesStorage = cookieStorage,
+                oAuth2Client = OAuth2Client(clientId = currentClientId(), redirectUrl = redirectUrl),
+                httpClientConfig = httpService.loggingConfig,
+                loadClientAttestationJwt = { clientAttestationJwt() },
+                signClientAttestationPop = SignJwt(keyMaterial, JwsHeaderNone()),
+            ),
+            oid4vciService = walletService()
+        ).also { openId4VciClientCached = it }
+    }
 
     /**
      * Loads credential metadata info from [host]
      */
     @Throws(Throwable::class)
     suspend fun loadCredentialMetadata(host: String) =
-        openId4VciClient.loadCredentialMetadata(host).getOrThrow()
+        openId4VciClient().loadCredentialMetadata(host).getOrThrow()
 
     /**
      * Starts the issuing process at [credentialIssuer]
@@ -116,12 +145,14 @@ class ProvisioningService(
     suspend fun startProvisioningWithAuthRequest(
         credentialIssuer: String,
         credentialIdentifierInfo: CredentialIdentifierInfo,
+        reissuingStoreEntryId: StoreEntryId? = null
     ) {
         config.set(host = credentialIssuer)
         cookieStorage.reset()
-        openId4VciClient.startProvisioningWithAuthRequestReturningResult(
+        openId4VciClient().startProvisioningWithAuthRequestReturningResult(
             credentialIssuer,
-            credentialIdentifierInfo
+            credentialIdentifierInfo,
+            reissuingStoreEntryId
         ).getOrThrow().run {
             storeContextOpenIntent()
         }
@@ -144,21 +175,52 @@ class ProvisioningService(
      * Called after getting the redirect back from ID Austria to the Issuing Service
      */
     @Throws(Throwable::class)
-    suspend fun resumeWithAuthCode(redirectedUrl: String) {
+    suspend fun resumeWithAuthCode(redirectedUrl: String, statusUpdater: ((Long, RefreshStatus) -> Unit)? = null) {
         Napier.d("handleResponse with $redirectedUrl")
         dataStoreService.getPreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
             .firstOrNull()
             ?.let {
                 vckJsonSerializer.decodeFromString<ProvisioningContext>(it)
                     .also { dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT) }
-            }?.let {
-                openId4VciClient.resumeWithAuthCode(redirectedUrl, it).getOrThrow()
-                    .credentials.forEach {
-                        holderAgent.storeCredential(it).onFailure { ex ->
-                            Napier.e("storeCredential failed", ex)
-                        }
+            }?.let { context ->
+                openId4VciClient().resumeWithAuthCode(redirectedUrl, context).getOrThrow().also { result ->
+                    val storageResults = result.credentials.map { cred ->
+                        holderAgent.storeCredential(cred, result.refreshToken)
                     }
+
+                    if (storageResults.all { it.isSuccess }) {
+                        context.reissuingStoreEntryId?.let { id ->
+                            subjectCredentialStore.removeStoreEntryById(id)
+                            statusUpdater?.invoke(id, RefreshStatus.Succeeded)
+                        }
+                    } else {
+                        storageResults.filter { it.isFailure }.forEach {
+                            Napier.e("storeCredential failed", it.exceptionOrNull())
+                        }
+                        context.reissuingStoreEntryId?.let { statusUpdater?.invoke(it, RefreshStatus.Failed) }
+                    }
+                }
             }
+    }
+
+    @Throws(Throwable::class)
+    suspend fun refreshCredential(renewalInfo: CredentialRenewalInfo, oldCredentialId: StoreEntryId, statusUpdater: ((Long, RefreshStatus) -> Unit)) {
+        Napier.d("refreshCredential with identifier ${renewalInfo.credentialIdentifier}")
+        openId4VciClient().refreshCredentialReturningResult(renewalInfo).getOrThrow().also { result ->
+            val storageResults = result.credentials.map { credentialInput ->
+                holderAgent.storeCredential(credentialInput, result.refreshToken)
+            }
+
+            if (storageResults.all { it.isSuccess }) {
+                subjectCredentialStore.removeStoreEntryById(oldCredentialId)
+                statusUpdater(oldCredentialId, RefreshStatus.Succeeded)
+            } else {
+                storageResults.filter { it.isFailure }.forEach {
+                    Napier.e("storeCredential failed", it.exceptionOrNull())
+                }
+                statusUpdater(oldCredentialId, RefreshStatus.Failed)
+            }
+        }
     }
 
     /**
@@ -170,14 +232,7 @@ class ProvisioningService(
     suspend fun decodeCredentialOffer(
         qrCodeContent: String
     ): CredentialOffer {
-        val walletService = WalletService(
-            keyMaterial = keyMaterial,
-            remoteResourceRetriever = { data ->
-                withContext(Dispatchers.IO) {
-                    client.get(data.url).bodyAsText()
-                }
-            })
-        return walletService.parseCredentialOffer(qrCodeContent).getOrThrow()
+        return walletService().parseCredentialOffer(qrCodeContent).getOrThrow()
     }
 
     /**
@@ -193,7 +248,7 @@ class ProvisioningService(
         credentialIdentifierInfo: CredentialIdentifierInfo,
         transactionCode: String? = null
     ) {
-        openId4VciClient.loadCredentialWithOfferReturningResult(
+        openId4VciClient().loadCredentialWithOfferReturningResult(
             credentialOffer,
             credentialIdentifierInfo,
             transactionCode
