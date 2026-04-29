@@ -55,6 +55,8 @@
     <string name="button_label_hide_technical_details">Hide technical details</string>
     <string name="button_label_sign">Sign</string>
     <string name="button_label_back">Back</string>
+    <string name="button_label_attestation_config">Attestation configuration</string>
+
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Given name</string>
@@ -250,6 +252,7 @@
     <string name="text_label_vcType">VcType</string>
     <string name="text_label_docType">DocType</string>
     <string name="text_label_select_no_optional_credential_set_query_option">Send nothing</string>
+    <string name="text_label_wallet_provider">Wallet provider</string>
 
     <string name="heading_label_credential_selection">Which Data should be used?</string>
     <string name="heading_label_authenticate_at_device_title">Authenticate</string>
@@ -275,6 +278,7 @@
     <string name="heading_label_show_qr_code_screen">Scan me!</string>
     <string name="heading_label_received_data">Received Data</string>
     <string name="heading_label_capabilities">Device capabilities</string>
+    <string name="heading_label_attestation">Attestation</string>
 
     <string name="heading_label_select_vda">Select VDA</string>
     <string name="heading_label_sign">Sign</string>
@@ -529,4 +533,12 @@
     <string name="success_reissued">Re-issued</string>
     <string name="error_reissue_failed">Re-issue failed</string>
     <string name="error_refresh_failed">Refresh failed</string>
+
+    <!-- AttestationSettings -->
+    <string name="text_label_instance_attestation">Instance attestation</string>
+    <string name="text_label_unit_attestation">Unit attestation</string>
+    <string name="button_label_load_attestation">Load attestation</string>
+    <string name="text_label_attestation_issued">Issued</string>
+    <string name="text_label_attestation_expiration">Expires</string>
+    <string name="text_label_attestation_storage_type">Storage type</string>
 </resources>
