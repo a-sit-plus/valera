@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		E1E4B5CB2EBBC2A1005C8793 /* DigitalCredentials.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1E4B5CC2EBBC2A1005C8793 /* DigitalCredentials.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		E1E4B5A52EBBA41E005C8793 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -20,15 +24,8 @@
 
 /* Begin PBXFileReference section */
 		E1E4B5A72EBBA41E005C8793 /* libDigitalCredentials.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libDigitalCredentials.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E1E4B5CC2EBBC2A1005C8793 /* DigitalCredentials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DigitalCredentials.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		E1E4B5A92EBBA41E005C8793 /* DigitalCredentials */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = DigitalCredentials;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		E1E4B5A42EBBA41E005C8793 /* Frameworks */ = {
@@ -47,6 +44,14 @@
 				E1E4B5A92EBBA41E005C8793 /* DigitalCredentials */,
 				E1E4B5A82EBBA41E005C8793 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		E1E4B5A92EBBA41E005C8793 /* DigitalCredentials */ = {
+			isa = PBXGroup;
+			children = (
+				E1E4B5CC2EBBC2A1005C8793 /* DigitalCredentials.swift */,
+			);
+			path = DigitalCredentials;
 			sourceTree = "<group>";
 		};
 		E1E4B5A82EBBA41E005C8793 /* Products */ = {
@@ -72,9 +77,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				E1E4B5A92EBBA41E005C8793 /* DigitalCredentials */,
 			);
 			name = DigitalCredentials;
 			packageProductDependencies = (
@@ -144,6 +146,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E1E4B5CB2EBBC2A1005C8793 /* DigitalCredentials.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
