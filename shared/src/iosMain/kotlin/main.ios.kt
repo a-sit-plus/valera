@@ -40,8 +40,13 @@ import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
 import data.storage.RealDataStoreService
 import data.storage.createDataStore
 import io.github.aakira.napier.Napier
+import at.asitplus.wallet.app.ios.DigitalCredentials
 import kotlinx.cinterop.*
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.scopedOf
@@ -61,6 +66,14 @@ import ui.theme.lightScheme
 
 
 actual fun getPlatformName(): String = "iOS"
+
+private val SUPPORTED_DOC_TYPES = listOf(
+    "eu.europa.ec.av.1",
+    "eu.europa.ec.eudi.pid.1",
+    "org.iso.23220.photoid.1",
+    "org.iso.23220.1.jp.mnc",
+    "org.iso.18013.5.1.mDL"
+)
 
 @Composable
 actual fun getColorScheme(): ColorScheme {
@@ -355,10 +368,34 @@ class IosPlatformAdapter(
         entries: CredentialRegistry,
         scope: CoroutineScope
     ) {
-        Napier.w(
-            "Digital Credentials registration is disabled in shared iosMain to avoid linking " +
-                "IdentityDocumentServices into the main app target. Entries=${entries.credentials.size}"
-        )
+        scope.launch(Dispatchers.Default) {
+            for (entry in entries.credentials) {
+                val id = entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
+                val docType = entry.isoEntry?.docType ?: entry.sdJwtEntry?.verifiableCredentialType
+                if (id != null && docType != null) {
+                    storeDocumentFromSwift(id, docType)
+                }
+            }
+        }
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    private suspend fun storeDocumentFromSwift(id: String, docType: String): Boolean = suspendCancellableCoroutine { cont ->
+        try {
+            Napier.d("storeDocumentFromSwift invoked")
+            if (docType !in SUPPORTED_DOC_TYPES) {
+                Napier.w("DocType '$docType' is not supported on iOS, will not add it to the system")
+                if (cont.isActive) cont.resume(false)
+                return@suspendCancellableCoroutine
+            }
+            DigitalCredentials.storeDocumentWithId(id, docType) { success ->
+                Napier.d("storeDocumentFromSwift callback with $success")
+                if (cont.isActive) cont.resume(success)
+            }
+            Napier.d("storeDocumentFromSwift got back from swift")
+        } catch (e: Throwable) {
+            Napier.e("Error while invoking Swift code", e)
+        }
     }
 
     override fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIWalletRequest> {

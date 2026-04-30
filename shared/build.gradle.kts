@@ -158,6 +158,7 @@ kotlin {
         }
 
         iosMain.dependencies {
+            api(project(":interop"))
             implementation(ktor("client-darwin"))
         }
     }
