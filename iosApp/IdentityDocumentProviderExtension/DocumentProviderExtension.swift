@@ -41,6 +41,8 @@ private struct ParsedRequestSummaryData {
 }
 
 private func buildParsedRequestSummaryData(from requestContext: ISO18013MobileDocumentRequestContext) -> ParsedRequestSummaryData {
+    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "buildparsedrequestsummarydata called")
+    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "\(requestContext)")
     var requestedElements: [String] = []
     let documentRequests: [[String: Any]] = requestContext.request.presentmentRequests.flatMap { presentmentRequest in
         presentmentRequest.documentRequestSets.flatMap { documentRequestSet in
@@ -50,7 +52,9 @@ private func buildParsedRequestSummaryData(from requestContext: ISO18013MobileDo
                         for (elementIdentifier, _) in elements {
                             requestedElements.append(elementIdentifier)
                         }
-                        return (namespace, elements)
+                        return (namespace, elements.mapValues { value in
+                            value.isRetaining
+                        })
                     }
                 )
                 return [
@@ -60,7 +64,7 @@ private func buildParsedRequestSummaryData(from requestContext: ISO18013MobileDo
             }
         }
     }
-
+    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "\(documentRequests)")
     let summary: [String: Any] = [
         "documentRequests": documentRequests
     ]
