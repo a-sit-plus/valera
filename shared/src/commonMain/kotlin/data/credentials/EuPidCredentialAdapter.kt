@@ -14,7 +14,6 @@ import at.asitplus.wallet.eupid.IsoIec5218Gender
 import at.asitplus.wallet.eupid.PlaceOfBirth
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme.SdJwtAttributes
-import at.asitplus.wallet.idaustria.IdAustriaCredential
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation

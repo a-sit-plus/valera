@@ -36,7 +36,6 @@ import at.asitplus.wallet.ehic.EhicScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
-import at.asitplus.wallet.idaustria.IdAustriaScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
@@ -156,7 +155,6 @@ fun CredentialDetailsSummaryView(
     Column(modifier = Modifier.padding(horizontal = 8.dp)) {
         @Suppress("DEPRECATION")
         when (storeEntry.scheme) {
-            is IdAustriaScheme -> IdAustriaCredentialView(storeEntry, imageDecoder)
             is EuPidScheme -> EuPidCredentialView(storeEntry, imageDecoder)
             is EuPidSdJwtScheme -> EuPidCredentialView(storeEntry, imageDecoder)
             is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialView(storeEntry, imageDecoder)
