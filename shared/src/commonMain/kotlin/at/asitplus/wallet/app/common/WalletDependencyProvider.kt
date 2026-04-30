@@ -18,7 +18,6 @@ data class WalletDependencyProvider(
 ) {
     init {
         at.asitplus.wallet.mdl.Initializer.initWithVCK()
-        at.asitplus.wallet.idaustria.Initializer.initWithVCK()
         at.asitplus.wallet.eupid.Initializer.initWithVCK()
         at.asitplus.wallet.eupidsdjwt.Initializer.initWithVCK()
         at.asitplus.wallet.cor.Initializer.initWithVCK()

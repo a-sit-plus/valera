@@ -91,7 +91,6 @@ kotlin {
             api(libs.vck.openid.ktor)
             api(libs.atomicfu)
             api(libs.credential.mdl)
-            api(libs.credential.ida)
             api(libs.credential.eupid)
             api(libs.credential.av)
             api(libs.credential.eupid.sdjwt)
@@ -175,7 +174,6 @@ exportXCFramework(
         libs.vck,
         libs.vck.openid,
         libs.vck.openid.ktor,
-        libs.credential.ida,
         libs.credential.mdl,
         libs.credential.av,
         libs.credential.eupid,

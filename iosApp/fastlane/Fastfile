@@ -37,19 +37,21 @@ lane :build do
     certificate_password: ENV['APPLE_CERT_PASSWORD'],
     keychain_name: "fastlane_tmp_keychain"
   )
-  profile_path = get_provisioning_profile(
+  get_provisioning_profile(
     app_identifier: app_bundle_identifier,
     team_id: signing_development_team,
     provisioning_name: release_provisioning_profile,
     readonly: true
   )
+  profile_path = lane_context[SharedValues::SIGH_PROFILE_PATH]
   update_project_provisioning(
     build_configuration: "Release",
     profile: profile_path,
     target_filter: "iosApp"
   )
   build_app(
-    configuration: "Release"
+    configuration: "Release",
+    xcargs: "SIGNING_DEVELOPMENT_TEAM=#{signing_development_team}"
   )
 end
 
@@ -67,12 +69,13 @@ lane :deploy do
     certificate_password: ENV['APPLE_CERT_PASSWORD'],
     keychain_name: "fastlane_tmp_keychain"
   )
-  profile_path = get_provisioning_profile(
+  get_provisioning_profile(
     app_identifier: app_bundle_identifier,
     team_id: signing_development_team,
     provisioning_name: release_provisioning_profile,
     readonly: true
   )
+  profile_path = lane_context[SharedValues::SIGH_PROFILE_PATH]
   increment_build_number(
     build_number: latest_testflight_build_number + 1
   )
@@ -83,7 +86,8 @@ lane :deploy do
   )
   build_app(
     configuration: "Release",
-    export_method: "app-store"
+    export_method: "app-store",
+    xcargs: "SIGNING_DEVELOPMENT_TEAM=#{signing_development_team}"
   )
   upload_to_testflight(
     skip_waiting_for_build_processing: true
