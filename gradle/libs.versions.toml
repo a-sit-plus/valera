@@ -42,7 +42,7 @@ androidx-browser = "1.9.0"
 authcheckkit = "1.0.0-alpha01"
 
 # Test if DC API verification and issuing are still working after upgrading the following libraries:
-androidx-credentials = "1.6.0-rc02"
+androidx-credentials = "1.6.0"
 androidx-credentials-registry-provider = "1.0.0-alpha04"
 
 
