@@ -8,6 +8,9 @@ import at.asitplus.signum.indispensable.asn1.Asn1String
 import at.asitplus.signum.indispensable.asn1.KnownOIDs
 import at.asitplus.signum.indispensable.asn1.commonName
 import at.asitplus.signum.indispensable.josef.KeyAttestationJwt
+import at.asitplus.signum.indispensable.josef.JsonWebToken
+import at.asitplus.signum.indispensable.josef.JwsSigned
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.signum.indispensable.pki.AttributeTypeAndValue
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.wallet.app.common.data.SettingsRepository
@@ -17,7 +20,6 @@ import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
-import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.jws.JwsHeaderCertOrJwk
 import at.asitplus.wallet.lib.jws.JwsHeaderNone
 import at.asitplus.wallet.lib.jws.SignJwt
@@ -28,6 +30,7 @@ import at.asitplus.wallet.lib.ktor.openid.OpenId4VciClient
 import at.asitplus.wallet.lib.ktor.openid.ProvisioningContext
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
 import at.asitplus.wallet.lib.oidvci.BuildClientAttestationJwt
+import at.asitplus.wallet.lib.oidvci.BuildClientAttestationPoPJwt
 import at.asitplus.wallet.lib.oidvci.WalletService
 import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
@@ -62,7 +65,7 @@ class ProvisioningService(
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback/provisioning"
     private var cachedClientId: String? = null
 
-    private var clientAttestationJwt = null as String?
+    private var instanceAttestationJwt = null as JwsSigned<JsonWebToken>?
     private var openId4VciClientCached = null as OpenId4VciClient?
     private var walletServiceCached = null as WalletService?
 
@@ -70,20 +73,20 @@ class ProvisioningService(
         val clientId = config.clientId.first()
         if (clientId != cachedClientId) {
             cachedClientId = clientId
-            clientAttestationJwt = null
+            instanceAttestationJwt = null
             openId4VciClientCached = null
         }
         return clientId
     }
 
-    private suspend fun clientAttestationJwt() = clientAttestationJwt ?: BuildClientAttestationJwt(
+    private suspend fun instanceAttestationJwt() = instanceAttestationJwt ?: BuildClientAttestationJwt(
         SignJwt(keyMaterial, JwsHeaderCertOrJwk()),
         clientId = currentClientId(),
         issuer = keyMaterial.getCertificate()?.extractSubjectCn() ?: "https://example.com",
         lifetime = 60.minutes,
         clientKey = keyMaterial.jsonWebKey
-    ).serialize().also {
-        clientAttestationJwt = it
+    ).also {
+        instanceAttestationJwt = it
     }
 
     private suspend fun walletService(): WalletService = walletServiceCached ?: run {
@@ -91,18 +94,29 @@ class ProvisioningService(
         WalletService(
             clientId = clientId,
             keyMaterial = keyMaterial,
-            loadKeyAttestation = {
+            loadUnitAttestationPop = { input ->
                 with(EphemeralKeyWithSelfSignedCert()) {
                     catching {
                         SignJwt<KeyAttestationJwt>(this, JwsHeaderCertOrJwk())(
                             OpenIdConstants.KEY_ATTESTATION_JWT_TYPE,
                             KeyAttestationJwt(
                                 issuedAt = System.now(),
-                                nonce = it.clientNonce,
+                                nonce = input.payload.nonce,
                                 attestedKeys = setOf(keyMaterial.jsonWebKey)
                             ),
                             KeyAttestationJwt.serializer(),
-                        ).getOrThrow()
+                        ).getOrThrow().let { unitAttestation ->
+                            SignJwt<JsonWebToken>(keyMaterial) { header, material ->
+                                header.copy(
+                                    keyAttestation = unitAttestation.serialize(),
+                                    jsonWebKey = material.jsonWebKey
+                                )
+                            }.invoke(
+                                input.type,
+                                input.payload,
+                                JsonWebToken.serializer(),
+                            ).getOrThrow()
+                        }
                     }
                 }
             },
@@ -124,8 +138,17 @@ class ProvisioningService(
                 cookiesStorage = cookieStorage,
                 oAuth2Client = OAuth2Client(clientId = currentClientId(), redirectUrl = redirectUrl),
                 httpClientConfig = httpService.loggingConfig,
-                loadClientAttestationJwt = { clientAttestationJwt() },
-                signClientAttestationPop = SignJwt(keyMaterial, JwsHeaderNone()),
+                loadInstanceAttestation = { catching { instanceAttestationJwt() } },
+                loadInstanceAttestationPop = {
+                    catching {
+                        BuildClientAttestationPoPJwt(
+                            SignJwt(keyMaterial, JwsHeaderNone()),
+                            clientId = currentClientId(),
+                            audience = config.host.first(),
+                            lifetime = 10.minutes,
+                        )
+                    }
+                },
             ),
             oid4vciService = walletService()
         ).also { openId4VciClientCached = it }
@@ -161,7 +184,7 @@ class ProvisioningService(
     private suspend fun CredentialIssuanceResult.OpenUrlForAuthnRequest.storeContextOpenIntent() {
         dataStoreService.setPreference(
             key = Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT,
-            value = vckJsonSerializer.encodeToString(context),
+            value = joseCompliantSerializer.encodeToString(context),
         )
         intentService.openIntent(
             url = url,
@@ -180,7 +203,7 @@ class ProvisioningService(
         dataStoreService.getPreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
             .firstOrNull()
             ?.let {
-                vckJsonSerializer.decodeFromString<ProvisioningContext>(it)
+                joseCompliantSerializer.decodeFromString<ProvisioningContext>(it)
                     .also { dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT) }
             }?.let { context ->
                 openId4VciClient().resumeWithAuthCode(redirectedUrl, context).getOrThrow().also { result ->

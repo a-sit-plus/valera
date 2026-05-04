@@ -14,7 +14,7 @@ import at.asitplus.wallet.app.common.toDifInputDescriptorList
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,7 +34,7 @@ class DCAPIPresentationGraphViewModel(
     val apiRequestSerialized = route.apiRequestSerialized
 
     val dcApiWalletRequest = catching {
-        vckJsonSerializer.decodeFromString<DCAPIWalletRequest.IsoMdoc>(apiRequestSerialized)
+        joseCompliantSerializer.decodeFromString<DCAPIWalletRequest.IsoMdoc>(apiRequestSerialized)
     }
 
     val selectionProvider = MutableStateFlow<UiState<Pair<DCAPIWalletRequest.IsoMdoc, CredentialSelectionProvider<SubjectCredentialStore.StoreEntry>>>>(
