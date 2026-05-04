@@ -1,31 +1,41 @@
 package at.asitplus.wallet.app.common
 
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.koin.core.component.KoinComponent
-import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
-val SESSION_NAME = "WALLET_SESSION"
+const val SESSION_NAME = "WALLET_SESSION"
 /**
- * Manages creation and deletion of Koin scopes.
- * Allows reinitialising singleton dependencies e.g. on App reset
+ * Manages one activity-local Koin scope and recreates it on soft/full resets.
  */
-class SessionService: KoinComponent {
-    private var scopeId = generateUuid()
-    val scope = MutableStateFlow(initScope())
+class SessionService(
+) {
+    private lateinit var scopeFactory: () -> Scope
+    private lateinit var _scope: MutableStateFlow<Scope>
+    val scope: MutableStateFlow<Scope>
+        get() = _scope
 
-    @OptIn(ExperimentalUuidApi::class)
-    private fun generateUuid() = Uuid.random().toString()
-
-    private fun initScope(): Scope {
-        scopeId = generateUuid()
-        return getKoin().createScope(scopeId, named(SESSION_NAME))
+    fun initialize(scopeFactory: () -> Scope) {
+        this.scopeFactory = scopeFactory
+        _scope = MutableStateFlow(scopeFactory())
     }
 
     fun newScope() {
-        getKoin().deleteScope(scopeId)
-        scope.value = initScope()
+        check(::scopeFactory.isInitialized) { "SessionService not initialized" }
+        check(::_scope.isInitialized) { "SessionService not initialized" }
+        val previousScope = scope.value
+        scope.value = scopeFactory()
+        if (!previousScope.closed) {
+            previousScope.close()
+        }
+    }
+
+    fun close() {
+        if (!::_scope.isInitialized) {
+            return
+        }
+        val currentScope = scope.value
+        if (!currentScope.closed) {
+            currentScope.close()
+        }
     }
 }

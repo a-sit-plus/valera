@@ -1,9 +1,10 @@
 package at.asitplus.wallet.app.common.di
 
+import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.SnackbarService
-import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.module.dsl.singleOf
+import org.koin.core.module.dsl.scopedOf
 import org.koin.core.module.dsl.viewModelOf
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import ui.presentation.DCAPIPresentationGraphViewModel
 import ui.presentation.DefaultPresentationGraphViewModel
@@ -19,7 +20,9 @@ import ui.viewmodels.iso.common.TransferOptionsViewModel
 import ui.viewmodels.iso.verifier.VerifierViewModel
 
 fun uiModule() = module {
-    singleOf(::SnackbarService)
+    scope(named(SESSION_NAME)) {
+        scopedOf(::SnackbarService)
+    }
 
     viewModelOf(::SettingsViewModel)
     viewModelOf(::CredentialsViewModel)
@@ -34,4 +37,3 @@ fun uiModule() = module {
     viewModelOf(::InitializationViewModel)
     viewModelOf(::QrCodeScannerViewModel)
 }
-
