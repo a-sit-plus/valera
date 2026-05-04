@@ -540,5 +540,5 @@
     <string name="button_label_load_attestation">Load attestation</string>
     <string name="text_label_attestation_issued">Issued</string>
     <string name="text_label_attestation_expiration">Expires</string>
-    <string name="text_label_attestation_storage_type">Storage type</string>
+    <string name="text_label_attestation_storage_type">Key storage</string>
 </resources>

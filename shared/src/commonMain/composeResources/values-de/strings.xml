@@ -546,5 +546,5 @@
     <string name="button_label_load_attestation">Attestation laden</string>
     <string name="text_label_attestation_issued">Gültig von</string>
     <string name="text_label_attestation_expiration">Gültig bis</string>
-    <string name="text_label_attestation_storage_type">Speichertyp</string>
+    <string name="text_label_attestation_storage_type">Schlüsselspeicher</string>
 </resources>
