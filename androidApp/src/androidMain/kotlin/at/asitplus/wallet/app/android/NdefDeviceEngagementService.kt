@@ -145,7 +145,7 @@ class NdefDeviceEngagementService : HostApduService() {
                 }
         }
 
-        val intent = Intent(applicationContext, MainActivity::class.java)
+        val intent = Intent(applicationContext, SharingActivity::class.java)
         intent.addFlags(
             Intent.FLAG_ACTIVITY_NEW_TASK or
                     Intent.FLAG_ACTIVITY_NO_HISTORY or

@@ -10,9 +10,9 @@ import kotlin.uuid.Uuid
 val SESSION_NAME = "WALLET_SESSION"
 /**
  * Manages creation and deletion of Koin scopes.
- * Allows to reinitialize singleton dependencies e.g. on App reset
+ * Allows reinitialising singleton dependencies e.g. on App reset
  */
-class SessionService(): KoinComponent {
+class SessionService: KoinComponent {
     private var scopeId = generateUuid()
     val scope = MutableStateFlow(initScope())
 

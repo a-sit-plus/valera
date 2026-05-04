@@ -13,6 +13,7 @@ import io.github.aakira.napier.Napier
 import org.koin.compose.KoinApplication
 import org.koin.compose.koinInject
 import org.koin.core.module.Module
+import ui.navigation.SharingNavigation
 import ui.navigation.WalletNavigation
 import ui.theme.WalletTheme
 
@@ -57,6 +58,26 @@ fun App(
 //                }
 //            }
             WalletNavigation(
+                koinScope = koinScope,
+                intentState = intentState
+            )
+        }
+    }
+}
+
+@ExperimentalMaterial3Api
+@Composable
+fun SharingApp(
+    koinModule: Module,
+    intentState: IntentState
+) {
+    KoinApplication({
+        modules(koinModule)
+    }) {
+        val koinScope = koinInject<SessionService>().scope.collectAsState().value
+
+        WalletTheme {
+            SharingNavigation(
                 koinScope = koinScope,
                 intentState = intentState
             )

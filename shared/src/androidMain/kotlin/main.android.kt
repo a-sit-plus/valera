@@ -131,6 +131,57 @@ private fun WalletRootView(
     )
 }
 
+@ExperimentalMaterial3Api
+@Composable
+fun SharingView(
+    buildContext: BuildContext,
+    promptModel: PromptModel,
+    intentState: IntentState
+) {
+    SharingRootView(
+        buildContext = buildContext,
+        promptModel = promptModel,
+        intentState = intentState
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SharingRootView(
+    buildContext: BuildContext,
+    promptModel: PromptModel,
+    intentState: IntentState
+) {
+    val platformAdapter = AndroidPlatformAdapter(LocalContext.current, intentState)
+    val dataStoreService = RealDataStoreService(
+        getDataStore(LocalContext.current),
+        platformAdapter
+    )
+    val ks = KeystoreService(dataStoreService)
+
+    PromptDialogs(promptModel)
+
+    val walletDependencyProvider = WalletDependencyProvider(
+        keystoreService = ks,
+        dataStoreService = dataStoreService,
+        platformAdapter = platformAdapter,
+        buildContext = buildContext,
+        promptModel = promptModel
+    )
+
+    val capabilitiesModule = module {
+        scope(named(SESSION_NAME)) {
+            scopedOf(::RealCapabilitiesService) binds arrayOf(CapabilitiesService::class)
+        }
+    }
+    val module = appModule(walletDependencyProvider, capabilitiesModule)
+
+    SharingApp(
+        koinModule = module,
+        intentState = intentState
+    )
+}
+
 public class AndroidPlatformAdapter(
     private val context: Context,
     private val intentState: IntentState
