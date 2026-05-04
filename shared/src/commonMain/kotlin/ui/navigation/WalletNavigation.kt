@@ -106,7 +106,7 @@ fun WalletNavigation(
     val navigateBack: () -> Unit = {
         scope.launch {
             Napier.d("Navigate back")
-            val navigated = navController.navigateUp()
+            val navigated = navController.navigateUpOnMain()
             if (!navigated) {
                 Napier.w("Navigate up failed")
             }
@@ -117,11 +117,11 @@ fun WalletNavigation(
         scope.launch {
             pendingRoute?.let {
                 Napier.d("Replace current with $it")
-                navController.navigate(it) {
-                    popUpTo(navController.currentDestination?.id ?: return@navigate) { inclusive = true }
-                    launchSingleTop = true
+                if (navController.replaceCurrentOnMain(it)) {
+                    pendingRoute = null
+                } else {
+                    navigateBack()
                 }
-                pendingRoute = null
             } ?: run {
                 navigateBack()
             }
@@ -134,19 +134,19 @@ fun WalletNavigation(
                 is PrerequisiteRoute -> {
                     when (walletMain.capabilitiesService.evaluatePrerequisites(route.prerequisites).first()) {
                         true -> {
-                            navController.navigate(route)
+                            navController.navigateOnMain(route)
                         }
 
                         false -> {
                             pendingRoute = route
-                            navController.navigate(CapabilitiesRoute(route.prerequisites))
+                            navController.navigateOnMain(CapabilitiesRoute(route.prerequisites))
                         }
                     }
                 }
 
                 else -> {
                     Napier.d("Navigate to: $route")
-                    navController.navigate(route)
+                    navController.navigateOnMain(route)
                 }
             }
         }
@@ -155,14 +155,14 @@ fun WalletNavigation(
     val popBackStack: (Route) -> Unit = { route ->
         scope.launch {
             Napier.d("popBackStack: $route")
-            navController.popBackStack(route = route, inclusive = false)
+            navController.popBackStackOnMain(route)
         }
     }
 
     val navigateNewGraph: (Route) -> Unit = { route ->
         scope.launch {
             Napier.d("navigateNewGraph: $route")
-            navController.navigate(route) {
+            navController.navigateOnMain(route) {
                 popUpTo(0)
                 launchSingleTop = true
             }
