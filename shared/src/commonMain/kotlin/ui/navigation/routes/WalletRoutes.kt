@@ -6,7 +6,6 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.openid.SignatureRequestParameters
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.presentation.PresentationRequest
-import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import data.storage.StoreEntryId
 import kotlinx.serialization.Serializable
@@ -85,11 +84,11 @@ data class SigningQtspSelectionRoute(
     constructor(
         signatureRequestParameters: SignatureRequestParameters
     ) : this(
-        vckJsonSerializer.encodeToString(signatureRequestParameters)
+        joseCompliantSerializer.encodeToString(signatureRequestParameters)
     )
 
     val signatureRequestParameters: SignatureRequestParameters
-        get() = vckJsonSerializer.decodeFromString(signatureRequestParametersSerialized)
+        get() = joseCompliantSerializer.decodeFromString(signatureRequestParametersSerialized)
 }
 
 @Serializable
@@ -114,16 +113,16 @@ data class AuthenticationViewRoute(
         recipientLocation: String,
         isCrossDeviceFlow: Boolean,
     ) : this(
-        authenticationRequestParametersFromSerialized = vckJsonSerializer.encodeToString(authenticationRequest),
-        authorizationPreparationStateSerialized = vckJsonSerializer.encodeToString(authorizationResponsePreparationState),
+        authenticationRequestParametersFromSerialized = joseCompliantSerializer.encodeToString(authenticationRequest),
+        authorizationPreparationStateSerialized = joseCompliantSerializer.encodeToString(authorizationResponsePreparationState),
         recipientLocation = recipientLocation,
         isCrossDeviceFlow
     )
 
     val authenticationRequest: RequestParametersFrom<AuthenticationRequestParameters>
-        get() = vckJsonSerializer.decodeFromString(authenticationRequestParametersFromSerialized)
+        get() = joseCompliantSerializer.decodeFromString(authenticationRequestParametersFromSerialized)
     val authorizationResponsePreparationState: AuthorizationResponsePreparationState
-        get() = vckJsonSerializer.decodeFromString(authorizationPreparationStateSerialized)
+        get() = joseCompliantSerializer.decodeFromString(authorizationPreparationStateSerialized)
 }
 
 @Serializable
@@ -141,7 +140,7 @@ data class LocalPresentationAuthenticationConsentRoute(
     val presentationRequestSerialized: String
 ) : Route() {
     constructor(presentationRequest: PresentationRequest) : this(
-        vckJsonSerializer.encodeToString(presentationRequest)
+        joseCompliantSerializer.encodeToString(presentationRequest)
     )
 }
 
@@ -196,11 +195,11 @@ data class QrCodeScannerRoute(val modeSerialized: String) : PrerequisiteRoute(
     constructor(
         mode: QrCodeScannerMode
     ) : this(
-        vckJsonSerializer.encodeToString(mode)
+        joseCompliantSerializer.encodeToString(mode)
     )
 
     val mode: QrCodeScannerMode
-        get() = vckJsonSerializer.decodeFromString(modeSerialized)
+        get() = joseCompliantSerializer.decodeFromString(modeSerialized)
 }
 
 @Serializable
@@ -208,11 +207,11 @@ data class CapabilitiesRoute(val prerequisitesSerialized: String) : Route() {
     constructor(
         prerequisites: Set<RoutePrerequisites>,
     ) : this(
-        vckJsonSerializer.encodeToString(prerequisites)
+        joseCompliantSerializer.encodeToString(prerequisites)
     )
 
     val prerequisites: Set<RoutePrerequisites>
-        get() = vckJsonSerializer.decodeFromString(prerequisitesSerialized)
+        get() = joseCompliantSerializer.decodeFromString(prerequisitesSerialized)
 }
 
 @Serializable

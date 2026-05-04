@@ -19,7 +19,7 @@ import at.asitplus.signum.indispensable.josef.JwsSigned
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_sign_successful
 import at.asitplus.wallet.app.common.Configuration.DATASTORE_SIGNING_CONFIG
-import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import at.asitplus.wallet.lib.oidvci.formUrlEncode
@@ -101,7 +101,7 @@ class SigningService(
 
     private suspend fun importFromDataStore(): SigningConfig =
         catchingUnwrapped {
-            vckJsonSerializer.decodeFromString<SigningConfig>(
+            joseCompliantSerializer.decodeFromString<SigningConfig>(
                 dataStoreService.getPreference(
                     DATASTORE_SIGNING_CONFIG
                 ).first()!!
@@ -112,7 +112,7 @@ class SigningService(
     suspend fun exportToDataStore() {
         dataStoreService.setPreference(
             key = DATASTORE_SIGNING_CONFIG,
-            value = vckJsonSerializer.encodeToString(this.config)
+            value = joseCompliantSerializer.encodeToString(this.config)
         )
     }
 
@@ -204,7 +204,7 @@ class SigningService(
                 HttpHeaders.Authorization,
                 "${token.tokenType} ${token.accessToken}"
             )
-            setBody(vckJsonSerializer.encodeToString(signHashRequest))
+            setBody(joseCompliantSerializer.encodeToString(signHashRequest))
         }.body<QtspSignatureResponse>()
 
         val transactionTokens = this.transactionTokens
@@ -217,7 +217,7 @@ class SigningService(
         )
 
 
-        val signedDocList = vckJsonSerializer.encodeToJsonElement(
+        val signedDocList = joseCompliantSerializer.encodeToJsonElement(
             ListSerializer(ByteArrayBase64Serializer),
             signedDocuments.map { it.document })
 
@@ -275,7 +275,7 @@ class SigningService(
         return JwsSigned.deserialize(
             SignatureRequestParameters.serializer(),
             jwt,
-            vckJsonSerializer
+            joseCompliantSerializer
         ).getOrElse {
             throw Throwable("SigningService: Unable to parse SignatureRequestParameters", it)
         }.payload
@@ -307,16 +307,16 @@ class SigningService(
          * Cannot parse to [TokenResponseParameters] bc authorizationDetails are set but empty
          * also currently missing `expires_in`
          */
-        val tokenParsed = vckJsonSerializer.decodeFromString<JsonElement>(tokenResponse)
+        val tokenParsed = joseCompliantSerializer.decodeFromString<JsonElement>(tokenResponse)
 
         val tokenParsedMap = (tokenParsed as? JsonObject)?.mapValues {
             if (it.key != "authorization_details") it.value
             else JsonPrimitive(null)
         }?.toMutableMap() ?: mutableMapOf()
         tokenParsedMap["expires_in"] = JsonPrimitive(3600)
-        val tokenParsed2 = vckJsonSerializer.encodeToJsonElement(tokenParsedMap)
+        val tokenParsed2 = joseCompliantSerializer.encodeToJsonElement(tokenParsedMap)
         val tokenResponseParameters =
-            vckJsonSerializer.decodeFromJsonElement<TokenResponseParameters>(tokenParsed2)
+            joseCompliantSerializer.decodeFromJsonElement<TokenResponseParameters>(tokenParsed2)
         Napier.d { "$tokenResponse and $tokenParsed and $tokenResponseParameters" }
 
         return tokenResponseParameters
@@ -338,7 +338,7 @@ class SigningService(
                 HttpHeaders.Authorization,
                 "${token.tokenType} ${token.accessToken}"
             )
-            setBody(vckJsonSerializer.encodeToString(credentialListRequest))
+            setBody(joseCompliantSerializer.encodeToString(credentialListRequest))
         }
         val credentialListResponse = credentialResponse.body<CredentialListResponse>()
 
@@ -365,7 +365,7 @@ class SigningService(
                 HttpHeaders.Authorization,
                 "${token.tokenType} ${token.accessToken}"
             )
-            setBody(vckJsonSerializer.encodeToString(credentialInfoRequest))
+            setBody(joseCompliantSerializer.encodeToString(credentialInfoRequest))
         }
         val credInfo = credentialResponse.body<CredentialInfo>()
         return CredentialInfo(

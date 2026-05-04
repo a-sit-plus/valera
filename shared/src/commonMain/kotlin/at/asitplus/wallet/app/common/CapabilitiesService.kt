@@ -4,7 +4,7 @@ import at.asitplus.authcheckkit.AuthCheckKit
 import at.asitplus.authcheckkit.BiometricSecurityClass
 import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.Configuration.DATASTORE_CAPABILITIES_ATTESTATION
-import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import data.storage.DataStoreService
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
@@ -107,7 +107,7 @@ class RealCapabilitiesService(
 
     private suspend fun getAttestationPreference() =
         runCatching {
-            vckJsonSerializer.decodeFromString<Boolean>(
+            joseCompliantSerializer.decodeFromString<Boolean>(
                 dataStoreService.getPreference(DATASTORE_CAPABILITIES_ATTESTATION).first()!!
             )
         }
@@ -115,7 +115,7 @@ class RealCapabilitiesService(
 
     private suspend fun setAttestationPreference(value: Boolean) =
         dataStoreService.setPreference(
-            key = DATASTORE_CAPABILITIES_ATTESTATION, value = vckJsonSerializer.encodeToString(value)
+            key = DATASTORE_CAPABILITIES_ATTESTATION, value = joseCompliantSerializer.encodeToString(value)
         )
 
 
