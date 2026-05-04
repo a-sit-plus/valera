@@ -16,7 +16,7 @@ fun communicationsModule() = module {
     scope(named(SESSION_NAME)) {
         scopedOf(::ProvisioningService)
         scopedOf(::PresentationService)
+        scopedOf(::SigningService)
+        scopedOf(::DCAPIExportService)
     }
-    singleOf(::SigningService)
-    single { DCAPIExportService(get()) }
 }

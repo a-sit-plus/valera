@@ -15,6 +15,7 @@ kotlin {
             implementation(project(":shared"))
             implementation(libs.androidx.credentials)
             implementation(libs.androidx.credentials.registry.provider)
+            implementation(libs.koin.core)
 
             implementation(libs.multipaz)
             implementation(libs.datastore.preferences.core)

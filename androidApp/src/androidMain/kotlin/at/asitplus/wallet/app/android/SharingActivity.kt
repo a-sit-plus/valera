@@ -2,40 +2,52 @@ package at.asitplus.wallet.app.android
 
 import SharingView
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.credentials.registry.provider.RegistryManager
 import at.asitplus.wallet.app.android.dcapi.AndroidDCAPIInvocationData
-import at.asitplus.wallet.app.common.BuildContext
-import at.asitplus.wallet.app.common.BuildType
+import at.asitplus.wallet.app.common.IntentState
+import at.asitplus.wallet.app.common.SessionService
 import io.github.aakira.napier.Napier
+import org.koin.core.context.GlobalContext
 import org.multipaz.prompt.AndroidPromptModel
 import org.multipaz.prompt.PromptModel
 import ui.navigation.IntentService.Companion.PRESENTATION_REQUESTED_INTENT
 
 class SharingActivity : AbstractWalletActivity() {
-    private val intentState = SharingIntentStateHolder.intentState
+    private val intentState = IntentState()
+    private val buildContext by lazy { createBuildContext() }
+    private val promptModel: PromptModel by lazy {
+        AndroidPromptModel.Builder().apply { addCommonDialogs() }.build()
+    }
+    private lateinit var sessionService: SessionService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         intentState.finishApp = { finish() }
 
-        val promptModel: PromptModel by lazy {
-            AndroidPromptModel.Builder().apply { addCommonDialogs() }.build()
+        if (!::sessionService.isInitialized) {
+            sessionService = SessionService().apply {
+                initialize {
+                    createWalletSessionScope(
+                        koin = GlobalContext.get(),
+                        sessionName = "sharing",
+                        activity = this@SharingActivity,
+                        intentState = intentState,
+                        sessionService = this,
+                        buildContext = buildContext,
+                        promptModel = promptModel
+                    )
+                }
+            }
         }
 
         setContent {
             SharingView(
-                buildContext = BuildContext(
-                    buildType = BuildType.valueOf(BuildConfig.BUILD_TYPE.uppercase()),
-                    packageName = BuildConfig.APPLICATION_ID,
-                    versionCode = BuildConfig.VERSION_CODE,
-                    versionName = BuildConfig.VERSION_NAME,
-                    osVersion = "Android ${Build.VERSION.RELEASE}"
-                ),
+                buildContext = buildContext,
                 promptModel = promptModel,
-                intentState = intentState
+                intentState = intentState,
+                sessionService = sessionService
             )
         }
     }
@@ -70,5 +82,12 @@ class SharingActivity : AbstractWalletActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         populateLink(intent)
+    }
+
+    override fun onDestroy() {
+        if (::sessionService.isInitialized && isFinishing) {
+            sessionService.close()
+        }
+        super.onDestroy()
     }
 }
