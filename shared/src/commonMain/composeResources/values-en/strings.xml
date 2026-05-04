@@ -524,6 +524,7 @@
     <string name="refresh_dialog_message_multiple">A refreshments are required for several credentials. Would you like to update them now?</string>
     <string name="refresh_dialog_confirm">Update Now</string>
     <string name="refresh_dialog_dismiss">Later</string>
+    <string name="refresh_dialog_never_show_again">Never show again for this credential</string>
     <string name="error_no_refresh_token">No refresh token available</string>
     <string name="success_refreshed">Refreshed</string>
     <string name="success_reissued">Re-issued</string>
