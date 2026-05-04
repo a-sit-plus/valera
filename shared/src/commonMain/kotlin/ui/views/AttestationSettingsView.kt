@@ -135,7 +135,7 @@ fun AttestationSettingsView(
                             label = stringResource(Res.string.text_label_attestation_expiration)
                         )
                         LabeledText(
-                            text = "${it.payload.eudiWalletInfo?.keyStorageInfo?.storageType}",
+                            text = it.payload.keyStorage?.joinToString().orEmpty(),
                             label = stringResource(Res.string.text_label_attestation_storage_type)
                         )
                     }
