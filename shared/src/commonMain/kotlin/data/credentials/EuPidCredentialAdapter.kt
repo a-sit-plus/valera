@@ -200,37 +200,37 @@ private class EuPidCredentialVcAdapter(
         get() = credentialSubject.portrait
 
     override val ageAtLeast12: Boolean?
-        get() = credentialSubject.ageOver12
+        get() = null
 
     override val ageAtLeast13: Boolean?
-        get() = credentialSubject.ageOver13
+        get() = null
 
     override val ageAtLeast14: Boolean?
-        get() = credentialSubject.ageOver14
+        get() = null
 
     override val ageAtLeast16: Boolean?
-        get() = credentialSubject.ageOver16
+        get() = null
 
     override val ageAtLeast18: Boolean?
-        get() = credentialSubject.ageOver18
+        get() = null
 
     override val ageAtLeast21: Boolean?
-        get() = credentialSubject.ageOver21
+        get() = null
 
     override val ageAtLeast25: Boolean?
-        get() = credentialSubject.ageOver25
+        get() = null
 
     override val ageAtLeast60: Boolean?
-        get() = credentialSubject.ageOver60
+        get() = null
 
     override val ageAtLeast62: Boolean?
-        get() = credentialSubject.ageOver62
+        get() = null
 
     override val ageAtLeast65: Boolean?
-        get() = credentialSubject.ageOver65
+        get() = null
 
     override val ageAtLeast68: Boolean?
-        get() = credentialSubject.ageOver68
+        get() = null
 
     override val residentAddress: String?
         get() = credentialSubject.residentAddress
@@ -254,7 +254,7 @@ private class EuPidCredentialVcAdapter(
         get() = credentialSubject.residentState
 
     override val gender: String?
-        get() = credentialSubject.gender?.name
+        get() = null
 
     override val sex: String?
         get() = credentialSubject.sexAsEnum?.name
@@ -267,10 +267,10 @@ private class EuPidCredentialVcAdapter(
             ?: listOfNotNull(credentialSubject.nationality).ifEmpty { null }
 
     override val ageInYears: UInt?
-        get() = credentialSubject.ageInYears
+        get() = null
 
     override val ageBirthYear: UInt?
-        get() = credentialSubject.ageBirthYear
+        get() = null
 
     override val familyNameBirth: String?
         get() = credentialSubject.familyNameBirth
@@ -282,16 +282,16 @@ private class EuPidCredentialVcAdapter(
         get() = credentialSubject.placeOfBirth
 
     override val birthPlace: String?
-        get() = credentialSubject.birthPlace
+        get() = credentialSubject.placeOfBirth?.locality
 
     override val birthCountry: String?
-        get() = credentialSubject.birthCountry
+        get() = credentialSubject.placeOfBirth?.country
 
     override val birthState: String?
-        get() = credentialSubject.birthState
+        get() = credentialSubject.placeOfBirth?.region
 
     override val birthCity: String?
-        get() = credentialSubject.birthCity
+        get() = credentialSubject.placeOfBirth?.locality
 
     override val issuanceDate: LocalDateOrInstant
         get() = credentialSubject.issuanceDate
@@ -306,7 +306,7 @@ private class EuPidCredentialVcAdapter(
         get() = credentialSubject.documentNumber
 
     override val administrativeNumber: String?
-        get() = credentialSubject.administrativeNumber
+        get() = null
 
     override val issuingCountry: String
         get() = credentialSubject.issuingCountry
@@ -364,47 +364,47 @@ private class EuPidCredentialSdJwtAdapter(
 
     override val ageAtLeast12: Boolean?
         get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_12]?.booleanOrNull
-            ?: attributes[Attributes.AGE_OVER_12]?.booleanOrNull
+            ?: attributes[EuPidLegacyAttributes.AGE_OVER_12]?.booleanOrNull
 
     override val ageAtLeast13: Boolean?
         get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_13]?.booleanOrNull
-            ?: attributes[Attributes.AGE_OVER_13]?.booleanOrNull
+            ?: attributes[EuPidLegacyAttributes.AGE_OVER_13]?.booleanOrNull
 
     override val ageAtLeast14: Boolean?
         get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_14]?.booleanOrNull
-            ?: attributes[Attributes.AGE_OVER_14]?.booleanOrNull
+            ?: attributes[EuPidLegacyAttributes.AGE_OVER_14]?.booleanOrNull
 
     override val ageAtLeast16: Boolean?
         get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_16]?.booleanOrNull
-            ?: attributes[Attributes.AGE_OVER_16]?.booleanOrNull
+            ?: attributes[EuPidLegacyAttributes.AGE_OVER_16]?.booleanOrNull
 
     override val ageAtLeast18: Boolean?
         get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_18]?.booleanOrNull
-            ?: attributes[Attributes.AGE_OVER_18]?.booleanOrNull
+            ?: attributes[EuPidLegacyAttributes.AGE_OVER_18]?.booleanOrNull
 
     override val ageAtLeast21: Boolean?
         get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_21]?.booleanOrNull
-            ?: attributes[Attributes.AGE_OVER_21]?.booleanOrNull
+            ?: attributes[EuPidLegacyAttributes.AGE_OVER_21]?.booleanOrNull
 
     override val ageAtLeast25: Boolean?
         get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_25]?.booleanOrNull
-            ?: attributes[Attributes.AGE_OVER_25]?.booleanOrNull
+            ?: attributes[EuPidLegacyAttributes.AGE_OVER_25]?.booleanOrNull
 
     override val ageAtLeast60: Boolean?
         get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_60]?.booleanOrNull
-            ?: attributes[Attributes.AGE_OVER_60]?.booleanOrNull
+            ?: attributes[EuPidLegacyAttributes.AGE_OVER_60]?.booleanOrNull
 
     override val ageAtLeast62: Boolean?
         get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_62]?.booleanOrNull
-            ?: attributes[Attributes.AGE_OVER_62]?.booleanOrNull
+            ?: attributes[EuPidLegacyAttributes.AGE_OVER_62]?.booleanOrNull
 
     override val ageAtLeast65: Boolean?
         get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_65]?.booleanOrNull
-            ?: attributes[Attributes.AGE_OVER_65]?.booleanOrNull
+            ?: attributes[EuPidLegacyAttributes.AGE_OVER_65]?.booleanOrNull
 
     override val ageAtLeast68: Boolean?
         get() = attributes[SdJwtAttributes.AGE_EQUAL_OR_OVER_68]?.booleanOrNull
-            ?: attributes[Attributes.AGE_OVER_68]?.booleanOrNull
+            ?: attributes[EuPidLegacyAttributes.AGE_OVER_68]?.booleanOrNull
 
     override val residentAddress: String?
         get() = (complexJson?.get(SdJwtAttributes.PREFIX_ADDRESS) as? JsonObject?)
@@ -449,9 +449,9 @@ private class EuPidCredentialSdJwtAdapter(
             ?: attributes[Attributes.RESIDENT_STATE]?.contentOrNull
 
     override val gender: String?
-        get() = attributes[Attributes.GENDER]?.contentOrNull?.toIntOrNull()
+        get() = attributes[EuPidLegacyAttributes.GENDER]?.contentOrNull?.toIntOrNull()
             ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code.toUInt() }?.name }
-            ?: attributes[Attributes.GENDER]?.contentOrNull
+            ?: attributes[EuPidLegacyAttributes.GENDER]?.contentOrNull
 
     override val sex: String?
         get() = attributes[SdJwtAttributes.SEX]?.contentOrNull?.toIntOrNull()
@@ -470,11 +470,11 @@ private class EuPidCredentialSdJwtAdapter(
 
     override val ageInYears: UInt?
         get() = attributes[SdJwtAttributes.AGE_IN_YEARS]?.contentOrNull?.toUIntOrNull()
-            ?: attributes[Attributes.AGE_IN_YEARS]?.contentOrNull?.toUIntOrNull()
+            ?: attributes[EuPidLegacyAttributes.AGE_IN_YEARS]?.contentOrNull?.toUIntOrNull()
 
     override val ageBirthYear: UInt?
         get() = attributes[SdJwtAttributes.AGE_BIRTH_YEAR]?.contentOrNull?.toUIntOrNull()
-            ?: attributes[Attributes.AGE_BIRTH_YEAR]?.contentOrNull?.toUIntOrNull()
+            ?: attributes[EuPidLegacyAttributes.AGE_BIRTH_YEAR]?.contentOrNull?.toUIntOrNull()
 
     override val familyNameBirth: String?
         get() = attributes[SdJwtAttributes.FAMILY_NAME_BIRTH]?.contentOrNull
@@ -491,25 +491,25 @@ private class EuPidCredentialSdJwtAdapter(
 
     override val birthPlace: String?
         get() = attributes[SdJwtAttributes.PLACE_OF_BIRTH_LOCALITY]?.contentOrNull
-            ?: attributes[Attributes.BIRTH_PLACE]?.contentOrNull
+            ?: attributes[EuPidLegacyAttributes.BIRTH_PLACE]?.contentOrNull
 
     override val birthCountry: String?
         get() = (complexJson?.get(SdJwtAttributes.PREFIX_PLACE_OF_BIRTH) as? JsonObject?)
             ?.get(SdJwtAttributes.PlaceOfBirth.COUNTRY)?.content()
             ?: attributes[SdJwtAttributes.PLACE_OF_BIRTH_COUNTRY]?.contentOrNull
-            ?: attributes[Attributes.BIRTH_COUNTRY]?.contentOrNull
+            ?: attributes[EuPidLegacyAttributes.BIRTH_COUNTRY]?.contentOrNull
 
     override val birthState: String?
         get() = (complexJson?.get(SdJwtAttributes.PREFIX_PLACE_OF_BIRTH) as? JsonObject?)
             ?.get(SdJwtAttributes.PlaceOfBirth.REGION)?.content()
             ?: attributes[SdJwtAttributes.PLACE_OF_BIRTH_REGION]?.contentOrNull
-            ?: attributes[Attributes.BIRTH_STATE]?.contentOrNull
+            ?: attributes[EuPidLegacyAttributes.BIRTH_STATE]?.contentOrNull
 
     override val birthCity: String?
         get() = (complexJson?.get(SdJwtAttributes.PREFIX_PLACE_OF_BIRTH) as? JsonObject?)
             ?.get(SdJwtAttributes.PlaceOfBirth.LOCALITY)?.content()
             ?: attributes[SdJwtAttributes.PLACE_OF_BIRTH_LOCALITY]?.contentOrNull
-            ?: attributes[Attributes.BIRTH_CITY]?.contentOrNull
+            ?: attributes[EuPidLegacyAttributes.BIRTH_CITY]?.contentOrNull
 
     override val issuanceDate: LocalDateOrInstant?
         get() = attributes[SdJwtAttributes.ISSUANCE_DATE]?.contentOrNull?.toLocalDateOrInstantOrNull()
@@ -528,7 +528,7 @@ private class EuPidCredentialSdJwtAdapter(
             ?: attributes[Attributes.DOCUMENT_NUMBER]?.contentOrNull
 
     override val administrativeNumber: String?
-        get() = attributes[Attributes.ADMINISTRATIVE_NUMBER]?.contentOrNull
+        get() = attributes[EuPidLegacyAttributes.ADMINISTRATIVE_NUMBER]?.contentOrNull
 
     override val issuingCountry: String?
         get() = attributes[SdJwtAttributes.ISSUING_COUNTRY]?.contentOrNull
@@ -558,7 +558,7 @@ private class EuPidCredentialSdJwtAdapter(
         get() = attributes[Attributes.LOCATION_STATUS]?.contentOrNull
 
     override val portraitCaptureDate: LocalDate?
-        get() = attributes[Attributes.PORTRAIT_CAPTURE_DATE]?.contentOrNull?.toLocalDateOrNull()
+        get() = attributes[EuPidLegacyAttributes.PORTRAIT_CAPTURE_DATE]?.contentOrNull?.toLocalDateOrNull()
 }
 
 class EuPidCredentialIsoMdocAdapter(
@@ -591,37 +591,37 @@ class EuPidCredentialIsoMdocAdapter(
         }
 
     override val ageAtLeast12: Boolean?
-        get() = euPidNamespace?.get(Attributes.AGE_OVER_12) as? Boolean?
+        get() = euPidNamespace?.get(EuPidLegacyAttributes.AGE_OVER_12) as? Boolean?
 
     override val ageAtLeast13: Boolean?
-        get() = euPidNamespace?.get(Attributes.AGE_OVER_13) as? Boolean?
+        get() = euPidNamespace?.get(EuPidLegacyAttributes.AGE_OVER_13) as? Boolean?
 
     override val ageAtLeast14: Boolean?
-        get() = euPidNamespace?.get(Attributes.AGE_OVER_14) as? Boolean?
+        get() = euPidNamespace?.get(EuPidLegacyAttributes.AGE_OVER_14) as? Boolean?
 
     override val ageAtLeast16: Boolean?
-        get() = euPidNamespace?.get(Attributes.AGE_OVER_16) as? Boolean?
+        get() = euPidNamespace?.get(EuPidLegacyAttributes.AGE_OVER_16) as? Boolean?
 
     override val ageAtLeast18: Boolean?
-        get() = euPidNamespace?.get(Attributes.AGE_OVER_18) as? Boolean?
+        get() = euPidNamespace?.get(EuPidLegacyAttributes.AGE_OVER_18) as? Boolean?
 
     override val ageAtLeast21: Boolean?
-        get() = euPidNamespace?.get(Attributes.AGE_OVER_21) as? Boolean?
+        get() = euPidNamespace?.get(EuPidLegacyAttributes.AGE_OVER_21) as? Boolean?
 
     override val ageAtLeast25: Boolean?
-        get() = euPidNamespace?.get(Attributes.AGE_OVER_25) as? Boolean?
+        get() = euPidNamespace?.get(EuPidLegacyAttributes.AGE_OVER_25) as? Boolean?
 
     override val ageAtLeast60: Boolean?
-        get() = euPidNamespace?.get(Attributes.AGE_OVER_60) as? Boolean?
+        get() = euPidNamespace?.get(EuPidLegacyAttributes.AGE_OVER_60) as? Boolean?
 
     override val ageAtLeast62: Boolean?
-        get() = euPidNamespace?.get(Attributes.AGE_OVER_62) as? Boolean?
+        get() = euPidNamespace?.get(EuPidLegacyAttributes.AGE_OVER_62) as? Boolean?
 
     override val ageAtLeast65: Boolean?
-        get() = euPidNamespace?.get(Attributes.AGE_OVER_65) as? Boolean?
+        get() = euPidNamespace?.get(EuPidLegacyAttributes.AGE_OVER_65) as? Boolean?
 
     override val ageAtLeast68: Boolean?
-        get() = euPidNamespace?.get(Attributes.AGE_OVER_68) as? Boolean?
+        get() = euPidNamespace?.get(EuPidLegacyAttributes.AGE_OVER_68) as? Boolean?
 
     override val residentAddress: String?
         get() = euPidNamespace?.get(Attributes.RESIDENT_ADDRESS) as? String?
@@ -645,12 +645,12 @@ class EuPidCredentialIsoMdocAdapter(
         get() = euPidNamespace?.get(Attributes.RESIDENT_STATE) as? String?
 
     override val gender: String?
-        get() = (euPidNamespace?.get(Attributes.GENDER) as? IsoIec5218Gender)?.name
-            ?: (euPidNamespace?.get(Attributes.GENDER) as? Int)
+        get() = (euPidNamespace?.get(EuPidLegacyAttributes.GENDER) as? IsoIec5218Gender)?.name
+            ?: (euPidNamespace?.get(EuPidLegacyAttributes.GENDER) as? Int)
                 ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code.toUInt() }?.name }
-            ?: (euPidNamespace?.get(Attributes.GENDER) as? UInt)
+            ?: (euPidNamespace?.get(EuPidLegacyAttributes.GENDER) as? UInt)
                 ?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code }?.name }
-            ?: euPidNamespace?.get(Attributes.GENDER) as? String?
+            ?: euPidNamespace?.get(EuPidLegacyAttributes.GENDER) as? String?
 
     override val sex: String?
         get() = (euPidNamespace?.get(Attributes.SEX) as? UInt)
@@ -664,10 +664,10 @@ class EuPidCredentialIsoMdocAdapter(
             ?: listOfNotNull(nationality).ifEmpty { null }
 
     override val ageInYears: UInt?
-        get() = euPidNamespace?.get(Attributes.AGE_IN_YEARS) as UInt?
+        get() = euPidNamespace?.get(EuPidLegacyAttributes.AGE_IN_YEARS) as UInt?
 
     override val ageBirthYear: UInt?
-        get() = euPidNamespace?.get(Attributes.AGE_BIRTH_YEAR) as UInt?
+        get() = euPidNamespace?.get(EuPidLegacyAttributes.AGE_BIRTH_YEAR) as UInt?
 
     override val familyNameBirth: String?
         get() = euPidNamespace?.get(Attributes.FAMILY_NAME_BIRTH) as? String?
@@ -679,16 +679,20 @@ class EuPidCredentialIsoMdocAdapter(
         get() = euPidNamespace?.get(Attributes.PLACE_OF_BIRTH) as? PlaceOfBirth?
 
     override val birthPlace: String?
-        get() = euPidNamespace?.get(Attributes.BIRTH_PLACE) as? String?
+        get() = euPidNamespace?.get(EuPidLegacyAttributes.BIRTH_PLACE) as? String?
+            ?: placeOfBirth?.locality
 
     override val birthCountry: String?
-        get() = euPidNamespace?.get(Attributes.BIRTH_COUNTRY) as? String?
+        get() = euPidNamespace?.get(EuPidLegacyAttributes.BIRTH_COUNTRY) as? String?
+            ?: placeOfBirth?.country
 
     override val birthState: String?
-        get() = euPidNamespace?.get(Attributes.BIRTH_STATE) as? String?
+        get() = euPidNamespace?.get(EuPidLegacyAttributes.BIRTH_STATE) as? String?
+            ?: placeOfBirth?.region
 
     override val birthCity: String?
-        get() = euPidNamespace?.get(Attributes.BIRTH_CITY) as? String?
+        get() = euPidNamespace?.get(EuPidLegacyAttributes.BIRTH_CITY) as? String?
+            ?: placeOfBirth?.locality
 
     override val issuanceDate: LocalDateOrInstant?
         get() = euPidNamespace?.get(Attributes.ISSUANCE_DATE) as? LocalDateOrInstant?
@@ -711,7 +715,7 @@ class EuPidCredentialIsoMdocAdapter(
         get() = euPidNamespace?.get(Attributes.DOCUMENT_NUMBER) as? String?
 
     override val administrativeNumber: String?
-        get() = euPidNamespace?.get(Attributes.ADMINISTRATIVE_NUMBER) as? String?
+        get() = euPidNamespace?.get(EuPidLegacyAttributes.ADMINISTRATIVE_NUMBER) as? String?
 
     override val issuingCountry: String?
         get() = euPidNamespace?.get(Attributes.ISSUING_COUNTRY) as? String?
@@ -735,5 +739,5 @@ class EuPidCredentialIsoMdocAdapter(
         get() = euPidNamespace?.get(Attributes.LOCATION_STATUS) as? String?
 
     override val portraitCaptureDate: LocalDate?
-        get() = euPidNamespace?.get(Attributes.LOCATION_STATUS)?.toLocalDateOrNull()
+        get() = euPidNamespace?.get(EuPidLegacyAttributes.PORTRAIT_CAPTURE_DATE)?.toLocalDateOrNull()
 }
