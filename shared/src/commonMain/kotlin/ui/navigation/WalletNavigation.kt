@@ -19,6 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -48,12 +49,9 @@ import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult
 import data.storage.StoreEntryId
 import io.github.aakira.napier.Napier
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
 import org.koin.compose.koinInject
 import org.koin.core.scope.Scope
@@ -92,7 +90,8 @@ fun WalletNavigation(
 ) {
     val navController: NavHostController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
-    var pendingRoute: Route? = null
+    var pendingRoute by remember { mutableStateOf<Route?>(null) }
+    val scope = rememberCoroutineScope()
 
     val initialLink = remember {
         intentState.appLink.value.also { link ->
@@ -105,7 +104,7 @@ fun WalletNavigation(
     }
 
     val navigateBack: () -> Unit = {
-        CoroutineScope(Dispatchers.Main).launch {
+        scope.launch {
             Napier.d("Navigate back")
             val navigated = navController.navigateUp()
             if (!navigated) {
@@ -115,7 +114,7 @@ fun WalletNavigation(
     }
 
     val navigatePending: () -> Unit = {
-        CoroutineScope(Dispatchers.Main).launch {
+        scope.launch {
             pendingRoute?.let {
                 Napier.d("Replace current with $it")
                 navController.navigate(it) {
@@ -130,7 +129,7 @@ fun WalletNavigation(
     }
 
     val navigate: (Route) -> Unit = { route ->
-        CoroutineScope(Dispatchers.Main).launch {
+        scope.launch {
             when (route) {
                 is PrerequisiteRoute -> {
                     when (walletMain.capabilitiesService.evaluatePrerequisites(route.prerequisites).first()) {
@@ -154,14 +153,14 @@ fun WalletNavigation(
     }
 
     val popBackStack: (Route) -> Unit = { route ->
-        CoroutineScope(Dispatchers.Main).launch {
+        scope.launch {
             Napier.d("popBackStack: $route")
             navController.popBackStack(route = route, inclusive = false)
         }
     }
 
     val navigateNewGraph: (Route) -> Unit = { route ->
-        CoroutineScope(Dispatchers.Main).launch {
+        scope.launch {
             Napier.d("navigateNewGraph: $route")
             navController.navigate(route) {
                 popUpTo(0)
@@ -209,7 +208,7 @@ fun WalletNavigation(
     }
 
     val returnToHome: () -> Unit = {
-        CoroutineScope(Dispatchers.Main).launch {
+        scope.launch {
             if (hasHomeScreenInBackStack()) {
                 popBackStack(HomeScreenRoute)
             } else {
@@ -585,176 +584,167 @@ private fun WalletNavHost(
         }
 
         composable<LoadCredentialRoute> { backStackEntry ->
-            remember {
-                runBlocking {
-                    runCatching {
-                        LoadCredentialViewModel.init(
-                            walletMain = walletMain,
-                            navigateUp = navigateBack,
-                            hostString = backStackEntry.toRoute<LoadCredentialRoute>().host,
-                            onSubmit = { credentialIdentifierInfo, _, _ ->
-                                returnToHome()
-                                walletMain.scope.launch {
-                                    walletMain.startProvisioning(
-                                        host = backStackEntry.toRoute<LoadCredentialRoute>().host,
-                                        credentialIdentifierInfo = credentialIdentifierInfo,
-                                    ) {}
-                                }
-
-                            },
-                            onClickLogo = onClickLogo,
-                            onClickSettings = { navigate(SettingsRoute) })
-                    }.getOrElse {
-                        returnToHome()
-                        walletMain.errorService.emit(it)
-                        null
-                    }
+            var vm by remember { mutableStateOf<LoadCredentialViewModel?>(null) }
+            LaunchedEffect(Unit) {
+                runCatching {
+                    LoadCredentialViewModel.init(
+                        walletMain = walletMain,
+                        navigateUp = navigateBack,
+                        hostString = backStackEntry.toRoute<LoadCredentialRoute>().host,
+                        onSubmit = { credentialIdentifierInfo, _, _ ->
+                            returnToHome()
+                            walletMain.scope.launch {
+                                walletMain.startProvisioning(
+                                    host = backStackEntry.toRoute<LoadCredentialRoute>().host,
+                                    credentialIdentifierInfo = credentialIdentifierInfo,
+                                ) {}
+                            }
+                        },
+                        onClickLogo = onClickLogo,
+                        onClickSettings = { navigate(SettingsRoute) })
+                }.onSuccess { vm = it }
+                 .onFailure {
+                    returnToHome()
+                    walletMain.errorService.emit(it)
                 }
-            }?.let { vm ->
-                LoadCredentialView(vm)
             }
+            vm?.let { LoadCredentialView(it) } ?: LoadingView()
         }
 
         composable<AddCredentialWithLinkRoute> { backStackEntry ->
-            remember {
-                runBlocking {
-                    runCatching {
-                        LoadCredentialViewModel.init(
-                            walletMain = walletMain,
-                            navigateUp = navigateBack,
-                            url = backStackEntry.toRoute<AddCredentialWithLinkRoute>().uri,
-                            onSubmit = { credentialIdentifierInfo, transactionCode, offer ->
-                                returnToHome()
-                                navigate(LoadingRoute)
-                                walletMain.scope.launch {
-                                    try {
-                                        walletMain.provisioningService.loadCredentialWithOffer(
-                                            credentialOffer = offer!!,
-                                            credentialIdentifierInfo = credentialIdentifierInfo,
-                                            transactionCode = transactionCode?.ifEmpty { null }
-                                                ?.ifBlank { null },
-                                        )
-                                        returnToHome()
-                                    } catch (e: Throwable) {
-                                        returnToHome()
-                                        walletMain.errorService.emit(e)
-                                    }
+            var vm by remember { mutableStateOf<LoadCredentialViewModel?>(null) }
+            LaunchedEffect(Unit) {
+                runCatching {
+                    LoadCredentialViewModel.init(
+                        walletMain = walletMain,
+                        navigateUp = navigateBack,
+                        url = backStackEntry.toRoute<AddCredentialWithLinkRoute>().uri,
+                        onSubmit = { credentialIdentifierInfo, transactionCode, offer ->
+                            returnToHome()
+                            navigate(LoadingRoute)
+                            walletMain.scope.launch {
+                                try {
+                                    walletMain.provisioningService.loadCredentialWithOffer(
+                                        credentialOffer = offer!!,
+                                        credentialIdentifierInfo = credentialIdentifierInfo,
+                                        transactionCode = transactionCode?.ifEmpty { null }
+                                            ?.ifBlank { null },
+                                    )
+                                    returnToHome()
+                                } catch (e: Throwable) {
+                                    returnToHome()
+                                    walletMain.errorService.emit(e)
                                 }
-                            },
-                            onClickLogo = onClickLogo,
-                            onClickSettings = { navigate(SettingsRoute) }
-                        )
-                    }.getOrElse {
-                        returnToHome()
-                        walletMain.errorService.emit(it)
-                        null
-                    }
+                            }
+                        },
+                        onClickLogo = onClickLogo,
+                        onClickSettings = { navigate(SettingsRoute) }
+                    )
+                }.onSuccess { vm = it }
+                 .onFailure {
+                    returnToHome()
+                    walletMain.errorService.emit(it)
                 }
-            }?.let { vm ->
-                LoadCredentialView(vm)
             }
+            vm?.let { LoadCredentialView(it) } ?: LoadingView()
         }
 
         composable<AddCredentialPreAuthnRoute> { backStackEntry ->
             val offer = backStackEntry.toRoute<AddCredentialPreAuthnRoute>().credentialOffer
-            remember {
-                runBlocking {
-                    runCatching {
-                        LoadCredentialViewModel.init(
-                            walletMain = walletMain,
-                            navigateUp = navigateBack,
-                            offer = offer,
-                            onSubmit = { credentialIdentifierInfo, transactionCode, _ ->
-                                returnToHome()
-                                navigate(LoadingRoute)
-                                walletMain.scope.launch {
-                                    try {
-                                        walletMain.provisioningService.loadCredentialWithOffer(
-                                            credentialOffer = offer,
-                                            credentialIdentifierInfo = credentialIdentifierInfo,
-                                            transactionCode = transactionCode?.ifEmpty { null }
-                                                ?.ifBlank { null },
-                                        )
-                                        returnToHome()
-                                    } catch (e: Throwable) {
-                                        returnToHome()
-                                        walletMain.errorService.emit(e)
-                                    }
-                                }
-                            },
-                            onClickLogo = onClickLogo,
-                            onClickSettings = { navigate(SettingsRoute) }
-                        )
-                    }.getOrElse {
-                        returnToHome()
-                        walletMain.errorService.emit(it)
-                        null
-                    }
-                }
-            }?.let { vm ->
-                LoadCredentialView(vm)
-            }
-        }
-
-        composable<AddCredentialDcApiRoute> { backStackEntry ->
-            val offer = backStackEntry.toRoute<AddCredentialDcApiRoute>().credentialOffer
-            remember {
-                runBlocking {
-                    runCatching {
-                        lateinit var dcapiVm: LoadCredentialViewModel
-                        val onSubmit: CredentialSelection = { credentialIdentifierInfo, transactionCode, _ ->
+            var vm by remember { mutableStateOf<LoadCredentialViewModel?>(null) }
+            LaunchedEffect(Unit) {
+                runCatching {
+                    LoadCredentialViewModel.init(
+                        walletMain = walletMain,
+                        navigateUp = navigateBack,
+                        offer = offer,
+                        onSubmit = { credentialIdentifierInfo, transactionCode, _ ->
+                            returnToHome()
                             navigate(LoadingRoute)
                             walletMain.scope.launch {
                                 try {
-                                    val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
+                                    walletMain.provisioningService.loadCredentialWithOffer(
                                         credentialOffer = offer,
                                         credentialIdentifierInfo = credentialIdentifierInfo,
                                         transactionCode = transactionCode?.ifEmpty { null }
                                             ?.ifBlank { null },
-                                        authorizationServerMetadata = offer.authorizationServerMetadata
                                     )
-                                    if (issuanceResult is CredentialIssuanceResult.Success) {
-                                        navigate(AddCredentialDcApiSuccessRoute)
-                                    } else {
-                                        dcapiVm.handleDCAPIIssuingResult(false, null)
-                                    }
+                                    returnToHome()
                                 } catch (e: Throwable) {
-                                    dcapiVm.handleDCAPIIssuingResult(false, e)
+                                    returnToHome()
+                                    walletMain.errorService.emit(e)
                                 }
                             }
-                        }
-                        LoadCredentialViewModel.initFromDcApi(
-                            walletMain = walletMain,
-                            navigateUp = { intentState.finishApp?.invoke() ?: navigateBack() },
-                            offer = offer,
-                            onSubmit = onSubmit,
-                            onClickLogo = onClickLogo,
-                            onClickSettings = { navigate(SettingsRoute) }
-                        ).also { dcapiVm = it }
-                    }.getOrElse {
-                        val wrapped = ErrorHandlingOverrideException(
-                            resetStackOverride = {
-                                intentState.finishApp?.invoke() ?: navigateBack()
-                            },
-                            actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
-                            onAcknowledge = {
-                                if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
-                                    val response = vckJsonSerializer.encodeToString(
-                                        DigitalCredentialOfferReturn.error(status = "offer_declined")
-                                    )
-                                    walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, false)
-                                }
-                                intentState.finishApp?.invoke() ?: navigateBack()
-                            },
-                            cause = it
-                        )
-                        walletMain.errorService.emit(wrapped)
-                        null
-                    }
+                        },
+                        onClickLogo = onClickLogo,
+                        onClickSettings = { navigate(SettingsRoute) }
+                    )
+                }.onSuccess { vm = it }
+                 .onFailure {
+                    returnToHome()
+                    walletMain.errorService.emit(it)
                 }
-            }?.let { vm ->
-                LoadCredentialView(vm)
             }
+            vm?.let { LoadCredentialView(it) } ?: LoadingView()
+        }
+
+        composable<AddCredentialDcApiRoute> { backStackEntry ->
+            val offer = backStackEntry.toRoute<AddCredentialDcApiRoute>().credentialOffer
+            var vm by remember { mutableStateOf<LoadCredentialViewModel?>(null) }
+            LaunchedEffect(Unit) {
+                runCatching {
+                    lateinit var dcapiVm: LoadCredentialViewModel
+                    val onSubmit: CredentialSelection = { credentialIdentifierInfo, transactionCode, _ ->
+                        navigate(LoadingRoute)
+                        walletMain.scope.launch {
+                            try {
+                                val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
+                                    credentialOffer = offer,
+                                    credentialIdentifierInfo = credentialIdentifierInfo,
+                                    transactionCode = transactionCode?.ifEmpty { null }
+                                        ?.ifBlank { null },
+                                    authorizationServerMetadata = offer.authorizationServerMetadata
+                                )
+                                if (issuanceResult is CredentialIssuanceResult.Success) {
+                                    navigate(AddCredentialDcApiSuccessRoute)
+                                } else {
+                                    dcapiVm.handleDCAPIIssuingResult(false, null)
+                                }
+                            } catch (e: Throwable) {
+                                dcapiVm.handleDCAPIIssuingResult(false, e)
+                            }
+                        }
+                    }
+                    LoadCredentialViewModel.initFromDcApi(
+                        walletMain = walletMain,
+                        navigateUp = { intentState.finishApp?.invoke() ?: navigateBack() },
+                        offer = offer,
+                        onSubmit = onSubmit,
+                        onClickLogo = onClickLogo,
+                        onClickSettings = { navigate(SettingsRoute) }
+                    ).also { dcapiVm = it }
+                }.onSuccess { vm = it }
+                 .onFailure {
+                    val wrapped = ErrorHandlingOverrideException(
+                        resetStackOverride = {
+                            intentState.finishApp?.invoke() ?: navigateBack()
+                        },
+                        actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
+                        onAcknowledge = {
+                            if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
+                                val response = vckJsonSerializer.encodeToString(
+                                    DigitalCredentialOfferReturn.error(status = "offer_declined")
+                                )
+                                walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, false)
+                            }
+                            intentState.finishApp?.invoke() ?: navigateBack()
+                        },
+                        cause = it
+                    )
+                    walletMain.errorService.emit(wrapped)
+                }
+            }
+            vm?.let { LoadCredentialView(it) } ?: LoadingView()
         }
 
         composable<AddCredentialDcApiSuccessRoute> {
@@ -867,7 +857,7 @@ private fun WalletNavHost(
                 SigningQtspSelectionViewModel(
                     navigateUp = navigateBack,
                     onContinue = { signatureRequestParameters ->
-                        CoroutineScope(Dispatchers.Main).launch {
+                        walletMain.scope.launch {
                             try {
                                 walletMain.signingService.start(signatureRequestParameters)
                             } catch (e: Throwable) {
