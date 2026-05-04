@@ -29,7 +29,7 @@ struct ContentView: View {
         ComposeView()
                 .ignoresSafeArea(.all)
                 .onOpenURL { url in
-                    Main_iosKt.getIosIntentState().appLink.setValue(url.absoluteString)
+                    IosSessionBridge.shared.handleIncomingUrl(url: url.absoluteString)
                 }
     }
 }
