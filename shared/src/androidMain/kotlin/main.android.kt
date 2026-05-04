@@ -25,6 +25,7 @@ import androidx.credentials.registry.provider.selectedEntryId
 import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.dcapi.DCAPIResponse
+import at.asitplus.dcapi.DigitalCredentialInterface
 import at.asitplus.dcapi.EncryptedResponse
 import at.asitplus.dcapi.IsoMdocResponse
 import at.asitplus.dcapi.request.DCAPIWalletRequest
@@ -369,9 +370,9 @@ public class AndroidPlatformAdapter(
             intentState.dcapiInvocationData.value = null
             Napier.d("Returning response $response to digital credentials API invoker")
             val dcApiResponse = DCAPIResponse(response)
-            val isoMdocResponse = IsoMdocResponse(dcApiResponse)
-            // The current version of dc api library requires returning the DCAPIResponse instead of the IsoMdocResponse, otherwise there will be two data elements in the response
-            val serializedResponse = vckJsonSerializer.encodeToString(dcApiResponse)
+            // Needs to be cast to DigitalCredentialInterface so that protocol member is serialized
+            val isoMdocResponse: DigitalCredentialInterface = IsoMdocResponse(dcApiResponse)
+            val serializedResponse = vckJsonSerializer.encodeToString(isoMdocResponse)
             Napier.d("Returning response $serializedResponse")
             sendCredentialResponseToInvoker(serializedResponse, success)
         } ?: throw IllegalStateException("Callback for response not found")
