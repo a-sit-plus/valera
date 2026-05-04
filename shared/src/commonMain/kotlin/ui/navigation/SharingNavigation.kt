@@ -32,7 +32,6 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.dcapi.issuance.DigitalCredentialOfferReturn
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_error_action_return_to_invoker
-import at.asitplus.valera.resources.snackbar_reset_app_successfully
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.SnackbarService
@@ -44,7 +43,6 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.getString
 import org.koin.compose.koinInject
 import org.koin.core.scope.Scope
 import ui.navigation.IntentService.Companion.CREATE_CREDENTIAL_INTENT
@@ -88,7 +86,7 @@ fun SharingNavigation(
 
     val navigateBack: () -> Unit = {
         scope.launch {
-            if (!navController.navigateUp()) {
+            if (!navController.navigateUpOnMain()) {
                 intentState.finishApp?.invoke()
             }
         }
@@ -98,11 +96,11 @@ fun SharingNavigation(
         scope.launch {
             pendingRoute?.let {
                 Napier.d("Replace current with $it")
-                navController.navigate(it) {
-                    popUpTo(navController.currentDestination?.id ?: return@navigate) { inclusive = true }
-                    launchSingleTop = true
+                if (navController.replaceCurrentOnMain(it)) {
+                    pendingRoute = null
+                } else {
+                    navigateBack()
                 }
-                pendingRoute = null
             } ?: run {
                 navigateBack()
             }
@@ -114,16 +112,16 @@ fun SharingNavigation(
             when (route) {
                 is PrerequisiteRoute -> {
                     when (walletMain.capabilitiesService.evaluatePrerequisites(route.prerequisites).first()) {
-                        true -> navController.navigate(route)
+                        true -> navController.navigateOnMain(route)
                         false -> {
                             pendingRoute = route
-                            navController.navigate(CapabilitiesRoute(route.prerequisites))
+                            navController.navigateOnMain(CapabilitiesRoute(route.prerequisites))
                         }
                     }
                 }
                 else -> {
                     Napier.d("SharingNavigation navigate: $route")
-                    navController.navigate(route)
+                    navController.navigateOnMain(route)
                 }
             }
         }
@@ -131,13 +129,13 @@ fun SharingNavigation(
 
     val popBackStack: (Route) -> Unit = { route ->
         scope.launch {
-            navController.popBackStack(route = route, inclusive = false)
+            navController.popBackStackOnMain(route)
         }
     }
 
     val navigateNewGraph: (Route) -> Unit = { route ->
         scope.launch {
-            navController.navigate(route) {
+            navController.navigateOnMain(route) {
                 popUpTo(0)
                 launchSingleTop = true
             }
