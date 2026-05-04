@@ -1,16 +1,14 @@
 package at.asitplus.wallet.app.common.attestation
 
+import at.asitplus.openid.DurationSecondsIntSerializer
 import at.asitplus.signum.indispensable.josef.JsonWebKey
 import at.asitplus.signum.indispensable.josef.JsonWebToken
-import at.asitplus.signum.indispensable.josef.JwsHeader
 import at.asitplus.signum.indispensable.josef.JwsSigned
 import at.asitplus.signum.indispensable.josef.KeyAttestationJwt
 import at.asitplus.signum.indispensable.josef.toJsonWebKey
 import at.asitplus.wallet.app.common.HttpService
 import at.asitplus.wallet.app.common.WalletKeyMaterial
-import at.asitplus.wallet.lib.agent.KeyMaterial
-import at.asitplus.wallet.lib.jws.JwsHeaderIdentifierFun
-import at.asitplus.wallet.lib.jws.SignJwt
+import at.asitplus.wallet.lib.oidvci.WalletService.KeyAttestationInput
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -24,6 +22,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlin.time.Duration
 
 class UnitAttestationHelper(
     val host: Flow<String>,
@@ -39,7 +38,8 @@ class UnitAttestationHelper(
 
     suspend fun requestUnitAttestation(
         instanceAttestation: JwsSigned<JsonWebToken>,
-        pop: JwsSigned<JsonWebToken>
+        pop: JwsSigned<JsonWebToken>,
+        input: KeyAttestationInput,
     ): JwsSigned<KeyAttestationJwt> {
         val holderKey = keyMaterial.getUnderLyingSigner()
 
@@ -49,8 +49,11 @@ class UnitAttestationHelper(
                 UnitAttestationRequest(
                     token = instanceAttestation.serialize(),
                     keys = listOf(holderKey.publicKey.toJsonWebKey()),
-                    storageType = LOCAL_NATIVE,
-                    proof = pop.serialize()
+                    proof = pop.serialize(),
+                    nonce = input.clientNonce,
+                    credentialIssuer = input.credentialIssuer,
+                    preferredKeyStorageStatusPeriod = input.preferredKeyStorageStatusPeriod,
+                    supportedAlgorithms = input.supportedAlgorithms,
                 )
             )
         }
@@ -60,20 +63,6 @@ class UnitAttestationHelper(
         ).getOrThrow()
     }
 
-    suspend fun buildProofOfPossession(
-        unitAttestation: JwsSigned<KeyAttestationJwt>,
-        type: String,
-        payload: JsonWebToken
-    ) =
-        keyMaterial.getUnderLyingSigner().let {
-            SignJwt<JsonWebToken>(
-                keyMaterial, JwsHeaderUnitAttestationPop(unitAttestation.serialize())
-            ).invoke(
-                type,
-                payload,
-                JsonWebToken.serializer(),
-            ).getOrThrow()
-        }
 }
 
 @Serializable
@@ -81,17 +70,10 @@ data class UnitAttestationRequest(
     @SerialName("token") val token: String,
     @SerialName("proof") val proof: String,
     @SerialName("keys") val keys: List<JsonWebKey>,
-    @SerialName("storage_type") val storageType: String,
+    @SerialName("nonce") val nonce: String?,
+    @SerialName("credential_issuer") val credentialIssuer: String?,
+    @SerialName("preferred_key_storage_status_period")
+    @Serializable(with = DurationSecondsIntSerializer::class)
+    val preferredKeyStorageStatusPeriod: Duration?,
+    @SerialName("supported_algorithms") val supportedAlgorithms: Collection<String>?,
 )
-
-/**
- * JwsHeader for UnitAttestationPop
- * kid value hardcoded to 0 see:
- * https://github.com/eu-digital-identity-wallet/eudi-doc-standards-and-technical-specifications/blob/main/docs/technical-specifications/ts3-wallet-unit-attestation.md
- */
-class JwsHeaderUnitAttestationPop(val wua: String) : JwsHeaderIdentifierFun {
-    override suspend operator fun invoke(
-        it: JwsHeader,
-        keyMaterial: KeyMaterial,
-    ) = it.copy(keyId = "0", keyAttestation = wua, jsonWebKey = keyMaterial.jsonWebKey)
-}
