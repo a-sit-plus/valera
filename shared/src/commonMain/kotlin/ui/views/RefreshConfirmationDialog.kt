@@ -69,15 +69,15 @@ fun RefreshConfirmationDialog(
         dismissButton = {
             if (onNeverShowAgain != null) {
                 Column {
-                    TextButton(onClick = onNeverShowAgain) {
-                        Text(
-                            text = stringResource(Res.string.refresh_dialog_never_show_again),
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    }
                     TextButton(onClick = onDismiss) {
                         Text(
                             text = stringResource(Res.string.refresh_dialog_dismiss),
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                    TextButton(onClick = onNeverShowAgain) {
+                        Text(
+                            text = stringResource(Res.string.refresh_dialog_never_show_again),
                             color = MaterialTheme.colorScheme.secondary
                         )
                     }
