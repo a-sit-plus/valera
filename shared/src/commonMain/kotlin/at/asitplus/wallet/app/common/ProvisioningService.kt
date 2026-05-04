@@ -2,33 +2,20 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.catching
 import at.asitplus.openid.CredentialOffer
-import at.asitplus.openid.OpenIdConstants
-import at.asitplus.signum.indispensable.asn1.Asn1Primitive
-import at.asitplus.signum.indispensable.asn1.Asn1String
-import at.asitplus.signum.indispensable.asn1.KnownOIDs
-import at.asitplus.signum.indispensable.asn1.commonName
-import at.asitplus.signum.indispensable.josef.KeyAttestationJwt
-import at.asitplus.signum.indispensable.pki.AttributeTypeAndValue
-import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.wallet.app.common.attestation.AttestationService
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
-import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.vckJsonSerializer
-import at.asitplus.wallet.lib.jws.JwsHeaderCertOrJwk
-import at.asitplus.wallet.lib.jws.JwsHeaderNone
-import at.asitplus.wallet.lib.jws.SignJwt
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult
 import at.asitplus.wallet.lib.ktor.openid.OAuth2KtorClient
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VciClient
 import at.asitplus.wallet.lib.ktor.openid.ProvisioningContext
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
-import at.asitplus.wallet.lib.oidvci.BuildClientAttestationJwt
 import at.asitplus.wallet.lib.oidvci.WalletService
 import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
@@ -43,8 +30,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import ui.navigation.IntentService
-import kotlin.time.Clock.System
-import kotlin.time.Duration.Companion.minutes
 
 
 class ProvisioningService(
@@ -64,7 +49,6 @@ class ProvisioningService(
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback/provisioning"
     private var cachedClientId: String? = null
 
-    private var clientAttestationJwt = null as String?
     private var openId4VciClientCached = null as OpenId4VciClient?
     private var walletServiceCached = null as WalletService?
 
@@ -72,20 +56,10 @@ class ProvisioningService(
         val clientId = config.clientId.first()
         if (clientId != cachedClientId) {
             cachedClientId = clientId
-            clientAttestationJwt = null
             openId4VciClientCached = null
+            walletServiceCached = null
         }
         return clientId
-    }
-
-    private suspend fun clientAttestationJwt() = clientAttestationJwt ?: BuildClientAttestationJwt(
-        SignJwt(keyMaterial, JwsHeaderCertOrJwk()),
-        clientId = currentClientId(),
-        issuer = keyMaterial.getCertificate()?.extractSubjectCn() ?: "https://example.com",
-        lifetime = 60.minutes,
-        clientKey = keyMaterial.jsonWebKey
-    ).serialize().also {
-        clientAttestationJwt = it
     }
 
     private suspend fun walletService(): WalletService = walletServiceCached ?: run {
@@ -93,21 +67,7 @@ class ProvisioningService(
         WalletService(
             clientId = clientId,
             keyMaterial = keyMaterial,
-            loadKeyAttestation = {
-                with(EphemeralKeyWithSelfSignedCert()) {
-                    catching {
-                        SignJwt<KeyAttestationJwt>(this, JwsHeaderCertOrJwk())(
-                            OpenIdConstants.KEY_ATTESTATION_JWT_TYPE,
-                            KeyAttestationJwt(
-                                issuedAt = System.now(),
-                                nonce = it.clientNonce,
-                                attestedKeys = setOf(keyMaterial.jsonWebKey)
-                            ),
-                            KeyAttestationJwt.serializer(),
-                        ).getOrThrow()
-                    }
-                }
-            },
+            loadKeyAttestation = attestationService::loadKeyAttestation,
             remoteResourceRetriever = { data ->
                 withContext(Dispatchers.IO) {
                     client.get(data.url).bodyAsText()
@@ -126,8 +86,8 @@ class ProvisioningService(
                 cookiesStorage = cookieStorage,
                 oAuth2Client = OAuth2Client(clientId = currentClientId(), redirectUrl = redirectUrl),
                 httpClientConfig = httpService.loggingConfig,
-                loadClientAttestationJwt = { clientAttestationJwt() },
-                signClientAttestationPop = SignJwt(keyMaterial, JwsHeaderNone()),
+                loadInstanceAttestation = attestationService::loadInstanceAttestation,
+                loadInstanceAttestationPop = { attestationService.loadInstanceAttestationPop() },
             ),
             oid4vciService = walletService()
         ).also { openId4VciClientCached = it }
@@ -268,14 +228,6 @@ class ProvisioningService(
         }
     }
 
-    private fun X509Certificate.extractSubjectCn(): String? =
-        firstSubjectName()?.commonName()?.let { Asn1String.doDecode(it) }?.value
-
-    private fun X509Certificate.firstSubjectName(): List<AttributeTypeAndValue>? =
-        tbsCertificate.subjectName.firstOrNull()?.attrsAndValues
-
-    private fun List<AttributeTypeAndValue>?.commonName(): Asn1Primitive? =
-        this?.find { it.oid == KnownOIDs.commonName }?.value as? Asn1Primitive
 }
 
 val CredentialIdentifierInfo.credentialScheme: ConstantIndex.CredentialScheme?
