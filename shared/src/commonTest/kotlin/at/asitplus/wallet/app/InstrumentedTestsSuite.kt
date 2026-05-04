@@ -26,8 +26,11 @@ import at.asitplus.openid.OidcUserInfo
 import at.asitplus.openid.OidcUserInfoExtended
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
+import at.asitplus.valera.resources.button_label_open_url
 import at.asitplus.valera.resources.button_label_start
 import at.asitplus.valera.resources.content_description_portrait
+import at.asitplus.valera.resources.credential_scheme_label_eu_pid_sdjwt
+import at.asitplus.valera.resources.heading_label_authentication_success
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
 import at.asitplus.wallet.app.common.CapabilitiesData
@@ -39,7 +42,7 @@ import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.app.common.di.appModule
-import at.asitplus.wallet.eupid.EuPidScheme
+import at.asitplus.wallet.lib.RequestOptionsCredential
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
@@ -47,34 +50,28 @@ import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
+import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
 import at.asitplus.wallet.lib.data.rfc3986.toUri
+import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.SD_JWT
+import at.asitplus.wallet.lib.openid.ClientIdScheme
+import at.asitplus.wallet.lib.openid.CredentialPresentationRequestBuilder
+import at.asitplus.wallet.lib.openid.OpenId4VpRequestOptions
+import at.asitplus.wallet.lib.openid.OpenId4VpVerifier
 import data.storage.DummyDataStoreService
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.get
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.coroutines.withTimeout
 import org.jetbrains.compose.resources.getString
 import org.koin.compose.koinInject
 import org.koin.core.module.dsl.scopedOf
+import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.binds
 import org.koin.dsl.module
@@ -82,7 +79,7 @@ import org.multipaz.prompt.PassphraseRequest
 import org.multipaz.prompt.PromptModel
 import org.multipaz.prompt.SinglePromptModel
 import ui.navigation.routes.RoutePrerequisites
-import kotlin.test.assertTrue
+import kotlin.test.assertNotNull
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 
@@ -92,13 +89,10 @@ fun ComposeUiTest.endToEndTest() {
     val startText = runBlocking { getString(Res.string.button_label_start) }
     val portraitText = runBlocking { getString(Res.string.content_description_portrait) }
     val continueText = runBlocking { getString(Res.string.button_label_continue) }
-
-    val client = HttpClient {
-        expectSuccess = true
-        install(ContentNegotiation) {
-            json()
-        }
-    }
+    val pidHeader = runBlocking { getString(Res.string.credential_scheme_label_eu_pid_sdjwt) }
+    val openUrlText = runBlocking { getString(Res.string.button_label_open_url) }
+    val authenticationSuccessText = runBlocking { getString(Res.string.heading_label_authentication_success) }
+    val redirectUrl = CompletableDeferred<String>()
 
     setContent {
         // A. Create the dependency provider, remembering it against the platformAdapter
@@ -106,7 +100,11 @@ fun ComposeUiTest.endToEndTest() {
         val platformAdapter = getPlatformAdapter()
 
         val walletDependencyProvider = remember(platformAdapter) {
-            createWalletDependencyProvider(platformAdapter)
+            createWalletDependencyProvider(
+                RecordingPlatformAdapter(platformAdapter) {
+                    redirectUrl.complete(it)
+                }
+            )
         }
         
         val capabilitiesModule = module {
@@ -114,13 +112,16 @@ fun ComposeUiTest.endToEndTest() {
                 scopedOf(::DummyCapabilitiesService) binds arrayOf(CapabilitiesService::class)
             }
         }
-        val module = appModule(walletDependencyProvider, capabilitiesModule)
+        val testModule = module {
+            includes(appModule(walletDependencyProvider, capabilitiesModule))
+            singleOf(::Validator)
+        }
 
         // B. Call the main App composable within the CompositionLocalProvider.
         CompositionLocalProvider(
             LocalLifecycleOwner provides TestLifecycleOwner()
         ) {
-            App(module)
+            App(testModule)
         }
 
         // C. Inject services after framework is running
@@ -132,7 +133,7 @@ fun ComposeUiTest.endToEndTest() {
         LaunchedEffect(Unit) {
             val issuer = IssuerAgent(
                 keyMaterial = EphemeralKeyWithoutCert(),
-                statusListBaseUrl = "https://wallet.a-sit.at/m7/credentials/status",
+                statusListBaseUrl = "http://127.0.0.1/credentials/status",
                 identifier = "https://issuer.example.com/".toUri(),
             )
             holderAgent.storeCredential(
@@ -157,58 +158,80 @@ fun ComposeUiTest.endToEndTest() {
     onNodeWithText("XXXÉliás XXXTörőcsik").assertExists()
     onNodeWithText("11.10.1965").assertExists()
 
-    val responseGenerateRequest = runBlocking {
-        client.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }.body<JsonObject>()
-    }
+    val localPresentationRequest = runBlocking { createLocalPresentationRequest() }
+    Globals.appLink.value = localPresentationRequest.url
 
-    val firstProfile = responseGenerateRequest["profiles"]?.jsonArray?.first()?.jsonObject
-    val qrCodeUrl = firstProfile?.get("url")?.jsonPrimitive?.content
-    val id = firstProfile?.get("id")?.jsonPrimitive?.content
-
-    Globals.appLink.value = qrCodeUrl!!
-
+    // Confirm first consent screen
     waitUntilExactlyOneExists(hasText(continueText), 10000)
-
     onNodeWithText(continueText).performClick()
 
-    val url = "https://apps.egiz.gv.at/customverifier/customer-success.html?id=$id"
-    val responseSuccess = runBlocking { client.get(url) }
-    assertTrue { responseSuccess.status.value in 200..299 }
+    // Select credential from list
+    waitUntilExactlyOneExists(hasText(pidHeader), 5000)
+    onNodeWithText(pidHeader).performClick()
+
+    // Confirm second screen
+    waitUntilExactlyOneExists(hasText(continueText), 500)
+    onNodeWithText(continueText).performClick()
+
+    // Wait for header after posting the result
+    waitUntilExactlyOneExists(hasText(authenticationSuccessText), 10000)
+    onNodeWithText(openUrlText).performClick()
+
+    val validationResult = runBlocking {
+        localPresentationRequest.verifier.validateAuthnResponse(
+            withTimeout(10000) { redirectUrl.await() }
+        ).getOrThrow()
+    }
+    assertNotNull(validationResult.vpTokenValidationResult?.getOrThrow())
 }
-
-val request = Json.encodeToString(
-    RequestBody.serializer(), RequestBody(
-        "presentation_definition", listOf(
-            Credential(
-                credentialType = EuPidSdJwtScheme.sdJwtType,
-                representation = "SD_JWT",
-                attributes = listOf(
-                    EuPidSdJwtScheme.SdJwtAttributes.GIVEN_NAME,
-                    EuPidSdJwtScheme.SdJwtAttributes.FAMILY_NAME,
-                    EuPidSdJwtScheme.SdJwtAttributes.BIRTH_DATE,
-                    EuPidSdJwtScheme.SdJwtAttributes.PORTRAIT,
-                )
-            )
-        )
-    )
-)
-
-@Serializable
-data class RequestBody(
-    val presentationMechanismIdentifier: String, val credentials: List<Credential>
-)
-
-@Serializable
-data class Credential(
-    val credentialType: String, val representation: String, val attributes: List<String>
-)
 
 @Composable
 expect fun getPlatformAdapter(): PlatformAdapter
 
+private data class LocalPresentationRequest(
+    val url: String,
+    val verifier: OpenId4VpVerifier,
+)
+
+private suspend fun createLocalPresentationRequest(): LocalPresentationRequest {
+    val verifier = OpenId4VpVerifier(
+        keyMaterial = EphemeralKeyWithoutCert(),
+        clientIdScheme = ClientIdScheme.RedirectUri("https://wallet.example.org/return"),
+    )
+    val requestOptions = OpenId4VpRequestOptions(
+        presentationRequest = CredentialPresentationRequestBuilder(
+            credentials = setOf(
+                RequestOptionsCredential(
+                    credentialScheme = EuPidSdJwtScheme,
+                    representation = SD_JWT,
+                    requestedAttributes = setOf(
+                        EuPidSdJwtScheme.SdJwtAttributes.GIVEN_NAME,
+                        EuPidSdJwtScheme.SdJwtAttributes.FAMILY_NAME,
+                        EuPidSdJwtScheme.SdJwtAttributes.BIRTH_DATE,
+                        EuPidSdJwtScheme.SdJwtAttributes.PORTRAIT,
+                    ),
+                )
+            )
+        ).toPresentationExchangeRequest()
+    )
+
+    return LocalPresentationRequest(
+        url = verifier.createAuthnRequest(
+            requestOptions = requestOptions,
+            creationOptions = OpenId4VpVerifier.CreationOptions.Query("https://wallet.example.org/authorize"),
+        ).getOrThrow().url,
+        verifier = verifier,
+    )
+}
+
+private class RecordingPlatformAdapter(
+    private val delegate: PlatformAdapter,
+    private val onOpenUrl: (String) -> Unit,
+) : PlatformAdapter by delegate {
+    override fun openUrl(url: String) {
+        onOpenUrl(url)
+    }
+}
 
 private fun getAttributes(): List<ClaimToBeIssued> = listOf(
     ClaimToBeIssued(EuPidSdJwtScheme.SdJwtAttributes.GIVEN_NAME, "XXXÉliás"),
