@@ -11,7 +11,7 @@ import at.asitplus.wallet.app.common.HttpService
 import at.asitplus.wallet.app.common.WalletKeyMaterial
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.lib.agent.SignerBasedKeyMaterial
-import at.asitplus.wallet.lib.oidvci.WalletService.LoadUnitAttestationPopInput
+import at.asitplus.wallet.lib.oidvci.WalletService.KeyAttestationInput
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -59,11 +59,9 @@ class AttestationService(
         instanceAttestationHelper.buildProofOfPossession(nonce)
     }
 
-    suspend fun loadUnitAttestationPop(input: LoadUnitAttestationPopInput) = catching {
-        requestUnitAttestation(input.ttl).let { unitAttestation ->
-            unitAttestationHelper.buildProofOfPossession(unitAttestation, input.type, input.payload).also {
-                bufferedUnitAttestation.emit(unitAttestation)
-            }
+    suspend fun loadKeyAttestation(input: KeyAttestationInput) = catching {
+        requestUnitAttestation(input).also {
+            bufferedUnitAttestation.emit(null)
         }
     }
 
@@ -90,11 +88,19 @@ class AttestationService(
     }
 
     private suspend fun requestUnitAttestation(
-        ttl: Duration = 31.days
+        input: KeyAttestationInput = KeyAttestationInput(
+            credentialIssuer = null,
+            clientNonce = null,
+            supportedAlgorithms = null,
+            preferredKeyStorageStatusPeriod = 31.days,
+        ),
     ): JwsSigned<KeyAttestationJwt> {
+        val preferredKeyStorageStatusPeriod = input.preferredKeyStorageStatusPeriod ?: 31.days
+
         bufferedUnitAttestation.firstOrNull()?.let { buffer ->
-            if ((buffer.payload.expiration)?.let { it > Clock.System.now() + ttl } == true) {
+            if (buffer.hasRemainingKeyStorageStatusPeriod(preferredKeyStorageStatusPeriod)) {
                 Napier.d("AttestationService: Use buffered unit attestation")
+                bufferedUnitAttestation.emit(null)
                 return buffer
             }
         }
@@ -104,7 +110,13 @@ class AttestationService(
         val instanceAttestation = requestInstanceAttestation()
         val pop = instanceAttestationHelper.buildProofOfPossession()
 
-        return unitAttestationHelper.requestUnitAttestation(instanceAttestation, pop)
+        return unitAttestationHelper.requestUnitAttestation(instanceAttestation, pop, input)
+    }
+
+    private fun JwsSigned<KeyAttestationJwt>.hasRemainingKeyStorageStatusPeriod(ttl: Duration): Boolean {
+        val now = Clock.System.now()
+        return payload.expiration?.let { it > now + 10.seconds } == true &&
+                payload.keyStorageStatus?.expiration?.let { it > now + ttl } == true
     }
 }
 
