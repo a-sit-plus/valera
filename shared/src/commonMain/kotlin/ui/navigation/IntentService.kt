@@ -1,10 +1,10 @@
 package ui.navigation
 
 import at.asitplus.wallet.app.common.PlatformAdapter
-import io.github.aakira.napier.Napier
 import ui.navigation.routes.AddCredentialWithLinkRoute
 import ui.navigation.routes.AuthorizationIntentRoute
 import ui.navigation.routes.DCAPIAuthorizationIntentRoute
+import ui.navigation.routes.DCAPIIssuingIntentRoute
 import ui.navigation.routes.ErrorIntentRoute
 import ui.navigation.routes.PresentationIntentRoute
 import ui.navigation.routes.ProvisioningResumeIntentRoute
@@ -13,11 +13,6 @@ import ui.navigation.routes.SigningCredentialIntentRoute
 import ui.navigation.routes.SigningIntentRoute
 import ui.navigation.routes.SigningPreloadIntentRoute
 import ui.navigation.routes.SigningServiceIntentRoute
-
-const val PRESENTATION_REQUESTED_INTENT = "PRESENTATION_REQUESTED"
-const val SIGNING_REQUEST_INTENT = "createSignRequest"
-const val GET_CREDENTIALS_INTENT = "androidx.identitycredentials.action.GET_CREDENTIALS"
-const val GET_CREDENTIAL_INTENT = "androidx.credentials.registry.provider.action.GET_CREDENTIAL"
 
 class IntentService(
     val platformAdapter: PlatformAdapter
@@ -31,6 +26,7 @@ class IntentService(
             IntentType.ProvisioningResumeIntent -> ProvisioningResumeIntentRoute(uri)
             IntentType.AuthorizationIntent -> AuthorizationIntentRoute(uri)
             IntentType.DCAPIAuthorizationIntent -> DCAPIAuthorizationIntentRoute(uri)
+            IntentType.DCAPIIssuingIntent -> DCAPIIssuingIntentRoute(uri)
             IntentType.PresentationIntent -> PresentationIntentRoute(uri)
             IntentType.SigningServiceIntent -> SigningServiceIntentRoute(uri)
             IntentType.SigningPreloadIntent -> SigningPreloadIntentRoute(uri)
@@ -43,7 +39,8 @@ class IntentService(
         when {
             contains("error") -> IntentType.ErrorIntent
             contains(SIGNING_REQUEST_INTENT) -> IntentType.SigningIntent
-            equals(GET_CREDENTIALS_INTENT) || equals(GET_CREDENTIAL_INTENT) -> IntentType.DCAPIAuthorizationIntent
+            equals(GET_CREDENTIALS_INTENT) || equals(GET_CREDENTIAL_INTENT) || equals(IOS_DC_API_CALL) -> IntentType.DCAPIAuthorizationIntent
+            equals(CREATE_CREDENTIAL_INTENT) -> IntentType.DCAPIIssuingIntent
             equals(PRESENTATION_REQUESTED_INTENT) -> IntentType.PresentationIntent
             contains("request_uri") && contains("client_id") -> IntentType.AuthorizationIntent
             (redirectUri != null && contains(redirectUri!!) && intentType != null) -> intentType!!
@@ -58,12 +55,22 @@ class IntentService(
         platformAdapter.openUrl(url)
     }
 
+    companion object {
+        const val PRESENTATION_REQUESTED_INTENT = "PRESENTATION_REQUESTED"
+        const val SIGNING_REQUEST_INTENT = "createSignRequest"
+        const val GET_CREDENTIALS_INTENT = "androidx.identitycredentials.action.GET_CREDENTIALS"
+        const val GET_CREDENTIAL_INTENT = "androidx.credentials.registry.provider.action.GET_CREDENTIAL"
+        const val CREATE_CREDENTIAL_INTENT = "androidx.credentials.registry.provider.action.CREATE_CREDENTIAL"
+        const val IOS_DC_API_CALL = "IOS_DC_API_CALL"
+    }
+
     enum class IntentType {
         ErrorIntent,
         ProvisioningStartIntent,
         ProvisioningResumeIntent,
         AuthorizationIntent,
         DCAPIAuthorizationIntent,
+        DCAPIIssuingIntent,
         PresentationIntent,
         SigningServiceIntent,
         SigningCredentialIntent,

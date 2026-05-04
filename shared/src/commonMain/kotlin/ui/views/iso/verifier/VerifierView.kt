@@ -37,7 +37,7 @@ fun VerifierView(
     val bluetoothPermissionState = rememberBluetoothPermissionState()
     val bluetoothEnabledState = rememberBluetoothEnabledState()
     val nfcEnabledState = rememberNfcEnabledState()
-    val transferSettingsState = rememberTransferSettingsState(vm.settingsRepository)
+    val transferSettingsState = rememberTransferSettingsState(vm.settingsRepository, userRequired = true)
     val appSettings = rememberAppSettings()
 
     val verifierState by vm.verifierState.collectAsState()
@@ -51,7 +51,7 @@ fun VerifierView(
         ) {
             val next = when (
                 val transferPrecondition = evaluateTransferPrecondition(
-                    transferSettingsState =transferSettingsState,
+                    transferSettingsState = transferSettingsState,
                     bleEnabled = bluetoothEnabledState.isEnabled,
                     blePermissionGranted = bluetoothPermissionState.isGranted,
                     nfcEnabled = nfcEnabledState.isEnabled,

@@ -1,6 +1,7 @@
 APP_NAME = Valera
 PRODUCT_NAME = Valera
 APP_BUNDLE_IDENTIFIER = at.asitplus.wallet.compose
+APP_GROUP_IDENTIFIER = group.Compose.Wallet
 
 // Signing defaults are intentionally blank in the tracked config.
 // Contributors should be able to build for the iOS Simulator without
