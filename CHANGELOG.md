@@ -1,5 +1,5 @@
 # Release 5.7.7 (unreleased)
- * tbd
+ * Credentials: Show credential titles in refresh prompts and allow suppressing a prompt for a single credential
 
 # Release 5.7.6
  * Update to VC-K 5.12.0
