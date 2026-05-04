@@ -31,12 +31,10 @@ import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.dcapi.request.ExchangeProtocolIdentifier
 import at.asitplus.dcapi.request.verifier.DigitalCredentialGetRequest
 import at.asitplus.dcapi.request.verifier.DigitalCredentialRequestOptions
-import at.asitplus.iso.DeviceRequest
-import at.asitplus.iso.EncryptionInfo
 import at.asitplus.iso.EncryptionParameters
 import at.asitplus.signum.indispensable.cosef.CoseKeyParams.EcKeyParams
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
-import at.asitplus.signum.indispensable.io.Base64UrlStrict
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.android.dcapi.CustomRegistry
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.common.BuildContext
@@ -48,17 +46,13 @@ import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.common.di.appModule
-import at.asitplus.wallet.lib.data.vckJsonSerializer
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
 import io.github.aakira.napier.Napier
-import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
-import org.json.JSONObject
 import org.koin.core.module.dsl.scopedOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.binds
@@ -266,7 +260,7 @@ public class AndroidPlatformAdapter(
             val option = credentialRequest.credentialOptions[0] as? GetDigitalCredentialOption
                 ?: throw IllegalArgumentException("Expected GetDigitalCredentialOption object not received")
 
-            val dcRequestOptions = vckJsonSerializer.decodeFromString<DigitalCredentialRequestOptions>(option.requestJson)
+            val dcRequestOptions = joseCompliantSerializer.decodeFromString<DigitalCredentialRequestOptions>(option.requestJson)
 
             val selectionInfo = getSetSelection(credentialRequest)
                 ?: getSelection(credentialRequest)
@@ -285,7 +279,7 @@ public class AndroidPlatformAdapter(
                     Napier.d("Using OpenID4VP Signed, got request $digitalCredentialGetRequest for credential ID $credentialId")
                     DCAPIWalletRequest.OpenId4VpSigned(
                         request = digitalCredentialGetRequest.request,
-                        credentialId = credentialId,
+                        credentialIds = setOf(credentialId),
                         callingPackageName = callingPackageName,
                         callingOrigin = callingOrigin
                     )
@@ -294,7 +288,7 @@ public class AndroidPlatformAdapter(
                     Napier.d("Using OpenID4VP Unsigned, got request $digitalCredentialGetRequest for credential ID $credentialId")
                     DCAPIWalletRequest.OpenId4VpUnsigned(
                         request = digitalCredentialGetRequest.request,
-                        credentialId = credentialId,
+                        credentialIds = setOf(credentialId),
                         callingPackageName = callingPackageName,
                         callingOrigin = callingOrigin
                     )
@@ -303,7 +297,7 @@ public class AndroidPlatformAdapter(
                     Napier.d("Using Iso 18013-7 Annex C, got request $digitalCredentialGetRequest for credential ID $credentialId")
                     DCAPIWalletRequest.IsoMdoc(
                         isoMdocRequest = digitalCredentialGetRequest.request,
-                        credentialId = credentialId,
+                        credentialIds = setOf(credentialId),
                         callingPackageName = callingPackageName,
                         callingOrigin = callingOrigin
                     )
@@ -344,7 +338,7 @@ public class AndroidPlatformAdapter(
             val dcApiResponse = DCAPIResponse(encryptedResponse)
             val isoMdocResponse = IsoMdocResponse(dcApiResponse)
             Napier.d("Returning response $responseJson to digital credentials API invoker")
-            val serializedResponse = vckJsonSerializer.encodeToString<DigitalCredentialInterface>(isoMdocResponse)
+            val serializedResponse = joseCompliantSerializer.encodeToString<DigitalCredentialInterface>(isoMdocResponse)
             sendCredentialResponseToInvoker(serializedResponse, true)
         } ?: throw IllegalStateException("Callback for response not found")
     }

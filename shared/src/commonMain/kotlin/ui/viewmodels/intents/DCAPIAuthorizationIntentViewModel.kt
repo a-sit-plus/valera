@@ -3,7 +3,7 @@ package ui.viewmodels.intents
 import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
-import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.lib.oidvci.OAuth2Exception
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequest
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase

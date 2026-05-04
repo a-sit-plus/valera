@@ -21,7 +21,7 @@ import at.asitplus.wallet.companyregistration.ContactData
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore.StoreEntry
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
-import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import data.Attribute
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.JsonObject
@@ -98,7 +98,7 @@ private class CompanyRegistrationCredentialSdJwtAdapter(
         get() = attributes[COMPANY_STATUS]?.contentOrNull
 
     override val companyActivity: CompanyActivity?
-        get() = attributes[COMPANY_ACTIVITY]?.contentOrNull?.let { vckJsonSerializer.decodeFromString(it) }
+        get() = attributes[COMPANY_ACTIVITY]?.contentOrNull?.let { joseCompliantSerializer.decodeFromString(it) }
 
     override val registrationDate: LocalDate?
         get() = attributes[REGISTRATION_DATE]?.contentOrNull?.toLocalDateOrNull()
@@ -113,16 +113,16 @@ private class CompanyRegistrationCredentialSdJwtAdapter(
         get() = attributes[VAT_NUMBER]?.contentOrNull
 
     override val contactData: ContactData?
-        get() = attributes[COMPANY_CONTACT_DATA]?.contentOrNull?.let { vckJsonSerializer.decodeFromString(it) }
+        get() = attributes[COMPANY_CONTACT_DATA]?.contentOrNull?.let { joseCompliantSerializer.decodeFromString(it) }
 
     override val registeredAddress: Address?
-        get() = attributes[REGISTERED_ADDRESS]?.contentOrNull?.let { vckJsonSerializer.decodeFromString(it) }
+        get() = attributes[REGISTERED_ADDRESS]?.contentOrNull?.let { joseCompliantSerializer.decodeFromString(it) }
 
     override val postalAddress: Address?
-        get() = attributes[POSTAL_ADDRESS]?.contentOrNull?.let { vckJsonSerializer.decodeFromString(it) }
+        get() = attributes[POSTAL_ADDRESS]?.contentOrNull?.let { joseCompliantSerializer.decodeFromString(it) }
 
     override val branch: Branch?
-        get() = attributes[BRANCH]?.contentOrNull?.let { vckJsonSerializer.decodeFromString(it) }
+        get() = attributes[BRANCH]?.contentOrNull?.let { joseCompliantSerializer.decodeFromString(it) }
 }
 
 private class CompanyRegistrationCredentialComplexSdJwtAdapter(
@@ -144,7 +144,7 @@ private class CompanyRegistrationCredentialComplexSdJwtAdapter(
         get() = (attributes[COMPANY_STATUS] as? JsonPrimitive?)?.contentOrNull
 
     override val companyActivity: CompanyActivity?
-        get() = (attributes[COMPANY_ACTIVITY] as? JsonObject?)?.let { vckJsonSerializer.decodeFromJsonElement(it) }
+        get() = (attributes[COMPANY_ACTIVITY] as? JsonObject?)?.let { joseCompliantSerializer.decodeFromJsonElement(it) }
 
     override val registrationDate: LocalDate?
         get() = (attributes[REGISTRATION_DATE] as? JsonPrimitive?)?.contentOrNull?.toLocalDateOrNull()
@@ -159,15 +159,15 @@ private class CompanyRegistrationCredentialComplexSdJwtAdapter(
         get() = (attributes[VAT_NUMBER] as? JsonPrimitive?)?.contentOrNull
 
     override val contactData: ContactData?
-        get() = (attributes[COMPANY_CONTACT_DATA] as? JsonObject?)?.let { vckJsonSerializer.decodeFromJsonElement(it) }
+        get() = (attributes[COMPANY_CONTACT_DATA] as? JsonObject?)?.let { joseCompliantSerializer.decodeFromJsonElement(it) }
 
     override val registeredAddress: Address?
-        get() = (attributes[REGISTERED_ADDRESS] as? JsonObject?)?.let { vckJsonSerializer.decodeFromJsonElement(it) }
+        get() = (attributes[REGISTERED_ADDRESS] as? JsonObject?)?.let { joseCompliantSerializer.decodeFromJsonElement(it) }
 
     override val postalAddress: Address?
-        get() = (attributes[POSTAL_ADDRESS] as? JsonObject?)?.let { vckJsonSerializer.decodeFromJsonElement(it) }
+        get() = (attributes[POSTAL_ADDRESS] as? JsonObject?)?.let { joseCompliantSerializer.decodeFromJsonElement(it) }
 
     override val branch: Branch?
-        get() = (attributes[BRANCH] as? JsonObject?)?.let { vckJsonSerializer.decodeFromJsonElement(it) }
+        get() = (attributes[BRANCH] as? JsonObject?)?.let { joseCompliantSerializer.decodeFromJsonElement(it) }
 }
 

@@ -1,7 +1,7 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.wallet.app.common.data.SettingsRepository
-import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import data.storage.DataStoreService
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CompletionHandler
@@ -22,7 +22,7 @@ class WalletConfig(
 ) : SettingsRepository {
     private val config: Flow<ConfigData> =
         dataStoreService.getPreference(Configuration.DATASTORE_KEY_CONFIG).map {
-            it?.let { vckJsonSerializer.decodeFromString<ConfigData>(it) }
+            it?.let { joseCompliantSerializer.decodeFromString<ConfigData>(it) }
                 ?: ConfigDataDefaults
         }
 
@@ -84,7 +84,7 @@ class WalletConfig(
             )
 
             dataStoreService.setPreference(
-                vckJsonSerializer.encodeToString(newConfig),
+                joseCompliantSerializer.encodeToString(newConfig),
                 Configuration.DATASTORE_KEY_CONFIG
             )
         }

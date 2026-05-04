@@ -23,7 +23,7 @@ import at.asitplus.wallet.app.common.thirdParty.kotlinx.serialization.json.leafN
 import at.asitplus.wallet.lib.agent.SdJwtDecoded
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialToJsonConverter.toJsonElement
-import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.lib.jws.SdJwtSigned
 import data.credentials.FallbackCredentialAdapter
 import data.credentials.toCredentialAdapter
@@ -158,6 +158,6 @@ private fun SubjectCredentialStore.StoreEntry.allClaims() = when (this) {
         }
     }
 
-    is SubjectCredentialStore.StoreEntry.Vc -> vckJsonSerializer.encodeToJsonElement(vc)
+    is SubjectCredentialStore.StoreEntry.Vc -> joseCompliantSerializer.encodeToJsonElement(vc)
 }
 

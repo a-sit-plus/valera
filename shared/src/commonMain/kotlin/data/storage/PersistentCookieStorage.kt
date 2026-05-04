@@ -2,7 +2,7 @@ package data.storage
 
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.ErrorService
-import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import io.ktor.client.plugins.cookies.CookiesStorage
 import io.ktor.http.Cookie
 import io.ktor.http.CookieEncoding
@@ -84,7 +84,7 @@ class PersistentCookieStorage(
                 cookies = exportableCookies,
                 oldestCookie = container.oldestCookie.value
             )
-            val json = vckJsonSerializer.encodeToString(export)
+            val json = joseCompliantSerializer.encodeToString(export)
             runBlocking {
                 dataStoreService.setPreference(
                     key = Configuration.DATASTORE_KEY_COOKIES,
@@ -104,7 +104,7 @@ class PersistentCookieStorage(
             if (input == null) {
                 return CookieContainer(cookies = mutableListOf(), oldestCookie = atomic(0L))
             } else {
-                val export: ExportableCookieContainer = vckJsonSerializer.decodeFromString(input)
+                val export: ExportableCookieContainer = joseCompliantSerializer.decodeFromString(input)
                 return CookieContainer(
                     cookies = export.cookies.toCookieList(),
                     oldestCookie = atomic(export.oldestCookie)

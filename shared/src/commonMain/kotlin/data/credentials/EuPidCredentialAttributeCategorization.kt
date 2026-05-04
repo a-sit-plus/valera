@@ -13,27 +13,28 @@ object EuPidCredentialAttributeCategorization : CredentialAttributeCategorizatio
                 FAMILY_NAME,
                 BIRTH_DATE,
                 PORTRAIT,
-                PORTRAIT_CAPTURE_DATE,
+                EuPidLegacyAttributes.PORTRAIT_CAPTURE_DATE,
                 NATIONALITY,
-                GENDER,
+                SEX,
+                EuPidLegacyAttributes.GENDER,
             ).map { NormalizedJsonPath() + it to null }
         },
 
         PersonalDataCategory.AgeData to with(EuPidScheme.Attributes) {
             listOf(
-                AGE_OVER_12,
-                AGE_OVER_13,
-                AGE_OVER_14,
-                AGE_OVER_16,
-                AGE_OVER_18,
-                AGE_OVER_21,
-                AGE_OVER_25,
-                AGE_OVER_60,
-                AGE_OVER_62,
-                AGE_OVER_65,
-                AGE_OVER_68,
-                AGE_BIRTH_YEAR,
-                AGE_IN_YEARS,
+                EuPidLegacyAttributes.AGE_OVER_12,
+                EuPidLegacyAttributes.AGE_OVER_13,
+                EuPidLegacyAttributes.AGE_OVER_14,
+                EuPidLegacyAttributes.AGE_OVER_16,
+                EuPidLegacyAttributes.AGE_OVER_18,
+                EuPidLegacyAttributes.AGE_OVER_21,
+                EuPidLegacyAttributes.AGE_OVER_25,
+                EuPidLegacyAttributes.AGE_OVER_60,
+                EuPidLegacyAttributes.AGE_OVER_62,
+                EuPidLegacyAttributes.AGE_OVER_65,
+                EuPidLegacyAttributes.AGE_OVER_68,
+                EuPidLegacyAttributes.AGE_BIRTH_YEAR,
+                EuPidLegacyAttributes.AGE_IN_YEARS,
             ).map { NormalizedJsonPath() + it to null }
         },
         PersonalDataCategory.BirthData to with(EuPidScheme.Attributes) {
@@ -41,10 +42,10 @@ object EuPidCredentialAttributeCategorization : CredentialAttributeCategorizatio
                 GIVEN_NAME_BIRTH,
                 FAMILY_NAME_BIRTH,
                 PLACE_OF_BIRTH,
-                BIRTH_PLACE,
-                BIRTH_CITY,
-                BIRTH_COUNTRY,
-                BIRTH_STATE,
+                EuPidLegacyAttributes.BIRTH_PLACE,
+                EuPidLegacyAttributes.BIRTH_CITY,
+                EuPidLegacyAttributes.BIRTH_COUNTRY,
+                EuPidLegacyAttributes.BIRTH_STATE,
             ).map { NormalizedJsonPath() + it to null }
         },
 
@@ -68,7 +69,7 @@ object EuPidCredentialAttributeCategorization : CredentialAttributeCategorizatio
                 ISSUING_COUNTRY,
                 ISSUING_AUTHORITY,
                 ISSUING_JURISDICTION,
-                ADMINISTRATIVE_NUMBER,
+                EuPidLegacyAttributes.ADMINISTRATIVE_NUMBER,
                 PERSONAL_ADMINISTRATIVE_NUMBER,
             ).map { NormalizedJsonPath() + it to null }
         },
@@ -78,4 +79,3 @@ object EuPidCredentialAttributeCategorization : CredentialAttributeCategorizatio
         NormalizedJsonPath() + it
     },
 )
-

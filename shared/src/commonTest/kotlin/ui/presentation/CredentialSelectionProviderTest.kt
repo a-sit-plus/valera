@@ -3,7 +3,7 @@ package ui.presentation
 import at.asitplus.dcapi.OpenId4VpResponseSigned
 import at.asitplus.dcapi.OpenId4VpResponseUnsigned
 import at.asitplus.openid.AuthenticationResponseParameters
-import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.lib.openid.AuthenticationResponseResult
 import kotlinx.serialization.json.JsonPrimitive
 import kotlin.test.Test
@@ -49,7 +49,7 @@ class CredentialSelectionProviderTest {
             )
         )
 
-        val parsedResponse = vckJsonSerializer.decodeFromString<AuthenticationResponseParameters>(serializedResponse)
+        val parsedResponse = joseCompliantSerializer.decodeFromString<AuthenticationResponseParameters>(serializedResponse)
         assertEquals("state", parsedResponse.state)
         assertEquals(JsonPrimitive("vp-token"), parsedResponse.vpToken)
         assertFalse(serializedResponse.contains("\"protocol\""))
@@ -69,7 +69,7 @@ class CredentialSelectionProviderTest {
             )
         )
 
-        val parsedResponse = vckJsonSerializer.decodeFromString<AuthenticationResponseParameters>(serializedResponse)
+        val parsedResponse = joseCompliantSerializer.decodeFromString<AuthenticationResponseParameters>(serializedResponse)
         assertEquals("header.payload.signature.encrypted.tag", parsedResponse.response)
         assertFalse(serializedResponse.contains("\"protocol\""))
         assertFalse(serializedResponse.contains("\"data\""))
