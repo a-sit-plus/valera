@@ -55,6 +55,7 @@
     <string name="button_label_hide_technical_details">Technische Details ausblenden</string>
     <string name="button_label_sign">Signieren</string>
     <string name="button_label_back">Zurück</string>
+    <string name="button_label_attestation_config">Attestierungs-Konfiguration</string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Vorname</string>
@@ -246,6 +247,7 @@
     <string name="text_label_vcType">VcType</string>
     <string name="text_label_docType">DocType</string>
     <string name="text_label_select_no_optional_credential_set_query_option">Nichts senden</string>
+    <string name="text_label_wallet_provider">Wallet-Provider</string>
 
     <string name="heading_label_credential_selection">Welche Daten sollen präsentiert werden?</string>
     <string name="heading_label_authenticate_at_device_title">Anmelden</string>
@@ -276,6 +278,7 @@
     <string name="heading_label_result">Ergebnis</string>
     <string name="heading_label_device_engagement">Verbindungsaufbau</string>
     <string name="heading_label_capabilities">Gerätefunktionen</string>
+    <string name="heading_label_attestation">Attestierung</string>
 
     <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Daten vorzeigen</string>
     <string name="biometric_authentication_prompt_to_load_data_title">Daten laden</string>
@@ -536,4 +539,12 @@
     <string name="success_reissued">Neu ausgestellt</string>
     <string name="error_reissue_failed">Neuausstellung fehlgeschlagen</string>
     <string name="error_refresh_failed">Aktualisierung fehlgeschlagen</string>
+
+    <!-- AttestationSettings -->
+    <string name="text_label_instance_attestation">Instance-Attestation</string>
+    <string name="text_label_unit_attestation">Unit-Attestation</string>
+    <string name="button_label_load_attestation">Attestation laden</string>
+    <string name="text_label_attestation_issued">Gültig von</string>
+    <string name="text_label_attestation_expiration">Gültig bis</string>
+    <string name="text_label_attestation_storage_type">Schlüsselspeicher</string>
 </resources>
