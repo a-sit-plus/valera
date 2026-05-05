@@ -212,7 +212,7 @@
     <string name="navigation_button_label_check">Prüfen</string>
 
     <string name="id_format_plain_jwt_label">PLAIN_JWT</string>
-    <string name="sid_format_sd_jwt_label">SD-JWT</string>
+    <string name="id_format_sd_jwt_label">SD-JWT</string>
     <string name="id_format_iso_mdoc_label">ISO_MDOC</string>
 
     <string name="text_label_issuing_service">Ausstellservice</string>
