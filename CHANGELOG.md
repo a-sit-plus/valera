@@ -1,5 +1,5 @@
 # Release 5.7.7 (unreleased)
- * Issuing: Update key attestation to VC-K 6.0 / TS3 WUA 1.5 APIs
+ * Issuing: Update key attestation to VC-K 5.13.0 / TS3 WUA 1.5 APIs
 
 # Release 5.7.6
  * Update to VC-K 5.12.0
