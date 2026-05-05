@@ -1,12 +1,8 @@
 import at.asitplus.wallet.app.common.BuildContext
-import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.IntentState
-import at.asitplus.wallet.app.common.KeystoreService
-import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.SessionHandle
 import at.asitplus.wallet.app.common.SessionService
-import at.asitplus.wallet.app.common.WalletSessionBindings
-import at.asitplus.wallet.app.common.createErrorReportingScope
+import at.asitplus.wallet.app.common.createWalletSessionScope
 import at.asitplus.wallet.app.common.di.appModule
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
 import data.storage.AntilogAdapter
@@ -15,16 +11,10 @@ import data.storage.createDataStore
 import io.github.aakira.napier.Napier
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
-import kotlinx.coroutines.cancel
 import org.koin.core.context.startKoin
-import org.koin.core.qualifier.named
-import org.koin.core.scope.Scope
-import org.koin.mp.KoinPlatform
 import org.multipaz.prompt.IosPromptModel
 import org.multipaz.prompt.PromptModel
 import ui.navigation.IntentService.Companion.IOS_DC_API_CALL
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 private data class IosSessionHandle(
     val intentState: IntentState,
@@ -65,7 +55,7 @@ private object IosSessionRuntime {
             val intentState = IntentState()
             val promptModel = IosPromptModel.Builder().apply { addCommonDialogs() }.build()
             val sessionService = SessionService().apply {
-                initialize {
+                initialize(onReset = { onSessionReset(intentState) }) {
                     createIosWalletSessionScope(
                         sessionName = "ios",
                         sessionService = this,
@@ -84,6 +74,16 @@ private object IosSessionRuntime {
                 sessionHandle = handle
                 applyPendingState(handle.intentState)
             }
+        }
+    }
+
+    // Called when SessionService.newScope() triggers the scope factory (i.e. on app reset).
+    // Clears stale pending state and wipes the intentState so navigation recomposes cleanly.
+    private fun onSessionReset(intentState: IntentState) {
+        synchronized(stateLock) {
+            pendingAppLink = null
+            pendingInvocationData = null
+            intentState.reset()
         }
     }
 
@@ -176,7 +176,6 @@ internal fun getOrCreateIosSession(buildContext: BuildContext): Triple<IntentSta
     return Triple(session.intentState, session.sessionService, session.promptModel)
 }
 
-@OptIn(ExperimentalUuidApi::class)
 private fun createIosWalletSessionScope(
     sessionName: String,
     sessionService: SessionService,
@@ -185,32 +184,13 @@ private fun createIosWalletSessionScope(
     promptModel: PromptModel,
 ): SessionHandle {
     val platformAdapter = IosPlatformAdapter(intentState)
-    val dataStoreService = RealDataStoreService(createDataStore(), platformAdapter)
-    val keystoreService = KeystoreService(dataStoreService)
-    val scope = KoinPlatform.getKoin().createScope(
-        "$sessionName:${Uuid.random()}",
-        named(SESSION_NAME)
+    return createWalletSessionScope(
+        sessionName = sessionName,
+        intentState = intentState,
+        sessionService = sessionService,
+        buildContext = buildContext,
+        promptModel = promptModel,
+        platformAdapter = platformAdapter,
+        dataStoreService = RealDataStoreService(createDataStore(), platformAdapter),
     )
-    var errorService: ErrorService? = null
-    val sessionCoroutineScope = createErrorReportingScope("wallet-session:$sessionName") {
-        errorService
-    }
-
-    scope.declare(
-        WalletSessionBindings(
-            intentState = intentState,
-            sessionService = sessionService,
-            buildContext = buildContext,
-            promptModel = promptModel,
-            platformAdapter = platformAdapter,
-            dataStoreService = dataStoreService,
-            keystoreService = keystoreService,
-            sessionCoroutineScope = sessionCoroutineScope
-        )
-    )
-    errorService = scope.get()
-
-    return SessionHandle(scope = scope) {
-        sessionCoroutineScope.cancel()
-    }
 }

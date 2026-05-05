@@ -27,4 +27,11 @@ class IntentState {
      * Navigation code must handle `null` by falling back to local navigation.
      */
     var finishApp: (() -> Unit)? = null
+
+    /** Clears all transient navigation state. Call before a session reset so navigation recomposes cleanly. */
+    fun reset() {
+        appLink.value = null
+        dcapiInvocationData.value = null
+        presentationStateModel.value = null
+    }
 }

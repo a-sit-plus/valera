@@ -16,9 +16,11 @@ import data.storage.RealDataStoreService
 import data.storage.getDataStore
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -52,47 +54,43 @@ import kotlin.time.Duration
 class NdefDeviceEngagementService : HostApduService() {
     companion object {
         val TAG = "NdefDeviceEngagementService"
-        private var engagement: MdocNfcEngagementHelper? = null
-        private var disableEngagementJob: Job? = null
-        private var listenForCancellationFromUiJob: Job? = null
-        private lateinit var walletConfig: WalletConfig
-        private var serviceErrorService: ErrorService? = null
 
-        private val coroutineScope =
-            createErrorReportingScope("NdefDeviceEngagementService") {
-                serviceErrorService
-            }
-
-        val presentationStateModel: PresentationStateModel by lazy {
-            PresentationStateModel(coroutineScope)
-        }
+        // Holds the model for the currently active engagement so SharingActivity can retrieve it.
+        // Written only from the service instance that owns the current engagement.
+        var currentPresentationStateModel: PresentationStateModel? = null
+            private set
     }
 
-    private fun vibrate(pattern: Int) = kotlin.runCatching {
-        val vibrator = ContextCompat.getSystemService(
-            applicationContext,
-            Vibrator::class.java
-        )
+    // All engagement state lives on the service instance, not in a companion, so each service
+    // instance gets a clean slate, and there is no shared mutable state across NFC taps.
+    private var serviceErrorService: ErrorService? = null
+    private val serviceScope = createErrorReportingScope("NdefDeviceEngagementService") {
+        serviceErrorService
+    }
 
-        val effect = VibrationEffect.createPredefined(pattern)
-        vibrator?.vibrate(effect)
+    private var engagement: MdocNfcEngagementHelper? = null
+    private var disableEngagementJob: Job? = null
+    private var listenForCancellationFromUiJob: Job? = null
+    private lateinit var walletConfig: WalletConfig
+
+    private fun vibrate(pattern: Int) = kotlin.runCatching {
+        val vibrator = ContextCompat.getSystemService(applicationContext, Vibrator::class.java)
+        vibrator?.vibrate(VibrationEffect.createPredefined(pattern))
     }.onFailure { e -> Napier.w("Vibrating failed", e, tag = TAG) }
 
     private fun vibrateError() = vibrate(VibrationEffect.EFFECT_DOUBLE_CLICK)
-
     private fun vibrateSuccess() = vibrate(VibrationEffect.EFFECT_HEAVY_CLICK)
 
     override fun onDestroy() {
         super.onDestroy()
         commandApduListenJob?.cancel()
+        serviceScope.cancel()
+        currentPresentationStateModel = null
         serviceErrorService = null
     }
 
     private var commandApduListenJob: Job? = null
     private val commandApduChannel = Channel<CommandApdu>(Channel.UNLIMITED)
-    private val serviceScope = createErrorReportingScope("NdefDeviceEngagementService-instance") {
-        serviceErrorService
-    }
 
     override fun onCreate() {
         super.onCreate()
@@ -106,7 +104,7 @@ class NdefDeviceEngagementService : HostApduService() {
         )
         serviceErrorService = walletConfig.errorService
 
-        commandApduListenJob = serviceScope.launch(Dispatchers.IO) {
+        commandApduListenJob = serviceScope.launch {
             while (true) {
                 val commandApdu = commandApduChannel.receive()
                 val responseApdu = processCommandApdu(commandApdu)
@@ -130,21 +128,27 @@ class NdefDeviceEngagementService : HostApduService() {
         val ephemeralDeviceKey = Crypto.createEcPrivateKey(EcCurve.P256)
         val timeStarted = Clock.System.now()
 
-        presentationStateModel.reset()
-        presentationStateModel.init()
+        // Create a fresh PresentationStateModel with a dedicated child scope so that
+        // reset() cancels only presentment coroutines without touching serviceScope
+        // (which also owns commandApduListenJob).
+        val presentmentScope = CoroutineScope(
+            serviceScope.coroutineContext + SupervisorJob(serviceScope.coroutineContext[Job])
+                    + CoroutineName("NdefDeviceEngagementService:presentment")
+        )
+        val model = PresentationStateModel(presentmentScope)
+        currentPresentationStateModel = model
+        model.init()
 
-        // The UI consuming [PresentationModel] may
-        // have a cancel button which will trigger COMPLETED state when pressed.
-        //
-        listenForCancellationFromUiJob = presentationStateModel.presentmentScope.launch {
-            presentationStateModel.state
-                .collect { state ->
-                    if (state == PresentationStateModel.State.COMPLETED) {
-                        engagement = null
-                        disableEngagementJob?.cancel()
-                        disableEngagementJob = null
-                    }
+        // The UI consuming [PresentationModel] may have a cancel button which will trigger
+        // COMPLETED state when pressed.
+        listenForCancellationFromUiJob = presentmentScope.launch {
+            model.state.collect { state ->
+                if (state == PresentationStateModel.State.COMPLETED) {
+                    engagement = null
+                    disableEngagementJob?.cancel()
+                    disableEngagementJob = null
                 }
+            }
         }
 
         val intent = Intent(applicationContext, SharingActivity::class.java)
@@ -217,10 +221,11 @@ class NdefDeviceEngagementService : HostApduService() {
             onHandoverComplete = { connectionMethods, encodedDeviceEngagement, handover ->
                 Napier.d("Waiting for start", tag = TAG)
                 vibrateSuccess()
-                presentationStateModel.start(connectionMethods.any { it is MdocConnectionMethodBle })
+                model.start(connectionMethods.any { it is MdocConnectionMethodBle })
 
                 val duration = Clock.System.now() - timeStarted
                 listenOnMethods(
+                    model = model,
                     connectionMethods = connectionMethods,
                     encodedDeviceEngagement = encodedDeviceEngagement,
                     handover = handover,
@@ -231,7 +236,7 @@ class NdefDeviceEngagementService : HostApduService() {
             onError = { error ->
                 Napier.w("Engagement failed", error, tag = TAG)
                 vibrateError()
-                presentationStateModel.setCompleted(error)
+                model.setCompleted(error)
                 engagement = null
             },
             staticHandoverMethods = staticHandoverConnectionMethods,
@@ -240,17 +245,21 @@ class NdefDeviceEngagementService : HostApduService() {
     }
 
     private fun listenOnMethods(
+        model: PresentationStateModel,
         connectionMethods: List<MdocConnectionMethod>,
         encodedDeviceEngagement: ByteString,
         handover: DataItem,
         eDeviceKey: EcPrivateKey,
         engagementDuration: Duration,
     ) {
-        presentationStateModel.presentmentScope.launch {
+        model.presentmentScope.launch {
             Napier.d("Waiting for state", tag = TAG)
-            presentationStateModel.state.first { it != PresentationStateModel.State.IDLE && it != PresentationStateModel.State.NO_PERMISSION && it != PresentationStateModel.State.CHECK_PERMISSIONS }
-            Napier.d("${presentationStateModel.state.value} reached, wait for connection using main transport", tag = TAG)
-            // First advertise the connection methods
+            model.state.first {
+                it != PresentationStateModel.State.IDLE
+                        && it != PresentationStateModel.State.NO_PERMISSION
+                        && it != PresentationStateModel.State.CHECK_PERMISSIONS
+            }
+            Napier.d("${model.state.value} reached, wait for connection using main transport", tag = TAG)
             val advertisedTransports = connectionMethods.advertise(
                 role = MdocRole.MDOC,
                 transportFactory = MdocTransportFactory.Default,
@@ -260,9 +269,8 @@ class NdefDeviceEngagementService : HostApduService() {
                 )
             )
 
-            // Then wait for connection
             val transport = advertisedTransports.waitForConnection(eDeviceKey.publicKey)
-            presentationStateModel.setMechanism(
+            model.setMechanism(
                 MdocPresentmentMechanism(
                     transport = transport,
                     ephemeralDeviceKey = eDeviceKey,
@@ -302,7 +310,6 @@ class NdefDeviceEngagementService : HostApduService() {
 
     // Called by OS when an APDU arrives
     override fun processCommandApdu(encodedCommandApdu: ByteArray, extras: Bundle?): ByteArray? {
-        // Bounce the APDU to processCommandApdu() above via the coroutine in I/O thread set up in onCreate()
         commandApduChannel.trySend(CommandApdu.decode(encodedCommandApdu))
         return null
     }
@@ -315,22 +322,24 @@ class NdefDeviceEngagementService : HostApduService() {
             return
         }
 
+        val model = currentPresentationStateModel ?: return
+
         // If the reader hasn't connected by the time NFC interaction ends, make sure we only
         // wait for a limited amount of time.
-        if (presentationStateModel.state.value == PresentationStateModel.State.CONNECTING) {
-            disableEngagementJob = serviceScope.launch(Dispatchers.IO + CoroutineName("NdefDeviceEngagementService: onDeactivated")) {
-                    try {
-                        presentationStateModel.waitForConnectionUsingMainTransport(walletConfig.connectionTimeout.first())
-                        Napier.d("NdefDeviceEngagementService: Main transport connected")
-                    } catch (_: TimeoutCancellationException) {
-                        val message =
-                            "NdefDeviceEngagementService: Reader didn't connect in ${walletConfig.connectionTimeout.first()}, closing"
-                        Napier.w(message)
-                        presentationStateModel.setCompleted(PresentmentTimeout(message))
-                    }
-                    engagement = null
-                    disableEngagementJob = null
+        if (model.state.value == PresentationStateModel.State.CONNECTING) {
+            disableEngagementJob = serviceScope.launch(CoroutineName("NdefDeviceEngagementService:onDeactivated")) {
+                try {
+                    model.waitForConnectionUsingMainTransport(walletConfig.connectionTimeout.first())
+                    Napier.d("NdefDeviceEngagementService: Main transport connected")
+                } catch (_: TimeoutCancellationException) {
+                    val message =
+                        "NdefDeviceEngagementService: Reader didn't connect in ${walletConfig.connectionTimeout.first()}, closing"
+                    Napier.w(message)
+                    model.setCompleted(PresentmentTimeout(message))
                 }
+                engagement = null
+                disableEngagementJob = null
+            }
         }
     }
 }
