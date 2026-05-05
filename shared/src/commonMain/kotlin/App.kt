@@ -14,32 +14,14 @@ import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.WalletMain
 import io.github.aakira.napier.Napier
 import org.koin.compose.ComposeContextWrapper
-import org.koin.compose.KoinApplication
 import org.koin.compose.LocalKoinScope
 import org.koin.compose.koinInject
-import org.koin.core.module.Module
 import ui.navigation.SharingNavigation
 import ui.navigation.WalletNavigation
 import ui.theme.WalletTheme
 
 internal object AppTestTags {
     const val rootScaffold = "rootScaffold"
-}
-
-@ExperimentalMaterial3Api
-@Composable
-fun App(
-    koinModule: Module,
-    intentState: IntentState
-) {
-    KoinApplication({
-        modules(koinModule)
-    }) {
-        App(
-            sessionService = koinInject(),
-            intentState = intentState
-        )
-    }
 }
 
 @ExperimentalMaterial3Api
@@ -75,22 +57,6 @@ fun App(
                 intentState = intentState
             )
         }
-    }
-}
-
-@ExperimentalMaterial3Api
-@Composable
-fun SharingApp(
-    koinModule: Module,
-    intentState: IntentState
-) {
-    KoinApplication({
-        modules(koinModule)
-    }) {
-        SharingApp(
-            sessionService = koinInject(),
-            intentState = intentState
-        )
     }
 }
 
