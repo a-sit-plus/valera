@@ -5,21 +5,13 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
-import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.IntentState
-import at.asitplus.wallet.app.common.KeystoreService
-import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.SessionHandle
 import at.asitplus.wallet.app.common.SessionService
-import at.asitplus.wallet.app.common.WalletSessionBindings
-import at.asitplus.wallet.app.common.createErrorReportingScope
+import at.asitplus.wallet.app.common.createWalletSessionScope
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
-import kotlinx.coroutines.cancel
-import org.koin.core.Koin
-import org.koin.core.qualifier.named
 import org.multipaz.prompt.PromptModel
-import java.util.UUID
 
 internal fun createBuildContext(): BuildContext =
     BuildContext(
@@ -31,7 +23,6 @@ internal fun createBuildContext(): BuildContext =
     )
 
 internal fun createWalletSessionScope(
-    koin: Koin,
     sessionName: String,
     activity: AppCompatActivity,
     intentState: IntentState,
@@ -40,35 +31,13 @@ internal fun createWalletSessionScope(
     promptModel: PromptModel,
 ): SessionHandle {
     val platformAdapter = AndroidPlatformAdapter(activity, intentState)
-    val dataStoreService = RealDataStoreService(
-        getDataStore(activity),
-        platformAdapter
+    return createWalletSessionScope(
+        sessionName = sessionName,
+        intentState = intentState,
+        sessionService = sessionService,
+        buildContext = buildContext,
+        promptModel = promptModel,
+        platformAdapter = platformAdapter,
+        dataStoreService = RealDataStoreService(getDataStore(activity), platformAdapter),
     )
-    val keystoreService = KeystoreService(dataStoreService)
-    val scope = koin.createScope(
-        "$sessionName:${UUID.randomUUID()}",
-        named(SESSION_NAME)
-    )
-    var errorService: ErrorService? = null
-    val sessionCoroutineScope = createErrorReportingScope("wallet-session:$sessionName") {
-        errorService
-    }
-
-    scope.declare(
-        WalletSessionBindings(
-            intentState = intentState,
-            sessionService = sessionService,
-            buildContext = buildContext,
-            promptModel = promptModel,
-            platformAdapter = platformAdapter,
-            dataStoreService = dataStoreService,
-            keystoreService = keystoreService,
-            sessionCoroutineScope = sessionCoroutineScope
-        )
-    )
-    errorService = scope.get()
-
-    return SessionHandle(scope = scope) {
-        sessionCoroutineScope.cancel()
-    }
 }

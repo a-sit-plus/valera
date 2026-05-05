@@ -9,7 +9,6 @@ import at.asitplus.wallet.app.android.dcapi.AndroidDCAPIInvocationData
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.SessionService
 import io.github.aakira.napier.Napier
-import org.koin.core.context.GlobalContext
 import org.multipaz.prompt.AndroidPromptModel
 import org.multipaz.prompt.PromptModel
 import ui.navigation.IntentService.Companion.PRESENTATION_REQUESTED_INTENT
@@ -30,7 +29,6 @@ class SharingActivity : AbstractWalletActivity() {
             sessionService = SessionService().apply {
                 initialize {
                     createWalletSessionScope(
-                        koin = GlobalContext.get(),
                         sessionName = "sharing",
                         activity = this@SharingActivity,
                         intentState = intentState,
@@ -72,7 +70,7 @@ class SharingActivity : AbstractWalletActivity() {
             PRESENTATION_REQUESTED_INTENT -> {
                 Napier.d("SharingActivity PRESENTATION_REQUESTED_INTENT")
                 intentState.dcapiInvocationData.value = null
-                intentState.presentationStateModel.value = NdefDeviceEngagementService.presentationStateModel
+                intentState.presentationStateModel.value = NdefDeviceEngagementService.currentPresentationStateModel
                 intentState.appLink.value = PRESENTATION_REQUESTED_INTENT
             }
             else -> {

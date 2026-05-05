@@ -18,6 +18,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -44,8 +45,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import org.koin.core.scope.Scope
-import ui.navigation.IntentService.Companion.CREATE_CREDENTIAL_INTENT
-import ui.navigation.IntentService.Companion.GET_CREDENTIAL_INTENT
 import ui.navigation.routes.*
 import ui.navigation.routes.RoutePrerequisites.CRYPTO
 import ui.presentation.DCAPIPresentationGraphView
@@ -63,16 +62,16 @@ import ui.views.presentation.PresentationView
 fun SharingNavigation(
     koinScope: Scope,
     intentState: IntentState,
-    intentService: IntentService = koinInject(),
-    snackbarService: SnackbarService = koinInject(),
+    intentService: IntentService = koinInject(scope = koinScope),
+    snackbarService: SnackbarService = koinInject(scope = koinScope),
     errorService: ErrorService = koinInject(scope = koinScope),
     walletMain: WalletMain = koinInject(scope = koinScope),
-    urlOpener: UrlOpener = koinInject(),
+    urlOpener: UrlOpener = koinInject(scope = koinScope),
 ) {
     val navController: NavHostController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
     var pendingRoute by remember { mutableStateOf<Route?>(null) }
-    val scope = walletMain.scope
+    val scope = rememberCoroutineScope()
 
     val initialLink = remember {
         intentState.appLink.value.also { link ->
@@ -203,9 +202,6 @@ fun SharingNavigation(
             intentState.appLink.combineTransform(walletMain.appReady) { link, ready ->
                 Napier.d("SharingNavigation appLink combine link=$link ready=$ready")
                 if (ready != true || link == null) return@combineTransform
-                val isDcapiLink = link == GET_CREDENTIAL_INTENT || link == CREATE_CREDENTIAL_INTENT
-                val dcapiReady = intentState.dcapiInvocationData.value != null
-                if (isDcapiLink && !dcapiReady) return@combineTransform
                 emit(link)
             }.collect { link ->
                 catchingUnwrapped {

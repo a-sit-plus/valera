@@ -8,7 +8,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.SessionService
 import io.github.aakira.napier.Napier
-import org.koin.core.context.GlobalContext
 import org.multipaz.prompt.AndroidPromptModel
 import org.multipaz.prompt.PromptModel
 
@@ -30,7 +29,6 @@ class MainActivity : AbstractWalletActivity() {
             sessionService = SessionService().apply {
                 initialize {
                     createWalletSessionScope(
-                        koin = GlobalContext.get(),
                         sessionName = "main",
                         activity = this@MainActivity,
                         intentState = intentState,

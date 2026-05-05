@@ -19,6 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -56,8 +57,6 @@ import org.koin.compose.koinInject
 import org.koin.core.scope.Scope
 import ui.composables.BottomBar
 import ui.composables.NavigationData
-import ui.navigation.IntentService.Companion.CREATE_CREDENTIAL_INTENT
-import ui.navigation.IntentService.Companion.GET_CREDENTIAL_INTENT
 import ui.navigation.routes.*
 import ui.navigation.routes.RoutePrerequisites.CRYPTO
 import ui.presentation.DCAPIPresentationGraphView
@@ -81,16 +80,19 @@ internal object NavigatorTestTags {
 fun WalletNavigation(
     koinScope: Scope,
     intentState: IntentState,
-    intentService: IntentService = koinInject(),
-    snackbarService: SnackbarService = koinInject(),
+    intentService: IntentService = koinInject(scope = koinScope),
+    snackbarService: SnackbarService = koinInject(scope = koinScope),
     errorService: ErrorService = koinInject(scope = koinScope),
     walletMain: WalletMain = koinInject(scope = koinScope),
-    urlOpener: UrlOpener = koinInject(),
+    urlOpener: UrlOpener = koinInject(scope = koinScope),
 ) {
     val navController: NavHostController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
     var pendingRoute by remember { mutableStateOf<Route?>(null) }
-    val scope = walletMain.scope
+    // rememberCoroutineScope() ties navigation-triggered launches to the composition
+    // lifetime, so they are automatically cancelled when the composable leaves the tree.
+    // walletMain.scope is used only for business logic inside LaunchedEffect.
+    val scope = rememberCoroutineScope()
 
     val initialLink = remember {
         intentState.appLink.value.also { link ->
@@ -255,13 +257,6 @@ fun WalletNavigation(
                 if (ready != true || link == null) {
                     return@combineTransform
                 }
-                val isDcapiLink = link == GET_CREDENTIAL_INTENT || link == CREATE_CREDENTIAL_INTENT
-                val dcapiReady = intentState.dcapiInvocationData.value != null
-                Napier.d("WalletNavigation appLink dcapiReady=$dcapiReady")
-                if (isDcapiLink && !dcapiReady) {
-                    Napier.d("WalletNavigation appLink waiting for dcapiInvocationData")
-                    return@combineTransform
-                }
                 Napier.d("WalletNavigation appLink emitting link=$link")
                 emit(link)
             }.collect { link ->
@@ -314,7 +309,7 @@ private fun WalletNavHost(
     onError: (Throwable) -> Unit,
     koinScope: Scope,
     walletMain: WalletMain = koinInject(scope = koinScope),
-    settingsRepository: SettingsRepository = koinInject(),
+    settingsRepository: SettingsRepository = koinInject(scope = koinScope),
     intentState: IntentState,
     returnToHome: () -> Unit,
 ) {
