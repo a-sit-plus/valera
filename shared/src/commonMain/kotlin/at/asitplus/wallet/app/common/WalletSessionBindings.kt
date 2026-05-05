@@ -1,6 +1,7 @@
 package at.asitplus.wallet.app.common
 
 import data.storage.DataStoreService
+import kotlinx.coroutines.CoroutineScope
 import org.multipaz.prompt.PromptModel
 
 /**
@@ -14,4 +15,5 @@ data class WalletSessionBindings(
     val platformAdapter: PlatformAdapter,
     val dataStoreService: DataStoreService,
     val keystoreService: KeystoreService,
+    val sessionCoroutineScope: CoroutineScope,
 )
