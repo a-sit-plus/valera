@@ -57,23 +57,28 @@ class SharingActivity : AbstractWalletActivity() {
         when (intent.action) {
             RegistryManager.ACTION_GET_CREDENTIAL -> {
                 Napier.d("SharingActivity DCAPI GET_CREDENTIAL")
+                intentState.presentationStateModel.value = null
                 intentState.dcapiInvocationData.value =
                     AndroidDCAPIInvocationData(intent, ::sendCredentialResponseToDCAPIInvoker)
                 intentState.appLink.value = intent.action
             }
             RegistryManager.ACTION_CREATE_CREDENTIAL -> {
                 Napier.d("SharingActivity DCAPI CREATE_CREDENTIAL")
+                intentState.presentationStateModel.value = null
                 intentState.dcapiInvocationData.value =
                     AndroidDCAPIInvocationData(intent, ::sendCredentialCreationResponseToDCAPIInvoker)
                 intentState.appLink.value = intent.action
             }
             PRESENTATION_REQUESTED_INTENT -> {
                 Napier.d("SharingActivity PRESENTATION_REQUESTED_INTENT")
+                intentState.dcapiInvocationData.value = null
                 intentState.presentationStateModel.value = NdefDeviceEngagementService.presentationStateModel
                 intentState.appLink.value = PRESENTATION_REQUESTED_INTENT
             }
             else -> {
                 Napier.d("SharingActivity appLink=${intent.data}")
+                intentState.dcapiInvocationData.value = null
+                intentState.presentationStateModel.value = null
                 intentState.appLink.value = intent.data?.toString()
             }
         }
@@ -85,7 +90,7 @@ class SharingActivity : AbstractWalletActivity() {
     }
 
     override fun onDestroy() {
-        if (::sessionService.isInitialized && isFinishing) {
+        if (::sessionService.isInitialized) {
             sessionService.close()
         }
         super.onDestroy()

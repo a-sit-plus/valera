@@ -5,16 +5,19 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
+import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.SESSION_NAME
+import at.asitplus.wallet.app.common.SessionHandle
 import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.WalletSessionBindings
+import at.asitplus.wallet.app.common.createErrorReportingScope
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
+import kotlinx.coroutines.cancel
 import org.koin.core.Koin
 import org.koin.core.qualifier.named
-import org.koin.core.scope.Scope
 import org.multipaz.prompt.PromptModel
 import java.util.UUID
 
@@ -35,7 +38,7 @@ internal fun createWalletSessionScope(
     sessionService: SessionService,
     buildContext: BuildContext,
     promptModel: PromptModel,
-): Scope {
+): SessionHandle {
     val platformAdapter = AndroidPlatformAdapter(activity, intentState)
     val dataStoreService = RealDataStoreService(
         getDataStore(activity),
@@ -46,6 +49,10 @@ internal fun createWalletSessionScope(
         "$sessionName:${UUID.randomUUID()}",
         named(SESSION_NAME)
     )
+    var errorService: ErrorService? = null
+    val sessionCoroutineScope = createErrorReportingScope("wallet-session:$sessionName") {
+        errorService
+    }
 
     scope.declare(
         WalletSessionBindings(
@@ -55,9 +62,13 @@ internal fun createWalletSessionScope(
             promptModel = promptModel,
             platformAdapter = platformAdapter,
             dataStoreService = dataStoreService,
-            keystoreService = keystoreService
+            keystoreService = keystoreService,
+            sessionCoroutineScope = sessionCoroutineScope
         )
     )
+    errorService = scope.get()
 
-    return scope
+    return SessionHandle(scope = scope) {
+        sessionCoroutineScope.cancel()
+    }
 }

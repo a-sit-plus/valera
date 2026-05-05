@@ -35,6 +35,7 @@ import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.SESSION_NAME
+import at.asitplus.wallet.app.common.SessionHandle
 import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.WalletSessionBindings
@@ -127,21 +128,27 @@ fun ComposeUiTest.endToEndTest() {
             val sessionService = remember(walletDependencyProvider, intentState) {
                 SessionService().apply {
                     initialize {
-                        KoinPlatform.getKoin().createScope(
+                        val sessionCoroutineScope = CoroutineScope(
+                            SupervisorJob() + Dispatchers.Default
+                        )
+                        val scope = KoinPlatform.getKoin().createScope(
                             "test-session:${Uuid.random()}",
                             named(SESSION_NAME)
-                        ).also { scope ->
-                            scope.declare(
-                                WalletSessionBindings(
-                                    intentState = intentState,
-                                    sessionService = this,
-                                    buildContext = walletDependencyProvider.buildContext,
-                                    promptModel = walletDependencyProvider.promptModel,
-                                    platformAdapter = walletDependencyProvider.platformAdapter,
-                                    dataStoreService = walletDependencyProvider.dataStoreService,
-                                    keystoreService = walletDependencyProvider.keystoreService
-                                )
+                        )
+                        scope.declare(
+                            WalletSessionBindings(
+                                intentState = intentState,
+                                sessionService = this,
+                                buildContext = walletDependencyProvider.buildContext,
+                                promptModel = walletDependencyProvider.promptModel,
+                                platformAdapter = walletDependencyProvider.platformAdapter,
+                                dataStoreService = walletDependencyProvider.dataStoreService,
+                                keystoreService = walletDependencyProvider.keystoreService,
+                                sessionCoroutineScope = sessionCoroutineScope
                             )
+                        )
+                        SessionHandle(scope = scope) {
+                            sessionCoroutineScope.cancel()
                         }
                     }
                 }

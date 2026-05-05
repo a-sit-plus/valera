@@ -34,6 +34,7 @@ fun platformModule() = module {
         scoped<PlatformAdapter> { get<WalletSessionBindings>().platformAdapter }
         scoped<DataStoreService> { get<WalletSessionBindings>().dataStoreService }
         scoped<at.asitplus.wallet.app.common.KeystoreService> { get<WalletSessionBindings>().keystoreService }
+        scoped<CoroutineScope> { get<WalletSessionBindings>().sessionCoroutineScope }
         scopedOf(::PersistentSubjectCredentialStore)
 
         scoped<WalletKeyMaterial> {
@@ -43,7 +44,7 @@ fun platformModule() = module {
         scoped<HotWalletSubjectCredentialStore> {
             HotWalletSubjectCredentialStore(
                 delegate = get(),
-                coroutineScope = CoroutineScope(Dispatchers.IO)
+                coroutineScope = CoroutineScope(get<CoroutineScope>().coroutineContext + Dispatchers.IO)
             )
         } binds arrayOf(
             SubjectCredentialStore::class,

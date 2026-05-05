@@ -99,7 +99,8 @@ fun VerifierView(
             navigateUp = vm.onResume,
             onClickLogo = onClickLogo,
             onClickBackToSettings = vm.onResume,
-            onOpenAppSettings = { appSettings.open() }
+            onOpenAppSettings = { appSettings.open() },
+            coroutineScope = vm.walletMain.scope,
         )
     }
 }

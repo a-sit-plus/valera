@@ -9,14 +9,13 @@ import androidx.core.content.ContextCompat
 import at.asitplus.wallet.app.common.DummyPlatformAdapter
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.WalletConfig
+import at.asitplus.wallet.app.common.createErrorReportingScope
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.presentation.PresentmentTimeout
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
 import io.github.aakira.napier.Napier
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
@@ -57,14 +56,12 @@ class NdefDeviceEngagementService : HostApduService() {
         private var disableEngagementJob: Job? = null
         private var listenForCancellationFromUiJob: Job? = null
         private lateinit var walletConfig: WalletConfig
-
-        // TODO use error service to show error to user, but how to get it from here?
-        private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
-            Napier.e("FAILURE IN COROUTINE", error, tag = TAG)
-        }
+        private var serviceErrorService: ErrorService? = null
 
         private val coroutineScope =
-            CoroutineScope(Dispatchers.Default + CoroutineName("NdefDeviceEngagementService") + coroutineExceptionHandler)
+            createErrorReportingScope("NdefDeviceEngagementService") {
+                serviceErrorService
+            }
 
         val presentationStateModel: PresentationStateModel by lazy {
             PresentationStateModel(coroutineScope)
@@ -88,10 +85,14 @@ class NdefDeviceEngagementService : HostApduService() {
     override fun onDestroy() {
         super.onDestroy()
         commandApduListenJob?.cancel()
+        serviceErrorService = null
     }
 
     private var commandApduListenJob: Job? = null
     private val commandApduChannel = Channel<CommandApdu>(Channel.UNLIMITED)
+    private val serviceScope = createErrorReportingScope("NdefDeviceEngagementService-instance") {
+        serviceErrorService
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -101,10 +102,11 @@ class NdefDeviceEngagementService : HostApduService() {
                 dataStore = getDataStore(applicationContext),
                 platformAdapter = DummyPlatformAdapter()
             ),
-            errorService = ErrorService()
+            errorService = ErrorService(serviceScope)
         )
+        serviceErrorService = walletConfig.errorService
 
-        commandApduListenJob = CoroutineScope(Dispatchers.IO).launch {
+        commandApduListenJob = serviceScope.launch(Dispatchers.IO) {
             while (true) {
                 val commandApdu = commandApduChannel.receive()
                 val responseApdu = processCommandApdu(commandApdu)
@@ -316,7 +318,7 @@ class NdefDeviceEngagementService : HostApduService() {
         // If the reader hasn't connected by the time NFC interaction ends, make sure we only
         // wait for a limited amount of time.
         if (presentationStateModel.state.value == PresentationStateModel.State.CONNECTING) {
-            disableEngagementJob = CoroutineScope(Dispatchers.IO + CoroutineName("NdefDeviceEngagementService: onDeactivated")).launch {
+            disableEngagementJob = serviceScope.launch(Dispatchers.IO + CoroutineName("NdefDeviceEngagementService: onDeactivated")) {
                     try {
                         presentationStateModel.waitForConnectionUsingMainTransport(walletConfig.connectionTimeout.first())
                         Napier.d("NdefDeviceEngagementService: Main transport connected")

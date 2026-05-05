@@ -19,7 +19,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -91,7 +90,7 @@ fun WalletNavigation(
     val navController: NavHostController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
     var pendingRoute by remember { mutableStateOf<Route?>(null) }
-    val scope = rememberCoroutineScope()
+    val scope = walletMain.scope
 
     val initialLink = remember {
         intentState.appLink.value.also { link ->

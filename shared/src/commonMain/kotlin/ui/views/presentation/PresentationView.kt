@@ -116,7 +116,7 @@ fun PresentationView(
                             navigateUp = presentationViewModel.navigateUp,
                             onCancel = { presentationViewModel.onCancel() },
                             buttonConsent = {
-                                CoroutineScope(Dispatchers.IO).launch {
+                                coroutineScope.launch(Dispatchers.IO) {
                                     presentationViewModel.onConsent()
                                 }
                             },

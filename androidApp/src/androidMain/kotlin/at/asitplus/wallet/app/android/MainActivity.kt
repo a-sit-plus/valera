@@ -63,7 +63,7 @@ class MainActivity : AbstractWalletActivity() {
     }
 
     override fun onDestroy() {
-        if (::sessionService.isInitialized && isFinishing) {
+        if (::sessionService.isInitialized) {
             sessionService.close()
         }
         super.onDestroy()

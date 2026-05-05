@@ -1,9 +1,12 @@
 import at.asitplus.wallet.app.common.BuildContext
+import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.SESSION_NAME
+import at.asitplus.wallet.app.common.SessionHandle
 import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.WalletSessionBindings
+import at.asitplus.wallet.app.common.createErrorReportingScope
 import at.asitplus.wallet.app.common.di.appModule
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
 import data.storage.AntilogAdapter
@@ -12,6 +15,7 @@ import data.storage.createDataStore
 import io.github.aakira.napier.Napier
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
+import kotlinx.coroutines.cancel
 import org.koin.core.context.startKoin
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
@@ -179,7 +183,7 @@ private fun createIosWalletSessionScope(
     intentState: IntentState,
     buildContext: BuildContext,
     promptModel: PromptModel,
-): Scope {
+): SessionHandle {
     val platformAdapter = IosPlatformAdapter(intentState)
     val dataStoreService = RealDataStoreService(createDataStore(), platformAdapter)
     val keystoreService = KeystoreService(dataStoreService)
@@ -187,6 +191,10 @@ private fun createIosWalletSessionScope(
         "$sessionName:${Uuid.random()}",
         named(SESSION_NAME)
     )
+    var errorService: ErrorService? = null
+    val sessionCoroutineScope = createErrorReportingScope("wallet-session:$sessionName") {
+        errorService
+    }
 
     scope.declare(
         WalletSessionBindings(
@@ -196,9 +204,13 @@ private fun createIosWalletSessionScope(
             promptModel = promptModel,
             platformAdapter = platformAdapter,
             dataStoreService = dataStoreService,
-            keystoreService = keystoreService
+            keystoreService = keystoreService,
+            sessionCoroutineScope = sessionCoroutineScope
         )
     )
+    errorService = scope.get()
 
-    return scope
+    return SessionHandle(scope = scope) {
+        sessionCoroutineScope.cancel()
+    }
 }
