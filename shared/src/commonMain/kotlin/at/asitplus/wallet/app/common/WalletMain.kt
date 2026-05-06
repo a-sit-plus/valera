@@ -60,6 +60,7 @@ class WalletMain(
     val sessionService: SessionService,
     val capabilitiesService: CapabilitiesService,
     val credentialValidityService: CredentialValidityService,
+    sessionCoroutineScope: CoroutineScope,
 ) {
     val appReady = MutableStateFlow<Boolean?>(null)
 
@@ -69,7 +70,7 @@ class WalletMain(
     }
     val scope =
         CoroutineScope(
-            Dispatchers.Default + coroutineExceptionHandler + promptModel + CoroutineName(
+            sessionCoroutineScope.coroutineContext + coroutineExceptionHandler + promptModel + CoroutineName(
                 "WalletMain"
             )
         )
@@ -135,8 +136,6 @@ class WalletMain(
 
     private fun startListeningForNewCredentialsDCAPI() {
         try {
-            val scope =
-                CoroutineScope(Dispatchers.IO + coroutineExceptionHandler + CoroutineName("startListeningForNewCredentialsDCAPI"))
             Napier.d("DC API: Starting to observe credentials")
             subjectCredentialStore.observeStoreContainer().onEach { storeContainer ->
                 dcApiExportService.registerCredentialWithSystem(storeContainer, scope)

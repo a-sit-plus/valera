@@ -77,7 +77,7 @@ open class TransferOptionsViewModel(
     )
 
     private fun update(block: suspend SettingsRepository.() -> Result<Unit>) =
-        viewModelScope.launch { settingsRepository.block() }
+        walletMain.scope.launch { settingsRepository.block() }
 
     fun setPresentmentUseNegotiatedHandover(value: Boolean) =
         update { set(presentmentUseNegotiatedHandover = value) }

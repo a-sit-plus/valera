@@ -80,6 +80,23 @@ private func buildParsedRequestSummaryData(from requestContext: ISO18013MobileDo
 
 @main
 struct DocumentProviderExtension: IdentityDocumentProvider {
+    #if DEBUG
+    private let buildType = BuildType.debug
+    #else
+    private let buildType = BuildType.release_
+    #endif
+
+    init() {
+        IosSessionBridge.shared.bootstrap(
+            buildContext: BuildContext(
+                buildType: buildType,
+                packageName: Bundle.main.bundleIdentifier ?? "at.asitplus.wallet.compose",
+                versionCode: Bundle.main.infoDictionary?["CFBundleVersion"] as? Int32 ?? 1,
+                versionName: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0",
+                osVersion: "iOS " + UIDevice.current.systemVersion
+            )
+        )
+    }
 
     struct RootViewController: UIViewControllerRepresentable {
         let requestContext: ISO18013MobileDocumentRequestContext
@@ -102,7 +119,7 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
             Napier.shared.base(antilog:OSLogNapierAntilog())
             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "makeUIViewController called")
 
-            let mainViewController = Main_iosKt.MainViewController(
+            let mainViewController = Main_iosKt.SharingMainViewController(
                 buildContext: BuildContext(
                     buildType: buildType,
                     packageName: Bundle.main.bundleIdentifier ?? "at.asitplus.wallet.compose",
@@ -144,7 +161,7 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                                     origin: originString,
                                     onFinish: onFinish
                                 )
-                                MdocSessionManager.shared.setSession(data: invocationData)
+                                IosSessionBridge.shared.registerDcapiInvocation(data: invocationData)
                                 
                                 Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "Before displaying MainViewController")
 
@@ -159,6 +176,7 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                         }
                     } catch {
                         Napier.shared.log(priority: LogLevel.error, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse failed: \(error)")
+                        IosSessionBridge.shared.clearDcapiInvocation()
                         requestContext.cancel()
                     }
                 }
@@ -166,6 +184,7 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
 
             let onCancel: () -> Void = {
                 Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onCancel called")
+                IosSessionBridge.shared.clearDcapiInvocation()
                 requestContext.cancel()
             }
 

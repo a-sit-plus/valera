@@ -35,11 +35,12 @@ import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.SESSION_NAME
+import at.asitplus.wallet.app.common.SessionHandle
 import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.WalletDependencyProvider
+import at.asitplus.wallet.app.common.WalletSessionBindings
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.app.common.di.appModule
-import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
@@ -73,20 +74,24 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.resources.getString
+import org.koin.compose.KoinApplication
 import org.koin.compose.koinInject
 import org.koin.core.module.dsl.scopedOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.binds
 import org.koin.dsl.module
+import org.koin.mp.KoinPlatform
 import org.multipaz.prompt.PromptModel
 import org.multipaz.prompt.Reason
 import ui.navigation.routes.RoutePrerequisites
 import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class, ExperimentalTestApi::class)
 @ExperimentalMaterial3Api
-@OptIn(ExperimentalTestApi::class)
 fun ComposeUiTest.endToEndTest() {
     val startText = runBlocking { getString(Res.string.button_label_start) }
     val portraitText = runBlocking { getString(Res.string.content_description_portrait) }
@@ -109,55 +114,88 @@ fun ComposeUiTest.endToEndTest() {
             createWalletDependencyProvider(platformAdapter)
         }
         
-        val capabilitiesModule = module {
-            scope(named(SESSION_NAME)) {
-                scopedOf(::DummyCapabilitiesService) binds arrayOf(CapabilitiesService::class)
+        val capabilitiesModule = remember {
+            module {
+                scope(named(SESSION_NAME)) {
+                    scopedOf(::DummyCapabilitiesService) binds arrayOf(CapabilitiesService::class)
+                }
             }
         }
-        val module = appModule(walletDependencyProvider, capabilitiesModule)
 
-        // B. Call the main App composable within the CompositionLocalProvider.
-        CompositionLocalProvider(
-            LocalLifecycleOwner provides TestLifecycleOwner()
-        ) {
-            App(
-                koinModule = module,
-                intentState = intentState
-            )
-        }
-
-        // C. Inject services after framework is running
-        val sessionService: SessionService = koinInject()
-        val holderAgent: HolderAgent = koinInject(scope = sessionService.scope.value)
-
-        // D. Use LaunchedEffect for one-time, asynchronous setup tasks.
-        //    This is the correct way to run non-UI suspend functions from a Composable.
-        LaunchedEffect(Unit) {
-            println("InstrumentedTests: starting credential issuance setup")
-            val issuer = IssuerAgent(
-                keyMaterial = EphemeralKeyWithoutCert(),
-                statusListBaseUrl = "https://wallet.a-sit.at/m7/credentials/status",
-                identifier = "https://issuer.example.com/".toUri(),
-            )
-            runCatching {
-                holderAgent.storeCredential(
-                    issuer.issueCredential(
-                        CredentialToBeIssued.VcSd(
-                            getAttributes(),
-                            Clock.System.now().plus(60.minutes),
-                            EuPidSdJwtScheme,
-                            holderAgent.keyMaterial.publicKey,
-                            OidcUserInfoExtended(userInfo = OidcUserInfo(subject = ""))
+        KoinApplication({
+            modules(appModule(), capabilitiesModule)
+        }) {
+            val sessionService = remember(walletDependencyProvider, intentState) {
+                SessionService().apply {
+                    initialize {
+                        val sessionCoroutineScope = CoroutineScope(
+                            SupervisorJob() + Dispatchers.Default
                         )
-                    )
-                        .getOrThrow()
-                        .toStoreCredentialInput()
+                        val scope = KoinPlatform.getKoin().createScope(
+                            "test-session:${Uuid.random()}",
+                            named(SESSION_NAME)
+                        )
+                        scope.declare(
+                            WalletSessionBindings(
+                                intentState = intentState,
+                                sessionService = this,
+                                buildContext = walletDependencyProvider.buildContext,
+                                promptModel = walletDependencyProvider.promptModel,
+                                platformAdapter = walletDependencyProvider.platformAdapter,
+                                dataStoreService = walletDependencyProvider.dataStoreService,
+                                keystoreService = walletDependencyProvider.keystoreService,
+                                sessionCoroutineScope = sessionCoroutineScope
+                            )
+                        )
+                        SessionHandle(scope = scope) {
+                            sessionCoroutineScope.cancel()
+                        }
+                    }
+                }
+            }
+
+            // B. Call the main App composable within the CompositionLocalProvider.
+            CompositionLocalProvider(
+                LocalLifecycleOwner provides TestLifecycleOwner()
+            ) {
+                App(
+                    sessionService = sessionService,
+                    intentState = intentState
                 )
-            }.onSuccess {
-                println("InstrumentedTests: credential issuance setup completed")
-            }.onFailure {
-                println("InstrumentedTests: credential issuance setup failed: ${it::class.simpleName}: ${it.message}")
-                throw it
+            }
+
+            // C. Inject services after framework is running
+            val holderAgent: HolderAgent = koinInject(scope = sessionService.scope.value)
+
+            // D. Use LaunchedEffect for one-time, asynchronous setup tasks.
+            //    This is the correct way to run non-UI suspend functions from a Composable.
+            LaunchedEffect(Unit) {
+                println("InstrumentedTests: starting credential issuance setup")
+                val issuer = IssuerAgent(
+                    keyMaterial = EphemeralKeyWithoutCert(),
+                    statusListBaseUrl = "https://wallet.a-sit.at/m7/credentials/status",
+                    identifier = "https://issuer.example.com/".toUri(),
+                )
+                runCatching {
+                    holderAgent.storeCredential(
+                        issuer.issueCredential(
+                            CredentialToBeIssued.VcSd(
+                                getAttributes(),
+                                Clock.System.now().plus(60.minutes),
+                                EuPidSdJwtScheme,
+                                holderAgent.keyMaterial.publicKey,
+                                OidcUserInfoExtended(userInfo = OidcUserInfo(subject = ""))
+                            )
+                        )
+                            .getOrThrow()
+                            .toStoreCredentialInput()
+                    )
+                }.onSuccess {
+                    println("InstrumentedTests: credential issuance setup completed")
+                }.onFailure {
+                    println("InstrumentedTests: credential issuance setup failed: ${it::class.simpleName}: ${it.message}")
+                    throw it
+                }
             }
         }
     }
@@ -189,7 +227,9 @@ fun ComposeUiTest.endToEndTest() {
     val qrCodeUrl = firstProfile?.get("url")?.jsonPrimitive?.content
     val id = firstProfile?.get("id")?.jsonPrimitive?.content
 
-    intentState.appLink.value = qrCodeUrl!!
+    runOnIdle {
+        intentState.appLink.value = qrCodeUrl!!
+    }
 
     waitUntilExactlyOneExists(hasText(continueText), 10000)
 

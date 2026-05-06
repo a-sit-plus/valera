@@ -8,7 +8,6 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -36,28 +35,17 @@ import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.app.android.dcapi.AndroidDCAPIInvocationData
 import at.asitplus.wallet.app.android.dcapi.CustomRegistry
 import at.asitplus.wallet.app.common.BuildContext
-import at.asitplus.wallet.app.common.CapabilitiesService
 import at.asitplus.wallet.app.common.IntentState
-import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
-import at.asitplus.wallet.app.common.RealCapabilitiesService
-import at.asitplus.wallet.app.common.SESSION_NAME
-import at.asitplus.wallet.app.common.WalletDependencyProvider
+import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
-import at.asitplus.wallet.app.common.di.appModule
 import at.asitplus.wallet.lib.data.vckJsonSerializer
-import data.storage.RealDataStoreService
-import data.storage.getDataStore
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToByteArray
-import org.koin.core.module.dsl.scopedOf
-import org.koin.core.qualifier.named
-import org.koin.dsl.binds
-import org.koin.dsl.module
 import org.multipaz.compose.prompt.PromptDialogs
 import org.multipaz.prompt.PromptModel
 import ui.theme.darkScheme
@@ -85,12 +73,14 @@ actual fun getColorScheme(): ColorScheme {
 fun MainView(
     buildContext: BuildContext,
     promptModel: PromptModel,
-    intentState: IntentState
+    intentState: IntentState,
+    sessionService: SessionService
 ) {
     WalletRootView(
         buildContext = buildContext,
         promptModel = promptModel,
-        intentState = intentState
+        intentState = intentState,
+        sessionService = sessionService
     )
 }
 
@@ -99,34 +89,45 @@ fun MainView(
 private fun WalletRootView(
     buildContext: BuildContext,
     promptModel: PromptModel,
-    intentState: IntentState
+    intentState: IntentState,
+    sessionService: SessionService
 ) {
-    val platformAdapter = AndroidPlatformAdapter(LocalContext.current, intentState)
-    val dataStoreService = RealDataStoreService(
-        getDataStore(LocalContext.current),
-        platformAdapter
-    )
-    val ks = KeystoreService(dataStoreService)
-
     PromptDialogs(promptModel)
 
-    val walletDependencyProvider = WalletDependencyProvider(
-        keystoreService = ks,
-        dataStoreService = dataStoreService,
-        platformAdapter = platformAdapter,
-        buildContext = buildContext,
-        promptModel = promptModel
-    )
-
-    val capabilitiesModule = module {
-        scope(named(SESSION_NAME)) {
-            scopedOf(::RealCapabilitiesService) binds arrayOf(CapabilitiesService::class)
-        }
-    }
-    val module = appModule(walletDependencyProvider, capabilitiesModule)
-
     App(
-        koinModule = module,
+        sessionService = sessionService,
+        intentState = intentState
+    )
+}
+
+@ExperimentalMaterial3Api
+@Composable
+fun SharingView(
+    buildContext: BuildContext,
+    promptModel: PromptModel,
+    intentState: IntentState,
+    sessionService: SessionService
+) {
+    SharingRootView(
+        buildContext = buildContext,
+        promptModel = promptModel,
+        intentState = intentState,
+        sessionService = sessionService
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SharingRootView(
+    buildContext: BuildContext,
+    promptModel: PromptModel,
+    intentState: IntentState,
+    sessionService: SessionService
+) {
+    PromptDialogs(promptModel)
+
+    SharingApp(
+        sessionService = sessionService,
         intentState = intentState
     )
 }

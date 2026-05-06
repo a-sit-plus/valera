@@ -11,6 +11,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,20 +26,14 @@ import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.dcapi.request.IsoMdocRequest
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.app.common.BuildContext
-import at.asitplus.wallet.app.common.CapabilitiesService
 import at.asitplus.wallet.app.common.IntentState
-import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
-import at.asitplus.wallet.app.common.RealCapabilitiesService
-import at.asitplus.wallet.app.common.SESSION_NAME
-import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.dcapi.IosParsedMdocRequestSummary
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
-import at.asitplus.wallet.app.common.di.appModule
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
-import data.storage.RealDataStoreService
-import data.storage.createDataStore
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.snackbar_digital_credentials_store_failed
 import io.github.aakira.napier.Napier
 import at.asitplus.wallet.app.ios.DigitalCredentials
 import kotlinx.cinterop.*
@@ -49,18 +44,13 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.json.Json
-import org.koin.core.module.dsl.scopedOf
-import org.koin.core.qualifier.named
-import org.koin.dsl.binds
-import org.koin.dsl.module
+import org.jetbrains.compose.resources.getString
 import org.multipaz.compose.prompt.PromptDialogs
-import org.multipaz.prompt.IosPromptModel
 import platform.AVFoundation.*
 import platform.Foundation.*
 import platform.UIKit.*
 import platform.darwin.dispatch_async
 import platform.darwin.dispatch_get_main_queue
-import ui.navigation.IntentService.Companion.IOS_DC_API_CALL
 import ui.theme.darkScheme
 import ui.theme.lightScheme
 
@@ -84,53 +74,32 @@ actual fun getColorScheme(): ColorScheme {
     }
 }
 
-private val iosIntentState = IntentState()
-
-// Expose the singleton intent state to Swift for deep-link handling.
-fun getIosIntentState(): IntentState = iosIntentState
-
-object MdocSessionManager {
-    // TODO check if correct credentials are shown without credentialId set (and check behaviour on Android, should only show the one credential selected by the user)
-    fun setSession(data: IosDCAPIInvocationData) {
-        iosIntentState.dcapiInvocationData.value = data
-        iosIntentState.appLink.value = IOS_DC_API_CALL
-        Napier.d("MdocSessionManager: Session set with request of length ${data.rawRequest?.length} from origin ${data.origin}")
-    }
-
-    fun clearSession() {
-        iosIntentState.dcapiInvocationData.value = null
-        iosIntentState.appLink.value = null
-        Napier.d("MdocSessionManager: Session cleared")
-    }
-}
-
 @ExperimentalMaterial3Api
 fun MainViewController(
     buildContext: BuildContext,
 ): UIViewController {
-    val iosPlatformAdapter = IosPlatformAdapter(iosIntentState)
-    val dataStoreService = RealDataStoreService(createDataStore(), iosPlatformAdapter)
-    val keystoreService = KeystoreService(dataStoreService)
-    val promptModel = IosPromptModel.Builder().apply { addCommonDialogs() }.build()
-    val walletDependencyProvider = WalletDependencyProvider(
-        keystoreService,
-        dataStoreService,
-        iosPlatformAdapter,
-        buildContext = buildContext,
-        promptModel = promptModel
-    )
-    val capabilitiesModule = module {
-        scope(named(SESSION_NAME)) {
-            scopedOf(::RealCapabilitiesService) binds arrayOf(CapabilitiesService::class)
-        }
-    }
-    val module = appModule(walletDependencyProvider, capabilitiesModule)
+    val (intentState, sessionService, promptModel) = getOrCreateIosSession(buildContext)
 
     return ComposeUIViewController {
         PromptDialogs(promptModel)
         App(
-            koinModule = module,
-            intentState = iosIntentState
+            sessionService = sessionService,
+            intentState = intentState
+        )
+    }
+}
+
+@ExperimentalMaterial3Api
+fun SharingMainViewController(
+    buildContext: BuildContext,
+): UIViewController {
+    val (intentState, sessionService, promptModel) = getOrCreateIosSession(buildContext)
+
+    return ComposeUIViewController {
+        PromptDialogs(promptModel)
+        SharingApp(
+            sessionService = sessionService,
+            intentState = intentState
         )
     }
 }
@@ -373,14 +342,18 @@ class IosPlatformAdapter(
                 val id = entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
                 val docType = entry.isoEntry?.docType ?: entry.sdJwtEntry?.verifiableCredentialType
                 if (id != null && docType != null) {
-                    storeDocumentFromSwift(id, docType)
+                    storeDocumentFromSwift(id, docType, scope)
                 }
             }
         }
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    private suspend fun storeDocumentFromSwift(id: String, docType: String): Boolean = suspendCancellableCoroutine { cont ->
+    private suspend fun storeDocumentFromSwift(
+        id: String,
+        docType: String,
+        scope: CoroutineScope
+    ): Boolean = suspendCancellableCoroutine { cont ->
         try {
             Napier.d("storeDocumentFromSwift invoked")
             if (docType !in SUPPORTED_DOC_TYPES) {
@@ -388,8 +361,19 @@ class IosPlatformAdapter(
                 if (cont.isActive) cont.resume(false)
                 return@suspendCancellableCoroutine
             }
-            DigitalCredentials.storeDocumentWithId(id, docType) { success ->
-                Napier.d("storeDocumentFromSwift callback with $success")
+            DigitalCredentials.storeDocumentWithId(id, docType) { errorMessage ->
+                val success = errorMessage == null
+                Napier.d("storeDocumentFromSwift callback with success=$success error=$errorMessage")
+                if (!success) {
+                    scope.launch {
+                        val baseMessage = getString(Res.string.snackbar_digital_credentials_store_failed)
+                        IosSessionBridge.showSnackbar(
+                            listOfNotNull(baseMessage, errorMessage?.takeIf { it.isNotBlank() })
+                                .joinToString(": "),
+                            SnackbarDuration.Long
+                        )
+                    }
+                }
                 if (cont.isActive) cont.resume(success)
             }
             Napier.d("storeDocumentFromSwift got back from swift")
@@ -433,7 +417,7 @@ class IosPlatformAdapter(
         // send empty response for now
         (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let { (_, _, _, sendCredentialResponseToInvoker) ->
             sendCredentialResponseToInvoker.invoke(ByteArray(0).toNSData())
-            MdocSessionManager.clearSession()
+            IosSessionBridge.clearDcapiInvocation()
         } ?: throw IllegalStateException("Callback for response not found")
     }
 
@@ -443,7 +427,7 @@ class IosPlatformAdapter(
             val encodedResponse = coseCompliantSerializer.encodeToByteArray(response)
             Napier.d("encodedResponse: ${encodedResponse.toHexString()}")
             sendCredentialResponseToInvoker.invoke(encodedResponse.toNSData())
-            MdocSessionManager.clearSession()
+            IosSessionBridge.clearDcapiInvocation()
         } ?: throw IllegalStateException("Callback for response not found")
 
     override fun prepareDCAPIIssuingResponse(response: String, success: Boolean) {

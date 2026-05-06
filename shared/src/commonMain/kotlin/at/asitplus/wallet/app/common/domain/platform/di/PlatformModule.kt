@@ -1,9 +1,11 @@
 package at.asitplus.wallet.app.common.domain.platform.di
 
 import at.asitplus.wallet.app.common.BuildContext
+import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.SESSION_NAME
-import at.asitplus.wallet.app.common.WalletDependencyProvider
+import at.asitplus.wallet.app.common.SessionService
+import at.asitplus.wallet.app.common.WalletSessionBindings
 import at.asitplus.wallet.app.common.WalletKeyMaterial
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
@@ -18,54 +20,47 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import org.koin.core.qualifier.named
+import org.koin.core.module.dsl.scopedOf
 import org.koin.dsl.binds
 import org.koin.dsl.module
 import org.multipaz.prompt.PromptModel
 
-fun platformModule(appDependencyProvider: WalletDependencyProvider) = module {
+fun platformModule() = module {
     scope(named(SESSION_NAME)) {
+        scoped<IntentState> { get<WalletSessionBindings>().intentState }
+        scoped<SessionService> { get<WalletSessionBindings>().sessionService }
+        scoped<BuildContext> { get<WalletSessionBindings>().buildContext }
+        scoped<PromptModel> { get<WalletSessionBindings>().promptModel }
+        scoped<PlatformAdapter> { get<WalletSessionBindings>().platformAdapter }
+        scoped<DataStoreService> { get<WalletSessionBindings>().dataStoreService }
+        scoped<at.asitplus.wallet.app.common.KeystoreService> { get<WalletSessionBindings>().keystoreService }
+        scoped<CoroutineScope> { get<WalletSessionBindings>().sessionCoroutineScope }
+        scopedOf(::PersistentSubjectCredentialStore)
+
         scoped<WalletKeyMaterial> {
-            WalletKeyMaterial(appDependencyProvider.keystoreService.getSignerBlocking())
+            WalletKeyMaterial(get<at.asitplus.wallet.app.common.KeystoreService>().getSignerBlocking())
         } binds arrayOf(KeyMaterial::class)
-    }
 
-    factory<DataStoreService> {
-        appDependencyProvider.dataStoreService
-    }
-    factory<PlatformAdapter> {
-        appDependencyProvider.platformAdapter
-    }
-    factory<PersistentSubjectCredentialStore> {
-        appDependencyProvider.subjectCredentialStore
-    }
-
-    single<HotWalletSubjectCredentialStore> {
-        HotWalletSubjectCredentialStore(
-            delegate = get(),
-            coroutineScope = CoroutineScope(Dispatchers.IO)
+        scoped<HotWalletSubjectCredentialStore> {
+            HotWalletSubjectCredentialStore(
+                delegate = get(),
+                coroutineScope = CoroutineScope(get<CoroutineScope>().coroutineContext + Dispatchers.IO)
+            )
+        } binds arrayOf(
+            SubjectCredentialStore::class,
+            WalletSubjectCredentialStore::class,
         )
-    } binds arrayOf(
-        SubjectCredentialStore::class,
-        WalletSubjectCredentialStore::class,
-    )
 
-    factory<BuildContext> {
-        appDependencyProvider.buildContext
-    }
-    factory<PromptModel> {
-        appDependencyProvider.promptModel
-    }
-
-    factory<UrlOpener> {
-        UrlOpener {
-            appDependencyProvider.platformAdapter.openUrl(it)
+        scoped<UrlOpener> {
+            UrlOpener {
+                get<PlatformAdapter>().openUrl(it)
+            }
         }
-    }
 
-    factory<ImageDecoder> {
-        ImageDecoder {
-            appDependencyProvider.platformAdapter.decodeImage(it)
+        scoped<ImageDecoder> {
+            ImageDecoder {
+                get<PlatformAdapter>().decodeImage(it)
+            }
         }
     }
 }
-

@@ -24,8 +24,9 @@ import at.asitplus.valera.resources.info_text_capabilities_no_internet
 import at.asitplus.valera.resources.info_text_capabilities_no_signing
 import at.asitplus.wallet.app.common.CapabilitiesData
 import getPlatformName
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -50,7 +51,7 @@ fun CapabilityView(
     val evaluation by vm.capabilitiesService.evaluatePrerequisites(prerequisites).collectAsState(null)
 
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        CoroutineScope(Dispatchers.IO).launch {
+        vm.walletMain.scope.launch(Dispatchers.IO) {
             vm.capabilitiesService.refreshStatus()
         }
     }
