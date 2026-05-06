@@ -74,13 +74,13 @@ class PresentationService(
         Napier.d("Finalizing DCAPI response")
 
         // TODO this code is probably duplicated in the Verifier
+        val callingOrigin = isoMdocWalletRequest.callingOrigin.serializeOrigin()
+            ?: throw IllegalArgumentException("Invalid calling origin")
         val hash = coseCompliantSerializer.encodeToByteArray(
-            DCAPIInfo(isoMdocWalletRequest.isoMdocRequest.encryptionInfo, isoMdocWalletRequest.callingOrigin)
+            DCAPIInfo(isoMdocWalletRequest.isoMdocRequest.encryptionInfo, callingOrigin)
         ).sha256()
         val handover = DCAPIHandover(type = TYPE_DCAPI, hash = hash)
         val sessionTranscript = SessionTranscript.forDcApi(handover)
-        val callingOrigin = isoMdocWalletRequest.callingOrigin.serializeOrigin() ?:
-            throw IllegalArgumentException("Invalid calling origin")
 
         val presentationResult = holderAgent.createPresentation(
             request = PresentationRequestParameters(
