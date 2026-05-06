@@ -15,6 +15,7 @@
 		B7DE82D4C033625C80140561 /* OSLogNapierAntilog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DE86B6B19B6FFB46488EE1 /* OSLogNapierAntilog.swift */; };
 		B7DE8F4AF477D6E8EDAC45E9 /* OSLogNapierAntilog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DE86B6B19B6FFB46488EE1 /* OSLogNapierAntilog.swift */; };
 		E147A2B12EB4FD5A00D88306 /* IdentityDocumentProviderExtension.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = E147A2AA2EB4FD5A00D88306 /* IdentityDocumentProviderExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E1B7FF8C2EF0A10006DA318 /* compose-resources in Resources */ = {isa = PBXBuildFile; fileRef = E1B7FF792EF07845006DA318 /* compose-resources */; };
 		E1B7FF7A2EF07846006DA318 /* compose-resources in Resources */ = {isa = PBXBuildFile; fileRef = E1B7FF792EF07845006DA318 /* compose-resources */; };
 /* End PBXBuildFile section */
 
@@ -68,18 +69,7 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		E1B7FF692EF073D5006DA318 /* IdentityDocumentProviderExtension */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				E1B7FF6D2EF073D5006DA318 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = IdentityDocumentProviderExtension;
-			sourceTree = "<group>";
-		};
+		E1B7FF692EF073D5006DA318 /* IdentityDocumentProviderExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E1B7FF6D2EF073D5006DA318 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = IdentityDocumentProviderExtension; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -167,6 +157,7 @@
 			buildConfigurationList = 7555FFA5242A565B00829871 /* Build configuration list for PBXNativeTarget "iosApp" */;
 			buildPhases = (
 				05D91A922A5F233C00F138EB /* Compile Kotlin */,
+				E1B7FF8D2EF0A10006DA318 /* Copy Compose Resources */,
 				7555FF77242A565900829871 /* Sources */,
 				7555FF79242A565900829871 /* Resources */,
 				F85CB1118929364A9C6EFABC /* Frameworks */,
@@ -248,6 +239,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E1B7FF8C2EF0A10006DA318 /* compose-resources in Resources */,
 				489754B22DBFC9BC00FACCF5 /* LaunchScreen.storyboard in Resources */,
 				058557D9273AAEEB004C7B11 /* Preview Assets.xcassets in Resources */,
 				058557BB273AAA24004C7B11 /* Assets.xcassets in Resources */,
@@ -283,7 +275,7 @@
 			shellPath = /bin/sh;
 			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :shared:embedAndSignAppleFrameworkForXcode\n";
 		};
-		E1B7FF8A2EF0A10006DA318 /* Compile Kotlin */ = {
+		E1B7FF8D2EF0A10006DA318 /* Copy Compose Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -292,14 +284,14 @@
 			);
 			inputPaths = (
 			);
-			name = "Compile Kotlin";
+			name = "Copy Compose Resources";
 			outputFileListPaths = (
 			);
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :shared:embedAndSignAppleFrameworkForXcode\n";
+			shellScript = "#!/bin/sh\nset -e\n\n# This script prepares Compose resources in an intermediate directory.\n# Xcode will then copy them into the bundle via a folder reference.\n\n# 1. Define the intermediate output directory.\nOUTPUT_DIR=\"$SRCROOT/../build/extension_compose_resources/compose-resources\"\n\n# 2. Define the root path where KMP stores all generated resources.\nKMP_RESOURCES_ROOT=\"$SRCROOT/../shared/build/kotlin-multiplatform-resources/aggregated-resources\"\n\n# 3. Determine the correct architecture-specific source directory.\nSOURCE_RESOURCES_DIR=\"$KMP_RESOURCES_ROOT/iosArm64/composeResources\"\nif [ \"$PLATFORM_NAME\" = \"iphonesimulator\" ]; then\n    SOURCE_RESOURCES_DIR=\"$KMP_RESOURCES_ROOT/iosSimulatorArm64/composeResources\"\nfi\n\n# 4. Sync the resources. This creates the structure \".../extension_compose_resources/composeResources\"\nif [ -d \"$SOURCE_RESOURCES_DIR\" ]; then\n  mkdir -p \"$OUTPUT_DIR\"\n  rsync -a --delete \"$SOURCE_RESOURCES_DIR\" \"$OUTPUT_DIR/\"\nelse\n  echo \"warning: Compose resources directory not found at $SOURCE_RESOURCES_DIR. Creating empty directory to avoid build errors.\"\n  mkdir -p \"$OUTPUT_DIR\"\nfi\n";
 		};
 		E1B7FF572EEF0519006DA318 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -317,6 +309,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "#!/bin/sh\nset -e\n\n# This script prepares Compose resources in an intermediate directory.\n# Xcode will then copy them into the bundle via a folder reference.\n\n# 1. Define the intermediate output directory.\nOUTPUT_DIR=\"$SRCROOT/../build/extension_compose_resources/compose-resources\"\n\n# 2. Define the root path where KMP stores all generated resources.\nKMP_RESOURCES_ROOT=\"$SRCROOT/../shared/build/kotlin-multiplatform-resources/aggregated-resources\"\n\n# 3. Determine the correct architecture-specific source directory.\nSOURCE_RESOURCES_DIR=\"$KMP_RESOURCES_ROOT/iosArm64/composeResources\"\nif [ \"$PLATFORM_NAME\" = \"iphonesimulator\" ]; then\n    SOURCE_RESOURCES_DIR=\"$KMP_RESOURCES_ROOT/iosSimulatorArm64/composeResources\"\nfi\n\n# 4. Sync the resources. This creates the structure \".../extension_compose_resources/composeResources\"\nif [ -d \"$SOURCE_RESOURCES_DIR\" ]; then\n  mkdir -p \"$OUTPUT_DIR\"\n  rsync -a --delete \"$SOURCE_RESOURCES_DIR\" \"$OUTPUT_DIR/\"\nelse\n  echo \"warning: Compose resources directory not found at $SOURCE_RESOURCES_DIR. Creating empty directory to avoid build errors.\"\n  mkdir -p \"$OUTPUT_DIR\"\nfi\n";
+		};
+		E1B7FF8A2EF0A10006DA318 /* Compile Kotlin */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Compile Kotlin";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :shared:embedAndSignAppleFrameworkForXcode\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

@@ -216,8 +216,8 @@ fun SharingNavigation(
             }
         }
         this.launch {
-            snackbarService.message.collect { (text, actionLabel, callback) ->
-                when (snackbarHostState.showSnackbar(text, actionLabel, true)) {
+            snackbarService.message.collect { (text, actionLabel, duration, callback) ->
+                when (snackbarHostState.showSnackbar(text, actionLabel, true, duration)) {
                     SnackbarResult.Dismissed -> {}
                     SnackbarResult.ActionPerformed -> callback?.invoke()
                 }

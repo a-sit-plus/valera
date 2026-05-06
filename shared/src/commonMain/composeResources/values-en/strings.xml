@@ -18,6 +18,7 @@
     <string name="snackbar_update_hint">Your app is out-of-date, please update to %1$s.</string>
     <string name="snackbar_update_action">Open</string>
     <string name="snackbar_sign_successful">Signed successfully</string>
+    <string name="snackbar_digital_credentials_store_failed">Digital Credential API support could not be activated.</string>
 
     <string name="button_label_use_device_credential">Passcode</string>
     <string name="button_label_confirm">Confirm</string>

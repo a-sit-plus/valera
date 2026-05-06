@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common
 
+import androidx.compose.material3.SnackbarDuration
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -12,10 +13,20 @@ class SnackbarService(
     /**
      * Shows a snackbar with [text] and action label [actionLabel], calls [callback] when user has executed action
      */
-    fun showSnackbar(text: String, actionLabel: String? = null, callback: (() -> Unit)? = null) = scope.launch {
+    fun showSnackbar(
+        text: String,
+        actionLabel: String? = null,
+        duration: SnackbarDuration = SnackbarDuration.Short,
+        callback: (() -> Unit)? = null
+    ) = scope.launch {
         Napier.d("Show Snackbar with text: $text")
-        message.emit(SnackbarFlowData(text, actionLabel, callback))
+        message.emit(SnackbarFlowData(text, actionLabel, duration, callback))
     }
 }
 
-data class SnackbarFlowData (val text: String, val actionLabel: String?, val callback: (() -> Unit)?)
+data class SnackbarFlowData(
+    val text: String,
+    val actionLabel: String?,
+    val duration: SnackbarDuration,
+    val callback: (() -> Unit)?
+)

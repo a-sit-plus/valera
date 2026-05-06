@@ -2,8 +2,26 @@ import Foundation
 import IdentityDocumentServices
 
 @objc(DigitalCredentials) public class DigitalCredentials: NSObject {
+    private static func registrationErrorMessage(for error: Error) -> String {
+        guard let registrationError = error as? IdentityDocumentProviderRegistrationStore.RegistrationError else {
+            return error.localizedDescription
+        }
 
-    @objc public class func storeDocument(id: String, docType: String) async -> Bool {
+        switch registrationError {
+        case .unknown:
+            return "unknown"
+        case .invalidRequest:
+            return "invalidRequest"
+        case .notAuthorized:
+            return "notAuthorized"
+        case .notSupported:
+            return "notSupported"
+        @unknown default:
+            return String(describing: registrationError)
+        }
+    }
+
+    @objc public class func storeDocument(id: String, docType: String) async -> String? {
         let store = IdentityDocumentProviderRegistrationStore()
 
         do {
@@ -15,9 +33,9 @@ import IdentityDocumentServices
 
             try await store.addRegistration(registration)
         } catch {
-            return false
+            return registrationErrorMessage(for: error)
         }
 
-        return true
+        return nil
     }
 }
