@@ -8,6 +8,7 @@ plugins {
 
 
 kotlin {
+    jvmToolchain(17)
     androidTarget()
     sourceSets {
         androidMain.dependencies {

@@ -127,7 +127,7 @@ class MdocPresenter(
         }
     }
 
-    private fun ByteArray.encrypt(
+    private suspend fun ByteArray.encrypt(
         sessionEncryption: SessionEncryption
     ): ByteArray = sessionEncryption.encryptMessage(
         messagePlaintext = this,

@@ -47,7 +47,7 @@ fun HolderView(
     val bluetoothPermissionState = rememberBluetoothPermissionState()
     val bluetoothEnabledState = rememberBluetoothEnabledState()
     val nfcEnabledState = rememberNfcEnabledState()
-    val transferSettingsState = rememberTransferSettingsState(vm.settingsRepository)
+    val transferSettingsState = rememberTransferSettingsState(vm.settingsRepository, userRequired = true)
     val appSettings = rememberAppSettings()
 
     val settingsReady by vm.settingsReady.collectAsStateWithLifecycle()

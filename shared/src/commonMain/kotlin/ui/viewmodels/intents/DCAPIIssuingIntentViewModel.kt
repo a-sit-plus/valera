@@ -1,0 +1,44 @@
+package ui.viewmodels.intents
+
+import at.asitplus.KmmResult
+import at.asitplus.catching
+import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.dcapi.issuance.DigitalCredentialCreationOptions
+import at.asitplus.openid.CredentialOffer
+import at.asitplus.wallet.lib.data.vckJsonSerializer
+import io.github.aakira.napier.Napier
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import ui.navigation.routes.AddCredentialDcApiRoute
+import ui.navigation.routes.Route
+
+class DCAPIIssuingIntentViewModel(
+    val walletMain: WalletMain,
+    val uri: String,
+    val onSuccess: (Route) -> Unit,
+    val onFailure: (Throwable) -> Unit
+) {
+    private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
+        Napier.e("Exception occurred during DC API issuing invocation", error)
+        onFailure(error)
+    }
+
+    fun process() = walletMain.scope.launch(Dispatchers.Default + coroutineExceptionHandler) {
+        catching {
+            val issuingData = walletMain.platformAdapter.getCurrentDCAPIIssuingData().getOrThrow()
+            val credentialOffer = parseCredentialOffer(issuingData.requestJson).getOrThrow()
+            onSuccess(AddCredentialDcApiRoute(credentialOffer))
+        }.onFailure { onFailure(it) }
+    }
+
+    private fun parseCredentialOffer(requestJson: String): KmmResult<CredentialOffer> = catching {
+        val creationOptions =
+            vckJsonSerializer.decodeFromString<DigitalCredentialCreationOptions>(requestJson)
+        // TODO specification does not yet define what to do with multiple requests
+        // TODO parse and check origin once its sent by the web platform ("… will send the credential offer along with the Origin of the Issuer to the End-User's chosen Wallet.")
+        require(creationOptions.requests.count() == 1) { "Only one request supported for now" }
+        creationOptions.requests.firstOrNull()?.data
+            ?: throw IllegalArgumentException("DC API: No supported issuance request found")
+    }
+}

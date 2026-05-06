@@ -42,7 +42,7 @@ import org.multipaz.mdoc.transport.waitForConnection
 import org.multipaz.nfc.CommandApdu
 import org.multipaz.nfc.ResponseApdu
 import org.multipaz.util.UUID
-import ui.navigation.PRESENTATION_REQUESTED_INTENT
+import ui.navigation.IntentService.Companion.PRESENTATION_REQUESTED_INTENT
 import ui.viewmodels.authentication.PresentationStateModel
 import kotlin.time.Clock
 import kotlin.time.Duration

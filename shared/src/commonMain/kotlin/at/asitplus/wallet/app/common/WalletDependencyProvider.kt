@@ -14,7 +14,7 @@ data class WalletDependencyProvider(
     var subjectCredentialStore: PersistentSubjectCredentialStore =
         PersistentSubjectCredentialStore(dataStoreService, Validator()),
     val buildContext: BuildContext,
-    val promptModel: PromptModel
+    val promptModel: PromptModel,
 ) {
     init {
         at.asitplus.wallet.mdl.Initializer.initWithVCK()

@@ -102,7 +102,7 @@ fun AuthenticationConsentView(
                     Spacer(Modifier.width(15.dp))
                 },
                 navigationIcon = {
-                    NavigateUpButton(vm.navigateUp)
+                    NavigateUpButton(vm.onCancel)
                 },
             )
         },
@@ -124,7 +124,7 @@ fun AuthenticationConsentView(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
                     ) {
-                        CancelButton(vm.navigateUp)
+                        CancelButton(vm.onCancel)
                         Spacer(modifier = Modifier.width(16.dp))
                         ContinueButton(vm.consentToDataTransmission)
                     }

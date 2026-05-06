@@ -1,7 +1,6 @@
 package at.asitplus.wallet.app
 
 import App
-import Globals
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -32,6 +31,7 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
 import at.asitplus.wallet.app.common.CapabilitiesData
 import at.asitplus.wallet.app.common.CapabilitiesService
+import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.SESSION_NAME
@@ -78,9 +78,8 @@ import org.koin.core.module.dsl.scopedOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.binds
 import org.koin.dsl.module
-import org.multipaz.prompt.PassphraseRequest
 import org.multipaz.prompt.PromptModel
-import org.multipaz.prompt.SinglePromptModel
+import org.multipaz.prompt.Reason
 import ui.navigation.routes.RoutePrerequisites
 import kotlin.test.assertTrue
 import kotlin.time.Clock
@@ -99,6 +98,7 @@ fun ComposeUiTest.endToEndTest() {
             json()
         }
     }
+    val intentState = IntentState()
 
     setContent {
         // A. Create the dependency provider, remembering it against the platformAdapter
@@ -120,7 +120,10 @@ fun ComposeUiTest.endToEndTest() {
         CompositionLocalProvider(
             LocalLifecycleOwner provides TestLifecycleOwner()
         ) {
-            App(module)
+            App(
+                koinModule = module,
+                intentState = intentState
+            )
         }
 
         // C. Inject services after framework is running
@@ -130,22 +133,32 @@ fun ComposeUiTest.endToEndTest() {
         // D. Use LaunchedEffect for one-time, asynchronous setup tasks.
         //    This is the correct way to run non-UI suspend functions from a Composable.
         LaunchedEffect(Unit) {
+            println("InstrumentedTests: starting credential issuance setup")
             val issuer = IssuerAgent(
                 keyMaterial = EphemeralKeyWithoutCert(),
                 statusListBaseUrl = "https://wallet.a-sit.at/m7/credentials/status",
                 identifier = "https://issuer.example.com/".toUri(),
             )
-            holderAgent.storeCredential(
-                issuer.issueCredential(
-                    CredentialToBeIssued.VcSd(
-                        getAttributes(),
-                        Clock.System.now().plus(60.minutes),
-                        EuPidSdJwtScheme,
-                        holderAgent.keyMaterial.publicKey,
-                        OidcUserInfoExtended(userInfo = OidcUserInfo(subject = ""))
+            runCatching {
+                holderAgent.storeCredential(
+                    issuer.issueCredential(
+                        CredentialToBeIssued.VcSd(
+                            getAttributes(),
+                            Clock.System.now().plus(60.minutes),
+                            EuPidSdJwtScheme,
+                            holderAgent.keyMaterial.publicKey,
+                            OidcUserInfoExtended(userInfo = OidcUserInfo(subject = ""))
+                        )
                     )
-                ).getOrThrow().toStoreCredentialInput()
-            )
+                        .getOrThrow()
+                        .toStoreCredentialInput()
+                )
+            }.onSuccess {
+                println("InstrumentedTests: credential issuance setup completed")
+            }.onFailure {
+                println("InstrumentedTests: credential issuance setup failed: ${it::class.simpleName}: ${it.message}")
+                throw it
+            }
         }
     }
     waitUntilExactlyOneExists(hasText(startText))
@@ -158,24 +171,41 @@ fun ComposeUiTest.endToEndTest() {
     onNodeWithText("11.10.1965").assertExists()
 
     val responseGenerateRequest = runBlocking {
-        client.post("https://apps.egiz.gv.at/customverifier/transaction/create") {
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }.body<JsonObject>()
+        val url = "https://apps.egiz.gv.at/customverifier/transaction/create"
+        println("InstrumentedTests: POST $url")
+        runCatching {
+            client.post(url) {
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }.body<JsonObject>()
+        }.onSuccess {
+            println("InstrumentedTests: POST $url succeeded")
+        }.onFailure {
+            println("InstrumentedTests: POST $url failed: ${it::class.simpleName}: ${it.message}")
+        }.getOrThrow()
     }
 
     val firstProfile = responseGenerateRequest["profiles"]?.jsonArray?.first()?.jsonObject
     val qrCodeUrl = firstProfile?.get("url")?.jsonPrimitive?.content
     val id = firstProfile?.get("id")?.jsonPrimitive?.content
 
-    Globals.appLink.value = qrCodeUrl!!
+    intentState.appLink.value = qrCodeUrl!!
 
     waitUntilExactlyOneExists(hasText(continueText), 10000)
 
     onNodeWithText(continueText).performClick()
 
     val url = "https://apps.egiz.gv.at/customverifier/customer-success.html?id=$id"
-    val responseSuccess = runBlocking { client.get(url) }
+    val responseSuccess = runBlocking {
+        println("InstrumentedTests: GET $url")
+        runCatching {
+            client.get(url)
+        }.onSuccess {
+            println("InstrumentedTests: GET $url succeeded")
+        }.onFailure {
+            println("InstrumentedTests: GET $url failed: ${it::class.simpleName}: ${it.message}")
+        }.getOrThrow()
+    }
     assertTrue { responseSuccess.status.value in 200..299 }
 }
 
@@ -249,12 +279,31 @@ class TestLifecycleOwner : LifecycleOwner {
 
 // Based on the identity-credential sample code
 // https://github.com/openwallet-foundation-labs/identity-credential/tree/main/samples/testapp
-class TestPromptModel : PromptModel {
-    override val passphrasePromptModel = SinglePromptModel<PassphraseRequest, String?>()
+class TestPromptModel private constructor(
+    builder: Builder,
+) : PromptModel(builder) {
+    constructor() : this(Builder())
+
     override val promptModelScope = CoroutineScope(Dispatchers.Default + SupervisorJob() + this)
 
     fun onClose() {
         promptModelScope.cancel()
+    }
+
+    private class Builder : PromptModel.Builder(
+        toHumanReadable = { _, _ ->
+            Reason.HumanReadable(
+                title = "",
+                subtitle = "",
+                requireConfirmation = false
+            )
+        }
+    ) {
+        init {
+            addCommonDialogs()
+        }
+
+        override fun build(): PromptModel = TestPromptModel(this)
     }
 }
 

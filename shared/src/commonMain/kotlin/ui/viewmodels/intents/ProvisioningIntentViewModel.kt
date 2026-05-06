@@ -5,24 +5,34 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_credentials_title
 import at.asitplus.valera.resources.snackbar_credential_loaded_successfully
 import at.asitplus.wallet.app.common.WalletMain
+import ui.navigation.routes.AddCredentialDcApiSuccessRoute
+import ui.navigation.routes.Route
 import org.jetbrains.compose.resources.getString
 
 class ProvisioningIntentViewModel(
     val walletMain: WalletMain,
     val uri: String,
-    val onSuccess: () -> Unit,
+    val onSuccess: (Route?) -> Unit,
     val onFailure: (Throwable) -> Unit
 ) {
     suspend fun process() {
         catchingUnwrapped {
             walletMain.keyMaterial.promptText =
                 getString(Res.string.biometric_authentication_prompt_to_bind_credentials_title)
-            walletMain.provisioningService.resumeWithAuthCode(uri)  { storeId, status ->
-                walletMain.credentialValidityService.updateStatus(storeId, status)
-            }
+            walletMain.provisioningService.resumeWithAuthCode(
+                redirectedUrl = uri,
+                statusUpdater = { storeId, status ->
+                    walletMain.credentialValidityService.updateStatus(storeId, status)
+                }
+            )
             walletMain.snackbarService.showSnackbar(getString(Res.string.snackbar_credential_loaded_successfully))
+            if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
+                AddCredentialDcApiSuccessRoute
+            } else {
+                null
+            }
         }.onSuccess {
-            onSuccess()
+            onSuccess(it)
         }.onFailure { error ->
             onFailure(error)
         }

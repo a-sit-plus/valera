@@ -3,13 +3,14 @@
 WASM_CLANG = ~/wasi-sdk-20.0/bin/clang
 WASM_CLANGPP = ~/wasi-sdk-20.0/bin/clang++
 
-C_SOURCES = cJSON.c
+C_SOURCES =
+CJSON_SRC = ../matcher_common/cJSON.c
 CXX_SOURCES = Request.cpp CredentialDatabase.cpp cppbor.cpp cppbor_parse.cpp main.cpp matcher.cpp logger.cpp dcql.cpp paths.cpp
 
-OBJECTS = $(patsubst %.c, build/%.o,$(C_SOURCES)) $(patsubst %.cpp, build/%.o,$(CXX_SOURCES))
+OBJECTS = $(patsubst %.c, build/%.o,$(C_SOURCES)) $(patsubst %.cpp, build/%.o,$(CXX_SOURCES)) build/cJSON.o
 
-CFLAGS =  -c -O3 -fno-exceptions
-CXXFLAGS =  -c -std=c++20 -O3 -fno-exceptions
+CFLAGS =  -c -O3 -fno-exceptions -I../matcher_common
+CXXFLAGS =  -c -std=c++20 -O3 -fno-exceptions -I../matcher_common
 
 all : build/matcher.wasm
 
@@ -22,9 +23,11 @@ build/matcher.wasm: $(OBJECTS) build
 build/%.o: %.c build
 	$(WASM_CLANG) -c -o $@ $< $(CFLAGS)
 
+build/cJSON.o: $(CJSON_SRC) build
+	$(WASM_CLANG) -c -o $@ $< $(CFLAGS)
+
 build/%.o: %.cpp build
 	$(WASM_CLANGPP) -c -o $@ $< $(CXXFLAGS)
 
 clean:
 	rm -rf build
-

@@ -4,7 +4,7 @@ plugins {
     val testballoonVer =
         System.getenv("TESTBALLOON_VERSION_OVERRIDE")?.ifBlank { null } ?: libs.versions.testballoon.get()
 
-    id("at.asitplus.gradle.conventions") version "20251217"
+    id("at.asitplus.gradle.conventions") version "20260314"
     kotlin("multiplatform") version kotlinVer apply false
     kotlin("plugin.serialization") version kotlinVer apply false
     id("de.infix.testBalloon") version testballoonVer apply false

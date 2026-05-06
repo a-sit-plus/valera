@@ -43,7 +43,7 @@ fun DCAPIPresentationGraphView(
         selectionProvider = matchingResult.map {
             it.second
         },
-        submitPresentation = SubmitPresentation { it, navigate ->
+        submitPresentation = { it, navigate ->
             viewModel.confirmSelection(
                 credentialPresentationSubmissions = it,
                 onFailure = onError,

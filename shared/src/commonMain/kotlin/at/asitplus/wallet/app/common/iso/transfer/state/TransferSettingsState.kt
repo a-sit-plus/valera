@@ -20,7 +20,10 @@ data class TransferSettingsState(
 }
 
 @Composable
-fun rememberTransferSettingsState(settingsRepository: SettingsRepository): TransferSettingsState {
+fun rememberTransferSettingsState(
+    settingsRepository: SettingsRepository,
+    userRequired: Boolean = false
+): TransferSettingsState {
     val bleCentralClientModeEnabled = settingsRepository.presentmentBleCentralClientModeEnabled
         .collectAsStateWithLifecycle(initialValue = false).value
     val blePeripheralServerModeEnabled = settingsRepository.presentmentBlePeripheralServerModeEnabled
@@ -31,24 +34,26 @@ fun rememberTransferSettingsState(settingsRepository: SettingsRepository): Trans
     return buildTransferSettingsState(
         bleCentralClientModeEnabled,
         blePeripheralServerModeEnabled,
-        nfcSettingOn
+        nfcSettingOn,
+        userRequired
     )
 }
 
 fun buildTransferSettingsState(
     bleCentralClientModeEnabled: Boolean,
     blePeripheralServerModeEnabled: Boolean,
-    nfcSettingOn: Boolean
+    nfcSettingOn: Boolean,
+    userRequired: Boolean
 ): TransferSettingsState {
     val bleSettingOn = bleCentralClientModeEnabled || blePeripheralServerModeEnabled
     return TransferSettingsState(
         ble = ChannelState(
             settingOn = bleSettingOn,
-            required = bleSettingOn && !nfcSettingOn
+            required = userRequired || (bleSettingOn && !nfcSettingOn)
         ),
         nfc = ChannelState(
             settingOn = nfcSettingOn,
-            required = nfcSettingOn && !bleSettingOn
+            required = userRequired || (nfcSettingOn && !bleSettingOn)
         )
     )
 }

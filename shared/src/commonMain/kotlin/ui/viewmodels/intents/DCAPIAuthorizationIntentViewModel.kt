@@ -1,12 +1,11 @@
 package ui.viewmodels.intents
 
+import ErrorHandlingOverrideException
 import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
-import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.oidvci.OAuth2Exception
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequest
-import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
@@ -33,12 +32,18 @@ class DCAPIAuthorizationIntentViewModel(
             is OAuth2Exception -> error
             else -> OAuth2Exception.InvalidRequest(error.message) // TODO Not sure what to return in this case
         }.serialize()
-        walletMain.platformAdapter.prepareDCAPIOid4vpCredentialResponse(response, false)
-        onFailure(error)
+        onFailure(
+            ErrorHandlingOverrideException(
+                onAcknowledge = {
+                    walletMain.platformAdapter.prepareDCAPICredentialResponse(response, false)
+                },
+                cause = error
+            )
+        )
     }
 
     fun process() = walletMain.scope.launch(Dispatchers.Default + coroutineExceptionHandler) {
-        val dcApiRequest = walletMain.platformAdapter.getCurrentDCAPIData().getOrThrow()
+        val dcApiRequest = walletMain.platformAdapter.getCurrentDCAPIVerificationData().getOrThrow()
 
         val successRoute = when (dcApiRequest) {
             is DCAPIWalletRequest.OpenId4Vp -> buildConsentPageFromRequest(dcApiRequest)

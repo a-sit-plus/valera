@@ -21,4 +21,6 @@ iosApp/Configuration/Signing.local.xcconfig
 *.p12
 *.cer
 shared/shared.podspec
+## User settings
+xcuserdata/
 metrics/

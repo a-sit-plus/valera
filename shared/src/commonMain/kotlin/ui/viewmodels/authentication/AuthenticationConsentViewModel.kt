@@ -11,6 +11,7 @@ class AuthenticationConsentViewModel(
     val spImage: ImageBitmap?,
     val transactionData: TransactionDataBase64Url?,
     val navigateUp: () -> Unit,
+    val onCancel: () -> Unit,
     val buttonConsent: () -> Unit,
     val walletMain: WalletMain,
     val presentationRequest: CredentialPresentationRequest,

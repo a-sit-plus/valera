@@ -1,16 +1,21 @@
 # Release 5.7.7 (unreleased)
- * tbd
+ * Raise iOS target from 16.0 to 18.6 (iOS 18 is the oldest version to still receive security updates)
+ * DC API:
+   * Support requests with multiple protocols
+   * Use VC-K data classes to (de-)serialize received/emitted data
+   * Add preliminary support for iOS using ISO/IEC 18013-7 protocol. Known issues:
+     * iOS-specific pre-request is shown in a separate rather rudimentary UI
+     * Sharing UI does not always open after approving the pre-request
+   * Add support for issuance via the DC API based on the preliminary spec defined in https://github.com/openid/OpenID4VCI/pull/476
 
 # Release 5.7.6
  * Update to VC-K 5.12.0
  * Credentials: Fix displaying age verification credential
  * Credentials: Remove support for ID Austria credential
  * Support URL scheme `av` for age verification
- * DC API: Use VC-K serializers
- * DC API: Support requests with multiple protocols
  * Add: Support refreshing of credentials
  * Add: Support presentation for general DCQL queries
- * Add: Debug version allows for localhost cleartext transmissions, supporting local test environments
+ * Add: Debug version now allows for localhost cleartext transmissions - supporting local test environments
  
 # Release 5.7.5
  * Update to VC-K 5.10.1
