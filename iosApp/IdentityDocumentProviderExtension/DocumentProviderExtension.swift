@@ -119,7 +119,7 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
             Napier.shared.base(antilog:OSLogNapierAntilog())
             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "makeUIViewController called")
 
-            let mainViewController = Main_iosKt.MainViewController(
+            let mainViewController = Main_iosKt.SharingMainViewController(
                 buildContext: BuildContext(
                     buildType: buildType,
                     packageName: Bundle.main.bundleIdentifier ?? "at.asitplus.wallet.compose",

@@ -11,6 +11,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +32,8 @@ import at.asitplus.wallet.app.dcapi.IosParsedMdocRequestSummary
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.snackbar_digital_credentials_store_failed
 import io.github.aakira.napier.Napier
 import at.asitplus.wallet.app.ios.DigitalCredentials
 import kotlinx.cinterop.*
@@ -41,6 +44,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.json.Json
+import org.jetbrains.compose.resources.getString
 import org.multipaz.compose.prompt.PromptDialogs
 import platform.AVFoundation.*
 import platform.Foundation.*
@@ -79,6 +83,21 @@ fun MainViewController(
     return ComposeUIViewController {
         PromptDialogs(promptModel)
         App(
+            sessionService = sessionService,
+            intentState = intentState
+        )
+    }
+}
+
+@ExperimentalMaterial3Api
+fun SharingMainViewController(
+    buildContext: BuildContext,
+): UIViewController {
+    val (intentState, sessionService, promptModel) = getOrCreateIosSession(buildContext)
+
+    return ComposeUIViewController {
+        PromptDialogs(promptModel)
+        SharingApp(
             sessionService = sessionService,
             intentState = intentState
         )
@@ -323,14 +342,18 @@ class IosPlatformAdapter(
                 val id = entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
                 val docType = entry.isoEntry?.docType ?: entry.sdJwtEntry?.verifiableCredentialType
                 if (id != null && docType != null) {
-                    storeDocumentFromSwift(id, docType)
+                    storeDocumentFromSwift(id, docType, scope)
                 }
             }
         }
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    private suspend fun storeDocumentFromSwift(id: String, docType: String): Boolean = suspendCancellableCoroutine { cont ->
+    private suspend fun storeDocumentFromSwift(
+        id: String,
+        docType: String,
+        scope: CoroutineScope
+    ): Boolean = suspendCancellableCoroutine { cont ->
         try {
             Napier.d("storeDocumentFromSwift invoked")
             if (docType !in SUPPORTED_DOC_TYPES) {
@@ -338,8 +361,19 @@ class IosPlatformAdapter(
                 if (cont.isActive) cont.resume(false)
                 return@suspendCancellableCoroutine
             }
-            DigitalCredentials.storeDocumentWithId(id, docType) { success ->
-                Napier.d("storeDocumentFromSwift callback with $success")
+            DigitalCredentials.storeDocumentWithId(id, docType) { errorMessage ->
+                val success = errorMessage == null
+                Napier.d("storeDocumentFromSwift callback with success=$success error=$errorMessage")
+                if (!success) {
+                    scope.launch {
+                        val baseMessage = getString(Res.string.snackbar_digital_credentials_store_failed)
+                        IosSessionBridge.showSnackbar(
+                            listOfNotNull(baseMessage, errorMessage?.takeIf { it.isNotBlank() })
+                                .joinToString(": "),
+                            SnackbarDuration.Long
+                        )
+                    }
+                }
                 if (cont.isActive) cont.resume(success)
             }
             Napier.d("storeDocumentFromSwift got back from swift")

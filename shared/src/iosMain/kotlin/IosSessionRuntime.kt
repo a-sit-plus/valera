@@ -2,9 +2,11 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.SessionHandle
 import at.asitplus.wallet.app.common.SessionService
+import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.createWalletSessionScope
 import at.asitplus.wallet.app.common.di.appModule
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
+import androidx.compose.material3.SnackbarDuration
 import data.storage.AntilogAdapter
 import data.storage.RealDataStoreService
 import data.storage.createDataStore
@@ -117,6 +119,17 @@ private object IosSessionRuntime {
         }
     }
 
+    fun showSnackbar(text: String, duration: SnackbarDuration = SnackbarDuration.Short) {
+        synchronized(stateLock) {
+            val snackbarService = sessionHandle?.sessionService?.scope?.value?.get<SnackbarService>()
+            if (snackbarService == null) {
+                Napier.w("IosSessionRuntime could not resolve SnackbarService for message: $text")
+                return
+            }
+            snackbarService.showSnackbar(text, duration = duration)
+        }
+    }
+
     private fun applyPendingState(intentState: IntentState) {
         pendingInvocationData?.let { invocation ->
             intentState.dcapiInvocationData.value = invocation
@@ -168,6 +181,10 @@ object IosSessionBridge {
 
     fun clearDcapiInvocation() {
         IosSessionRuntime.clearDcapiInvocation()
+    }
+
+    fun showSnackbar(text: String, duration: SnackbarDuration = SnackbarDuration.Short) {
+        IosSessionRuntime.showSnackbar(text, duration)
     }
 }
 
