@@ -3,8 +3,10 @@ import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.SessionHandle
 import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.SnackbarService
-import at.asitplus.wallet.app.common.createWalletSessionScope
+import at.asitplus.wallet.app.common.createMainWalletSessionScope
+import at.asitplus.wallet.app.common.createSharingWalletSessionScope
 import at.asitplus.wallet.app.common.di.appModule
+import at.asitplus.wallet.app.dcapi.IosDcApiPreRequestData
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
 import androidx.compose.material3.SnackbarDuration
 import data.storage.AntilogAdapter
@@ -17,6 +19,7 @@ import org.koin.core.context.startKoin
 import org.multipaz.prompt.IosPromptModel
 import org.multipaz.prompt.PromptModel
 import ui.navigation.IntentService.Companion.IOS_DC_API_CALL
+import ui.navigation.IntentService.Companion.IOS_DC_API_PRE_REQUEST
 
 private data class IosSessionHandle(
     val intentState: IntentState,
@@ -24,11 +27,17 @@ private data class IosSessionHandle(
     val promptModel: PromptModel,
 )
 
+private enum class IosSessionKind {
+    MAIN,
+    SHARING,
+}
+
 private object IosSessionRuntime {
     private val stateLock = SynchronizedObject()
     private var isBootstrapped = false
     private var sessionHandle: IosSessionHandle? = null
     private var pendingAppLink: String? = null
+    private var pendingPreRequestData: IosDcApiPreRequestData? = null
     private var pendingInvocationData: IosDCAPIInvocationData? = null
 
     fun bootstrap(buildContext: BuildContext) {
@@ -46,13 +55,15 @@ private object IosSessionRuntime {
         }
     }
 
-    fun getOrCreateSession(buildContext: BuildContext): IosSessionHandle {
+    fun getOrCreateSession(buildContext: BuildContext, sessionKind: IosSessionKind): IosSessionHandle {
         return synchronized(stateLock) {
             check(isBootstrapped) {
                 "IosSessionRuntime must be bootstrapped before creating a session"
             }
 
-            sessionHandle?.let { return it }
+            sessionHandle?.let {
+                return it
+            }
 
             val intentState = IntentState()
             val promptModel = IosPromptModel.Builder().apply { addCommonDialogs() }.build()
@@ -63,7 +74,8 @@ private object IosSessionRuntime {
                         sessionService = this,
                         intentState = intentState,
                         buildContext = buildContext,
-                        promptModel = promptModel
+                        promptModel = promptModel,
+                        sessionKind = sessionKind,
                     )
                 }
             }
@@ -84,6 +96,7 @@ private object IosSessionRuntime {
     private fun onSessionReset(intentState: IntentState) {
         synchronized(stateLock) {
             pendingAppLink = null
+            pendingPreRequestData = null
             pendingInvocationData = null
             intentState.reset()
         }
@@ -98,14 +111,30 @@ private object IosSessionRuntime {
 
     fun registerDcapiInvocation(data: IosDCAPIInvocationData) {
         synchronized(stateLock) {
+            pendingPreRequestData = null
             pendingInvocationData = data
             sessionHandle?.intentState?.let { intentState ->
+                intentState.iosDcApiPreRequestData.value = null
                 intentState.dcapiInvocationData.value = data
                 intentState.appLink.value = IOS_DC_API_CALL
                 intentState.finishApp = { data.onCancel() }
             }
         }
         Napier.d("IosSessionRuntime registered DCAPI invocation for origin=${data.origin}")
+    }
+
+    fun registerDcapiPreRequest(data: IosDcApiPreRequestData) {
+        synchronized(stateLock) {
+            pendingInvocationData = null
+            pendingPreRequestData = data
+            sessionHandle?.intentState?.let { intentState ->
+                intentState.dcapiInvocationData.value = null
+                intentState.iosDcApiPreRequestData.value = data
+                intentState.appLink.value = IOS_DC_API_PRE_REQUEST
+                intentState.finishApp = { data.onCancel() }
+            }
+        }
+        Napier.d("IosSessionRuntime registered DCAPI pre-request for origin=${data.origin}")
     }
 
     fun clearDcapiInvocation() {
@@ -116,6 +145,21 @@ private object IosSessionRuntime {
                 intentState.finishApp = null
                 if (intentState.appLink.value == IOS_DC_API_CALL) {
                     intentState.appLink.value = null
+                }
+            }
+        }
+    }
+
+    fun clearDcapiPreRequest() {
+        synchronized(stateLock) {
+            pendingPreRequestData = null
+            sessionHandle?.intentState?.let { intentState ->
+                intentState.iosDcApiPreRequestData.value = null
+                if (intentState.appLink.value == IOS_DC_API_PRE_REQUEST) {
+                    intentState.appLink.value = null
+                }
+                if (intentState.dcapiInvocationData.value == null) {
+                    intentState.finishApp = null
                 }
             }
         }
@@ -133,6 +177,11 @@ private object IosSessionRuntime {
     }
 
     private fun applyPendingState(intentState: IntentState) {
+        pendingPreRequestData?.let { preRequest ->
+            intentState.iosDcApiPreRequestData.value = preRequest
+            intentState.appLink.value = IOS_DC_API_PRE_REQUEST
+            return
+        }
         pendingInvocationData?.let { invocation ->
             intentState.dcapiInvocationData.value = invocation
             intentState.appLink.value = IOS_DC_API_CALL
@@ -181,8 +230,16 @@ object IosSessionBridge {
         IosSessionRuntime.registerDcapiInvocation(data)
     }
 
+    fun registerDcapiPreRequest(data: IosDcApiPreRequestData) {
+        IosSessionRuntime.registerDcapiPreRequest(data)
+    }
+
     fun clearDcapiInvocation() {
         IosSessionRuntime.clearDcapiInvocation()
+    }
+
+    fun clearDcapiPreRequest() {
+        IosSessionRuntime.clearDcapiPreRequest()
     }
 
     fun showSnackbar(text: String, duration: SnackbarDuration = SnackbarDuration.Short) {
@@ -191,7 +248,12 @@ object IosSessionBridge {
 }
 
 internal fun getOrCreateIosSession(buildContext: BuildContext): Triple<IntentState, SessionService, PromptModel> {
-    val session = IosSessionRuntime.getOrCreateSession(buildContext)
+    val session = IosSessionRuntime.getOrCreateSession(buildContext, IosSessionKind.MAIN)
+    return Triple(session.intentState, session.sessionService, session.promptModel)
+}
+
+internal fun getOrCreateIosSharingSession(buildContext: BuildContext): Triple<IntentState, SessionService, PromptModel> {
+    val session = IosSessionRuntime.getOrCreateSession(buildContext, IosSessionKind.SHARING)
     return Triple(session.intentState, session.sessionService, session.promptModel)
 }
 
@@ -201,15 +263,28 @@ private fun createIosWalletSessionScope(
     intentState: IntentState,
     buildContext: BuildContext,
     promptModel: PromptModel,
+    sessionKind: IosSessionKind,
 ): SessionHandle {
     val platformAdapter = IosPlatformAdapter(intentState)
-    return createWalletSessionScope(
-        sessionName = sessionName,
-        intentState = intentState,
-        sessionService = sessionService,
-        buildContext = buildContext,
-        promptModel = promptModel,
-        platformAdapter = platformAdapter,
-        dataStoreService = RealDataStoreService(createDataStore(), platformAdapter),
-    )
+    val dataStoreService = RealDataStoreService(createDataStore(), platformAdapter)
+    return when (sessionKind) {
+        IosSessionKind.MAIN -> createMainWalletSessionScope(
+            sessionName = sessionName,
+            intentState = intentState,
+            sessionService = sessionService,
+            buildContext = buildContext,
+            promptModel = promptModel,
+            platformAdapter = platformAdapter,
+            dataStoreService = dataStoreService,
+        )
+        IosSessionKind.SHARING -> createSharingWalletSessionScope(
+            sessionName = sessionName,
+            intentState = intentState,
+            sessionService = sessionService,
+            buildContext = buildContext,
+            promptModel = promptModel,
+            platformAdapter = platformAdapter,
+            dataStoreService = dataStoreService,
+        )
+    }
 }

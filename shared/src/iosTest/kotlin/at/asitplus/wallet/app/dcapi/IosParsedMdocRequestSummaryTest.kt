@@ -9,6 +9,7 @@ import at.asitplus.iso.EncryptionParameters
 import at.asitplus.iso.ItemsRequest
 import at.asitplus.iso.ItemsRequestList
 import at.asitplus.iso.SingleItemsRequest
+import kotlin.test.assertEquals
 import at.asitplus.signum.indispensable.cosef.CoseEllipticCurve
 import at.asitplus.signum.indispensable.cosef.CoseKey
 import at.asitplus.signum.indispensable.cosef.CoseKeyParams
@@ -112,6 +113,41 @@ class IosParsedMdocRequestSummaryTest {
         )
 
         assertFalse(summary.isConsistentWith(rawRequest))
+    }
+
+    @Test
+    fun summaryConvertsToDifInputDescriptors() {
+        val summary = IosParsedMdocRequestSummary(
+            documentRequests = listOf(
+                IosParsedMdocDocumentRequest(
+                    docType = "org.iso.18013.5.1.mDL",
+                    namespaces = mapOf(
+                        "org.iso.18013.5.1" to mapOf(
+                            "family_name" to false,
+                            "given_name" to true
+                        )
+                    )
+                )
+            )
+        )
+
+        val descriptors = summary.toDifInputDescriptors()
+
+        assertEquals(1, descriptors.size)
+        assertEquals("org.iso.18013.5.1.mDL", descriptors.single().id)
+        val fields = descriptors.single().constraints?.fields.orEmpty()
+        assertEquals(2, fields.size)
+        assertEquals(
+            setOf("$.org.iso.18013.5.1.family_name", "$.org.iso.18013.5.1.given_name"),
+            fields.map { it.path.single() }.toSet()
+        )
+        assertEquals(
+            mapOf(
+                "$.org.iso.18013.5.1.family_name" to false,
+                "$.org.iso.18013.5.1.given_name" to true
+            ),
+            fields.associate { it.path.single() to it.intentToRetain }
+        )
     }
 
     private fun rawRequest(vararg docs: Pair<String, Map<String, Map<String, Boolean>>>) = IsoMdocRequest(
