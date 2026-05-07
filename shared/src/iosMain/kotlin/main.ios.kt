@@ -53,6 +53,7 @@ import platform.darwin.dispatch_async
 import platform.darwin.dispatch_get_main_queue
 import ui.theme.darkScheme
 import ui.theme.lightScheme
+import kotlin.collections.mapValues
 
 
 actual fun getPlatformName(): String = "iOS"
@@ -61,7 +62,6 @@ private val SUPPORTED_DOC_TYPES = listOf(
     "eu.europa.ec.av.1",
     "eu.europa.ec.eudi.pid.1",
     "org.iso.23220.photoid.1",
-    "org.iso.23220.1.jp.mnc",
     "org.iso.18013.5.1.mDL"
 )
 
@@ -368,7 +368,7 @@ class IosPlatformAdapter(
                     scope.launch {
                         val baseMessage = getString(Res.string.snackbar_digital_credentials_store_failed)
                         IosSessionBridge.showSnackbar(
-                            listOfNotNull(baseMessage, errorMessage?.takeIf { it.isNotBlank() })
+                            listOfNotNull(baseMessage, errorMessage.takeIf { it.isNotBlank() })
                                 .joinToString(": "),
                             SnackbarDuration.Long
                         )
@@ -412,7 +412,7 @@ class IosPlatformAdapter(
     }
 
     override fun getCurrentDCAPIIssuingData(): KmmResult<DCAPIIssuingRequest> = catching {
-        throw IllegalStateException("Not supported on iOS")
+        throw IllegalStateException("Not supported by iOS")
     }
 
     override fun prepareDCAPICredentialResponse(response: String, success: Boolean) {
@@ -435,11 +435,11 @@ class IosPlatformAdapter(
         } ?: throw IllegalStateException("Callback for response not found")
 
     override fun prepareDCAPIIssuingResponse(response: String, success: Boolean) {
-        Napier.w("DC API issuing not supported on iOS")
+        Napier.w("DC API issuing not supported by iOS")
     }
 
     override fun hasPendingDCAPIIssuingRequest(): Boolean {
-        Napier.w("DC API issuing not supported on iOS")
+        Napier.w("DC API issuing not supported by iOS")
         return false
     }
 
