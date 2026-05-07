@@ -25,6 +25,7 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -73,10 +74,10 @@ class WalletMain(
             sessionCoroutineScope.coroutineContext + coroutineExceptionHandler + promptModel + CoroutineName(
                 "WalletMain"
             )
-        )
+    )
+    private var dcApiRegistrationJob: Job? = null
 
     init {
-        startListeningForNewCredentialsDCAPI()
         credentialValidityService.startChecking()
         if (keyMaterial.keyMaterial is FallBackKeyMaterial) {
             Napier.e("FallBackKeyMaterial: ${keyMaterial.keyMaterial.reason}")
@@ -134,10 +135,13 @@ class WalletMain(
         }
     }
 
-    private fun startListeningForNewCredentialsDCAPI() {
+    fun startDcApiCredentialRegistration() {
+        if (dcApiRegistrationJob != null) {
+            return
+        }
         try {
             Napier.d("DC API: Starting to observe credentials")
-            subjectCredentialStore.observeStoreContainer().onEach { storeContainer ->
+            dcApiRegistrationJob = subjectCredentialStore.observeStoreContainer().onEach { storeContainer ->
                 dcApiExportService.registerCredentialWithSystem(storeContainer, scope)
             }.launchIn(scope)
         } catch (e: Throwable) {

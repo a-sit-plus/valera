@@ -1,23 +1,8 @@
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeUIViewController
 import at.asitplus.catching
 import at.asitplus.KmmResult
@@ -41,8 +26,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resume
 import kotlinx.serialization.encodeToByteArray
+import kotlin.coroutines.resume
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
 import org.multipaz.compose.prompt.PromptDialogs
@@ -93,101 +78,13 @@ fun MainViewController(
 fun SharingMainViewController(
     buildContext: BuildContext,
 ): UIViewController {
-    val (intentState, sessionService, promptModel) = getOrCreateIosSession(buildContext)
+    val (intentState, sessionService, promptModel) = getOrCreateIosSharingSession(buildContext)
 
     return ComposeUIViewController {
         PromptDialogs(promptModel)
         SharingApp(
             sessionService = sessionService,
             intentState = intentState
-        )
-    }
-}
-
-// Session information and callbacks bridged from the iOS ISO18013 scene
-data class MdocRequestSession(
-    val requestingWebsiteOrigin: String?,
-    val requestPayload: NSData?,
-    val requestDescription: String?,
-    val onSendResponse: (NSData) -> Unit,
-    val onCancel: () -> Unit
-)
-
-
-@Composable
-private fun MdocRequestUI(
-    requestingWebsiteOrigin: String?,
-    requestedElements: List<String>,
-    onAccept: () -> Unit,
-    onCancel: () -> Unit
-) {
-    MaterialTheme(colorScheme = if (isSystemInDarkTheme()) darkScheme else lightScheme) {
-        Surface(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Presentation Request",
-                    style = MaterialTheme.typography.headlineMedium
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                requestingWebsiteOrigin?.let {
-                    Text("Request from:")
-                    Text(it, style = MaterialTheme.typography.bodyLarge)
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-
-                Text("Requested Data:")
-                Spacer(modifier = Modifier.height(8.dp))
-                Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    requestedElements.forEach { element ->
-                        Text("- $element")
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    Button(onClick = onCancel) {
-                        Text("Cancel")
-                    }
-                    Button(onClick = onAccept) {
-                        Text("Accept")
-                    }
-                }
-            }
-        }
-    }
-}
-
-fun MdocRequestViewController(
-    requestingWebsiteOrigin: String?,
-    requestedElements: List<String>,
-    onSendResponse: (NSData) -> Unit,
-    onCancel: () -> Unit
-): UIViewController {
-
-    return ComposeUIViewController {
-        MdocRequestUI(
-            requestingWebsiteOrigin = requestingWebsiteOrigin,
-            requestedElements = requestedElements,
-            onAccept = {
-                Napier.d("MdocRequestUI onAccept")
-                // Create a dummy response for now
-                val dummyResponse = "dummy response data".encodeToByteArray().toNSData()
-                onSendResponse(dummyResponse)
-            },
-            onCancel = onCancel
         )
     }
 }

@@ -306,7 +306,7 @@ private fun createWalletDependencyProvider(platformAdapter: PlatformAdapter): Wa
             packageName = "test",
             versionCode = 0,
             versionName = "0.0.0",
-            osVersion = "Unit Test"
+            osVersion = "Unit Test",
         ),
         promptModel = TestPromptModel(),
     )

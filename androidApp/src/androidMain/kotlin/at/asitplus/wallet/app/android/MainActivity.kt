@@ -11,10 +11,9 @@ import io.github.aakira.napier.Napier
 import org.multipaz.prompt.AndroidPromptModel
 import org.multipaz.prompt.PromptModel
 
-
 class MainActivity : AbstractWalletActivity() {
     private val intentState = IntentState()
-    private val buildContext by lazy { createBuildContext() }
+    private val buildContext by lazy { createAndroidBuildContext() }
     private val promptModel: PromptModel by lazy {
         AndroidPromptModel.Builder().apply { addCommonDialogs() }.build()
     }
@@ -28,7 +27,7 @@ class MainActivity : AbstractWalletActivity() {
         if (!::sessionService.isInitialized) {
             sessionService = SessionService().apply {
                 initialize {
-                    createWalletSessionScope(
+                    createAndroidMainWalletSessionScope(
                         sessionName = "main",
                         activity = this@MainActivity,
                         intentState = intentState,

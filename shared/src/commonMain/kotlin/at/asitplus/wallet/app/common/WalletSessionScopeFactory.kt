@@ -7,7 +7,7 @@ import org.koin.mp.KoinPlatform
 import org.multipaz.prompt.PromptModel
 import org.multipaz.util.UUID
 
-fun createWalletSessionScope(
+private fun createWalletSessionScope(
     sessionName: String,
     intentState: IntentState,
     sessionService: SessionService,
@@ -42,3 +42,43 @@ fun createWalletSessionScope(
         sessionCoroutineScope.cancel()
     }
 }
+
+fun createMainWalletSessionScope(
+    sessionName: String,
+    intentState: IntentState,
+    sessionService: SessionService,
+    buildContext: BuildContext,
+    promptModel: PromptModel,
+    platformAdapter: PlatformAdapter,
+    dataStoreService: DataStoreService,
+): SessionHandle {
+    return createWalletSessionScope(
+        sessionName = sessionName,
+        intentState = intentState,
+        sessionService = sessionService,
+        buildContext = buildContext,
+        promptModel = promptModel,
+        platformAdapter = platformAdapter,
+        dataStoreService = dataStoreService,
+    ).also { sessionHandle ->
+        sessionHandle.scope.get<WalletMain>().startDcApiCredentialRegistration()
+    }
+}
+
+fun createSharingWalletSessionScope(
+    sessionName: String,
+    intentState: IntentState,
+    sessionService: SessionService,
+    buildContext: BuildContext,
+    promptModel: PromptModel,
+    platformAdapter: PlatformAdapter,
+    dataStoreService: DataStoreService,
+): SessionHandle = createWalletSessionScope(
+    sessionName = sessionName,
+    intentState = intentState,
+    sessionService = sessionService,
+    buildContext = buildContext,
+    promptModel = promptModel,
+    platformAdapter = platformAdapter,
+    dataStoreService = dataStoreService,
+)

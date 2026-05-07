@@ -37,21 +37,14 @@ class StatefulViewController: UIViewController {
 
 private struct ParsedRequestSummaryData {
     let summaryJson: String?
-    let requestedElements: [String]
 }
 
 private func buildParsedRequestSummaryData(from requestContext: ISO18013MobileDocumentRequestContext) -> ParsedRequestSummaryData {
-    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "buildparsedrequestsummarydata called")
-    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "\(requestContext)")
-    var requestedElements: [String] = []
     let documentRequests: [[String: Any]] = requestContext.request.presentmentRequests.flatMap { presentmentRequest in
         presentmentRequest.documentRequestSets.flatMap { documentRequestSet in
             documentRequestSet.requests.map { documentRequest in
                 let namespaces = Dictionary(
                     uniqueKeysWithValues: documentRequest.namespaces.map { namespace, elements in
-                        for (elementIdentifier, _) in elements {
-                            requestedElements.append(elementIdentifier)
-                        }
                         return (namespace, elements.mapValues { value in
                             value.isRetaining
                         })
@@ -64,7 +57,6 @@ private func buildParsedRequestSummaryData(from requestContext: ISO18013MobileDo
             }
         }
     }
-    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "\(documentRequests)")
     let summary: [String: Any] = [
         "documentRequests": documentRequests
     ]
@@ -73,8 +65,7 @@ private func buildParsedRequestSummaryData(from requestContext: ISO18013MobileDo
         .flatMap { String(data: $0, encoding: .utf8) }
 
     return ParsedRequestSummaryData(
-        summaryJson: summaryJson,
-        requestedElements: requestedElements
+        summaryJson: summaryJson
     )
 }
 
@@ -108,7 +99,7 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
         #endif
         
         class Coordinator {
-            var onSendResponseCalled = false
+            var requestStarted = false
         }
 
         func makeCoordinator() -> Coordinator {
@@ -119,39 +110,29 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
             Napier.shared.base(antilog:OSLogNapierAntilog())
             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "makeUIViewController called")
 
-            let mainViewController = Main_iosKt.SharingMainViewController(
-                buildContext: BuildContext(
-                    buildType: buildType,
-                    packageName: Bundle.main.bundleIdentifier ?? "at.asitplus.wallet.compose",
-                    versionCode: Bundle.main.infoDictionary?["CFBundleVersion"] as? Int32 ?? 1,
-                    versionName: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String  ?? "1.0.0",
-                    osVersion: "iOS " + UIDevice.current.systemVersion
-                ),
-            )
-
             let statefulViewController = StatefulViewController()
-
             let originString: String? = requestContext.requestingWebsiteOrigin?.absoluteString
             let parsedRequestSummary = buildParsedRequestSummaryData(from: requestContext)
 
             let onCancel: () -> Void = {
                 Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onCancel called")
+                IosSessionBridge.shared.clearDcapiPreRequest()
                 IosSessionBridge.shared.clearDcapiInvocation()
                 requestContext.cancel()
             }
 
-            let onSendResponse: (Data) -> Void = { payload in
-                if context.coordinator.onSendResponseCalled {
-                    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onSendResponse already called, ignoring")
+            let onContinue: () -> Void = {
+                if context.coordinator.requestStarted {
+                    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onContinue already called, ignoring")
                     return
                 }
-                context.coordinator.onSendResponseCalled = true
+                context.coordinator.requestStarted = true
 
-                Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onSendResponse called")
+                IosSessionBridge.shared.clearDcapiPreRequest()
+                Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onContinue called")
                 Task {
                     do {
                         try await requestContext.sendResponse { rawRequest in
-                            // TODO show pre-request inside our UI so that we can use user-friendly names for the requested attributes and
                             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse handler started")
                             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "rawRequest: \(String(decoding: rawRequest.requestData, as: UTF8.self))")
                             let finalResponseData = await withCheckedContinuation { continuation in
@@ -169,13 +150,6 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                                     onCancel: onCancel
                                 )
                                 IosSessionBridge.shared.registerDcapiInvocation(data: invocationData)
-
-                                Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "Before displaying MainViewController")
-
-                                DispatchQueue.main.async {
-                                    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "Displaying MainViewController")
-                                    statefulViewController.display(viewController: mainViewController)
-                                }
                             }
 
                             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse handler finished")
@@ -189,14 +163,24 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                 }
             }
 
-            let mdocRequestViewController = Main_iosKt.MdocRequestViewController(
-                requestingWebsiteOrigin: originString,
-                requestedElements: parsedRequestSummary.requestedElements,
-                onSendResponse: onSendResponse,
+            let preRequestData = IosDcApiPreRequestData(
+                parsedRequestSummary: parsedRequestSummary.summaryJson,
+                origin: originString,
+                onContinue: onContinue,
                 onCancel: onCancel
             )
-            
-            statefulViewController.display(viewController: mdocRequestViewController)
+            IosSessionBridge.shared.registerDcapiPreRequest(data: preRequestData)
+
+            let mainViewController = Main_iosKt.SharingMainViewController(
+                buildContext: BuildContext(
+                    buildType: buildType,
+                    packageName: Bundle.main.bundleIdentifier ?? "at.asitplus.wallet.compose",
+                    versionCode: Bundle.main.infoDictionary?["CFBundleVersion"] as? Int32 ?? 1,
+                    versionName: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0",
+                    osVersion: "iOS " + UIDevice.current.systemVersion
+                )
+            )
+            statefulViewController.display(viewController: mainViewController)
 
             return statefulViewController
         }
