@@ -134,6 +134,12 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
             let originString: String? = requestContext.requestingWebsiteOrigin?.absoluteString
             let parsedRequestSummary = buildParsedRequestSummaryData(from: requestContext)
 
+            let onCancel: () -> Void = {
+                Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onCancel called")
+                IosSessionBridge.shared.clearDcapiInvocation()
+                requestContext.cancel()
+            }
+
             let onSendResponse: (Data) -> Void = { payload in
                 if context.coordinator.onSendResponseCalled {
                     Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onSendResponse already called, ignoring")
@@ -150,19 +156,20 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "rawRequest: \(String(decoding: rawRequest.requestData, as: UTF8.self))")
                             let finalResponseData = await withCheckedContinuation { continuation in
                                 Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "withCheckedContinuation started")
-                                let onFinish: (Data?) -> Void = { data in
-                                    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onFinish called \(String(decoding: data ?? Data(), as: UTF8.self))")
+                                let sendCredentialResponse: (Data?) -> Void = { data in
+                                    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "sendCredentialResponse called \(String(decoding: data ?? Data(), as: UTF8.self))")
                                     continuation.resume(returning: data ?? Data())
                                 }
-                                
+
                                 let invocationData = IosDCAPIInvocationData(
                                     rawRequest: String(decoding: rawRequest.requestData, as: UTF8.self),
                                     parsedRequestSummary: parsedRequestSummary.summaryJson,
                                     origin: originString,
-                                    onFinish: onFinish
+                                    sendCredentialResponse: sendCredentialResponse,
+                                    onCancel: onCancel
                                 )
                                 IosSessionBridge.shared.registerDcapiInvocation(data: invocationData)
-                                
+
                                 Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "Before displaying MainViewController")
 
                                 DispatchQueue.main.async {
@@ -170,7 +177,7 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                                     statefulViewController.display(viewController: mainViewController)
                                 }
                             }
-                            
+
                             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse handler finished")
                             return ISO18013MobileDocumentResponse(responseData: finalResponseData)
                         }
@@ -180,12 +187,6 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                         requestContext.cancel()
                     }
                 }
-            }
-
-            let onCancel: () -> Void = {
-                Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onCancel called")
-                IosSessionBridge.shared.clearDcapiInvocation()
-                requestContext.cancel()
             }
 
             let mdocRequestViewController = Main_iosKt.MdocRequestViewController(

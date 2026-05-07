@@ -102,6 +102,7 @@ private object IosSessionRuntime {
             sessionHandle?.intentState?.let { intentState ->
                 intentState.dcapiInvocationData.value = data
                 intentState.appLink.value = IOS_DC_API_CALL
+                intentState.finishApp = { data.onCancel() }
             }
         }
         Napier.d("IosSessionRuntime registered DCAPI invocation for origin=${data.origin}")
@@ -112,6 +113,7 @@ private object IosSessionRuntime {
             pendingInvocationData = null
             sessionHandle?.intentState?.let { intentState ->
                 intentState.dcapiInvocationData.value = null
+                intentState.finishApp = null
                 if (intentState.appLink.value == IOS_DC_API_CALL) {
                     intentState.appLink.value = null
                 }
