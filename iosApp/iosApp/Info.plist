@@ -122,7 +122,7 @@
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Bluetooth permission is required for local credential presentations</string>
 	<key>NSCameraUsageDescription</key>
-	<string>This app uses camera for reading QR codes</string>
+	<string>This app uses the camera for reading QR codes and scanning document data</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>This app uses FaceID for binding credentials to the device.</string>
 	<key>UIApplicationSceneManifest</key>

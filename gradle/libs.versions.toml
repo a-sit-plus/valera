@@ -11,6 +11,7 @@ accompanist-permissions = "0.37.3"
 activity-compose = "1.10.1"
 appcompat = "1.7.1"
 barcode-scanning = "17.3.0"
+text-recognition = "16.0.1"
 biometric = "1.2.0-alpha05"
 core-ktx = "1.16.0"
 
@@ -58,6 +59,7 @@ androidx-credentials-registry-provider = { module = "androidx.credentials.regist
 androidx-registry-provider-play-services = { module = "androidx.credentials.registry:registry-provider-play-services", version.ref = "androidx-credentials-registry-provider" }
 atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "atomicfu" }
 barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "barcode-scanning" }
+text-recognition = { module = "com.google.mlkit:text-recognition", version.ref = "text-recognition" }
 credential-ida = { module = "at.asitplus.wallet:idacredential", version.ref = "ida" }
 credential-av = { module = "at.asitplus.wallet:ageverification", version.ref = "av" }
 credential-eupid = { module = "at.asitplus.wallet:eupidcredential", version.ref = "eupid" }

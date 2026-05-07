@@ -53,12 +53,14 @@
     <string name="button_label_hide_technical_details">Hide technical details</string>
     <string name="button_label_sign">Sign</string>
     <string name="button_label_submit_request">Send request</string>
+    <string name="button_label_scan_document">Scan document</string>
     <string name="snackbar_fiissuer_request_submitted">FIIssuer request submitted. The credential will appear automatically once approved.</string>
     <string name="snackbar_fiissuer_approved">FIIssuer credential approved and added to your wallet.</string>
     <string name="snackbar_fiissuer_rejected">FIIssuer request was rejected.</string>
     <string name="snackbar_fiissuer_expired">FIIssuer request expired before approval.</string>
     <string name="snackbar_fiissuer_timed_out">FIIssuer request timed out before approval.</string>
     <string name="prompt_confirm_fiissuer_request">Send the request to FIIssuer now?</string>
+    <string name="prompt_scan_fiissuer_document">Point the camera at the document. The form will be filled when text is detected.</string>
     <string name="text_label_credential_type">Credential type</string>
     <string name="text_label_optional_for_now">Optional for now</string>
 

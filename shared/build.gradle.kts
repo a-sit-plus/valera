@@ -134,6 +134,7 @@ kotlin {
             implementation(libs.androidx.camera.view)
             implementation(libs.accompanist.permissions)
             implementation(libs.barcode.scanning)
+            implementation(libs.text.recognition)
 
             // bcpkix-jdk18on is included in signum which enforces to a specific version
             implementation("org.multipaz:multipaz-android-legacy:0.92.0") {

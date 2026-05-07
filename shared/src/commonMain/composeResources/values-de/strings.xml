@@ -53,12 +53,14 @@
     <string name="button_label_hide_technical_details">Technische Details ausblenden</string>
     <string name="button_label_sign">Signieren</string>
     <string name="button_label_submit_request">Anfrage senden</string>
+    <string name="button_label_scan_document">Dokument scannen</string>
     <string name="snackbar_fiissuer_request_submitted">FIIssuer-Anfrage gesendet. Das Credential erscheint automatisch nach der Freigabe.</string>
     <string name="snackbar_fiissuer_approved">FIIssuer-Credential freigegeben und in deiner Wallet gespeichert.</string>
     <string name="snackbar_fiissuer_rejected">FIIssuer-Anfrage wurde abgelehnt.</string>
     <string name="snackbar_fiissuer_expired">FIIssuer-Anfrage ist vor der Freigabe abgelaufen.</string>
     <string name="snackbar_fiissuer_timed_out">FIIssuer-Anfrage hat vor der Freigabe das Zeitlimit erreicht.</string>
     <string name="prompt_confirm_fiissuer_request">Die Anfrage jetzt an FIIssuer senden?</string>
+    <string name="prompt_scan_fiissuer_document">Richte die Kamera auf das Dokument. Das Formular wird ausgefuellt, sobald Text erkannt wurde.</string>
     <string name="text_label_credential_type">Credential-Typ</string>
     <string name="text_label_optional_for_now">Vorerst optional</string>
 

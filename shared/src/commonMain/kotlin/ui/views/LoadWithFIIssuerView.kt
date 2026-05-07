@@ -1,16 +1,21 @@
 package ui.views
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
@@ -30,18 +35,22 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_cancel
 import at.asitplus.valera.resources.button_label_confirm
+import at.asitplus.valera.resources.button_label_scan_document
 import at.asitplus.valera.resources.button_label_submit_request
 import at.asitplus.valera.resources.prompt_confirm_fiissuer_request
+import at.asitplus.valera.resources.prompt_scan_fiissuer_document
 import at.asitplus.valera.resources.text_label_credential_type
 import at.asitplus.valera.resources.text_label_optional_for_now
 import at.asitplus.valera.resources.heading_label_fiissuer_screen
@@ -64,6 +73,13 @@ fun LoadWithFIIssuerView(
 ) {
     val state by vm.uiState.collectAsState()
     var showConfirmDialog by rememberSaveable { mutableStateOf(false) }
+    var showDocumentScanner by remember { mutableStateOf(false) }
+
+    LaunchedEffect(state.selectedCredentialType, state.selectedCredentialTypeDetails) {
+        if (state.selectedCredentialTypeDetails == null) {
+            showDocumentScanner = false
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -134,6 +150,48 @@ fun LoadWithFIIssuerView(
                 modifier = Modifier.padding(top = 16.dp),
             )
 
+            if (state.selectedCredentialTypeDetails != null) {
+                Button(
+                    onClick = { showDocumentScanner = true },
+                    enabled = !state.isLoading && !state.isSubmitting,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.CameraAlt,
+                        contentDescription = null,
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(Res.string.button_label_scan_document))
+                }
+            }
+
+            state.lastScannedDocumentText?.takeIf { it.isNotBlank() }?.let { scannedText ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp)
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outline,
+                            shape = MaterialTheme.shapes.small,
+                        )
+                        .padding(12.dp),
+                ) {
+                    Text(
+                        text = "Recognized text",
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                    Text(
+                        text = scannedText,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontFamily = FontFamily.Monospace,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
+            }
+
             state.selectedCredentialTypeDetails?.requiredClaimKeys.orEmpty().forEach { key ->
                 val currentValue = state.claimValues[key].orEmpty()
                 OutlinedTextField(
@@ -173,6 +231,38 @@ fun LoadWithFIIssuerView(
                     Text(stringResource(Res.string.button_label_cancel))
                 }
             }
+        )
+    }
+
+    if (showDocumentScanner) {
+        AlertDialog(
+            onDismissRequest = { showDocumentScanner = false },
+            title = { Text(stringResource(Res.string.button_label_scan_document)) },
+            text = {
+                Column {
+                    Text(stringResource(Res.string.prompt_scan_fiissuer_document))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(420.dp)
+                            .padding(top = 16.dp),
+                    ) {
+                        DocumentScannerView(
+                            onScannedText = { scannedText ->
+                                vm.applyScannedDocumentText(scannedText)
+                                showDocumentScanner = false
+                            },
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showDocumentScanner = false }) {
+                    Text(stringResource(Res.string.button_label_cancel))
+                }
+            },
         )
     }
 }
