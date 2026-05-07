@@ -1,15 +1,18 @@
 // Copy this file to Signing.local.xcconfig for local device builds or archives.
 // Keep Signing.local.xcconfig untracked.
 
-// Shared app identifier. Forks can override this locally if needed.
+// Shared identifiers. Forks can override these locally if needed.
 APP_BUNDLE_IDENTIFIER = at.asitplus.wallet.compose
+APP_GROUP_IDENTIFIER = group.Compose.Wallet
+KEYCHAIN_ACCESS_GROUP_IDENTIFIER = $(AppIdentifierPrefix)keychaingroup.Compose.Wallet
 
 // Apple Developer team for local device builds and release archives.
 SIGNING_DEVELOPMENT_TEAM =
 
 // Public contributors should keep the reduced Debug entitlements so personal
-// teams can sign the app. Internal users can change this to
-// iosApp/iosApp.entitlements when they need Associated Domains and NFC.
+// teams can sign the app. Internal users who need main-app/extension keychain
+// sharing can switch to iosApp/iosApp.debug.keychain.entitlements. Internal
+// users who also need Associated Domains and NFC can use iosApp/iosApp.entitlements.
 SIGNING_DEBUG_ENTITLEMENTS_FILE = iosApp/iosApp.debug.entitlements
 
 // Optional for Debug device builds. Leave empty when using automatic signing.
