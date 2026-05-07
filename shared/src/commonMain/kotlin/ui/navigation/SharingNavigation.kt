@@ -74,12 +74,15 @@ fun SharingNavigation(
     val scope = rememberCoroutineScope()
 
     val initialLink = remember {
-        intentState.appLink.value.also { link ->
-            Napier.d("SharingNavigation initialLink=$link")
-            // appLink is intentionally NOT cleared here.
-            // combineTransform in LaunchedEffect(koinScope) processes it after appReady=true,
-            // which guarantees dcapiInvocationData is visible before vm.process() runs.
-        }
+        (
+            intentState.appLink.value
+                ?: intentState.iosDcApiPreRequestData.value?.let { IntentService.IOS_DC_API_PRE_REQUEST }
+                ?: intentState.dcapiInvocationData.value?.let { IntentService.IOS_DC_API_CALL }
+            ).also { link ->
+                if (link != null) {
+                    intentState.appLink.value = null
+                }
+            }
     }
 
     val navigateBack: () -> Unit = {
@@ -143,7 +146,7 @@ fun SharingNavigation(
     val onClickLogo = { urlOpener("https://wallet.a-sit.at/") }
 
     val shouldFinishToCaller: () -> Boolean = {
-        intentState.dcapiInvocationData.value != null
+        intentState.iosDcApiPreRequestData.value != null || intentState.dcapiInvocationData.value != null
     }
 
     val invocationAwareBackHandler: () -> Unit = {
@@ -158,14 +161,18 @@ fun SharingNavigation(
         intentState.finishApp?.invoke() ?: navigateBack()
     }
 
-    // Always start on LoadingRoute. The combineTransform in LaunchedEffect(koinScope) below
-    // navigates to the real destination once appReady=true, ensuring all dependencies
-    // (including dcapiInvocationData) are visible before any ViewModel processes them.
-    val startDestination: Route = LoadingRoute
-
-    LaunchedEffect(Unit) {
-        if (initialLink == null) {
-            intentState.finishApp?.invoke()
+    val startDestination = remember(initialLink) {
+        when (initialLink) {
+            null -> LoadingRoute
+            IntentService.IOS_DC_API_PRE_REQUEST -> IosDcApiPreRequestRoute
+            else -> {
+                try {
+                    intentService.handleIntent(initialLink)
+                } catch (e: Throwable) {
+                    Napier.e("SharingNavigation could not parse initialLink", e)
+                    LoadingRoute
+                }
+            }
         }
     }
 
@@ -195,12 +202,10 @@ fun SharingNavigation(
 
     LaunchedEffect(koinScope) {
         walletMain.scope.launch {
-            Napier.d("SharingNavigation appReady emit")
             walletMain.appReady.emit(true)
         }
         this.launch {
             intentState.appLink.combineTransform(walletMain.appReady) { link, ready ->
-                Napier.d("SharingNavigation appLink combine link=$link ready=$ready")
                 if (ready != true || link == null) return@combineTransform
                 emit(link)
             }.collect { link ->
@@ -296,6 +301,13 @@ private fun SharingNavHost(
                         walletMain.errorService.emit(wrapped)
                     })
             })
+        }
+
+        composable<IosDcApiPreRequestRoute> {
+            IosDcApiPreRequestView(
+                intentState = intentState,
+                onError = onError,
+            )
         }
 
         composable<DCAPIIssuingIntentRoute> { backStackEntry ->
