@@ -53,6 +53,7 @@ import platform.darwin.dispatch_async
 import platform.darwin.dispatch_get_main_queue
 import ui.theme.darkScheme
 import ui.theme.lightScheme
+import kotlin.collections.mapValues
 
 
 actual fun getPlatformName(): String = "iOS"
@@ -61,7 +62,6 @@ private val SUPPORTED_DOC_TYPES = listOf(
     "eu.europa.ec.av.1",
     "eu.europa.ec.eudi.pid.1",
     "org.iso.23220.photoid.1",
-    "org.iso.23220.1.jp.mnc",
     "org.iso.18013.5.1.mDL"
 )
 
@@ -368,7 +368,7 @@ class IosPlatformAdapter(
                     scope.launch {
                         val baseMessage = getString(Res.string.snackbar_digital_credentials_store_failed)
                         IosSessionBridge.showSnackbar(
-                            listOfNotNull(baseMessage, errorMessage?.takeIf { it.isNotBlank() })
+                            listOfNotNull(baseMessage, errorMessage.takeIf { it.isNotBlank() })
                                 .joinToString(": "),
                             SnackbarDuration.Long
                         )
@@ -388,9 +388,14 @@ class IosPlatformAdapter(
             try {
                 val isoMdocRequest = it.rawRequest?.let { request -> Json.decodeFromString<IsoMdocRequest>(request) }
                     ?: throw IllegalStateException("No request data available")
+                Napier.d("getCurrentDCAPIVerificationData: rawRequest docTypes=${isoMdocRequest.deviceRequest.docRequests.map { req -> req.itemsRequest.value.docType }}")
+                Napier.d("getCurrentDCAPIVerificationData: rawRequest namespaces=${isoMdocRequest.deviceRequest.docRequests.map { req -> req.itemsRequest.value.namespaces.mapValues { (_, items) -> items.entries.map { item -> "${item.dataElementIdentifier}→retain=${item.intentToRetain}" } } }}")
+
                 val parsedRequestSummary = it.parsedRequestSummary?.let { summary ->
                     Json.decodeFromString<IosParsedMdocRequestSummary>(summary)
                 } ?: throw IllegalStateException("No parsed request summary available")
+                Napier.d("getCurrentDCAPIVerificationData: parsedSummary docTypes=${parsedRequestSummary.documentRequests.map { req -> req.docType }}")
+                Napier.d("getCurrentDCAPIVerificationData: parsedSummary namespaces=${parsedRequestSummary.documentRequests.map { req -> req.namespaces.mapValues { (_, elems) -> elems.map { (id, retain) -> "$id→retain=$retain" } } }}")
                 require(parsedRequestSummary.isConsistentWith(isoMdocRequest)) {
                     "Parsed ISO18013 mobile document pre-request is inconsistent with rawRequest"
                 }
@@ -408,34 +413,34 @@ class IosPlatformAdapter(
     }
 
     override fun getCurrentDCAPIIssuingData(): KmmResult<DCAPIIssuingRequest> = catching {
-        throw IllegalStateException("Not supported on iOS")
+        throw IllegalStateException("Not supported by iOS")
     }
 
     override fun prepareDCAPICredentialResponse(response: String, success: Boolean) {
         Napier.w("Got error response: $response")
         //TODO is there a way to convey error responses via ISO18013-7?
         // send empty response for now
-        (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let { (_, _, _, sendCredentialResponseToInvoker) ->
-            sendCredentialResponseToInvoker.invoke(ByteArray(0).toNSData())
+        (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let {
+            it.sendCredentialResponse.invoke(ByteArray(0).toNSData())
             IosSessionBridge.clearDcapiInvocation()
         } ?: throw IllegalStateException("Callback for response not found")
     }
 
     override fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean) =
-        (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let { (_, _, _, sendCredentialResponseToInvoker) ->
+        (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let {
             Napier.d("prepareDCAPICredentialResponse called with $response")
             val encodedResponse = coseCompliantSerializer.encodeToByteArray(response)
             Napier.d("encodedResponse: ${encodedResponse.toHexString()}")
-            sendCredentialResponseToInvoker.invoke(encodedResponse.toNSData())
+            it.sendCredentialResponse.invoke(encodedResponse.toNSData())
             IosSessionBridge.clearDcapiInvocation()
         } ?: throw IllegalStateException("Callback for response not found")
 
     override fun prepareDCAPIIssuingResponse(response: String, success: Boolean) {
-        Napier.w("DC API issuing not supported on iOS")
+        Napier.w("DC API issuing not supported by iOS")
     }
 
     override fun hasPendingDCAPIIssuingRequest(): Boolean {
-        Napier.w("DC API issuing not supported on iOS")
+        Napier.w("DC API issuing not supported by iOS")
         return false
     }
 
