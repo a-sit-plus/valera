@@ -4,16 +4,23 @@ import at.asitplus.dcapi.DCAPIHandover.Companion.TYPE_DCAPI
 import at.asitplus.dcapi.DCAPIInfo
 import at.asitplus.dcapi.DCAPIResponse
 import at.asitplus.dcapi.request.DCAPIWalletRequest
+import at.asitplus.iso.DeviceAuthentication
+import at.asitplus.iso.DeviceNameSpaces
+import at.asitplus.iso.DeviceSignedItem
+import at.asitplus.iso.DeviceSignedItemList
 import at.asitplus.iso.IssuerSignedItem
 import at.asitplus.iso.serializeOrigin
 import at.asitplus.iso.sha256
+import at.asitplus.iso.wrapInCborTag
 import at.asitplus.signum.indispensable.CryptoPrivateKey
 import at.asitplus.signum.indispensable.ECCurve
 import at.asitplus.signum.indispensable.SecretExposure
 import at.asitplus.signum.indispensable.cosef.CoseKeyParams
+import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.lib.RequestOptionsCredential
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
+import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.IssuerAgent
@@ -28,7 +35,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.encodeToByteArray
 import org.multipaz.crypto.AsymmetricKey
 import org.multipaz.crypto.EcCurve
-import org.multipaz.crypto.EcPrivateKey
+import org.multipaz.crypto.EcPrivateKeyDoubleCoordinate
 import org.multipaz.crypto.EcPublicKey
 import org.multipaz.crypto.EcPublicKeyDoubleCoordinate
 import org.multipaz.crypto.Hpke
@@ -104,13 +111,42 @@ class IsoMdocDcapiResponseBuilderTest {
     }
 
     @Test
+    fun deviceAuthenticationPayloadKeepsDeviceNameSpaceBytesStable() = runTest {
+        val fixture = dcapiFixture()
+        val deviceNameSpaceBytes = ByteStringWrapper(
+            DeviceNameSpaces(
+                mapOf(
+                    ConstantIndex.AtomicAttribute2023.isoNamespace to DeviceSignedItemList(
+                        listOf(DeviceSignedItem(ConstantIndex.AtomicAttribute2023.CLAIM_GIVEN_NAME, "Susanne"))
+                    )
+                )
+            )
+        )
+        val deviceAuthentication = DeviceAuthentication(
+            type = DeviceAuthentication.TYPE,
+            sessionTranscript = IsoMdocDcapiResponseBuilder.sessionTranscriptFor(fixture.walletRequest),
+            docType = ConstantIndex.AtomicAttribute2023.isoDocType,
+            namespaces = deviceNameSpaceBytes,
+        )
+
+        val walletSidePayload = coseCompliantSerializer
+            .encodeToByteArray(ByteStringWrapper(deviceAuthentication))
+            .wrapInCborTag(24)
+        val verifierSidePayload = coseCompliantSerializer
+            .encodeToByteArray(coseCompliantSerializer.encodeToByteArray(deviceAuthentication))
+            .wrapInCborTag(24)
+
+        assertContentEquals(verifierSidePayload, walletSidePayload)
+    }
+
+    @Test
     fun encryptedAnnexCResponseValidatesDeviceSignature() = runTest {
         val fixture = dcapiFixture()
         val holderKey = EphemeralKeyWithoutCert()
         val holderAgent = HolderAgent(holderKey)
         holderAgent.storeCredential(
             IssuerAgent(
-                keyMaterial = EphemeralKeyWithoutCert(),
+                keyMaterial = EphemeralKeyWithSelfSignedCert(),
                 identifier = "https://issuer.example.com/".toUri(),
             ).issueCredential(isoCredential(holderKey.publicKey))
                 .getOrThrow()
@@ -214,10 +250,13 @@ private suspend fun decryptHpke(
         ECCurve.SECP_521_R_1 -> EcCurve.P521
     }
 
-    val ecPublicKey = EcPublicKey.fromPem(responseEncryptionKeySignum.publicKey.encodeToPEM().getOrThrow(), ecCurve)
-    val ecPrivateKey = EcPrivateKey.fromPem(
-        responseEncryptionKeySignum.encodeToPEM().getOrThrow(),
-        ecPublicKey
+    val coordinateLength = (ecCurve.bitSize + 7) / 8
+    val publicKeyBytes = responseEncryptionKeySignum.publicKey.iosEncoded
+    val ecPrivateKey = EcPrivateKeyDoubleCoordinate(
+        curve = ecCurve,
+        d = responseEncryptionKeySignum.privateKeyBytes,
+        x = publicKeyBytes.copyOfRange(1, 1 + coordinateLength),
+        y = publicKeyBytes.copyOfRange(1 + coordinateLength, 1 + 2 * coordinateLength),
     )
 
     val responseEncryptionKey = AsymmetricKey.anonymous(
