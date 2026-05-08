@@ -137,10 +137,15 @@ fun SharingNavigation(
                 emit(link)
             }.collect { link ->
                 catchingUnwrapped {
-                    val route = intentService.handleIntent(link)
-                    // Replace LoadingRoute with the real destination, so pressing back
-                    // returns to the invoker rather than flashing LoadingView.
-                    navigator.navigateNewGraph(route)
+                    val intentType = intentService.parseUrl(link)
+                    val route = intentService.handleIntent(link, intentType)
+                    if (intentService.isContinuationIntent(intentType)) {
+                        navigator.navigate(route)
+                    } else {
+                        // Replace LoadingRoute with the real destination, so pressing back
+                        // returns to the invoker rather than flashing LoadingView.
+                        navigator.navigateNewGraph(route)
+                    }
                 }.onFailure {
                     errorService.emit(it)
                 }
@@ -341,16 +346,17 @@ private fun SharingNavHost(
                         navigateUp = navigator::navigateBack,
                         url = backStackEntry.toRoute<AddCredentialWithLinkRoute>().uri,
                         onSubmit = { credentialIdentifierInfo, transactionCode, offer ->
-                            navigator.returnToHome()
                             navigator.navigate(LoadingRoute)
                             walletMain.scope.launch {
                                 try {
-                                    walletMain.provisioningService.loadCredentialWithOffer(
+                                    val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
                                         credentialOffer = offer!!,
                                         credentialIdentifierInfo = credentialIdentifierInfo,
                                         transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null },
                                     )
-                                    navigator.returnToHome()
+                                    if (issuanceResult is CredentialIssuanceResult.Success) {
+                                        navigator.returnToHome()
+                                    }
                                 } catch (e: Throwable) {
                                     navigator.returnToHome()
                                     walletMain.errorService.emit(e)
@@ -365,6 +371,44 @@ private fun SharingNavHost(
                     navigator.returnToHome()
                     walletMain.errorService.emit(it)
                 }
+            }
+            vm?.let { LoadCredentialView(it) } ?: LoadingView()
+        }
+
+        composable<ProvisioningStartIntentRoute> { backStackEntry ->
+            var vm by remember { mutableStateOf<LoadCredentialViewModel?>(null) }
+            LaunchedEffect(Unit) {
+                runCatching {
+                    LoadCredentialViewModel.init(
+                        walletMain = walletMain,
+                        navigateUp = navigator::navigateBack,
+                        url = backStackEntry.toRoute<ProvisioningStartIntentRoute>().uri,
+                        onSubmit = { credentialIdentifierInfo, transactionCode, offer ->
+                            navigator.navigate(LoadingRoute)
+                            walletMain.scope.launch {
+                                try {
+                                    val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
+                                        credentialOffer = offer!!,
+                                        credentialIdentifierInfo = credentialIdentifierInfo,
+                                        transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null },
+                                    )
+                                    if (issuanceResult is CredentialIssuanceResult.Success) {
+                                        navigator.returnToHome()
+                                    }
+                                } catch (e: Throwable) {
+                                    navigator.returnToHome()
+                                    walletMain.errorService.emit(e)
+                                }
+                            }
+                        },
+                        onClickLogo = onClickLogo,
+                        onClickSettings = { navigator.navigate(SettingsRoute) }
+                    )
+                }.onSuccess { vm = it }
+                    .onFailure {
+                        navigator.returnToHome()
+                        walletMain.errorService.emit(it)
+                    }
             }
             vm?.let { LoadCredentialView(it) } ?: LoadingView()
         }
@@ -481,6 +525,81 @@ private fun SharingNavHost(
                 onClickLogo = onClickLogo,
                 onClickSettings = { navigator.navigate(SettingsRoute) }
             )
+        }
+
+        composable<ProvisioningResumeIntentRoute> { backStackEntry ->
+            ProvisioningIntentView(remember {
+                ProvisioningIntentViewModel(
+                    walletMain = walletMain,
+                    uri = backStackEntry.toRoute<ProvisioningResumeIntentRoute>().uri,
+                    onSuccess = { route ->
+                        if (route == null) {
+                            navigator.returnToHome()
+                        } else {
+                            navigator.navigateNewGraph(route)
+                        }
+                    },
+                    onFailure = { error ->
+                        walletMain.errorService.emit(error)
+                    })
+            })
+        }
+
+        composable<SigningIntentRoute> { backStackEntry ->
+            SigningIntentView(remember {
+                SigningIntentViewModel(
+                    walletMain = walletMain,
+                    uri = backStackEntry.toRoute<SigningIntentRoute>().uri,
+                    onSuccess = {
+                        walletMain.scope.launch {
+                            navigator.navigateNewGraph(
+                                SigningQtspSelectionRoute(
+                                    walletMain.signingService.parseSignatureRequestParameter(
+                                        backStackEntry.toRoute<SigningIntentRoute>().uri
+                                    )
+                                )
+                            )
+                        }
+                    },
+                    onFailure = { error ->
+                        walletMain.errorService.emit(error)
+                    })
+            })
+        }
+
+        composable<SigningQtspSelectionRoute> { backStackEntry ->
+            SigningQtspSelectionView(vm = remember {
+                SigningQtspSelectionViewModel(
+                    navigateUp = navigator::navigateBack,
+                    onContinue = { signatureRequestParameters ->
+                        walletMain.scope.launch {
+                            try {
+                                walletMain.signingService.start(signatureRequestParameters)
+                            } catch (e: Throwable) {
+                                walletMain.errorService.emit(e)
+                            }
+                        }
+                    },
+                    walletMain = walletMain,
+                    onClickLogo = onClickLogo,
+                    onClickSettings = { navigator.navigate(SettingsRoute) },
+                    signatureRequestParameters = backStackEntry.toRoute<SigningQtspSelectionRoute>().signatureRequestParameters
+                )
+            })
+        }
+
+        composable<SigningResumeIntentRoute> { backStackEntry ->
+            SigningResumeIntentView(remember {
+                SigningResumeIntentViewModel(
+                    walletMain = walletMain,
+                    uri = backStackEntry.toRoute<SigningResumeIntentRoute>().uri,
+                    onReturnToSigning = { navigator.navigateBack() },
+                    onFinish = { navigator.returnToHome() },
+                    onFailure = { error ->
+                        walletMain.errorService.emit(error)
+                    }
+                )
+            })
         }
 
         composable<ErrorIntentRoute> { backStackEntry ->

@@ -204,6 +204,9 @@ data class SigningCredentialIntentRoute(val uri: String) : Route()
 data class SigningIntentRoute(val uri: String) : Route()
 
 @Serializable
+data class SigningResumeIntentRoute(val uri: String) : Route()
+
+@Serializable
 data class ErrorIntentRoute(val uri: String) : Route()
 
 @Serializable
