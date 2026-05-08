@@ -2,6 +2,7 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.dcapi.DCAPIHandover
 import at.asitplus.dcapi.DCAPIHandover.Companion.TYPE_DCAPI
+import at.asitplus.signum.supreme.UserInitiatedCancellationReason
 import at.asitplus.dcapi.DCAPIInfo
 import at.asitplus.dcapi.EncryptedResponse
 import at.asitplus.dcapi.EncryptedResponseData
@@ -103,7 +104,11 @@ class PresentationService(
                         .invoke(null, null, deviceAuthenticationBytes, ByteArraySerializer())
                         .getOrElse { e ->
                             Napier.w("Could not create DeviceAuth for presentation", e)
-                            throw PresentationException(e)
+                            // Unwrap user cancellation (e.g. biometric dismissed) so callers can
+                            // treat it separately from real errors.
+                            throw generateSequence(e as Throwable?) { it.cause }
+                                .filterIsInstance<UserInitiatedCancellationReason>()
+                                .firstOrNull() ?: PresentationException(e)
                         }
                 },
             ),
@@ -184,7 +189,11 @@ class PresentationService(
                         .invoke(null, null, deviceAuthenticationBytes, ByteArraySerializer())
                         .getOrElse { e ->
                             Napier.w("Could not create DeviceAuth for presentation", e)
-                            throw PresentationException(e)
+                            // Unwrap user cancellation (e.g. biometric dismissed) so callers can
+                            // treat it separately from real errors.
+                            throw generateSequence(e as Throwable?) { it.cause }
+                                .filterIsInstance<UserInitiatedCancellationReason>()
+                                .firstOrNull() ?: PresentationException(e)
                         }
                 },
             ),
