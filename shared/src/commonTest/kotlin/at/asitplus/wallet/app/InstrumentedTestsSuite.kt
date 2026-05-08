@@ -50,6 +50,7 @@ import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
 import at.asitplus.wallet.lib.data.rfc3986.toUri
+import data.storage.AntilogAdapter
 import data.storage.DummyDataStoreService
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
