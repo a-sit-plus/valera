@@ -41,7 +41,6 @@ import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.combineTransform
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import org.koin.core.scope.Scope
@@ -70,7 +69,6 @@ fun SharingNavigation(
 ) {
     val navController: NavHostController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
-    var pendingRoute by remember { mutableStateOf<Route?>(null) }
     val scope = rememberCoroutineScope()
 
     val initialLink = remember {
@@ -85,81 +83,16 @@ fun SharingNavigation(
             }
     }
 
-    val navigateBack: () -> Unit = {
-        scope.launch {
-            if (!navController.navigateUpOnMain()) {
-                intentState.finishApp?.invoke()
-            }
-        }
-    }
-
-    val navigatePending: () -> Unit = {
-        scope.launch {
-            pendingRoute?.let {
-                Napier.d("Replace current with $it")
-                if (navController.replaceCurrentOnMain(it)) {
-                    pendingRoute = null
-                } else {
-                    navigateBack()
-                }
-            } ?: run {
-                navigateBack()
-            }
-        }
-    }
-
-    val navigate: (Route) -> Unit = { route ->
-        scope.launch {
-            when (route) {
-                is PrerequisiteRoute -> {
-                    when (walletMain.capabilitiesService.evaluatePrerequisites(route.prerequisites).first()) {
-                        true -> navController.navigateOnMain(route)
-                        false -> {
-                            pendingRoute = route
-                            navController.navigateOnMain(CapabilitiesRoute(route.prerequisites))
-                        }
-                    }
-                }
-                else -> {
-                    Napier.d("SharingNavigation navigate: $route")
-                    navController.navigateOnMain(route)
-                }
-            }
-        }
-    }
-
-    val popBackStack: (Route) -> Unit = { route ->
-        scope.launch {
-            navController.popBackStackOnMain(route)
-        }
-    }
-
-    val navigateNewGraph: (Route) -> Unit = { route ->
-        scope.launch {
-            navController.navigateOnMain(route) {
-                popUpTo(0)
-                launchSingleTop = true
-            }
-        }
+    val navigator: WalletNavigationController = remember(navController, scope) {
+        SharingNavigationControllerImpl(
+            navController = navController,
+            scope = scope,
+            intentState = intentState,
+            capabilitiesService = walletMain.capabilitiesService,
+        )
     }
 
     val onClickLogo = { urlOpener("https://wallet.a-sit.at/") }
-
-    val shouldFinishToCaller: () -> Boolean = {
-        intentState.iosDcApiPreRequestData.value != null || intentState.dcapiInvocationData.value != null
-    }
-
-    val invocationAwareBackHandler: () -> Unit = {
-        if (shouldFinishToCaller()) {
-            intentState.finishApp?.invoke() ?: navigateBack()
-        } else {
-            navigateBack()
-        }
-    }
-
-    val returnToHome: () -> Unit = {
-        intentState.finishApp?.invoke() ?: navigateBack()
-    }
 
     val startDestination = remember(initialLink) {
         when (initialLink) {
@@ -182,21 +115,14 @@ fun SharingNavigation(
         SharingNavHost(
             navController = navController,
             startDestination = startDestination,
-            navigate = navigate,
-            navigateBack = navigateBack,
-            invocationAwareBackHandler = invocationAwareBackHandler,
-            popBackStack = popBackStack,
-            navigatePending = navigatePending,
-            navigateNewGraph = navigateNewGraph,
+            navigator = navigator,
             onClickLogo = onClickLogo,
-            shouldFinishToCaller = shouldFinishToCaller,
             onError = { e ->
-                returnToHome()
+                navigator.returnToHome()
                 errorService.emit(e)
             },
             koinScope = koinScope,
             intentState = intentState,
-            returnToHome = returnToHome,
         )
     }
 
@@ -213,7 +139,7 @@ fun SharingNavigation(
                     val route = intentService.handleIntent(link)
                     // Replace LoadingRoute with the real destination, so pressing back
                     // returns to the invoker rather than flashing LoadingView.
-                    navigateNewGraph(route)
+                    navigator.navigateNewGraph(route)
                 }.onFailure {
                     errorService.emit(it)
                 }
@@ -232,7 +158,7 @@ fun SharingNavigation(
             errorService.error.combineTransform(walletMain.appReady) { error, ready ->
                 if (ready == true) emit(error)
             }.collect {
-                navigate(ErrorRoute)
+                navigator.navigate(ErrorRoute)
             }
         }
     }
@@ -244,19 +170,12 @@ fun SharingNavigation(
 private fun SharingNavHost(
     navController: NavHostController,
     startDestination: Route,
-    navigate: (Route) -> Unit,
-    navigateBack: () -> Unit,
-    invocationAwareBackHandler: () -> Unit,
-    popBackStack: (Route) -> Unit,
-    navigatePending: () -> Unit,
-    navigateNewGraph: (Route) -> Unit,
+    navigator: WalletNavigationController,
     onClickLogo: () -> Unit,
-    shouldFinishToCaller: () -> Boolean,
     onError: (Throwable) -> Unit,
     koinScope: Scope,
     walletMain: WalletMain = koinInject(scope = koinScope),
     intentState: IntentState,
-    returnToHome: () -> Unit,
 ) {
     NavHost(
         navController = navController,
@@ -272,7 +191,7 @@ private fun SharingNavHost(
                     walletMain = walletMain,
                     uri = backStackEntry.toRoute<AuthorizationIntentRoute>().uri,
                     onSuccess = { route ->
-                        navigateNewGraph(route)
+                        navigator.navigateNewGraph(route)
                     },
                     onFailure = {
                         walletMain.errorService.emit(Exception("Invalid Authentication Request"))
@@ -287,13 +206,11 @@ private fun SharingNavHost(
                     uri = backStackEntry.toRoute<DCAPIAuthorizationIntentRoute>().uri,
                     onSuccess = { route ->
                         Napier.d("valid DCAPI authentication request")
-                        navigateNewGraph(route)
+                        navigator.navigateNewGraph(route)
                     },
                     onFailure = { e ->
                         val wrapped = ErrorHandlingOverrideException(
-                            resetStackOverride = {
-                                intentState.finishApp?.invoke() ?: navigateBack()
-                            },
+                            resetStackOverride = navigator::invocationAwareBack,
                             actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
                             onAcknowledge = (e as? ErrorHandlingOverrideException)?.onAcknowledge,
                             cause = (e as? ErrorHandlingOverrideException)?.cause ?: e
@@ -317,13 +234,11 @@ private fun SharingNavHost(
                     uri = backStackEntry.toRoute<DCAPIIssuingIntentRoute>().uri,
                     onSuccess = { route ->
                         Napier.d("valid DCAPI creation request")
-                        navigateNewGraph(route)
+                        navigator.navigateNewGraph(route)
                     },
                     onFailure = { e ->
                         val overrideException = ErrorHandlingOverrideException(
-                            resetStackOverride = {
-                                intentState.finishApp?.invoke() ?: navigateBack()
-                            },
+                            resetStackOverride = navigator::invocationAwareBack,
                             actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
                             onAcknowledge = {
                                 walletMain.platformAdapter.prepareDCAPIIssuingResponse(
@@ -345,7 +260,7 @@ private fun SharingNavHost(
                     uri = backStackEntry.toRoute<PresentationIntentRoute>().uri,
                     onSuccess = { route ->
                         Napier.d("valid presentation request")
-                        navigateNewGraph(route)
+                        navigator.navigateNewGraph(route)
                     },
                     onFailure = {
                         walletMain.errorService.emit(Exception("Invalid Presentation Request"))
@@ -357,9 +272,9 @@ private fun SharingNavHost(
             DefaultPresentationGraphView(
                 onError = onError,
                 onClickLogo = onClickLogo,
-                onClickSettings = { navigate(SettingsRoute) },
+                onClickSettings = { navigator.navigate(SettingsRoute) },
                 koinScope = koinScope,
-                onNavigateUp = invocationAwareBackHandler,
+                onNavigateUp = navigator::invocationAwareBack,
             )
         }
 
@@ -367,9 +282,9 @@ private fun SharingNavHost(
             DCAPIPresentationGraphView(
                 onError = onError,
                 onClickLogo = onClickLogo,
-                onClickSettings = { navigate(SettingsRoute) },
+                onClickSettings = { navigator.navigate(SettingsRoute) },
                 koinScope = koinScope,
-                onNavigateUp = invocationAwareBackHandler,
+                onNavigateUp = navigator::invocationAwareBack,
             )
         }
 
@@ -379,15 +294,15 @@ private fun SharingNavHost(
                     intentState.presentationStateModel.value?.let {
                         PresentationViewModel(
                             presentationStateModel = it,
-                            navigateUp = { returnToHome() },
+                            navigateUp = { navigator.returnToHome() },
                             onAuthenticationSuccess = { },
-                            navigateToHomeScreen = { returnToHome() },
+                            navigateToHomeScreen = { navigator.returnToHome() },
                             walletMain = walletMain,
                             onClickLogo = onClickLogo,
-                            onClickSettings = { navigate(SettingsRoute) })
+                            onClickSettings = { navigator.navigate(SettingsRoute) })
                     } ?: throw IllegalStateException("No presentation view model set")
                 } catch (e: Throwable) {
-                    returnToHome()
+                    navigator.returnToHome()
                     walletMain.errorService.emit(e)
                     null
                 }
@@ -396,11 +311,11 @@ private fun SharingNavHost(
             if (vm != null) {
                 PresentationView(
                     vm,
-                    onPresentmentComplete = { returnToHome() },
+                    onPresentmentComplete = { navigator.returnToHome() },
                     coroutineScope = walletMain.scope,
                     walletMain.snackbarService,
                     onError = { e ->
-                        returnToHome()
+                        navigator.returnToHome()
                         walletMain.errorService.emit(e)
                     }
                 )
@@ -409,9 +324,9 @@ private fun SharingNavHost(
 
         composable<AuthenticationSuccessRoute> {
             AuthenticationSuccessView(
-                navigateUp = invocationAwareBackHandler,
+                navigateUp = navigator::invocationAwareBack,
                 onClickLogo = onClickLogo,
-                onClickSettings = { navigate(SettingsRoute) }
+                onClickSettings = { navigator.navigate(SettingsRoute) }
             )
         }
 
@@ -421,11 +336,11 @@ private fun SharingNavHost(
                 runCatching {
                     LoadCredentialViewModel.init(
                         walletMain = walletMain,
-                        navigateUp = navigateBack,
+                        navigateUp = navigator::navigateBack,
                         url = backStackEntry.toRoute<AddCredentialWithLinkRoute>().uri,
                         onSubmit = { credentialIdentifierInfo, transactionCode, offer ->
-                            returnToHome()
-                            navigate(LoadingRoute)
+                            navigator.returnToHome()
+                            navigator.navigate(LoadingRoute)
                             walletMain.scope.launch {
                                 try {
                                     walletMain.provisioningService.loadCredentialWithOffer(
@@ -433,19 +348,19 @@ private fun SharingNavHost(
                                         credentialIdentifierInfo = credentialIdentifierInfo,
                                         transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null },
                                     )
-                                    returnToHome()
+                                    navigator.returnToHome()
                                 } catch (e: Throwable) {
-                                    returnToHome()
+                                    navigator.returnToHome()
                                     walletMain.errorService.emit(e)
                                 }
                             }
                         },
                         onClickLogo = onClickLogo,
-                        onClickSettings = { navigate(SettingsRoute) }
+                        onClickSettings = { navigator.navigate(SettingsRoute) }
                     )
                 }.onSuccess { vm = it }
                  .onFailure {
-                    returnToHome()
+                    navigator.returnToHome()
                     walletMain.errorService.emit(it)
                 }
             }
@@ -459,11 +374,11 @@ private fun SharingNavHost(
                 runCatching {
                     LoadCredentialViewModel.init(
                         walletMain = walletMain,
-                        navigateUp = navigateBack,
+                        navigateUp = navigator::navigateBack,
                         offer = offer,
                         onSubmit = { credentialIdentifierInfo, transactionCode, _ ->
-                            returnToHome()
-                            navigate(LoadingRoute)
+                            navigator.returnToHome()
+                            navigator.navigate(LoadingRoute)
                             walletMain.scope.launch {
                                 try {
                                     walletMain.provisioningService.loadCredentialWithOffer(
@@ -471,19 +386,19 @@ private fun SharingNavHost(
                                         credentialIdentifierInfo = credentialIdentifierInfo,
                                         transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null },
                                     )
-                                    returnToHome()
+                                    navigator.returnToHome()
                                 } catch (e: Throwable) {
-                                    returnToHome()
+                                    navigator.returnToHome()
                                     walletMain.errorService.emit(e)
                                 }
                             }
                         },
                         onClickLogo = onClickLogo,
-                        onClickSettings = { navigate(SettingsRoute) }
+                        onClickSettings = { navigator.navigate(SettingsRoute) }
                     )
                 }.onSuccess { vm = it }
                  .onFailure {
-                    returnToHome()
+                    navigator.returnToHome()
                     walletMain.errorService.emit(it)
                 }
             }
@@ -497,7 +412,7 @@ private fun SharingNavHost(
                 runCatching {
                     lateinit var dcapiVm: LoadCredentialViewModel
                     val onSubmit: CredentialSelection = { credentialIdentifierInfo, transactionCode, _ ->
-                        navigate(LoadingRoute)
+                        navigator.navigate(LoadingRoute)
                         walletMain.scope.launch {
                             try {
                                 val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
@@ -507,7 +422,7 @@ private fun SharingNavHost(
                                     authorizationServerMetadata = offer.authorizationServerMetadata
                                 )
                                 if (issuanceResult is CredentialIssuanceResult.Success) {
-                                    navigate(AddCredentialDcApiSuccessRoute)
+                                    navigator.navigate(AddCredentialDcApiSuccessRoute)
                                 } else {
                                     dcapiVm.handleDCAPIIssuingResult(false, null)
                                 }
@@ -518,16 +433,16 @@ private fun SharingNavHost(
                     }
                     LoadCredentialViewModel.initFromDcApi(
                         walletMain = walletMain,
-                        navigateUp = { intentState.finishApp?.invoke() ?: navigateBack() },
+                        navigateUp = navigator::invocationAwareBack,
                         offer = offer,
                         onSubmit = onSubmit,
                         onClickLogo = onClickLogo,
-                        onClickSettings = { navigate(SettingsRoute) }
+                        onClickSettings = { navigator.navigate(SettingsRoute) }
                     ).also { dcapiVm = it }
                 }.onSuccess { vm = it }
                  .onFailure {
                     val wrapped = ErrorHandlingOverrideException(
-                        resetStackOverride = { intentState.finishApp?.invoke() ?: navigateBack() },
+                        resetStackOverride = navigator::invocationAwareBack,
                         actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
                         onAcknowledge = {
                             if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
@@ -536,7 +451,7 @@ private fun SharingNavHost(
                                 )
                                 walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, false)
                             }
-                            intentState.finishApp?.invoke() ?: navigateBack()
+                            navigator.invocationAwareBack()
                         },
                         cause = it
                     )
@@ -552,7 +467,7 @@ private fun SharingNavHost(
                     val response = vckJsonSerializer.encodeToString(DigitalCredentialOfferReturn.success())
                     walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, true)
                 }
-                invocationAwareBackHandler()
+                navigator.invocationAwareBack()
             }
 
             BackHandler(onBack = onAcknowledge)
@@ -561,7 +476,7 @@ private fun SharingNavHost(
                 onAutoDismiss = onAcknowledge,
                 onClickButton = onAcknowledge,
                 onClickLogo = onClickLogo,
-                onClickSettings = { navigate(SettingsRoute) }
+                onClickSettings = { navigator.navigate(SettingsRoute) }
             )
         }
 
@@ -577,15 +492,13 @@ private fun SharingNavHost(
         composable<ErrorRoute> {
             walletMain.errorService.error.collectAsState(null).value?.let {
                 catchingUnwrapped {
-                    val throwable = if (shouldFinishToCaller()) {
+                    val throwable = if (navigator.shouldFinishToCaller()) {
                         val existingOverride = it.throwable as? ErrorHandlingOverrideException
                         if (existingOverride?.hasUiOverride == true) {
                             existingOverride
                         } else {
                             ErrorHandlingOverrideException(
-                                resetStackOverride = {
-                                    intentState.finishApp?.invoke() ?: navigateBack()
-                                },
+                                resetStackOverride = navigator::invocationAwareBack,
                                 actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
                                 onAcknowledge = existingOverride?.onAcknowledge,
                                 cause = existingOverride?.cause ?: it.throwable
@@ -596,20 +509,18 @@ private fun SharingNavHost(
                     }
                     ErrorViewModel(
                         clearError = { walletMain.errorService.clear() },
-                        resetStack = { returnToHome() },
+                        resetStack = { navigator.returnToHome() },
                         resetApp = {
-                            walletMain.scope.launch {
-                                walletMain.resetApp()
-                            }
-                            returnToHome()
+                            walletMain.scope.launch { walletMain.resetApp() }
+                            navigator.returnToHome()
                         },
                         throwable = throwable,
                         onClickLogo = onClickLogo,
-                        onClickSettings = { navigate(SettingsRoute) })
+                        onClickSettings = { navigator.navigate(SettingsRoute) })
                 }.onSuccess {
                     ErrorView(remember { it })
                 }.onFailure {
-                    returnToHome()
+                    navigator.returnToHome()
                 }
             }
         }
@@ -622,16 +533,16 @@ private fun SharingNavHost(
             SettingsView(
                 buildType = walletMain.buildContext.buildType,
                 version = walletMain.buildContext.versionName,
-                onClickShareLogFile = { navigate(LogRoute) },
+                onClickShareLogFile = { navigator.navigate(LogRoute) },
                 onClickLogo = onClickLogo,
-                onClickSettings = { returnToHome() },
-                onClickBack = navigateBack,
+                onClickSettings = { navigator.returnToHome() },
+                onClickBack = navigator::navigateBack,
                 onClickFAQs = null,
                 onClickDataProtectionPolicy = null,
                 onClickLicenses = null,
                 onReset = {
                     walletMain.scope.launch { walletMain.resetApp() }
-                    returnToHome()
+                    navigator.returnToHome()
                 },
                 koinScope = koinScope
             )
@@ -640,10 +551,10 @@ private fun SharingNavHost(
         composable<LogRoute> {
             LogView(vm = remember {
                 LogViewModel(
-                    navigateUp = navigateBack,
+                    navigateUp = navigator::navigateBack,
                     walletMain = walletMain,
                     onClickLogo = onClickLogo,
-                    onClickSettings = { navigate(SettingsRoute) })
+                    onClickSettings = { navigator.navigate(SettingsRoute) })
             })
         }
 
@@ -652,14 +563,16 @@ private fun SharingNavHost(
                 if (prerequisites.contains(CRYPTO)) {
                     BackHandler(enabled = true, onBack = {})
                 } else {
-                    BackHandler(enabled = true, onBack = { returnToHome() })
+                    // Go back to the previous screen; SharingNavigationControllerImpl.navigateBack()
+                    // calls finishApp automatically when the back stack is exhausted.
+                    BackHandler(enabled = true, onBack = { navigator.navigateBack() })
                 }
                 CapabilityView(
                     koinScope = koinScope,
                     onClickLogo = onClickLogo,
-                    onClickSettings = { navigate(SettingsRoute) },
-                    onContinue = { navigatePending() },
-                    onNavigateUp = { returnToHome() },
+                    onClickSettings = { navigator.navigate(SettingsRoute) },
+                    onContinue = { navigator.navigatePending() },
+                    onNavigateUp = { navigator.navigateBack() },
                     prerequisites = prerequisites,
                 )
             }
