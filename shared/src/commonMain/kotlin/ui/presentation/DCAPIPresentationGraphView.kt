@@ -56,6 +56,7 @@ fun DCAPIPresentationGraphView(
             )
         },
         transactionData = null,
-        presentationRequest = null
+        presentationRequest = (matchingResult as? UiStateSuccess)?.value?.second
+            ?.queryMatchingResult?.presentationRequest,
     )
 }
