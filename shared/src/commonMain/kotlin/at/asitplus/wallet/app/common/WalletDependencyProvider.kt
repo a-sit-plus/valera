@@ -1,9 +1,9 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.wallet.lib.agent.Validator
-import data.storage.AntilogAdapter
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
+import io.github.aakira.napier.Antilog
 import io.github.aakira.napier.Napier
 import org.multipaz.prompt.PromptModel
 
@@ -15,6 +15,7 @@ data class WalletDependencyProvider(
         PersistentSubjectCredentialStore(dataStoreService, Validator()),
     val buildContext: BuildContext,
     val promptModel: PromptModel,
+    val antilog: Antilog,
 ) {
     init {
         at.asitplus.wallet.mdl.Initializer.initWithVCK()
@@ -28,7 +29,7 @@ data class WalletDependencyProvider(
         at.asitplus.wallet.ehic.Initializer.initWithVCK()
         at.asitplus.wallet.ageverification.Initializer.initWithVCK()
 
-        //Napier.takeLogarithm()
-        //Napier.base(AntilogAdapter(platformAdapter, "", buildContext.buildType))
+        Napier.takeLogarithm()
+        Napier.base(antilog)
     }
 }

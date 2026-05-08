@@ -11,9 +11,6 @@ struct ComposeView: UIViewControllerRepresentable {
         let buildType = BuildType.release_
         #endif
 
-        Napier.shared.base(antilog:OSLogNapierAntilog())
-        Napier.shared.log(priority: LogLevel.debug, tag: "ComposeView", throwable: nil, message: "makeUIViewController called")
-
         return Main_iosKt.MainViewController(
             buildContext: BuildContext(
                 buildType: buildType,

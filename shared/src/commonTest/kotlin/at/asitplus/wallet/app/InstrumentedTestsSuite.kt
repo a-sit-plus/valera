@@ -309,6 +309,7 @@ private fun createWalletDependencyProvider(platformAdapter: PlatformAdapter): Wa
             osVersion = "Unit Test",
         ),
         promptModel = TestPromptModel(),
+        antilog = AntilogAdapter(platformAdapter, "", BuildType.DEBUG),
     )
 }
 
