@@ -52,7 +52,12 @@ class VerifierViewModel(
     val onResume: () -> Unit = {
         setState(VerifierState.Settings)
         _requestDocumentList.clear()
+        engagementPreviousState = VerifierState.SelectDocument
     }
+
+    // Tracks which selection state the user came from before QrEngagement, so back can return there.
+    var engagementPreviousState: VerifierState = VerifierState.SelectDocument
+        private set
 
     val onConsentSettings: () -> Unit = { setState(VerifierState.CheckSettings) }
 
@@ -114,6 +119,7 @@ class VerifierViewModel(
 
 
     fun onRequestSelected(request: SelectableRequest) {
+        engagementPreviousState = VerifierState.SelectDocument
         _requestDocumentList.addRequestDocument(
             RequestDocumentBuilder.buildRequestDocument(request)
         )
@@ -129,6 +135,7 @@ class VerifierViewModel(
     }
 
     fun onReceiveCombinedSelection(requestSelectionList: List<SelectableRequest>) {
+        engagementPreviousState = VerifierState.SelectCombinedRequest
         requestSelectionList.forEach { request ->
             _requestDocumentList.addRequestDocument(
                 RequestDocumentBuilder.buildRequestDocument(request)
@@ -141,6 +148,7 @@ class VerifierViewModel(
         selectedDocumentType: String,
         selectedEntries: Collection<String>
     ) {
+        engagementPreviousState = VerifierState.SelectCustomRequest
         val config = RequestDocumentBuilder.getDocTypeConfig(selectedDocumentType) ?: return
         _requestDocumentList.addRequestDocument(
             RequestDocumentBuilder.buildRequestDocument(config.scheme, selectedEntries)

@@ -68,11 +68,17 @@ fun VerifierView(
         }
     }
 
-    // System back mirrors the app-bar back button: reset to Settings state rather than
-    // popping the route entirely. Disabled in Settings so back exits the route normally.
+    // System back exits the verifier entirely from any substate; disabled in Settings
+    // so the route is popped normally from there too.
     val backState = rememberNavigationEventState(NavigationEventInfo.None)
     NavigationBackHandler(state = backState, isBackEnabled = verifierState !is VerifierState.Settings) {
-        vm.onResume()
+        when (verifierState) {
+            is VerifierState.SelectDocument -> vm.setState(VerifierState.Settings)
+            is VerifierState.SelectCustomRequest -> vm.setState(VerifierState.SelectDocument)
+            is VerifierState.SelectCombinedRequest -> vm.setState(VerifierState.SelectDocument)
+            is VerifierState.QrEngagement -> vm.setState(vm.engagementPreviousState)
+            else -> vm.onResume()
+        }
     }
 
     when (val state = verifierState) {
@@ -83,12 +89,12 @@ fun VerifierView(
             navigateUp = vm.onResume
         )
         is VerifierState.SelectDocument ->
-            VerifierDocumentSelectionView(onClickLogo, onClickSettings, vm, bottomBar)
+            VerifierDocumentSelectionView(onClickLogo, onClickSettings, { vm.setState(VerifierState.Settings) }, vm, bottomBar)
         is VerifierState.SelectCustomRequest ->
-            VerifierCustomSelectionView(onClickLogo, onClickSettings, vm)
+            VerifierCustomSelectionView(onClickLogo, onClickSettings, { vm.setState(VerifierState.SelectDocument) }, vm)
         is VerifierState.SelectCombinedRequest ->
-            VerifierCombinedSelectionView(onClickLogo, onClickSettings, vm)
-        is VerifierState.QrEngagement -> VerifierQrEngagementView(onClickLogo, vm)
+            VerifierCombinedSelectionView(onClickLogo, onClickSettings, { vm.setState(VerifierState.SelectDocument) }, vm)
+        is VerifierState.QrEngagement -> VerifierQrEngagementView(onClickLogo, { vm.setState(vm.engagementPreviousState) }, vm)
         is VerifierState.WaitingForResponse -> LoadingView(
             customLabel = stringResource(Res.string.info_text_waiting_for_response),
             navigateUp = vm.onResume
