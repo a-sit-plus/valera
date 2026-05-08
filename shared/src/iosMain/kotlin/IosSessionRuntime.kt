@@ -176,15 +176,21 @@ private object IosSessionRuntime {
         }
     }
 
+    // Called when a new session is first created. Applies any DC API data that arrived before
+    // the session existed. finishApp must be set here too — without it the back handler in
+    // SharingNavigation would be a no-op, and the extension would never return to the caller
+    // on the first request.
     private fun applyPendingState(intentState: IntentState) {
         pendingPreRequestData?.let { preRequest ->
             intentState.iosDcApiPreRequestData.value = preRequest
             intentState.appLink.value = IOS_DC_API_PRE_REQUEST
+            intentState.finishApp = { preRequest.onCancel() }
             return
         }
         pendingInvocationData?.let { invocation ->
             intentState.dcapiInvocationData.value = invocation
             intentState.appLink.value = IOS_DC_API_CALL
+            intentState.finishApp = { invocation.onCancel() }
             return
         }
         pendingAppLink?.let { link ->
