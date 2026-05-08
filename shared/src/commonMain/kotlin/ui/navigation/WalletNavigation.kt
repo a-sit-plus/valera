@@ -399,6 +399,7 @@ private fun WalletNavHost(
                 },
                 koinScope = koinScope,
                 onNavigateUp = navigator::invocationAwareBack,
+                navigateUpIsClose = true,
             )
         }
 
@@ -455,7 +456,8 @@ private fun WalletNavHost(
             AuthenticationSuccessView(
                 navigateUp = navigator::invocationAwareBack,
                 onClickLogo = onClickLogo,
-                onClickSettings = { navigator.navigate(SettingsRoute) }
+                onClickSettings = { navigator.navigate(SettingsRoute) },
+                navigateUpIsClose = true,
             )
         }
 

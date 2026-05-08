@@ -38,6 +38,7 @@ fun PresentationGraphView(
     navController: NavHostController = rememberNavController(),
     transactionData: TransactionDataBase64Url?,
     presentationRequest: CredentialPresentationRequest?,
+    navigateUpIsClose: Boolean = false,
 ) {
     LaunchedEffect(selectionProvider) {
         selectionProvider.let {
@@ -76,6 +77,7 @@ fun PresentationGraphView(
                 onClickLogo = onClickLogo,
                 onClickSettings = onClickSettings,
                 onNavigateUp = onNavigateUp,
+                navigateUpIsClose = navigateUpIsClose,
             ) {
                 AuthenticationReceivedStartPageContent(
                     presentationRequest = presentationRequest,
@@ -143,7 +145,8 @@ fun PresentationGraphView(
             AuthenticationSuccessView(
                 navigateUp = onNavigateUp,
                 onClickLogo = onClickLogo,
-                onClickSettings = onClickSettings
+                onClickSettings = onClickSettings,
+                navigateUpIsClose = navigateUpIsClose,
             )
         }
     }
