@@ -101,6 +101,8 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
         
         class Coordinator {
             var requestStarted = false
+            // Tracks which requestContext was last wired up so updateUIViewController can detect a new request.
+            var lastRequestContext: ISO18013MobileDocumentRequestContext? = nil
         }
 
         func makeCoordinator() -> Coordinator {
@@ -109,6 +111,24 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
 
         func makeUIViewController(context: Context) -> StatefulViewController {
             let statefulViewController = StatefulViewController()
+            setupForCurrentRequest(statefulViewController: statefulViewController, context: context)
+            return statefulViewController
+        }
+
+        // iOS may reuse the extension process for a second DC API request without recreating the view
+        // controller. In that case SwiftUI calls updateUIViewController instead of makeUIViewController,
+        // so we must detect the new requestContext and re-run the full setup.
+        func updateUIViewController(_ uiViewController: StatefulViewController, context: Context) {
+            if requestContext !== context.coordinator.lastRequestContext {
+                setupForCurrentRequest(statefulViewController: uiViewController, context: context)
+            }
+        }
+
+        private func setupForCurrentRequest(statefulViewController: StatefulViewController, context: Context) {
+            // Reset per-request state before wiring up the new request.
+            context.coordinator.requestStarted = false
+            context.coordinator.lastRequestContext = requestContext
+
             let originString: String? = requestContext.requestingWebsiteOrigin?.absoluteString
             let parsedRequestSummary = buildParsedRequestSummaryData(from: requestContext)
 
@@ -179,11 +199,6 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                 )
             )
             statefulViewController.display(viewController: mainViewController)
-
-            return statefulViewController
-        }
-
-        func updateUIViewController(_ uiViewController: StatefulViewController, context: Context) {
         }
     }
 
