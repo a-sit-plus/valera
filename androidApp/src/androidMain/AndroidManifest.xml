@@ -102,6 +102,7 @@
             android:windowSoftInputMode="adjustResize"
             android:launchMode="singleTask"
             android:taskAffinity="${applicationId}.sharing"
+            android:excludeFromRecents="true"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar">
             <!-- Presentation (OpenID4VP and related) -->
             <intent-filter>

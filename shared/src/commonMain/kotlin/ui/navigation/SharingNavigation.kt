@@ -495,20 +495,16 @@ private fun SharingNavHost(
         composable<ErrorRoute> {
             walletMain.errorService.error.collectAsState(null).value?.let {
                 catchingUnwrapped {
-                    val throwable = if (navigator.shouldFinishToCaller()) {
-                        val existingOverride = it.throwable as? ErrorHandlingOverrideException
-                        if (existingOverride?.hasUiOverride == true) {
-                            existingOverride
-                        } else {
-                            ErrorHandlingOverrideException(
-                                resetStackOverride = navigator::invocationAwareBack,
-                                actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
-                                onAcknowledge = existingOverride?.onAcknowledge,
-                                cause = existingOverride?.cause ?: it.throwable
-                            )
-                        }
+                    val existingOverride = it.throwable as? ErrorHandlingOverrideException
+                    val throwable = if (existingOverride?.hasUiOverride == true) {
+                        existingOverride
                     } else {
-                        it.throwable
+                        ErrorHandlingOverrideException(
+                            resetStackOverride = navigator::invocationAwareBack,
+                            actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
+                            onAcknowledge = existingOverride?.onAcknowledge,
+                            cause = existingOverride?.cause ?: it.throwable
+                        )
                     }
                     ErrorViewModel(
                         clearError = { walletMain.errorService.clear() },
