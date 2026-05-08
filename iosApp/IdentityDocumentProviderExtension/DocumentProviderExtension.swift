@@ -85,7 +85,8 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                 versionCode: Bundle.main.infoDictionary?["CFBundleVersion"] as? Int32 ?? 1,
                 versionName: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0",
                 osVersion: "iOS " + UIDevice.current.systemVersion
-            )
+            ),
+            antilog: OSLogNapierAntilog()
         )
     }
 
@@ -107,9 +108,6 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
         }
 
         func makeUIViewController(context: Context) -> StatefulViewController {
-            Napier.shared.base(antilog:OSLogNapierAntilog())
-            Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "makeUIViewController called")
-
             let statefulViewController = StatefulViewController()
             let originString: String? = requestContext.requestingWebsiteOrigin?.absoluteString
             let parsedRequestSummary = buildParsedRequestSummaryData(from: requestContext)

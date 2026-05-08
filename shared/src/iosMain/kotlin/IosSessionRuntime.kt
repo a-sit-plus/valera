@@ -9,8 +9,8 @@ import at.asitplus.wallet.app.common.di.appModule
 import at.asitplus.wallet.app.dcapi.IosDcApiPreRequestData
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
 import androidx.compose.material3.SnackbarDuration
-import data.storage.AntilogAdapter
 import data.storage.RealDataStoreService
+import io.github.aakira.napier.Antilog
 import data.storage.createDataStore
 import io.github.aakira.napier.Napier
 import kotlinx.atomicfu.locks.SynchronizedObject
@@ -40,14 +40,14 @@ private object IosSessionRuntime {
     private var pendingPreRequestData: IosDcApiPreRequestData? = null
     private var pendingInvocationData: IosDCAPIInvocationData? = null
 
-    fun bootstrap(buildContext: BuildContext) {
+    fun bootstrap(buildContext: BuildContext, antilog: Antilog) {
         synchronized(stateLock) {
             if (isBootstrapped) {
                 return
             }
 
             initializeCredentialSchemes()
-            initializeLogging(buildContext)
+            initializeLogging(antilog)
             startKoin {
                 modules(appModule())
             }
@@ -205,21 +205,15 @@ private object IosSessionRuntime {
         at.asitplus.wallet.ageverification.Initializer.initWithVCK()
     }
 
-    private fun initializeLogging(buildContext: BuildContext) {
+    private fun initializeLogging(antilog: Antilog) {
         Napier.takeLogarithm()
-        Napier.base(
-            AntilogAdapter(
-                platformAdapter = IosPlatformAdapter(IntentState()),
-                defaultTag = "",
-                buildType = buildContext.buildType
-            )
-        )
+        Napier.base(antilog)
     }
 }
 
 object IosSessionBridge {
-    fun bootstrap(buildContext: BuildContext) {
-        IosSessionRuntime.bootstrap(buildContext)
+    fun bootstrap(buildContext: BuildContext, antilog: Antilog) {
+        IosSessionRuntime.bootstrap(buildContext, antilog)
     }
 
     fun handleIncomingUrl(url: String) {
