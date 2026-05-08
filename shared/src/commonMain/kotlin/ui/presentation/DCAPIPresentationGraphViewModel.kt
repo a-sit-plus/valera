@@ -7,8 +7,10 @@ import androidx.navigation.toRoute
 import at.asitplus.catching
 import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.dif.PresentationDefinition
+import at.asitplus.signum.supreme.UserInitiatedCancellationReason
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
+import at.asitplus.valera.resources.warning_authentication_cancelled
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.toDifInputDescriptorList
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -100,6 +102,10 @@ class DCAPIPresentationGraphViewModel(
                     request = request,
                 )
                 onSuccess(result)
+            } catch (_: UserInitiatedCancellationReason) {
+                walletMain.snackbarService.showSnackbar(
+                    getString(Res.string.warning_authentication_cancelled)
+                )
             } catch (it: Throwable) {
                 onFailure(it)
             }
