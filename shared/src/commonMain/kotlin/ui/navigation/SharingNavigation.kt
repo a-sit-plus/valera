@@ -20,9 +20,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.backhandler.BackHandler
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -165,7 +166,6 @@ fun SharingNavigation(
 }
 
 @ExperimentalMaterial3Api
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun SharingNavHost(
     navController: NavHostController,
@@ -470,7 +470,8 @@ private fun SharingNavHost(
                 navigator.invocationAwareBack()
             }
 
-            BackHandler(onBack = onAcknowledge)
+            val backState = rememberNavigationEventState(NavigationEventInfo.None)
+            NavigationBackHandler(state = backState, onBackCompleted = onAcknowledge)
 
             CredentialAddedView(
                 onAutoDismiss = onAcknowledge,
@@ -560,12 +561,14 @@ private fun SharingNavHost(
 
         composable<CapabilitiesRoute> { backStackEntry ->
             backStackEntry.toRoute<CapabilitiesRoute>().prerequisites.let { prerequisites ->
-                if (prerequisites.contains(CRYPTO)) {
-                    BackHandler(enabled = true, onBack = {})
-                } else {
-                    // Go back to the previous screen; SharingNavigationControllerImpl.navigateBack()
-                    // calls finishApp automatically when the back stack is exhausted.
-                    BackHandler(enabled = true, onBack = { navigator.navigateBack() })
+                // Always call NavigationBackHandler unconditionally; use the callback to skip when CRYPTO.
+                // CRYPTO prerequisite must not be dismissible via back — user must complete setup.
+                val backState = rememberNavigationEventState(NavigationEventInfo.None)
+                NavigationBackHandler(state = backState, isBackEnabled = true) {
+                    if (!prerequisites.contains(CRYPTO)) {
+                        // SharingNavigationControllerImpl.navigateBack() calls finishApp when exhausted.
+                        navigator.navigateBack()
+                    }
                 }
                 CapabilityView(
                     koinScope = koinScope,

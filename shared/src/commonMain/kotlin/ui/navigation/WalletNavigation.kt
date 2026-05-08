@@ -21,9 +21,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.backhandler.BackHandler
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import androidx.compose.ui.platform.testTag
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
@@ -194,7 +195,6 @@ fun WalletNavigation(
 }
 
 @ExperimentalMaterial3Api
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun WalletNavHost(
     navController: NavHostController,
@@ -642,7 +642,8 @@ private fun WalletNavHost(
                 navigator.invocationAwareBack()
             }
 
-            BackHandler(onBack = onAcknowledge)
+            val backState = rememberNavigationEventState(NavigationEventInfo.None)
+            NavigationBackHandler(state = backState, onBackCompleted = onAcknowledge)
 
             CredentialAddedView(
                 onAutoDismiss = onAcknowledge,
@@ -944,11 +945,13 @@ private fun WalletNavHost(
         }
         composable<CapabilitiesRoute> { backStackEntry ->
             backStackEntry.toRoute<CapabilitiesRoute>().prerequisites.let { prerequisites ->
-                if (prerequisites.contains(CRYPTO)) {
-                    BackHandler(enabled = true, onBack = {})
-                } else {
-                    // Go back to wherever the user came from, not always to HomeScreen.
-                    BackHandler(enabled = true, onBack = { navigator.navigateBack() })
+                // Always call NavigationBackHandler unconditionally; use the callback to skip when CRYPTO.
+                // CRYPTO prerequisite must not be dismissible via back — user must complete setup.
+                val backState = rememberNavigationEventState(NavigationEventInfo.None)
+                NavigationBackHandler(state = backState, isBackEnabled = true) {
+                    if (!prerequisites.contains(CRYPTO)) {
+                        navigator.navigateBack()
+                    }
                 }
                 CapabilityView(
                     koinScope = koinScope,

@@ -5,12 +5,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.backhandler.BackHandler
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.openid.dcql.DCQLQuery
 
-@ExperimentalComposeUiApi
 @ExperimentalMaterial3Api
 @Composable
 fun DCQLPresentationBuilderGraphView(
@@ -35,7 +35,8 @@ fun DCQLPresentationBuilderGraphView(
     }
 
     val selectionStack = navigationManager.selectionStack
-    BackHandler(selectionStack.isNotEmpty()) {
+    val backState = rememberNavigationEventState(NavigationEventInfo.None)
+    NavigationBackHandler(state = backState, isBackEnabled = selectionStack.isNotEmpty()) {
         navigationManager.popSelection()
     }
 

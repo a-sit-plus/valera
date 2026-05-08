@@ -4,6 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_check_response
 import at.asitplus.valera.resources.info_text_check_settings
@@ -63,6 +66,13 @@ fun VerifierView(
             }
             if (verifierState != next) vm.setState(next)
         }
+    }
+
+    // System back mirrors the app-bar back button: reset to Settings state rather than
+    // popping the route entirely. Disabled in Settings so back exits the route normally.
+    val backState = rememberNavigationEventState(NavigationEventInfo.None)
+    NavigationBackHandler(state = backState, isBackEnabled = verifierState !is VerifierState.Settings) {
+        vm.onResume()
     }
 
     when (val state = verifierState) {

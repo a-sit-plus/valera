@@ -18,6 +18,9 @@ import at.asitplus.wallet.app.common.iso.transfer.state.TransferPrecondition
 import at.asitplus.wallet.app.common.iso.transfer.state.evaluateTransferPrecondition
 import at.asitplus.wallet.app.common.iso.transfer.state.rememberTransferSettingsState
 import at.asitplus.wallet.app.common.iso.transfer.state.toEnum
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -95,6 +98,13 @@ fun HolderView(
             }
             if (holderState != next) vm.setState(next)
         }
+    }
+
+    // System back in any sub-state resets to Settings rather than popping the route.
+    // Disabled in Settings so back exits the route normally.
+    val backState = rememberNavigationEventState(NavigationEventInfo.None)
+    NavigationBackHandler(state = backState, isBackEnabled = holderState !is HolderState.Settings) {
+        vm.onResume()
     }
 
     when (val state = holderState) {
