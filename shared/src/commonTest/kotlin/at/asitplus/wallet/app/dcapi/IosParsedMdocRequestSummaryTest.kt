@@ -9,13 +9,15 @@ import at.asitplus.iso.EncryptionParameters
 import at.asitplus.iso.ItemsRequest
 import at.asitplus.iso.ItemsRequestList
 import at.asitplus.iso.SingleItemsRequest
-import kotlin.test.assertEquals
+import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.NameSegment
 import at.asitplus.signum.indispensable.cosef.CoseEllipticCurve
 import at.asitplus.signum.indispensable.cosef.CoseKey
 import at.asitplus.signum.indispensable.cosef.CoseKeyParams
 import at.asitplus.signum.indispensable.cosef.CoseKeyType
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -136,15 +138,23 @@ class IosParsedMdocRequestSummaryTest {
         assertEquals(1, descriptors.size)
         assertEquals("org.iso.18013.5.1.mDL", descriptors.single().id)
         val fields = descriptors.single().constraints?.fields.orEmpty()
+        val familyNamePath = NormalizedJsonPath(
+            NameSegment("org.iso.18013.5.1"),
+            NameSegment("family_name"),
+        ).toString()
+        val givenNamePath = NormalizedJsonPath(
+            NameSegment("org.iso.18013.5.1"),
+            NameSegment("given_name"),
+        ).toString()
         assertEquals(2, fields.size)
         assertEquals(
-            setOf("$.org.iso.18013.5.1.family_name", "$.org.iso.18013.5.1.given_name"),
+            setOf(familyNamePath, givenNamePath),
             fields.map { it.path.single() }.toSet()
         )
         assertEquals(
             mapOf(
-                "$.org.iso.18013.5.1.family_name" to false,
-                "$.org.iso.18013.5.1.given_name" to true
+                familyNamePath to false,
+                givenNamePath to true
             ),
             fields.associate { it.path.single() to it.intentToRetain }
         )
