@@ -275,6 +275,7 @@ private fun SharingNavHost(
                 onClickSettings = { navigator.navigate(SettingsRoute) },
                 koinScope = koinScope,
                 onNavigateUp = navigator::invocationAwareBack,
+                navigateUpIsClose = true,
             )
         }
 
@@ -326,7 +327,8 @@ private fun SharingNavHost(
             AuthenticationSuccessView(
                 navigateUp = navigator::invocationAwareBack,
                 onClickLogo = onClickLogo,
-                onClickSettings = { navigator.navigate(SettingsRoute) }
+                onClickSettings = { navigator.navigate(SettingsRoute) },
+                navigateUpIsClose = true,
             )
         }
 

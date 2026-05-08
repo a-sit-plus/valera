@@ -38,6 +38,7 @@ fun DCAPIPresentationGraphView(
         onError = onError,
         onClickLogo = onClickLogo,
         onClickSettings = onClickSettings,
+        navigateUpIsClose = true,
         selectionProvider = matchingResult.map {
             it.second
         },

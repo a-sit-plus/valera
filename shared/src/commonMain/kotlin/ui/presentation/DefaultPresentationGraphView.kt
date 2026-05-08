@@ -18,6 +18,7 @@ fun DefaultPresentationGraphView(
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
     koinScope: Scope,
+    navigateUpIsClose: Boolean = false,
     viewModel: DefaultPresentationGraphViewModel = koinViewModel(scope = koinScope),
     credentialValidator: Validator = koinInject(),
 ) {
@@ -53,6 +54,7 @@ fun DefaultPresentationGraphView(
         onClickSettings = onClickSettings,
         selectionProvider = selectionProvider,
         presentationRequest = presentationRequest,
+        navigateUpIsClose = navigateUpIsClose,
         submitPresentation = SubmitPresentation { it, navigate ->
             viewModel.confirmSelection(
                 credentialPresentationSubmissions = it,

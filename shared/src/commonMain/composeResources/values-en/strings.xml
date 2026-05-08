@@ -289,6 +289,7 @@
     <string name="biometric_authentication_prompt_to_bind_credentials_title">Create device binding</string>
 
     <string name="content_description_navigate_back">Back</string>
+    <string name="content_description_close">Close</string>
     <string name="content_description_delete_credential">Delete</string>
     <string name="content_description_portrait">Portrait</string>
     <string name="content_description_refresh_credentials">Load Data</string>

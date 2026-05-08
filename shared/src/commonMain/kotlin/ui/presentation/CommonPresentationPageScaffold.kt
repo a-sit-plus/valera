@@ -19,6 +19,7 @@ fun CommonPresentationPageScaffold(
     onNavigateUp: () -> Unit,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
+    navigateUpIsClose: Boolean = false,
     content: @Composable (() -> Unit),
 ) {
     Scaffold(
@@ -27,6 +28,7 @@ fun CommonPresentationPageScaffold(
                 onNavigateUp = onNavigateUp,
                 onClickLogo = onClickLogo,
                 onClickSettings = onClickSettings,
+                navigateUpIsClose = navigateUpIsClose,
             )
         },
     ) {

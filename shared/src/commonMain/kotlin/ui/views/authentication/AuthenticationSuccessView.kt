@@ -43,6 +43,7 @@ fun AuthenticationSuccessView(
     navigateUp: () -> Unit,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
+    navigateUpIsClose: Boolean = false,
     vm: AuthenticationSuccessViewModel = koinViewModel(),
 ) {
     Scaffold(
@@ -68,7 +69,7 @@ fun AuthenticationSuccessView(
                     Spacer(Modifier.width(15.dp))
                 },
                 navigationIcon = {
-                    NavigateUpButton(navigateUp)
+                    NavigateUpButton(navigateUp, isClose = navigateUpIsClose)
                 },
             )
         },

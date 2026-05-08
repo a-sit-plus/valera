@@ -284,6 +284,7 @@
     <string name="biometric_authentication_prompt_to_bind_credentials_title">Gerätbindung erzeugen</string>
 
     <string name="content_description_navigate_back">Zurück</string>
+    <string name="content_description_close">Schließen</string>
     <string name="content_description_delete_credential">Löschen</string>
     <string name="content_description_portrait">Porträt</string>
     <string name="content_description_refresh_credentials">Daten laden</string>
