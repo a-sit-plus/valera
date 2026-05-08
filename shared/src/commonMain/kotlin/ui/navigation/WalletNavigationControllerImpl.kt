@@ -47,7 +47,7 @@ internal open class WalletNavigationControllerImpl(
         scope.launch {
             Napier.d("Navigate back")
             if (!navController.navigateUpOnMain()) {
-                Napier.w("Navigate up failed")
+                returnToHome()
             }
         }
     }
@@ -63,7 +63,7 @@ internal open class WalletNavigationControllerImpl(
         scope.launch {
             Napier.d("navigateNewGraph: $route")
             navController.navigateOnMain(route) {
-                popUpTo(0)
+                popUpTo(navController.graph.startDestinationId) { inclusive = true }
                 launchSingleTop = true
             }
         }
@@ -98,7 +98,7 @@ internal open class WalletNavigationControllerImpl(
             } else {
                 Napier.d("navigateNewGraph: HomeScreenRoute")
                 navController.navigateOnMain(HomeScreenRoute) {
-                    popUpTo(0)
+                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
                     launchSingleTop = true
                 }
             }
@@ -119,16 +119,20 @@ internal open class WalletNavigationControllerImpl(
     }
 }
 
-// Overrides the two methods that differ in the sharing/DCAPI flow:
-// - navigateBack() calls finishApp when the back stack is exhausted (no wallet home to fall back to)
-// - returnToHome() always prefers finishApp since there is no wallet home screen in this graph
-// - shouldFinishToCaller() also checks iosDcApiPreRequestData (pre-request stage, not yet an invocation)
+// Overrides methods that differ in the sharing flow (no wallet home screen):
+// - invocationAwareBack() always finishes to the caller instead of checking shouldFinishToCaller()
+// - navigateBack() calls finishApp when the back stack is exhausted
+// - returnToHome() always prefers finishApp
 internal class SharingNavigationControllerImpl(
     navController: NavHostController,
     scope: CoroutineScope,
     intentState: IntentState,
     capabilitiesService: CapabilitiesService,
 ) : WalletNavigationControllerImpl(navController, scope, intentState, capabilitiesService) {
+
+    override fun invocationAwareBack() {
+        intentState.finishApp?.invoke() ?: navigateBack()
+    }
 
     override fun navigateBack() {
         scope.launch {
@@ -141,7 +145,4 @@ internal class SharingNavigationControllerImpl(
     override fun returnToHome() {
         intentState.finishApp?.invoke() ?: navigateBack()
     }
-
-    override fun shouldFinishToCaller(): Boolean =
-        intentState.iosDcApiPreRequestData.value != null || intentState.dcapiInvocationData.value != null
 }
