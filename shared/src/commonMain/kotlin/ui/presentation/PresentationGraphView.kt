@@ -6,9 +6,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.backhandler.BackHandler
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -21,7 +22,6 @@ import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import ui.views.authentication.AuthenticationSuccessView
 import ui.views.authentication.TransactionDataView
 
-@ExperimentalComposeUiApi
 @ExperimentalMaterial3Api
 @Composable
 fun PresentationGraphView(
@@ -138,9 +138,8 @@ fun PresentationGraphView(
         }
 
         composable<PresentationSuccessRoute> {
-            BackHandler {
-                onNavigateUp()
-            }
+            val backState = rememberNavigationEventState(NavigationEventInfo.None)
+            NavigationBackHandler(state = backState) { onNavigateUp() }
             AuthenticationSuccessView(
                 navigateUp = onNavigateUp,
                 onClickLogo = onClickLogo,
