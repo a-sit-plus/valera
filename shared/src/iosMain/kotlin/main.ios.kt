@@ -1,23 +1,8 @@
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeUIViewController
 import at.asitplus.catching
 import at.asitplus.KmmResult
@@ -41,8 +26,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resume
 import kotlinx.serialization.encodeToByteArray
+import kotlin.coroutines.resume
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
 import org.multipaz.compose.prompt.PromptDialogs
@@ -53,6 +38,7 @@ import platform.darwin.dispatch_async
 import platform.darwin.dispatch_get_main_queue
 import ui.theme.darkScheme
 import ui.theme.lightScheme
+import kotlin.collections.mapValues
 
 
 actual fun getPlatformName(): String = "iOS"
@@ -61,7 +47,6 @@ private val SUPPORTED_DOC_TYPES = listOf(
     "eu.europa.ec.av.1",
     "eu.europa.ec.eudi.pid.1",
     "org.iso.23220.photoid.1",
-    "org.iso.23220.1.jp.mnc",
     "org.iso.18013.5.1.mDL"
 )
 
@@ -93,101 +78,13 @@ fun MainViewController(
 fun SharingMainViewController(
     buildContext: BuildContext,
 ): UIViewController {
-    val (intentState, sessionService, promptModel) = getOrCreateIosSession(buildContext)
+    val (intentState, sessionService, promptModel) = getOrCreateIosSharingSession(buildContext)
 
     return ComposeUIViewController {
         PromptDialogs(promptModel)
         SharingApp(
             sessionService = sessionService,
             intentState = intentState
-        )
-    }
-}
-
-// Session information and callbacks bridged from the iOS ISO18013 scene
-data class MdocRequestSession(
-    val requestingWebsiteOrigin: String?,
-    val requestPayload: NSData?,
-    val requestDescription: String?,
-    val onSendResponse: (NSData) -> Unit,
-    val onCancel: () -> Unit
-)
-
-
-@Composable
-private fun MdocRequestUI(
-    requestingWebsiteOrigin: String?,
-    requestedElements: List<String>,
-    onAccept: () -> Unit,
-    onCancel: () -> Unit
-) {
-    MaterialTheme(colorScheme = if (isSystemInDarkTheme()) darkScheme else lightScheme) {
-        Surface(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Presentation Request",
-                    style = MaterialTheme.typography.headlineMedium
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                requestingWebsiteOrigin?.let {
-                    Text("Request from:")
-                    Text(it, style = MaterialTheme.typography.bodyLarge)
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-
-                Text("Requested Data:")
-                Spacer(modifier = Modifier.height(8.dp))
-                Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    requestedElements.forEach { element ->
-                        Text("- $element")
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    Button(onClick = onCancel) {
-                        Text("Cancel")
-                    }
-                    Button(onClick = onAccept) {
-                        Text("Accept")
-                    }
-                }
-            }
-        }
-    }
-}
-
-fun MdocRequestViewController(
-    requestingWebsiteOrigin: String?,
-    requestedElements: List<String>,
-    onSendResponse: (NSData) -> Unit,
-    onCancel: () -> Unit
-): UIViewController {
-
-    return ComposeUIViewController {
-        MdocRequestUI(
-            requestingWebsiteOrigin = requestingWebsiteOrigin,
-            requestedElements = requestedElements,
-            onAccept = {
-                Napier.d("MdocRequestUI onAccept")
-                // Create a dummy response for now
-                val dummyResponse = "dummy response data".encodeToByteArray().toNSData()
-                onSendResponse(dummyResponse)
-            },
-            onCancel = onCancel
         )
     }
 }
@@ -368,7 +265,7 @@ class IosPlatformAdapter(
                     scope.launch {
                         val baseMessage = getString(Res.string.snackbar_digital_credentials_store_failed)
                         IosSessionBridge.showSnackbar(
-                            listOfNotNull(baseMessage, errorMessage?.takeIf { it.isNotBlank() })
+                            listOfNotNull(baseMessage, errorMessage.takeIf { it.isNotBlank() })
                                 .joinToString(": "),
                             SnackbarDuration.Long
                         )
@@ -389,7 +286,8 @@ class IosPlatformAdapter(
                 val isoMdocRequest = it.rawRequest?.let { request -> Json.decodeFromString<IsoMdocRequest>(request) }
                     ?: throw IllegalStateException("No request data available")
                 Napier.d("getCurrentDCAPIVerificationData: rawRequest docTypes=${isoMdocRequest.deviceRequest.docRequests.map { req -> req.itemsRequest.value.docType }}")
-                Napier.d("getCurrentDCAPIVerificationData: rawRequest namespaces=${isoMdocRequest.deviceRequest.docRequests.map { req -> req.itemsRequest.value.namespaces.mapValues { (_, items) -> items.map { (id, item) -> "$id→retain=${item.intentToRetain}" } } }}")
+                Napier.d("getCurrentDCAPIVerificationData: rawRequest namespaces=${isoMdocRequest.deviceRequest.docRequests.map { req -> req.itemsRequest.value.namespaces.mapValues { (_, items) -> items.entries.map { item -> "${item.dataElementIdentifier}→retain=${item.intentToRetain}" } } }}")
+
                 val parsedRequestSummary = it.parsedRequestSummary?.let { summary ->
                     Json.decodeFromString<IosParsedMdocRequestSummary>(summary)
                 } ?: throw IllegalStateException("No parsed request summary available")
@@ -412,7 +310,7 @@ class IosPlatformAdapter(
     }
 
     override fun getCurrentDCAPIIssuingData(): KmmResult<DCAPIIssuingRequest> = catching {
-        throw IllegalStateException("Not supported on iOS")
+        throw IllegalStateException("Not supported by iOS")
     }
 
     override fun prepareDCAPICredentialResponse(response: String, success: Boolean) {
@@ -435,11 +333,11 @@ class IosPlatformAdapter(
         } ?: throw IllegalStateException("Callback for response not found")
 
     override fun prepareDCAPIIssuingResponse(response: String, success: Boolean) {
-        Napier.w("DC API issuing not supported on iOS")
+        Napier.w("DC API issuing not supported by iOS")
     }
 
     override fun hasPendingDCAPIIssuingRequest(): Boolean {
-        Napier.w("DC API issuing not supported on iOS")
+        Napier.w("DC API issuing not supported by iOS")
         return false
     }
 

@@ -1,6 +1,7 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.wallet.app.common.dcapi.DCAPIInvocationData
+import at.asitplus.wallet.app.dcapi.IosDcApiPreRequestData
 import kotlinx.coroutines.flow.MutableStateFlow
 import ui.viewmodels.authentication.PresentationStateModel
 
@@ -17,6 +18,9 @@ class IntentState {
     /** Active Digital Credentials API invocation/session payload, if any. */
     val dcapiInvocationData = MutableStateFlow<DCAPIInvocationData?>(null)
 
+    /** Pending iOS-only Digital Credentials API pre-request payload, if any. */
+    val iosDcApiPreRequestData = MutableStateFlow<IosDcApiPreRequestData?>(null)
+
     /** Presentation model passed between routes during local presentment flows. */
     val presentationStateModel = MutableStateFlow<PresentationStateModel?>(null)
 
@@ -32,6 +36,7 @@ class IntentState {
     fun reset() {
         appLink.value = null
         dcapiInvocationData.value = null
+        iosDcApiPreRequestData.value = null
         presentationStateModel.value = null
     }
 }

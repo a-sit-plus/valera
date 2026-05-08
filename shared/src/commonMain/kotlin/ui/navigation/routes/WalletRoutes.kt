@@ -183,6 +183,9 @@ data class AuthorizationIntentRoute(val uri: String) : Route()
 data class DCAPIAuthorizationIntentRoute(val uri: String) : Route()
 
 @Serializable
+object IosDcApiPreRequestRoute : Route()
+
+@Serializable
 data class DCAPIIssuingIntentRoute(val uri: String) : Route()
 
 @Serializable

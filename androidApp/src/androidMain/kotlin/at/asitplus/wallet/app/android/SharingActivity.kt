@@ -15,7 +15,7 @@ import ui.navigation.IntentService.Companion.PRESENTATION_REQUESTED_INTENT
 
 class SharingActivity : AbstractWalletActivity() {
     private val intentState = IntentState()
-    private val buildContext by lazy { createBuildContext() }
+    private val buildContext by lazy { createAndroidBuildContext() }
     private val promptModel: PromptModel by lazy {
         AndroidPromptModel.Builder().apply { addCommonDialogs() }.build()
     }
@@ -28,7 +28,7 @@ class SharingActivity : AbstractWalletActivity() {
         if (!::sessionService.isInitialized) {
             sessionService = SessionService().apply {
                 initialize {
-                    createWalletSessionScope(
+                    createAndroidSharingWalletSessionScope(
                         sessionName = "sharing",
                         activity = this@SharingActivity,
                         intentState = intentState,
