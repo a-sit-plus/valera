@@ -51,17 +51,6 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <!-- Used when jumping back from browser after authenticating at the credential issuer in OID4VCI -->
-                <data
-                    android:host="wallet.a-sit.at"
-                    android:pathPrefix="/app"
-                    android:scheme="asitplus-wallet" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <!-- May be used by issuing services to invoke the Wallet -->
@@ -69,6 +58,17 @@
                     android:host="authorize"
                     android:scheme="eudi-openid4ci" />
             </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".SharingActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|mnc|colorMode|density|fontScale|fontWeightAdjustment|keyboard|layoutDirection|locale|mcc|navigation|smallestScreenSize|touchscreen|uiMode"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize"
+            android:launchMode="singleTask"
+            android:taskAffinity="${applicationId}.sharing"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -93,17 +93,28 @@
                 <!-- May be used by signing services to invoke the Wallet -->
                 <data android:scheme="eudi-rqes" />
             </intent-filter>
-        </activity>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
 
-        <activity
-            android:name=".SharingActivity"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|mnc|colorMode|density|fontScale|fontWeightAdjustment|keyboard|layoutDirection|locale|mcc|navigation|smallestScreenSize|touchscreen|uiMode"
-            android:exported="true"
-            android:windowSoftInputMode="adjustResize"
-            android:launchMode="singleTask"
-            android:taskAffinity="${applicationId}.sharing"
-            android:excludeFromRecents="true"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- Browser callback for externally-triggered signing -->
+                <data
+                    android:host="wallet.a-sit.at"
+                    android:path="/app/callback/signing"
+                    android:scheme="asitplus-wallet" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- Browser callback for externally-triggered provisioning -->
+                <data
+                    android:host="wallet.a-sit.at"
+                    android:path="/app/callback/provisioning"
+                    android:scheme="asitplus-wallet" />
+            </intent-filter>
             <!-- Presentation (OpenID4VP and related) -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />

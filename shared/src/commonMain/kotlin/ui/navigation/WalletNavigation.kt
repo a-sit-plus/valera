@@ -539,6 +539,45 @@ private fun WalletNavHost(
             vm?.let { LoadCredentialView(it) } ?: LoadingView()
         }
 
+        composable<ProvisioningStartIntentRoute> { backStackEntry ->
+            var vm by remember { mutableStateOf<LoadCredentialViewModel?>(null) }
+            LaunchedEffect(Unit) {
+                runCatching {
+                    LoadCredentialViewModel.init(
+                        walletMain = walletMain,
+                        navigateUp = navigator::navigateBack,
+                        url = backStackEntry.toRoute<ProvisioningStartIntentRoute>().uri,
+                        onSubmit = { credentialIdentifierInfo, transactionCode, offer ->
+                            navigator.navigate(LoadingRoute)
+                            walletMain.scope.launch {
+                                try {
+                                    val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
+                                        credentialOffer = offer!!,
+                                        credentialIdentifierInfo = credentialIdentifierInfo,
+                                        transactionCode = transactionCode?.ifEmpty { null }
+                                            ?.ifBlank { null },
+                                    )
+                                    if (issuanceResult is CredentialIssuanceResult.Success) {
+                                        navigator.returnToHome()
+                                    }
+                                } catch (e: Throwable) {
+                                    navigator.returnToHome()
+                                    walletMain.errorService.emit(e)
+                                }
+                            }
+                        },
+                        onClickLogo = onClickLogo,
+                        onClickSettings = { navigator.navigate(SettingsRoute) }
+                    )
+                }.onSuccess { vm = it }
+                 .onFailure {
+                    navigator.returnToHome()
+                    walletMain.errorService.emit(it)
+                }
+            }
+            vm?.let { LoadCredentialView(it) } ?: LoadingView()
+        }
+
         composable<AddCredentialPreAuthnRoute> { backStackEntry ->
             val offer = backStackEntry.toRoute<AddCredentialPreAuthnRoute>().credentialOffer
             var vm by remember { mutableStateOf<LoadCredentialViewModel?>(null) }
@@ -774,6 +813,19 @@ private fun WalletNavHost(
             })
         }
 
+        composable<SigningResumeIntentRoute> { backStackEntry ->
+            SigningResumeIntentView(remember {
+                SigningResumeIntentViewModel(
+                    walletMain = walletMain,
+                    uri = backStackEntry.toRoute<SigningResumeIntentRoute>().uri,
+                    onReturnToSigning = { navigator.navigateBack() },
+                    onFinish = { navigator.returnToHome() },
+                    onFailure = { error ->
+                        walletMain.errorService.emit(error)
+                    })
+            })
+        }
+
         composable<AuthorizationIntentRoute> { backStackEntry ->
             AuthorizationIntentView(remember {
                 AuthorizationIntentViewModel(
@@ -903,8 +955,7 @@ private fun WalletNavHost(
                     uri = backStackEntry.toRoute<SigningIntentRoute>().uri,
                     onSuccess = {
                         walletMain.scope.launch {
-                            navigator.navigateBack()
-                            navigator.navigate(
+                            navigator.navigateNewGraph(
                                 SigningQtspSelectionRoute(
                                     walletMain.signingService.parseSignatureRequestParameter(
                                         backStackEntry.toRoute<SigningIntentRoute>().uri
