@@ -60,7 +60,11 @@ class MainActivity : AbstractWalletActivity() {
     }
 
     override fun onDestroy() {
-        if (::sessionService.isInitialized) {
+        // Guard against configuration changes: onDestroy is also called on rotation,
+        // locale switches, etc. without isFinishing = true. Closing the session there cancels
+        // in-flight coroutines and leaks the old Koin scope while the new Activity instance is
+        // already initialising a replacement session.
+        if (isFinishing && ::sessionService.isInitialized) {
             sessionService.close()
         }
         super.onDestroy()

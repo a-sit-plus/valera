@@ -40,10 +40,11 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import ui.navigation.IntentService
 import kotlin.time.Clock.System
 import kotlin.time.Duration.Companion.minutes
@@ -307,18 +308,16 @@ class ProvisioningService(
         }
     }
 
+    // Wait for the DataStore flow to emit a container that includes at least one new entry.
     private suspend fun resolveNewStoreEntryIds(idsBefore: Set<StoreEntryId>): List<StoreEntryId> {
-        repeat(10) { attempt ->
-            val idsAfter = subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
-            val newIds = (idsAfter - idsBefore).toList()
-            Napier.d("resolveNewStoreEntryIds attempt=$attempt idsAfter=$idsAfter newIds=$newIds")
-            if (newIds.isNotEmpty()) {
-                return newIds
-            }
-            delay(50)
+        return withTimeoutOrNull(1_000) {
+            subjectCredentialStore.observeStoreContainer()
+                .map { container -> (container.credentials.map { it.first }.toSet() - idsBefore).toList() }
+                .first { it.isNotEmpty() }
+        } ?: run {
+            Napier.w("resolveNewStoreEntryIds timed out waiting for new store entries")
+            emptyList()
         }
-        Napier.w("resolveNewStoreEntryIds could not find any new store IDs")
-        return emptyList()
     }
 
     private fun X509Certificate.extractSubjectCn(): String? =

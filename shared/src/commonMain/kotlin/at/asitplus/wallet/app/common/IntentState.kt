@@ -2,6 +2,7 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.wallet.app.common.dcapi.DCAPIInvocationData
 import at.asitplus.wallet.app.dcapi.IosDcApiPreRequestData
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.flow.MutableStateFlow
 import ui.viewmodels.authentication.PresentationStateModel
 
@@ -29,8 +30,16 @@ class IntentState {
      *
      * Platforms that cannot or should not close the host app can leave this `null`.
      * Navigation code must handle `null` by falling back to local navigation.
+     *
+     * Backed by an [atomic] ref: on iOS this field is written under
+     * `IosSessionRuntime.stateLock` from the extension/Swift thread, but read from
+     * the UI (Main) thread in navigation code. A plain `var` has undefined visibility
+     * across threads on Kotlin/Native's strict memory model.
      */
-    var finishApp: (() -> Unit)? = null
+    private val _finishApp = atomic<(() -> Unit)?>(null)
+    var finishApp: (() -> Unit)?
+        get() = _finishApp.value
+        set(value) { _finishApp.value = value }
 
     /** Clears all transient navigation state. Call before a session reset so navigation recomposes cleanly. */
     fun reset() {

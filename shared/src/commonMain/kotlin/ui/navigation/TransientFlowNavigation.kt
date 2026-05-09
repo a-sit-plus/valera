@@ -133,6 +133,10 @@ fun TransientFlowNavigation(
     }
 
     LaunchedEffect(koinScope) {
+        // Reset before subscribing: if appReady already holds true from a previous session
+        // (e.g. same WalletMain reused across recompositions), error navigation could fire
+        // before the NavHost graph is established for this composition.
+        walletMain.appReady.value = false
         walletMain.scope.launch {
             walletMain.appReady.emit(true)
         }
@@ -173,6 +177,54 @@ fun TransientFlowNavigation(
             }
         }
     }
+}
+
+// Shared implementation for AddCredentialWithLinkRoute and ProvisioningStartIntentRoute,
+// which differ only in the route type they extract the URI from.
+@Composable
+private fun LoadCredentialFromUrlContent(
+    uri: String,
+    navigator: WalletNavigationController,
+    walletMain: WalletMain,
+    onClickLogo: () -> Unit,
+) {
+    var vm by remember { mutableStateOf<LoadCredentialViewModel?>(null) }
+    LaunchedEffect(Unit) {
+        runCatching {
+            LoadCredentialViewModel.init(
+                walletMain = walletMain,
+                navigateUp = navigator::navigateBack,
+                url = uri,
+                onSubmit = { credentialIdentifierInfo, transactionCode, offer ->
+                    navigator.navigate(LoadingRoute)
+                    walletMain.scope.launch {
+                        try {
+                            val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
+                                credentialOffer = offer!!,
+                                credentialIdentifierInfo = credentialIdentifierInfo,
+                                transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null },
+                            )
+                            if (issuanceResult.credentialIssuanceResult is at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult.Success) {
+                                navigator.navigateNewGraph(
+                                    TransientFlowIssuingResultRoute(issuanceResult.storedEntryIds.firstOrNull())
+                                )
+                            }
+                        } catch (e: Throwable) {
+                            navigator.returnToHome()
+                            walletMain.errorService.emit(e)
+                        }
+                    }
+                },
+                onClickLogo = onClickLogo,
+                onClickSettings = { navigator.navigate(SettingsRoute) }
+            )
+        }.onSuccess { vm = it }
+         .onFailure {
+            navigator.returnToHome()
+            walletMain.errorService.emit(it)
+        }
+    }
+    vm?.let { LoadCredentialView(it) } ?: LoadingView()
 }
 
 @ExperimentalMaterial3Api
@@ -343,83 +395,21 @@ private fun TransientFlowNavHost(
         }
 
         composable<AddCredentialWithLinkRoute> { backStackEntry ->
-            var vm by remember { mutableStateOf<LoadCredentialViewModel?>(null) }
-            LaunchedEffect(Unit) {
-                runCatching {
-                    LoadCredentialViewModel.init(
-                        walletMain = walletMain,
-                        navigateUp = navigator::navigateBack,
-                        url = backStackEntry.toRoute<AddCredentialWithLinkRoute>().uri,
-                        onSubmit = { credentialIdentifierInfo, transactionCode, offer ->
-                            navigator.navigate(LoadingRoute)
-                            walletMain.scope.launch {
-                                try {
-                                    val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
-                                        credentialOffer = offer!!,
-                                        credentialIdentifierInfo = credentialIdentifierInfo,
-                                        transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null },
-                                    )
-                                    if (issuanceResult.credentialIssuanceResult is at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult.Success) {
-                                        navigator.navigateNewGraph(
-                                            TransientFlowIssuingResultRoute(issuanceResult.storedEntryIds.firstOrNull())
-                                        )
-                                    }
-                                } catch (e: Throwable) {
-                                    navigator.returnToHome()
-                                    walletMain.errorService.emit(e)
-                                }
-                            }
-                        },
-                        onClickLogo = onClickLogo,
-                        onClickSettings = { navigator.navigate(SettingsRoute) }
-                    )
-                }.onSuccess { vm = it }
-                 .onFailure {
-                    navigator.returnToHome()
-                    walletMain.errorService.emit(it)
-                }
-            }
-            vm?.let { LoadCredentialView(it) } ?: LoadingView()
+            LoadCredentialFromUrlContent(
+                uri = backStackEntry.toRoute<AddCredentialWithLinkRoute>().uri,
+                navigator = navigator,
+                walletMain = walletMain,
+                onClickLogo = onClickLogo,
+            )
         }
 
         composable<ProvisioningStartIntentRoute> { backStackEntry ->
-            var vm by remember { mutableStateOf<LoadCredentialViewModel?>(null) }
-            LaunchedEffect(Unit) {
-                runCatching {
-                    LoadCredentialViewModel.init(
-                        walletMain = walletMain,
-                        navigateUp = navigator::navigateBack,
-                        url = backStackEntry.toRoute<ProvisioningStartIntentRoute>().uri,
-                        onSubmit = { credentialIdentifierInfo, transactionCode, offer ->
-                            navigator.navigate(LoadingRoute)
-                            walletMain.scope.launch {
-                                try {
-                                    val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
-                                        credentialOffer = offer!!,
-                                        credentialIdentifierInfo = credentialIdentifierInfo,
-                                        transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null },
-                                    )
-                                    if (issuanceResult.credentialIssuanceResult is at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult.Success) {
-                                        navigator.navigateNewGraph(
-                                            TransientFlowIssuingResultRoute(issuanceResult.storedEntryIds.firstOrNull())
-                                        )
-                                    }
-                                } catch (e: Throwable) {
-                                    navigator.returnToHome()
-                                    walletMain.errorService.emit(e)
-                                }
-                            }
-                        },
-                        onClickLogo = onClickLogo,
-                        onClickSettings = { navigator.navigate(SettingsRoute) }
-                    )
-                }.onSuccess { vm = it }
-                    .onFailure {
-                        navigator.returnToHome()
-                        walletMain.errorService.emit(it)
-                    }
-            }
-            vm?.let { LoadCredentialView(it) } ?: LoadingView()
+            LoadCredentialFromUrlContent(
+                uri = backStackEntry.toRoute<ProvisioningStartIntentRoute>().uri,
+                navigator = navigator,
+                walletMain = walletMain,
+                onClickLogo = onClickLogo,
+            )
         }
 
         composable<AddCredentialPreAuthnRoute> { backStackEntry ->

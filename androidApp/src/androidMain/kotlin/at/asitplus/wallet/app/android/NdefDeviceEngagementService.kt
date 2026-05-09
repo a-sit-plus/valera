@@ -55,8 +55,10 @@ class NdefDeviceEngagementService : HostApduService() {
     companion object {
         val TAG = "NdefDeviceEngagementService"
 
-        // Holds the model for the currently active engagement so TransientFlowActivity can retrieve it.
-        // Written only from the service instance that owns the current engagement.
+        // Written from the NFC APDU callback thread; read from the main thread in
+        // TransientFlowActivity.populateLink(). @Volatile ensures the write is visible
+        // across cores without an explicit lock.
+        @Volatile
         var currentPresentationStateModel: PresentationStateModel? = null
             private set
     }

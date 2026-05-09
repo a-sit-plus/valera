@@ -18,10 +18,14 @@ fun IosDcApiPreRequestView(
 ) {
     val preRequestData by intentState.iosDcApiPreRequestData.collectAsState()
 
-    val parsedSummaryResult = remember(preRequestData?.parsedRequestSummary) {
+    // Null is expected during initial loading — show a spinner without reporting an error.
+    // Only report an error once we have data but the summary is missing/unparseable.
+    val currentData = preRequestData ?: return LoadingView()
+
+    val parsedSummaryResult = remember(currentData.parsedRequestSummary) {
         runCatching {
             Json.decodeFromString<IosParsedMdocRequestSummary>(
-                preRequestData?.parsedRequestSummary
+                currentData.parsedRequestSummary
                     ?: throw IllegalStateException("No parsed request summary available")
             )
         }
@@ -34,8 +38,10 @@ fun IosDcApiPreRequestView(
         return LoadingView()
     }
 
-    val currentData = preRequestData ?: return LoadingView()
-    val parsedSummary = parsedSummaryResult.getOrNull() ?: return LoadingView()
+    val parsedSummary = parsedSummaryResult.getOrNull() ?: run {
+        LaunchedEffect(Unit) { onError(IllegalStateException("Missing parsed request summary")) }
+        return LoadingView()
+    }
     val descriptors = parsedSummary.toDifInputDescriptors()
     val origin = currentData.origin
 
