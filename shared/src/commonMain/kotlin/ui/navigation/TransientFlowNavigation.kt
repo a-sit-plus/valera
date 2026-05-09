@@ -378,6 +378,7 @@ private fun TransientFlowNavHost(
 
         composable<AuthenticationSuccessRoute> {
             AuthenticationSuccessView(
+                koinScope = koinScope,
                 navigateUp = navigator::invocationAwareBack,
                 onClickLogo = onClickLogo,
                 onClickSettings = { navigator.navigate(SettingsRoute) },

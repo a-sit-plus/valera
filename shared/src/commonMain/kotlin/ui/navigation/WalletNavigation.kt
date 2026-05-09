@@ -458,6 +458,7 @@ private fun WalletNavHost(
 
         composable<AuthenticationSuccessRoute> { backStackEntry ->
             AuthenticationSuccessView(
+                koinScope = koinScope,
                 navigateUp = navigator::invocationAwareBack,
                 onClickLogo = onClickLogo,
                 onClickSettings = { navigator.navigate(SettingsRoute) },

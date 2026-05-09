@@ -30,6 +30,7 @@ fun DCAPIPresentationGraphView(
 
     val matchingResult by viewModel.selectionProvider.collectAsState()
     PresentationGraphView(
+        koinScope = koinScope,
         serviceProviderLogo = null,
         serviceProviderNameLocalized = spName,
         serviceProviderLocationLocalized = spLocation,

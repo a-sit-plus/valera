@@ -24,12 +24,14 @@ import at.asitplus.valera.resources.heading_label_show_data
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 import ui.views.authentication.AuthenticationSuccessView
 import ui.views.authentication.TransactionDataView
 
 @ExperimentalMaterial3Api
 @Composable
 fun PresentationGraphView(
+    koinScope: Scope,
     serviceProviderLogo: ImageBitmap?,
     serviceProviderNameLocalized: String?,
     serviceProviderLocationLocalized: String,
@@ -156,6 +158,7 @@ fun PresentationGraphView(
             val backState = rememberNavigationEventState(NavigationEventInfo.None)
             NavigationBackHandler(state = backState) { onNavigateUp() }
             AuthenticationSuccessView(
+                koinScope = koinScope,
                 navigateUp = onNavigateUp,
                 onClickLogo = onClickLogo,
                 onClickSettings = onClickSettings,
