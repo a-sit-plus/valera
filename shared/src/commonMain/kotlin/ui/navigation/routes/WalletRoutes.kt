@@ -82,7 +82,7 @@ data class AddCredentialDcApiRoute(
 }
 
 @Serializable
-object TransientFlowIssuingResultRoute : Route()
+data class TransientFlowIssuingResultRoute(val storeEntryId: StoreEntryId? = null) : Route()
 
 @Serializable
 data class AddCredentialWithLinkRoute(val uri: String) : Route()

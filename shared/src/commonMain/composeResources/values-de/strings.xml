@@ -12,7 +12,6 @@
     <string name="unknown_exception">Unbekannter Fehler</string>
 
     <string name="app_display_name">Valera</string>
-    <string name="snackbar_credential_loaded_successfully">Daten wurden erfolgreich geladen</string>
     <string name="snackbar_reset_app_successfully">App erfolgreich zurückgesetzt</string>
     <string name="snackbar_clear_log_successfully">Log erfolgreich gelöscht</string>
     <string name="snackbar_update_hint">App ist nicht aktuell. Bitte auf %1$s aktualisieren.</string>

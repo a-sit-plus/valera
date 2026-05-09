@@ -6,6 +6,7 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -20,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigationevent.NavigationEventInfo
@@ -47,16 +49,16 @@ import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.data.vckJsonSerializer
-import at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult
-import data.storage.StoreEntryId
 import io.github.aakira.napier.Napier
 import io.ktor.http.URLBuilder
 import kotlinx.coroutines.flow.combineTransform
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import org.koin.compose.koinInject
 import org.koin.core.scope.Scope
 import ui.composables.BottomBar
+import ui.composables.credentials.CredentialCard
 import ui.composables.NavigationData
 import ui.navigation.routes.*
 import ui.navigation.routes.RoutePrerequisites.CRYPTO
@@ -520,8 +522,10 @@ private fun WalletNavHost(
                                         transactionCode = transactionCode?.ifEmpty { null }
                                             ?.ifBlank { null },
                                     )
-                                    if (issuanceResult is CredentialIssuanceResult.Success) {
-                                        navigator.navigateNewGraph(TransientFlowIssuingResultRoute)
+                                    if (issuanceResult.credentialIssuanceResult is at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult.Success) {
+                                        navigator.navigateNewGraph(
+                                            TransientFlowIssuingResultRoute(issuanceResult.storedEntryIds.firstOrNull())
+                                        )
                                     }
                                 } catch (e: Throwable) {
                                     navigator.returnToHome()
@@ -559,8 +563,10 @@ private fun WalletNavHost(
                                         transactionCode = transactionCode?.ifEmpty { null }
                                             ?.ifBlank { null },
                                     )
-                                    if (issuanceResult is CredentialIssuanceResult.Success) {
-                                        navigator.navigateNewGraph(TransientFlowIssuingResultRoute)
+                                    if (issuanceResult.credentialIssuanceResult is at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult.Success) {
+                                        navigator.navigateNewGraph(
+                                            TransientFlowIssuingResultRoute(issuanceResult.storedEntryIds.firstOrNull())
+                                        )
                                     }
                                 } catch (e: Throwable) {
                                     navigator.returnToHome()
@@ -636,8 +642,10 @@ private fun WalletNavHost(
                                         ?.ifBlank { null },
                                     authorizationServerMetadata = offer.authorizationServerMetadata
                                 )
-                                if (issuanceResult is CredentialIssuanceResult.Success) {
-                                    navigator.navigate(TransientFlowIssuingResultRoute)
+                                if (issuanceResult.credentialIssuanceResult is at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult.Success) {
+                                    navigator.navigate(
+                                        TransientFlowIssuingResultRoute(issuanceResult.storedEntryIds.firstOrNull())
+                                    )
                                 } else {
                                     dcapiVm.handleDCAPIIssuingResult(false, null)
                                 }
@@ -707,7 +715,21 @@ private fun WalletNavHost(
             vm?.let { LoadCredentialView(it) } ?: LoadingView()
         }
 
-        composable<TransientFlowIssuingResultRoute> {
+        composable<TransientFlowIssuingResultRoute> { backStackEntry ->
+            val route = backStackEntry.toRoute<TransientFlowIssuingResultRoute>()
+            var isAutoDismissEnabled by rememberSaveable(route.storeEntryId) { mutableStateOf(true) }
+            val detailsStoreEntryId = route.storeEntryId
+            val storeEntry = route.storeEntryId?.let { storeEntryId ->
+                walletMain.subjectCredentialStore.observeStoreContainer().map { container ->
+                    container.credentials.find { it.first == storeEntryId }?.second
+                }.collectAsState(null).value
+            }
+            LaunchedEffect(route.storeEntryId, storeEntry) {
+                Napier.d(
+                    "Wallet TransientFlowIssuingResultRoute render storeEntryId=${route.storeEntryId} " +
+                        "resolved=${storeEntry != null} scheme=${storeEntry?.scheme?.schemaUri}"
+                )
+            }
             val onAcknowledge = {
                 if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
                     val response = vckJsonSerializer.encodeToString(DigitalCredentialOfferReturn.success())
@@ -723,7 +745,28 @@ private fun WalletNavHost(
                 onAutoDismiss = onAcknowledge,
                 onClickButton = onAcknowledge,
                 onClickLogo = onClickLogo,
-                onClickSettings = { navigator.navigate(SettingsRoute) }
+                onClickSettings = { navigator.navigate(SettingsRoute) },
+                isAutoDismissEnabled = isAutoDismissEnabled,
+                credentialContent = storeEntry?.let { credential ->
+                    {
+                        CredentialCard(
+                            credential = credential,
+                            isTokenStatusEvaluated = true,
+                            credentialFreshnessSummaryModel = null,
+                            imageDecoder = { image -> walletMain.platformAdapter.decodeImage(image) },
+                            onDelete = {},
+                            onRefresh = {},
+                            onOpenDetails = detailsStoreEntryId?.let { storeEntryId ->
+                                {
+                                    isAutoDismissEnabled = false
+                                    navigator.navigate(CredentialDetailsRoute(storeEntryId))
+                                }
+                            },
+                            showActionMenu = false,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
             )
         }
 
@@ -838,7 +881,7 @@ private fun WalletNavHost(
                     walletMain = walletMain,
                     uri = backStackEntry.toRoute<ProvisioningResumeIntentRoute>().uri,
                     onSuccess = { route ->
-                        navigator.navigateNewGraph(route ?: TransientFlowIssuingResultRoute)
+                        navigator.navigateNewGraph(route ?: TransientFlowIssuingResultRoute())
                     },
                     onFailure = { error ->
                         walletMain.errorService.emit(error)

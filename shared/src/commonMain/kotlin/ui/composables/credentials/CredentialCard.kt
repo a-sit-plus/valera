@@ -18,6 +18,7 @@ fun CredentialCard(
     onDelete: () -> Unit,
     onRefresh: () -> Unit,
     onOpenDetails: (() -> Unit)?,
+    showActionMenu: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     CredentialCardLayout(
@@ -34,6 +35,7 @@ fun CredentialCard(
         CredentialCardHeader(
             credential = credential,
             showLoadingSpinner = !isTokenStatusEvaluated,
+            showActionMenu = showActionMenu,
             onDelete = onDelete,
             onRefresh = onRefresh,
             credentialFreshnessSummaryModel = credentialFreshnessSummaryModel
