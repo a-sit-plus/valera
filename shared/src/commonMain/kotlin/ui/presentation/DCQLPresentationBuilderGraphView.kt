@@ -14,6 +14,7 @@ import at.asitplus.openid.dcql.DCQLQuery
 @ExperimentalMaterial3Api
 @Composable
 fun DCQLPresentationBuilderGraphView(
+    title: String,
     authenticateAtRelyingParty: Boolean,
     serviceProviderLocalizedName: String?,
     serviceProviderLocalizedLocation: String,
@@ -54,6 +55,7 @@ fun DCQLPresentationBuilderGraphView(
     val confirmedSubmissionIndices = confirmedSelections.toSubmissionIndices()
 
     CommonPresentationPageScaffold(
+        title = title,
         onClickLogo = onClickLogo,
         onClickSettings = onClickSettings,
         onNavigateUp = {

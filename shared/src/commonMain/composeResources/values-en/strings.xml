@@ -276,6 +276,7 @@
     <string name="heading_label_show_qr_code_screen">Scan me!</string>
     <string name="heading_label_received_data">Received Data</string>
     <string name="heading_label_capabilities">Device capabilities</string>
+    <string name="heading_label_select_data">Select data</string>
 
     <string name="heading_label_select_vda">Select VDA</string>
     <string name="heading_label_sign">Sign</string>
