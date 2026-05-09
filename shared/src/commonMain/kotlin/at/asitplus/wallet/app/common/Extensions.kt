@@ -333,13 +333,13 @@ private fun String.unquote() = removePrefix("'").removePrefix("\"")
 
 private fun String.fallback(): List<NameSegment> = listOf(NameSegment(this))
 
-fun NormalizedJsonPath.memberName(id: Int) = this.segments.map { (it as NameSegment).memberName }.getOrNull(id)
+// Only NameSegments carry a member name; IndexSegments (e.g. [0] in array paths) are skipped.
+fun NormalizedJsonPath.memberName(id: Int) =
+    this.segments.filterIsInstance<NameSegment>().map { it.memberName }.getOrNull(id)
 
+// Removes NameSegments whose name matches [name]; IndexSegments are passed through unchanged.
 fun NormalizedJsonPath.minus(name: String) =
-    NormalizedJsonPath(this.segments.filter {
-        (it as NameSegment).memberName != name
-    }
-    )
+    NormalizedJsonPath(this.segments.filter { it !is NameSegment || it.memberName != name })
 
 fun Array<DocRequest>.toDifInputDescriptorList() = this.map {
     val itemsRequest = it.itemsRequest.value
