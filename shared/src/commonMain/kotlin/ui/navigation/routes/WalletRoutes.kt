@@ -5,7 +5,6 @@ import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.openid.SignatureRequestParameters
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
-import at.asitplus.wallet.app.common.presentation.PresentationRequest
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import data.storage.StoreEntryId
@@ -150,13 +149,7 @@ data class DCAPIPresentationViewRoute(
 ) : Route()
 
 @Serializable
-data class LocalPresentationAuthenticationConsentRoute(
-    val presentationRequestSerialized: String
-) : Route() {
-    constructor(presentationRequest: PresentationRequest) : this(
-        vckJsonSerializer.encodeToString(presentationRequest)
-    )
-}
+object LocalPresentationAuthenticationConsentRoute : Route()
 
 @Serializable
 data class AuthenticationSuccessRoute(

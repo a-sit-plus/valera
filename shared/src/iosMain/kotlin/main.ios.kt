@@ -276,6 +276,7 @@ class IosPlatformAdapter(
             Napier.d("storeDocumentFromSwift got back from swift")
         } catch (e: Throwable) {
             Napier.e("Error while invoking Swift code", e)
+            if (cont.isActive) cont.resume(false)
         }
     }
 
