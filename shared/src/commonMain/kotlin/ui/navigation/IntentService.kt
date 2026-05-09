@@ -56,7 +56,10 @@ class IntentService(
             contains("request_uri") && contains("client_id") -> IntentType.AuthorizationIntent
             (redirectUri != null && contains(redirectUri!!) && intentType != null) -> intentType!!
             contains("credential_offer") || contains("credential_offer_uri") -> IntentType.ProvisioningStartIntent
-            contains("error") -> IntentType.ErrorIntent
+            // Match the OAuth2 "error=" query parameter specifically; a plain substring
+            // match on "error" would misclassify any URL whose host/path contains that word
+            // (e.g. https://error-reporting.issuer.example/credential_offer).
+            contains("error=") -> IntentType.ErrorIntent
             else -> IntentType.AuthorizationIntent
         }
     }

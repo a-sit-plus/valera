@@ -82,7 +82,9 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
             buildContext: BuildContext(
                 buildType: buildType,
                 packageName: Bundle.main.bundleIdentifier ?? "at.asitplus.wallet.compose",
-                versionCode: Bundle.main.infoDictionary?["CFBundleVersion"] as? Int32 ?? 1,
+                // CFBundleVersion is always a String in modern bundles; cast it to String
+                // first and then convert — a direct `as? Int32` cast always fails and falls back to 1.
+                versionCode: (Bundle.main.infoDictionary?["CFBundleVersion"] as? String).flatMap { Int32($0) } ?? 1,
                 versionName: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0",
                 osVersion: "iOS " + UIDevice.current.systemVersion
             ),
@@ -193,7 +195,9 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                 buildContext: BuildContext(
                     buildType: buildType,
                     packageName: Bundle.main.bundleIdentifier ?? "at.asitplus.wallet.compose",
-                    versionCode: Bundle.main.infoDictionary?["CFBundleVersion"] as? Int32 ?? 1,
+                    // CFBundleVersion is always a String in modern bundles; cast it to String
+                // first and then convert — a direct `as? Int32` cast always fails and falls back to 1.
+                versionCode: (Bundle.main.infoDictionary?["CFBundleVersion"] as? String).flatMap { Int32($0) } ?? 1,
                     versionName: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0",
                     osVersion: "iOS " + UIDevice.current.systemVersion
                 )

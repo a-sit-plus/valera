@@ -21,10 +21,21 @@ private fun createWalletSessionScope(
         "$sessionName:${UUID.randomUUID()}",
         named(SESSION_NAME)
     )
+    // ErrorService and sessionCoroutineScope are mutually dependent:
+    // - sessionCoroutineScope needs ErrorService to report uncaught exceptions
+    // - ErrorService needs sessionCoroutineScope to dispatch emissions
+    //
+    // We break the cycle with a var+lambda: sessionCoroutineScope captures a reference to
+    // the var, which is filled in before any coroutine in sessionCoroutineScope can throw.
+    // ErrorService is then constructed imperatively from the real scope and registered via
+    // scope.declare() instead of letting Koin construct it lazily — that avoids a hidden
+    // ordering constraint between scope.declare(WalletSessionBindings) and scope.get<ErrorService>().
     var errorService: ErrorService? = null
     val sessionCoroutineScope = createErrorReportingScope("wallet-session:$sessionName") {
         errorService
     }
+    val resolvedErrorService = ErrorService(sessionCoroutineScope)
+    errorService = resolvedErrorService
     scope.declare(
         WalletSessionBindings(
             intentState = intentState,
@@ -37,7 +48,7 @@ private fun createWalletSessionScope(
             sessionCoroutineScope = sessionCoroutineScope
         )
     )
-    errorService = scope.get()
+    scope.declare(resolvedErrorService)
     return SessionHandle(scope = scope) {
         sessionCoroutineScope.cancel()
     }

@@ -5,6 +5,7 @@ import at.asitplus.wallet.app.common.CapabilitiesService
 import at.asitplus.wallet.app.common.IntentState
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import ui.navigation.routes.CapabilitiesRoute
@@ -20,8 +21,24 @@ internal open class WalletNavigationControllerImpl(
 ) : WalletNavigationController {
 
     // Holds the route intercepted by a prerequisite gate. navigatePending() resumes to it.
-    // Plain var is safe because pendingRoute is only written/read imperatively (never observed by Compose).
-    var pendingRoute: Route? = null
+    //
+    // Backed by MutableStateFlow rather than a plain var: two rapid
+    // navigate(PrerequisiteRoute) calls can both suspend at evaluatePrerequisites() and then
+    // resume in either order on K/Native, where a plain var has no cross-thread visibility
+    // guarantee. MutableStateFlow ensures all writes are immediately visible to any reader.
+    //
+    // The overwrite warning surfaces the residual race: even with visibility fixed, the second
+    // call's route will silently replace the first's if both fail the prerequisites check
+    // concurrently. If that ever becomes a problem, this field should become a queue.
+    private val _pendingRoute = MutableStateFlow<Route?>(null)
+    var pendingRoute: Route?
+        get() = _pendingRoute.value
+        set(value) {
+            if (value != null && _pendingRoute.value != null) {
+                Napier.w("pendingRoute overwritten: ${_pendingRoute.value} → $value")
+            }
+            _pendingRoute.value = value
+        }
 
     override fun navigate(route: Route) {
         scope.launch {

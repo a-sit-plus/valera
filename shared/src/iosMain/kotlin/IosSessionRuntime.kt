@@ -35,7 +35,9 @@ private enum class IosSessionKind {
 private object IosSessionRuntime {
     private val stateLock = SynchronizedObject()
     private var isBootstrapped = false
-    private var sessionHandle: IosSessionHandle? = null
+    // Separate handles per session kind so MAIN and TRANSIENT_FLOW never share state.
+    private var mainHandle: IosSessionHandle? = null
+    private var transientFlowHandle: IosSessionHandle? = null
     private var pendingAppLink: String? = null
     private var pendingPreRequestData: IosDcApiPreRequestData? = null
     private var pendingInvocationData: IosDCAPIInvocationData? = null
@@ -56,55 +58,75 @@ private object IosSessionRuntime {
     }
 
     fun getOrCreateSession(buildContext: BuildContext, sessionKind: IosSessionKind): IosSessionHandle {
+        // Fast path: return existing handle without creating a session.
+        synchronized(stateLock) {
+            check(isBootstrapped) { "IosSessionRuntime must be bootstrapped before creating a session" }
+            handleFor(sessionKind)?.let { return it }
+        }
+
+        // Slow path: create outside the lock to avoid holding stateLock during Koin scope
+        // creation, which uses its own internal synchronisation and could cause a deadlock.
+        val intentState = IntentState()
+        val promptModel = IosPromptModel.Builder().apply { addCommonDialogs() }.build()
+        val sessionService = SessionService().apply {
+            initialize(onReset = { onSessionReset(sessionKind, intentState) }) {
+                createIosWalletSessionScope(
+                    sessionName = "ios",
+                    sessionService = this,
+                    intentState = intentState,
+                    buildContext = buildContext,
+                    promptModel = promptModel,
+                    sessionKind = sessionKind,
+                )
+            }
+        }
+        val newHandle = IosSessionHandle(intentState, sessionService, promptModel)
+
+        // Re-acquire lock to store; if another thread created the same kind in the meantime,
+        // discard our new handle and return the one that won the race.
         return synchronized(stateLock) {
-            check(isBootstrapped) {
-                "IosSessionRuntime must be bootstrapped before creating a session"
+            handleFor(sessionKind)?.also {
+                newHandle.sessionService.close()
+            } ?: newHandle.also { handle ->
+                setHandle(sessionKind, handle)
+                applyPendingState(sessionKind, handle.intentState)
             }
+        }
+    }
 
-            sessionHandle?.let {
-                return it
-            }
+    private fun handleFor(sessionKind: IosSessionKind): IosSessionHandle? = when (sessionKind) {
+        IosSessionKind.MAIN -> mainHandle
+        IosSessionKind.TRANSIENT_FLOW -> transientFlowHandle
+    }
 
-            val intentState = IntentState()
-            val promptModel = IosPromptModel.Builder().apply { addCommonDialogs() }.build()
-            val sessionService = SessionService().apply {
-                initialize(onReset = { onSessionReset(intentState) }) {
-                    createIosWalletSessionScope(
-                        sessionName = "ios",
-                        sessionService = this,
-                        intentState = intentState,
-                        buildContext = buildContext,
-                        promptModel = promptModel,
-                        sessionKind = sessionKind,
-                    )
-                }
-            }
-
-            IosSessionHandle(
-                intentState = intentState,
-                sessionService = sessionService,
-                promptModel = promptModel
-            ).also { handle ->
-                sessionHandle = handle
-                applyPendingState(handle.intentState)
-            }
+    private fun setHandle(sessionKind: IosSessionKind, handle: IosSessionHandle) {
+        when (sessionKind) {
+            IosSessionKind.MAIN -> mainHandle = handle
+            IosSessionKind.TRANSIENT_FLOW -> transientFlowHandle = handle
         }
     }
 
     // Called when SessionService.newScope() triggers the scope factory (i.e. on app reset).
     // Clears stale pending state and wipes the intentState so navigation recomposes cleanly.
-    private fun onSessionReset(intentState: IntentState) {
+    private fun onSessionReset(sessionKind: IosSessionKind, intentState: IntentState) {
         synchronized(stateLock) {
-            pendingAppLink = null
-            pendingPreRequestData = null
-            pendingInvocationData = null
+            when (sessionKind) {
+                IosSessionKind.MAIN -> pendingAppLink = null
+                IosSessionKind.TRANSIENT_FLOW -> {
+                    pendingPreRequestData = null
+                    pendingInvocationData = null
+                }
+            }
             intentState.reset()
         }
     }
 
     fun handleIncomingUrl(url: String) {
         synchronized(stateLock) {
-            sessionHandle?.intentState?.appLink?.value = url
+            if (pendingAppLink != null && mainHandle == null) {
+                Napier.w("IosSessionRuntime: overwriting pending app link '$pendingAppLink' with '$url'")
+            }
+            mainHandle?.intentState?.appLink?.value = url
             pendingAppLink = url
         }
     }
@@ -113,7 +135,7 @@ private object IosSessionRuntime {
         synchronized(stateLock) {
             pendingPreRequestData = null
             pendingInvocationData = data
-            sessionHandle?.intentState?.let { intentState ->
+            transientFlowHandle?.intentState?.let { intentState ->
                 intentState.iosDcApiPreRequestData.value = null
                 intentState.dcapiInvocationData.value = data
                 intentState.appLink.value = IOS_DC_API_CALL
@@ -127,7 +149,7 @@ private object IosSessionRuntime {
         synchronized(stateLock) {
             pendingInvocationData = null
             pendingPreRequestData = data
-            sessionHandle?.intentState?.let { intentState ->
+            transientFlowHandle?.intentState?.let { intentState ->
                 intentState.dcapiInvocationData.value = null
                 intentState.iosDcApiPreRequestData.value = data
                 intentState.appLink.value = IOS_DC_API_PRE_REQUEST
@@ -140,7 +162,7 @@ private object IosSessionRuntime {
     fun clearDcapiInvocation() {
         synchronized(stateLock) {
             pendingInvocationData = null
-            sessionHandle?.intentState?.let { intentState ->
+            transientFlowHandle?.intentState?.let { intentState ->
                 intentState.dcapiInvocationData.value = null
                 intentState.finishApp = null
                 if (intentState.appLink.value == IOS_DC_API_CALL) {
@@ -153,7 +175,7 @@ private object IosSessionRuntime {
     fun clearDcapiPreRequest() {
         synchronized(stateLock) {
             pendingPreRequestData = null
-            sessionHandle?.intentState?.let { intentState ->
+            transientFlowHandle?.intentState?.let { intentState ->
                 intentState.iosDcApiPreRequestData.value = null
                 if (intentState.appLink.value == IOS_DC_API_PRE_REQUEST) {
                     intentState.appLink.value = null
@@ -166,35 +188,43 @@ private object IosSessionRuntime {
     }
 
     fun showSnackbar(text: String, duration: SnackbarDuration = SnackbarDuration.Short) {
-        synchronized(stateLock) {
-            val snackbarService = sessionHandle?.sessionService?.scope?.value?.get<SnackbarService>()
-            if (snackbarService == null) {
-                Napier.w("IosSessionRuntime could not resolve SnackbarService for message: $text")
-                return
-            }
-            snackbarService.showSnackbar(text, duration = duration)
+        // Resolve the service under the lock, then dispatch outside it to avoid holding
+        // stateLock across a coroutine launch (L-6).
+        val snackbarService = synchronized(stateLock) {
+            mainHandle?.sessionService?.scope?.value?.get<SnackbarService>()
+                ?: transientFlowHandle?.sessionService?.scope?.value?.get<SnackbarService>()
         }
+        if (snackbarService == null) {
+            Napier.w("IosSessionRuntime could not resolve SnackbarService for message: $text")
+            return
+        }
+        snackbarService.showSnackbar(text, duration = duration)
     }
 
-    // Called when a new session is first created. Applies any DC API data that arrived before
-    // the session existed. finishApp must be set here too — without it the back handler in
-    // TransientFlowNavigation would be a no-op, and the extension would never return to the caller
-    // on the first request.
-    private fun applyPendingState(intentState: IntentState) {
-        pendingPreRequestData?.let { preRequest ->
-            intentState.iosDcApiPreRequestData.value = preRequest
-            intentState.appLink.value = IOS_DC_API_PRE_REQUEST
-            intentState.finishApp = { preRequest.onCancel() }
-            return
-        }
-        pendingInvocationData?.let { invocation ->
-            intentState.dcapiInvocationData.value = invocation
-            intentState.appLink.value = IOS_DC_API_CALL
-            intentState.finishApp = { invocation.onCancel() }
-            return
-        }
-        pendingAppLink?.let { link ->
-            intentState.appLink.value = link
+    // Called when a new session is first created. Applies pending state that arrived before
+    // the session existed. DC API data goes to the TRANSIENT_FLOW session; URL links go to MAIN.
+    // finishApp must be set here too — without it the back handler in TransientFlowNavigation
+    // would be a no-op and the extension would never return to the caller on the first request.
+    private fun applyPendingState(sessionKind: IosSessionKind, intentState: IntentState) {
+        when (sessionKind) {
+            IosSessionKind.MAIN -> {
+                pendingAppLink?.let { link ->
+                    intentState.appLink.value = link
+                }
+            }
+            IosSessionKind.TRANSIENT_FLOW -> {
+                pendingPreRequestData?.let { preRequest ->
+                    intentState.iosDcApiPreRequestData.value = preRequest
+                    intentState.appLink.value = IOS_DC_API_PRE_REQUEST
+                    intentState.finishApp = { preRequest.onCancel() }
+                    return
+                }
+                pendingInvocationData?.let { invocation ->
+                    intentState.dcapiInvocationData.value = invocation
+                    intentState.appLink.value = IOS_DC_API_CALL
+                    intentState.finishApp = { invocation.onCancel() }
+                }
+            }
         }
     }
 
