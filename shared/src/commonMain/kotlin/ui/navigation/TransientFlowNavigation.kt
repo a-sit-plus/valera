@@ -41,6 +41,7 @@ import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult
 import io.github.aakira.napier.Napier
+import io.ktor.http.URLBuilder
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
@@ -59,7 +60,7 @@ import ui.views.presentation.PresentationView
 
 @ExperimentalMaterial3Api
 @Composable
-fun SharingNavigation(
+fun TransientFlowNavigation(
     koinScope: Scope,
     intentState: IntentState,
     intentService: IntentService = koinInject(scope = koinScope),
@@ -85,7 +86,7 @@ fun SharingNavigation(
     }
 
     val navigator: WalletNavigationController = remember(navController, scope) {
-        SharingNavigationControllerImpl(
+        TransientFlowNavigationControllerImpl(
             navController = navController,
             scope = scope,
             intentState = intentState,
@@ -103,7 +104,7 @@ fun SharingNavigation(
                 try {
                     intentService.handleIntent(initialLink)
                 } catch (e: Throwable) {
-                    Napier.e("SharingNavigation could not parse initialLink", e)
+                    Napier.e("TransientFlowNavigation could not parse initialLink", e)
                     LoadingRoute
                 }
             }
@@ -113,7 +114,7 @@ fun SharingNavigation(
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { _ ->
-        SharingNavHost(
+        TransientFlowNavHost(
             navController = navController,
             startDestination = startDestination,
             navigator = navigator,
@@ -172,7 +173,7 @@ fun SharingNavigation(
 
 @ExperimentalMaterial3Api
 @Composable
-private fun SharingNavHost(
+private fun TransientFlowNavHost(
     navController: NavHostController,
     startDestination: Route,
     navigator: WalletNavigationController,
@@ -355,7 +356,7 @@ private fun SharingNavHost(
                                         transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null },
                                     )
                                     if (issuanceResult is CredentialIssuanceResult.Success) {
-                                        navigator.returnToHome()
+                                        navigator.navigateNewGraph(TransientFlowIssuingResultRoute)
                                     }
                                 } catch (e: Throwable) {
                                     navigator.returnToHome()
@@ -393,7 +394,7 @@ private fun SharingNavHost(
                                         transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null },
                                     )
                                     if (issuanceResult is CredentialIssuanceResult.Success) {
-                                        navigator.returnToHome()
+                                        navigator.navigateNewGraph(TransientFlowIssuingResultRoute)
                                     }
                                 } catch (e: Throwable) {
                                     navigator.returnToHome()
@@ -468,7 +469,7 @@ private fun SharingNavHost(
                                     authorizationServerMetadata = offer.authorizationServerMetadata
                                 )
                                 if (issuanceResult is CredentialIssuanceResult.Success) {
-                                    navigator.navigate(AddCredentialDcApiSuccessRoute)
+                                    navigator.navigate(TransientFlowIssuingResultRoute)
                                 } else {
                                     dcapiVm.handleDCAPIIssuingResult(false, null)
                                 }
@@ -507,13 +508,44 @@ private fun SharingNavHost(
             vm?.let { LoadCredentialView(it) } ?: LoadingView()
         }
 
-        composable<AddCredentialDcApiSuccessRoute> {
+        composable<ProvisioningAuthRequestIntentRoute> { backStackEntry ->
+            var vm by remember { mutableStateOf<LoadCredentialViewModel?>(null) }
+            val route = backStackEntry.toRoute<ProvisioningAuthRequestIntentRoute>()
+            LaunchedEffect(Unit) {
+                runCatching {
+                    val credentialIssuer = URLBuilder(route.uri).parameters["credential_issuer"]
+                        ?: throw IllegalArgumentException("Missing credential_issuer in issuing authorization request")
+                    LoadCredentialViewModel.init(
+                        walletMain = walletMain,
+                        navigateUp = navigator::navigateBack,
+                        hostString = credentialIssuer,
+                        onSubmit = { credentialIdentifierInfo, _, _ ->
+                            walletMain.scope.launch {
+                                walletMain.startProvisioning(
+                                    host = credentialIssuer,
+                                    credentialIdentifierInfo = credentialIdentifierInfo,
+                                ) {}
+                            }
+                        },
+                        onClickLogo = onClickLogo,
+                        onClickSettings = { navigator.navigate(SettingsRoute) }
+                    )
+                }.onSuccess { vm = it }
+                    .onFailure {
+                        navigator.returnToHome()
+                        walletMain.errorService.emit(it)
+                    }
+            }
+            vm?.let { LoadCredentialView(it) } ?: LoadingView()
+        }
+
+        composable<TransientFlowIssuingResultRoute> {
             val onAcknowledge = {
                 if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
                     val response = vckJsonSerializer.encodeToString(DigitalCredentialOfferReturn.success())
                     walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, true)
                 }
-                navigator.invocationAwareBack()
+                navigator.returnToHome()
             }
 
             val backState = rememberNavigationEventState(NavigationEventInfo.None)
@@ -533,11 +565,7 @@ private fun SharingNavHost(
                     walletMain = walletMain,
                     uri = backStackEntry.toRoute<ProvisioningResumeIntentRoute>().uri,
                     onSuccess = { route ->
-                        if (route == null) {
-                            navigator.returnToHome()
-                        } else {
-                            navigator.navigateNewGraph(route)
-                        }
+                        navigator.navigateNewGraph(route ?: TransientFlowIssuingResultRoute)
                     },
                     onFailure = { error ->
                         walletMain.errorService.emit(error)
@@ -683,7 +711,7 @@ private fun SharingNavHost(
                 val backState = rememberNavigationEventState(NavigationEventInfo.None)
                 NavigationBackHandler(state = backState, isBackEnabled = true) {
                     if (!prerequisites.contains(CRYPTO)) {
-                        // SharingNavigationControllerImpl.navigateBack() calls finishApp when exhausted.
+                        // TransientFlowNavigationControllerImpl.navigateBack() calls finishApp when exhausted.
                         navigator.navigateBack()
                     }
                 }

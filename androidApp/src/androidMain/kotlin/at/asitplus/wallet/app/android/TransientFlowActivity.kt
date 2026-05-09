@@ -1,6 +1,6 @@
 package at.asitplus.wallet.app.android
 
-import SharingView
+import TransientFlowView
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -13,7 +13,7 @@ import org.multipaz.prompt.AndroidPromptModel
 import org.multipaz.prompt.PromptModel
 import ui.navigation.IntentService.Companion.PRESENTATION_REQUESTED_INTENT
 
-class SharingActivity : AbstractWalletActivity() {
+class TransientFlowActivity : AbstractWalletActivity() {
     private val intentState = IntentState()
     private val buildContext by lazy { createAndroidBuildContext() }
     private val promptModel: PromptModel by lazy {
@@ -28,9 +28,9 @@ class SharingActivity : AbstractWalletActivity() {
         if (!::sessionService.isInitialized) {
             sessionService = SessionService().apply {
                 initialize {
-                    createAndroidSharingWalletSessionScope(
-                        sessionName = "sharing",
-                        activity = this@SharingActivity,
+                    createAndroidTransientFlowWalletSessionScope(
+                        sessionName = "transientFlow",
+                        activity = this@TransientFlowActivity,
                         intentState = intentState,
                         sessionService = this,
                         buildContext = buildContext,
@@ -41,7 +41,7 @@ class SharingActivity : AbstractWalletActivity() {
         }
 
         setContent {
-            SharingView(
+            TransientFlowView(
                 buildContext = buildContext,
                 promptModel = promptModel,
                 intentState = intentState,
@@ -51,30 +51,30 @@ class SharingActivity : AbstractWalletActivity() {
     }
 
     override fun populateLink(intent: Intent) {
-        Napier.d("SharingActivity.populateLink url=${intent.data} action=${intent.action}")
+        Napier.d("TransientFlowActivity.populateLink url=${intent.data} action=${intent.action}")
         when (intent.action) {
             RegistryManager.ACTION_GET_CREDENTIAL -> {
-                Napier.d("SharingActivity DCAPI GET_CREDENTIAL")
+                Napier.d("TransientFlowActivity DCAPI GET_CREDENTIAL")
                 intentState.presentationStateModel.value = null
                 intentState.dcapiInvocationData.value =
                     AndroidDCAPIInvocationData(intent, ::sendCredentialResponseToDCAPIInvoker)
                 intentState.appLink.value = intent.action
             }
             RegistryManager.ACTION_CREATE_CREDENTIAL -> {
-                Napier.d("SharingActivity DCAPI CREATE_CREDENTIAL")
+                Napier.d("TransientFlowActivity DCAPI CREATE_CREDENTIAL")
                 intentState.presentationStateModel.value = null
                 intentState.dcapiInvocationData.value =
                     AndroidDCAPIInvocationData(intent, ::sendCredentialCreationResponseToDCAPIInvoker)
                 intentState.appLink.value = intent.action
             }
             PRESENTATION_REQUESTED_INTENT -> {
-                Napier.d("SharingActivity PRESENTATION_REQUESTED_INTENT")
+                Napier.d("TransientFlowActivity PRESENTATION_REQUESTED_INTENT")
                 intentState.dcapiInvocationData.value = null
                 intentState.presentationStateModel.value = NdefDeviceEngagementService.currentPresentationStateModel
                 intentState.appLink.value = PRESENTATION_REQUESTED_INTENT
             }
             else -> {
-                Napier.d("SharingActivity appLink=${intent.data}")
+                Napier.d("TransientFlowActivity appLink=${intent.data}")
                 intentState.dcapiInvocationData.value = null
                 intentState.presentationStateModel.value = null
                 intentState.appLink.value = intent.data?.toString()

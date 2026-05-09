@@ -50,6 +50,7 @@ import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult
 import data.storage.StoreEntryId
 import io.github.aakira.napier.Napier
+import io.ktor.http.URLBuilder
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -510,17 +511,18 @@ private fun WalletNavHost(
                         navigateUp = navigator::navigateBack,
                         url = backStackEntry.toRoute<AddCredentialWithLinkRoute>().uri,
                         onSubmit = { credentialIdentifierInfo, transactionCode, offer ->
-                            navigator.returnToHome()
                             navigator.navigate(LoadingRoute)
                             walletMain.scope.launch {
                                 try {
-                                    walletMain.provisioningService.loadCredentialWithOffer(
+                                    val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
                                         credentialOffer = offer!!,
                                         credentialIdentifierInfo = credentialIdentifierInfo,
                                         transactionCode = transactionCode?.ifEmpty { null }
                                             ?.ifBlank { null },
                                     )
-                                    navigator.returnToHome()
+                                    if (issuanceResult is CredentialIssuanceResult.Success) {
+                                        navigator.navigateNewGraph(TransientFlowIssuingResultRoute)
+                                    }
                                 } catch (e: Throwable) {
                                     navigator.returnToHome()
                                     walletMain.errorService.emit(e)
@@ -558,7 +560,7 @@ private fun WalletNavHost(
                                             ?.ifBlank { null },
                                     )
                                     if (issuanceResult is CredentialIssuanceResult.Success) {
-                                        navigator.returnToHome()
+                                        navigator.navigateNewGraph(TransientFlowIssuingResultRoute)
                                     }
                                 } catch (e: Throwable) {
                                     navigator.returnToHome()
@@ -635,7 +637,7 @@ private fun WalletNavHost(
                                     authorizationServerMetadata = offer.authorizationServerMetadata
                                 )
                                 if (issuanceResult is CredentialIssuanceResult.Success) {
-                                    navigator.navigate(AddCredentialDcApiSuccessRoute)
+                                    navigator.navigate(TransientFlowIssuingResultRoute)
                                 } else {
                                     dcapiVm.handleDCAPIIssuingResult(false, null)
                                 }
@@ -674,13 +676,44 @@ private fun WalletNavHost(
             vm?.let { LoadCredentialView(it) } ?: LoadingView()
         }
 
-        composable<AddCredentialDcApiSuccessRoute> {
+        composable<ProvisioningAuthRequestIntentRoute> { backStackEntry ->
+            var vm by remember { mutableStateOf<LoadCredentialViewModel?>(null) }
+            val route = backStackEntry.toRoute<ProvisioningAuthRequestIntentRoute>()
+            LaunchedEffect(Unit) {
+                runCatching {
+                    val credentialIssuer = URLBuilder(route.uri).parameters["credential_issuer"]
+                        ?: throw IllegalArgumentException("Missing credential_issuer in issuing authorization request")
+                    LoadCredentialViewModel.init(
+                        walletMain = walletMain,
+                        navigateUp = navigator::navigateBack,
+                        hostString = credentialIssuer,
+                        onSubmit = { credentialIdentifierInfo, _, _ ->
+                            walletMain.scope.launch {
+                                walletMain.startProvisioning(
+                                    host = credentialIssuer,
+                                    credentialIdentifierInfo = credentialIdentifierInfo,
+                                ) {}
+                            }
+                        },
+                        onClickLogo = onClickLogo,
+                        onClickSettings = { navigator.navigate(SettingsRoute) }
+                    )
+                }.onSuccess { vm = it }
+                    .onFailure {
+                        navigator.returnToHome()
+                        walletMain.errorService.emit(it)
+                    }
+            }
+            vm?.let { LoadCredentialView(it) } ?: LoadingView()
+        }
+
+        composable<TransientFlowIssuingResultRoute> {
             val onAcknowledge = {
                 if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
                     val response = vckJsonSerializer.encodeToString(DigitalCredentialOfferReturn.success())
                     walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, true)
                 }
-                navigator.invocationAwareBack()
+                navigator.returnToHome()
             }
 
             val backState = rememberNavigationEventState(NavigationEventInfo.None)
@@ -804,8 +837,8 @@ private fun WalletNavHost(
                 ProvisioningIntentViewModel(
                     walletMain = walletMain,
                     uri = backStackEntry.toRoute<ProvisioningResumeIntentRoute>().uri,
-                    onSuccess = {
-                        navigator.navigateBack()
+                    onSuccess = { route ->
+                        navigator.navigateNewGraph(route ?: TransientFlowIssuingResultRoute)
                     },
                     onFailure = { error ->
                         walletMain.errorService.emit(error)

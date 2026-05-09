@@ -16,7 +16,7 @@ import io.github.aakira.napier.Napier
 import org.koin.compose.ComposeContextWrapper
 import org.koin.compose.LocalKoinScope
 import org.koin.compose.koinInject
-import ui.navigation.SharingNavigation
+import ui.navigation.TransientFlowNavigation
 import ui.navigation.WalletNavigation
 import ui.theme.WalletTheme
 
@@ -62,7 +62,7 @@ fun App(
 
 @ExperimentalMaterial3Api
 @Composable
-fun SharingApp(
+fun TransientFlowApp(
     sessionService: SessionService,
     intentState: IntentState
 ) {
@@ -72,7 +72,7 @@ fun SharingApp(
         LocalKoinScope provides ComposeContextWrapper(koinScope) { koinScope }
     ) {
         WalletTheme {
-            SharingNavigation(
+            TransientFlowNavigation(
                 koinScope = koinScope,
                 intentState = intentState
             )

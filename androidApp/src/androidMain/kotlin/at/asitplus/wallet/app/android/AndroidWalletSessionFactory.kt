@@ -9,7 +9,7 @@ import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.SessionHandle
 import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.createMainWalletSessionScope as createSharedMainWalletSessionScope
-import at.asitplus.wallet.app.common.createSharingWalletSessionScope as createSharedSharingWalletSessionScope
+import at.asitplus.wallet.app.common.createTransientFlowWalletSessionScope as createSharedTransientFlowWalletSessionScope
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
 import org.multipaz.prompt.PromptModel
@@ -43,7 +43,7 @@ internal fun createAndroidMainWalletSessionScope(
     )
 }
 
-internal fun createAndroidSharingWalletSessionScope(
+internal fun createAndroidTransientFlowWalletSessionScope(
     sessionName: String,
     activity: AppCompatActivity,
     intentState: IntentState,
@@ -52,7 +52,7 @@ internal fun createAndroidSharingWalletSessionScope(
     promptModel: PromptModel,
 ): SessionHandle {
     val platformAdapter = AndroidPlatformAdapter(activity, intentState)
-    return createSharedSharingWalletSessionScope(
+    return createSharedTransientFlowWalletSessionScope(
         sessionName = sessionName,
         intentState = intentState,
         sessionService = sessionService,

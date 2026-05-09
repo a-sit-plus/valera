@@ -103,13 +103,13 @@ private fun WalletRootView(
 
 @ExperimentalMaterial3Api
 @Composable
-fun SharingView(
+fun TransientFlowView(
     buildContext: BuildContext,
     promptModel: PromptModel,
     intentState: IntentState,
     sessionService: SessionService
 ) {
-    SharingRootView(
+    TransientFlowRootView(
         buildContext = buildContext,
         promptModel = promptModel,
         intentState = intentState,
@@ -119,7 +119,7 @@ fun SharingView(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SharingRootView(
+private fun TransientFlowRootView(
     buildContext: BuildContext,
     promptModel: PromptModel,
     intentState: IntentState,
@@ -127,7 +127,7 @@ private fun SharingRootView(
 ) {
     PromptDialogs(promptModel)
 
-    SharingApp(
+    TransientFlowApp(
         sessionService = sessionService,
         intentState = intentState
     )

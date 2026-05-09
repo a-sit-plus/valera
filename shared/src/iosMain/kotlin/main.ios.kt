@@ -75,14 +75,14 @@ fun MainViewController(
 }
 
 @ExperimentalMaterial3Api
-fun SharingMainViewController(
+fun TransientFlowMainViewController(
     buildContext: BuildContext,
 ): UIViewController {
-    val (intentState, sessionService, promptModel) = getOrCreateIosSharingSession(buildContext)
+    val (intentState, sessionService, promptModel) = getOrCreateIosTransientFlowSession(buildContext)
 
     return ComposeUIViewController {
         PromptDialogs(promptModel)
-        SharingApp(
+        TransientFlowApp(
             sessionService = sessionService,
             intentState = intentState
         )

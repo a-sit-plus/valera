@@ -4,7 +4,7 @@ import at.asitplus.wallet.app.common.SessionHandle
 import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.createMainWalletSessionScope
-import at.asitplus.wallet.app.common.createSharingWalletSessionScope
+import at.asitplus.wallet.app.common.createTransientFlowWalletSessionScope
 import at.asitplus.wallet.app.common.di.appModule
 import at.asitplus.wallet.app.dcapi.IosDcApiPreRequestData
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
@@ -29,7 +29,7 @@ private data class IosSessionHandle(
 
 private enum class IosSessionKind {
     MAIN,
-    SHARING,
+    TRANSIENT_FLOW,
 }
 
 private object IosSessionRuntime {
@@ -178,7 +178,7 @@ private object IosSessionRuntime {
 
     // Called when a new session is first created. Applies any DC API data that arrived before
     // the session existed. finishApp must be set here too — without it the back handler in
-    // SharingNavigation would be a no-op, and the extension would never return to the caller
+    // TransientFlowNavigation would be a no-op, and the extension would never return to the caller
     // on the first request.
     private fun applyPendingState(intentState: IntentState) {
         pendingPreRequestData?.let { preRequest ->
@@ -252,8 +252,8 @@ internal fun getOrCreateIosSession(buildContext: BuildContext): Triple<IntentSta
     return Triple(session.intentState, session.sessionService, session.promptModel)
 }
 
-internal fun getOrCreateIosSharingSession(buildContext: BuildContext): Triple<IntentState, SessionService, PromptModel> {
-    val session = IosSessionRuntime.getOrCreateSession(buildContext, IosSessionKind.SHARING)
+internal fun getOrCreateIosTransientFlowSession(buildContext: BuildContext): Triple<IntentState, SessionService, PromptModel> {
+    val session = IosSessionRuntime.getOrCreateSession(buildContext, IosSessionKind.TRANSIENT_FLOW)
     return Triple(session.intentState, session.sessionService, session.promptModel)
 }
 
@@ -277,7 +277,7 @@ private fun createIosWalletSessionScope(
             platformAdapter = platformAdapter,
             dataStoreService = dataStoreService,
         )
-        IosSessionKind.SHARING -> createSharingWalletSessionScope(
+        IosSessionKind.TRANSIENT_FLOW -> createTransientFlowWalletSessionScope(
             sessionName = sessionName,
             intentState = intentState,
             sessionService = sessionService,
