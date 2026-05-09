@@ -8,6 +8,7 @@ import at.asitplus.wallet.app.common.di.appModule
 import data.storage.AntilogAdapter
 import io.github.aakira.napier.Napier
 import org.koin.core.context.startKoin
+import org.koin.dsl.module
 
 class WalletApplication : Application() {
     override fun onCreate() {
@@ -17,7 +18,7 @@ class WalletApplication : Application() {
         initializeLogging()
 
         startKoin {
-            modules(appModule())
+            modules(appModule(), module { single { createAndroidBuildContext() } })
         }
     }
 

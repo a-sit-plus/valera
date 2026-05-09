@@ -16,6 +16,7 @@ import io.github.aakira.napier.Napier
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import org.koin.core.context.startKoin
+import org.koin.dsl.module
 import org.multipaz.prompt.IosPromptModel
 import org.multipaz.prompt.PromptModel
 import ui.navigation.IntentService.Companion.IOS_DC_API_CALL
@@ -57,7 +58,7 @@ private object IosSessionRuntime {
             initializeCredentialSchemes()
             initializeLogging(antilog)
             startKoin {
-                modules(appModule())
+                modules(appModule(), module { single { buildContext } })
             }
             isBootstrapped = true
         }

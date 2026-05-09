@@ -22,18 +22,17 @@ import ui.viewmodels.iso.verifier.VerifierViewModel
 fun uiModule() = module {
     scope(named(SESSION_NAME)) {
         scopedOf(::SnackbarService)
+        viewModelOf(::SettingsViewModel)
+        viewModelOf(::CredentialsViewModel)
+        viewModelOf(::TransferOptionsViewModel)
+        viewModelOf(::HolderViewModel)
+        viewModelOf(::VerifierViewModel)
+        viewModelOf(::DefaultPresentationGraphViewModel)
+        viewModelOf(::DCAPIPresentationGraphViewModel)
+        viewModelOf(::AuthenticationSuccessViewModel)
+        viewModelOf(::AddCredentialViewModel)
+        viewModelOf(::CapabilitiesViewModel)
+        viewModelOf(::InitializationViewModel)
+        viewModelOf(::QrCodeScannerViewModel)
     }
-
-    viewModelOf(::SettingsViewModel)
-    viewModelOf(::CredentialsViewModel)
-    viewModelOf(::TransferOptionsViewModel)
-    viewModelOf(::HolderViewModel)
-    viewModelOf(::VerifierViewModel)
-    viewModelOf(::DefaultPresentationGraphViewModel)
-    viewModelOf(::DCAPIPresentationGraphViewModel)
-    viewModelOf(::AuthenticationSuccessViewModel)
-    viewModelOf(::AddCredentialViewModel)
-    viewModelOf(::CapabilitiesViewModel)
-    viewModelOf(::InitializationViewModel)
-    viewModelOf(::QrCodeScannerViewModel)
 }

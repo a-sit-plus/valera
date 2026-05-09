@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.common.domain.platform.di
 
-import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.SESSION_NAME
@@ -29,7 +28,6 @@ fun platformModule() = module {
     scope(named(SESSION_NAME)) {
         scoped<IntentState> { get<WalletSessionBindings>().intentState }
         scoped<SessionService> { get<WalletSessionBindings>().sessionService }
-        scoped<BuildContext> { get<WalletSessionBindings>().buildContext }
         scoped<PromptModel> { get<WalletSessionBindings>().promptModel }
         scoped<PlatformAdapter> { get<WalletSessionBindings>().platformAdapter }
         scoped<DataStoreService> { get<WalletSessionBindings>().dataStoreService }

@@ -44,6 +44,7 @@ fun DefaultPresentationGraphView(
     val selectionProvider by viewModel.selectionProvider.collectAsState()
 
     PresentationGraphView(
+        koinScope = koinScope,
         serviceProviderLogo = null,
         serviceProviderNameLocalized = spName,
         serviceProviderLocationLocalized = spLocation,
