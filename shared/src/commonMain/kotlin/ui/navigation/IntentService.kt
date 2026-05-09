@@ -7,6 +7,7 @@ import ui.navigation.routes.DCAPIIssuingIntentRoute
 import ui.navigation.routes.ErrorIntentRoute
 import ui.navigation.routes.IosDcApiPreRequestRoute
 import ui.navigation.routes.PresentationIntentRoute
+import ui.navigation.routes.ProvisioningAuthRequestIntentRoute
 import ui.navigation.routes.ProvisioningStartIntentRoute
 import ui.navigation.routes.ProvisioningResumeIntentRoute
 import ui.navigation.routes.Route
@@ -27,6 +28,7 @@ class IntentService(
     fun handleIntent(uri: String, type: IntentType): Route =
         when (type) {
             IntentType.ProvisioningStartIntent -> ProvisioningStartIntentRoute(uri)
+            IntentType.ProvisioningAuthRequestIntent -> ProvisioningAuthRequestIntentRoute(uri)
             IntentType.ProvisioningResumeIntent -> ProvisioningResumeIntentRoute(uri)
             IntentType.AuthorizationIntent -> AuthorizationIntentRoute(uri)
             IntentType.DCAPIAuthorizationIntent -> DCAPIAuthorizationIntentRoute(uri)
@@ -46,6 +48,7 @@ class IntentService(
             startsWith(SIGNING_CALLBACK_URI) -> IntentType.SigningResumeIntent
             startsWith(PROVISIONING_CALLBACK_URI) -> IntentType.ProvisioningResumeIntent
             contains(SIGNING_REQUEST_INTENT) -> IntentType.SigningIntent
+            startsWith(OPENID4CI_AUTHORIZATION_REQUEST_URI_PREFIX) -> IntentType.ProvisioningAuthRequestIntent
             equals(GET_CREDENTIALS_INTENT) || equals(GET_CREDENTIAL_INTENT) || equals(IOS_DC_API_CALL) -> IntentType.DCAPIAuthorizationIntent
             equals(IOS_DC_API_PRE_REQUEST) -> IntentType.IosDcApiPreRequestIntent
             equals(CREATE_CREDENTIAL_INTENT) -> IntentType.DCAPIIssuingIntent
@@ -77,11 +80,13 @@ class IntentService(
         const val IOS_DC_API_PRE_REQUEST = "IOS_DC_API_PRE_REQUEST"
         const val SIGNING_CALLBACK_URI = "asitplus-wallet://wallet.a-sit.at/app/callback/signing"
         const val PROVISIONING_CALLBACK_URI = "asitplus-wallet://wallet.a-sit.at/app/callback/provisioning"
+        const val OPENID4CI_AUTHORIZATION_REQUEST_URI_PREFIX = "eudi-openid4ci://authorize"
     }
 
     enum class IntentType {
         ErrorIntent,
         ProvisioningStartIntent,
+        ProvisioningAuthRequestIntent,
         ProvisioningResumeIntent,
         AuthorizationIntent,
         DCAPIAuthorizationIntent,

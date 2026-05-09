@@ -5,8 +5,8 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_credentials_title
 import at.asitplus.valera.resources.snackbar_credential_loaded_successfully
 import at.asitplus.wallet.app.common.WalletMain
-import ui.navigation.routes.AddCredentialDcApiSuccessRoute
 import ui.navigation.routes.Route
+import ui.navigation.routes.TransientFlowIssuingResultRoute
 import org.jetbrains.compose.resources.getString
 
 class ProvisioningIntentViewModel(
@@ -26,11 +26,7 @@ class ProvisioningIntentViewModel(
                 }
             )
             walletMain.snackbarService.showSnackbar(getString(Res.string.snackbar_credential_loaded_successfully))
-            if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
-                AddCredentialDcApiSuccessRoute
-            } else {
-                null
-            }
+            TransientFlowIssuingResultRoute
         }.onSuccess {
             onSuccess(it)
         }.onFailure { error ->

@@ -65,7 +65,7 @@ fun createMainWalletSessionScope(
     }
 }
 
-fun createSharingWalletSessionScope(
+fun createTransientFlowWalletSessionScope(
     sessionName: String,
     intentState: IntentState,
     sessionService: SessionService,

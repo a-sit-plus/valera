@@ -55,7 +55,7 @@ class NdefDeviceEngagementService : HostApduService() {
     companion object {
         val TAG = "NdefDeviceEngagementService"
 
-        // Holds the model for the currently active engagement so SharingActivity can retrieve it.
+        // Holds the model for the currently active engagement so TransientFlowActivity can retrieve it.
         // Written only from the service instance that owns the current engagement.
         var currentPresentationStateModel: PresentationStateModel? = null
             private set
@@ -151,7 +151,7 @@ class NdefDeviceEngagementService : HostApduService() {
             }
         }
 
-        val intent = Intent(applicationContext, SharingActivity::class.java)
+        val intent = Intent(applicationContext, TransientFlowActivity::class.java)
         intent.addFlags(
             Intent.FLAG_ACTIVITY_NEW_TASK or
                     Intent.FLAG_ACTIVITY_NO_HISTORY or

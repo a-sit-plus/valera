@@ -82,7 +82,7 @@ data class AddCredentialDcApiRoute(
 }
 
 @Serializable
-object AddCredentialDcApiSuccessRoute : Route()
+object TransientFlowIssuingResultRoute : Route()
 
 @Serializable
 data class AddCredentialWithLinkRoute(val uri: String) : Route()
@@ -172,6 +172,9 @@ object ProximityVerifierRoute : Route()
 
 @Serializable
 data class ProvisioningStartIntentRoute(val uri: String) : Route()
+
+@Serializable
+data class ProvisioningAuthRequestIntentRoute(val uri: String) : Route()
 
 @Serializable
 data class ProvisioningResumeIntentRoute(val uri: String) : Route()

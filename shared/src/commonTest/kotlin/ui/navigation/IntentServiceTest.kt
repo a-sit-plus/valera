@@ -29,6 +29,13 @@ class IntentServiceTest {
     }
 
     @Test
+    fun `parseUrl recognizes auth-request issuing URL`() {
+        val url = "eudi-openid4ci://authorize?credential_issuer=https%3A%2F%2Fissuer.example"
+
+        assertEquals(IntentService.IntentType.ProvisioningAuthRequestIntent, intentService.parseUrl(url))
+    }
+
+    @Test
     fun `parseUrl recognizes provisioning callback`() {
         val url = "${IntentService.PROVISIONING_CALLBACK_URI}?code=abc&state=xyz"
 

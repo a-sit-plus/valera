@@ -189,7 +189,7 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
             )
             IosSessionBridge.shared.registerDcapiPreRequest(data: preRequestData)
 
-            let mainViewController = Main_iosKt.SharingMainViewController(
+            let mainViewController = Main_iosKt.TransientFlowMainViewController(
                 buildContext: BuildContext(
                     buildType: buildType,
                     packageName: Bundle.main.bundleIdentifier ?? "at.asitplus.wallet.compose",

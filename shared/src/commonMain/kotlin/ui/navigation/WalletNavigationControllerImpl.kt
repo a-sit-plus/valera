@@ -119,11 +119,11 @@ internal open class WalletNavigationControllerImpl(
     }
 }
 
-// Overrides methods that differ in the sharing flow (no wallet home screen):
+// Overrides methods that differ in the transient external flow (no wallet home screen):
 // - invocationAwareBack() always finishes to the caller instead of checking shouldFinishToCaller()
 // - navigateBack() calls finishApp when the back stack is exhausted
 // - returnToHome() always prefers finishApp
-internal class SharingNavigationControllerImpl(
+internal class TransientFlowNavigationControllerImpl(
     navController: NavHostController,
     scope: CoroutineScope,
     intentState: IntentState,
