@@ -205,7 +205,6 @@ private fun LoadCredentialFromUrlContent(
                                 )
                             }
                         } catch (e: Throwable) {
-                            navigator.returnToHome()
                             walletMain.errorService.emit(e)
                         }
                     }
@@ -215,7 +214,6 @@ private fun LoadCredentialFromUrlContent(
             )
         }.onSuccess { vm = it }
          .onFailure {
-            navigator.returnToHome()
             walletMain.errorService.emit(it)
         }
     }
@@ -360,7 +358,6 @@ private fun TransientFlowNavHost(
                             onClickSettings = { navigator.navigate(SettingsRoute) })
                     } ?: throw IllegalStateException("No presentation view model set")
                 } catch (e: Throwable) {
-                    navigator.returnToHome()
                     walletMain.errorService.emit(e)
                     null
                 }
@@ -373,7 +370,6 @@ private fun TransientFlowNavHost(
                     coroutineScope = walletMain.scope,
                     walletMain.snackbarService,
                     onError = { e ->
-                        navigator.returnToHome()
                         walletMain.errorService.emit(e)
                     }
                 )
@@ -428,7 +424,6 @@ private fun TransientFlowNavHost(
                                     )
                                     navigator.returnToHome()
                                 } catch (e: Throwable) {
-                                    navigator.returnToHome()
                                     walletMain.errorService.emit(e)
                                 }
                             }
@@ -438,7 +433,6 @@ private fun TransientFlowNavHost(
                     )
                 }.onSuccess { vm = it }
                  .onFailure {
-                    navigator.returnToHome()
                     walletMain.errorService.emit(it)
                 }
             }
@@ -527,7 +521,6 @@ private fun TransientFlowNavHost(
                     )
                 }.onSuccess { vm = it }
                     .onFailure {
-                        navigator.returnToHome()
                         walletMain.errorService.emit(it)
                     }
             }
