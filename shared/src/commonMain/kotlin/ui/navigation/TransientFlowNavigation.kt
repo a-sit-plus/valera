@@ -78,15 +78,11 @@ fun TransientFlowNavigation(
     val scope = rememberCoroutineScope()
 
     val initialLink = remember {
-        (
-            intentState.appLink.value
-                ?: intentState.iosDcApiPreRequestData.value?.let { IntentService.IOS_DC_API_PRE_REQUEST }
-                ?: intentState.dcapiInvocationData.value?.let { IntentService.IOS_DC_API_CALL }
-            ).also { link ->
-                if (link != null) {
-                    intentState.appLink.value = null
-                }
-            }
+        // appLink is always set alongside DC API data by registerDcapiPreRequest,
+        // registerDcapiInvocation, and applyPendingState, so reading appLink alone is sufficient.
+        intentState.appLink.value.also { link ->
+            if (link != null) intentState.appLink.value = null
+        }
     }
 
     val navigator: WalletNavigationController = remember(navController, scope) {

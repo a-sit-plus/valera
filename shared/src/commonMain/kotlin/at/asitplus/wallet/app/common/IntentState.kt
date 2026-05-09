@@ -47,5 +47,6 @@ class IntentState {
         dcapiInvocationData.value = null
         iosDcApiPreRequestData.value = null
         presentationStateModel.value = null
+        finishApp = null
     }
 }

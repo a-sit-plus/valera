@@ -45,6 +45,10 @@ struct ContentView: View {
                 IosSessionBridge.shared.handleIncomingUrl(url: url.absoluteString) {
                     showTransientFlow = false
                 }
+                // Setting true while the sheet is already visible is a SwiftUI no-op.
+                // A second URL while the session exists updates appLink in-place so the
+                // sheet navigates to the new route without re-presenting. A second URL
+                // before the session is created overwrites pendingTransientState (logged).
                 showTransientFlow = true
             }
             .sheet(isPresented: $showTransientFlow) {

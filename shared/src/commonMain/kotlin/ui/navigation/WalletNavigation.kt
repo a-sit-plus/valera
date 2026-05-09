@@ -150,11 +150,12 @@ fun WalletNavigation(
     }
 
     LaunchedEffect(koinScope) {
-        if (initialLink != null) {
-            walletMain.scope.launch {
-                Napier.d("WalletNavigation appReady emit from initialLink")
-                walletMain.appReady.emit(true)
-            }
+        // Emit unconditionally so errors emitted before the home screen appears
+        // (e.g. during InitializationView / onboarding) are not suppressed by
+        // the appReady gate in the error and appLink collectors below.
+        walletMain.scope.launch {
+            Napier.d("WalletNavigation appReady emit")
+            walletMain.appReady.emit(true)
         }
         this.launch {
             intentState.appLink.combineTransform(walletMain.appReady) { link, ready ->
@@ -364,7 +365,7 @@ private fun WalletNavHost(
                 onClickSettings = { navigator.navigate(SettingsRoute) },
                 onNavigateToPresentmentScreen = {
                     intentState.presentationStateModel.value = it
-                    navigator.navigate(LocalPresentationAuthenticationConsentRoute("QR"))
+                    navigator.navigate(LocalPresentationAuthenticationConsentRoute)
                 },
                 bottomBar = {
                     BottomBar(

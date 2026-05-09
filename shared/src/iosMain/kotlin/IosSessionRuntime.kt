@@ -65,9 +65,14 @@ private object IosSessionRuntime {
 
     fun getOrCreateSession(buildContext: BuildContext, sessionKind: IosSessionKind): IosSessionHandle {
         // Fast path: return the existing handle for this kind without any allocation.
+        // A handle whose scope is already closed (e.g. left by the loser of a prior creation
+        // race) is treated as absent: clear it and fall through to create a fresh session.
         synchronized(stateLock) {
             check(isBootstrapped) { "IosSessionRuntime must be bootstrapped before creating a session" }
-            handleFor(sessionKind)?.let { return it }
+            handleFor(sessionKind)?.let { handle ->
+                if (!handle.sessionService.scope.value.closed) return handle
+                setHandle(sessionKind, null)
+            }
         }
 
         // Slow path: create the session OUTSIDE stateLock.
@@ -92,14 +97,19 @@ private object IosSessionRuntime {
 
         // Re-acquire the lock to store the handle. If another thread created the same kind
         // concurrently, discard our new handle and return the winner to keep the singleton invariant.
-        return synchronized(stateLock) {
+        // Close the loser OUTSIDE the lock: SessionService.close() closes the Koin scope, which
+        // acquires Koin's internal lock — same ordering constraint as scope creation above.
+        var loserHandle: IosSessionHandle? = null
+        val winner = synchronized(stateLock) {
             handleFor(sessionKind)?.also {
-                newHandle.sessionService.close()
+                loserHandle = newHandle
             } ?: newHandle.also { handle ->
                 setHandle(sessionKind, handle)
                 applyPendingState(sessionKind, handle.intentState)
             }
         }
+        loserHandle?.sessionService?.close()
+        return winner
     }
 
     private fun handleFor(sessionKind: IosSessionKind): IosSessionHandle? = when (sessionKind) {
@@ -107,7 +117,7 @@ private object IosSessionRuntime {
         IosSessionKind.TRANSIENT_FLOW -> transientFlowHandle
     }
 
-    private fun setHandle(sessionKind: IosSessionKind, handle: IosSessionHandle) {
+    private fun setHandle(sessionKind: IosSessionKind, handle: IosSessionHandle?) {
         when (sessionKind) {
             IosSessionKind.MAIN -> mainHandle = handle
             IosSessionKind.TRANSIENT_FLOW -> transientFlowHandle = handle

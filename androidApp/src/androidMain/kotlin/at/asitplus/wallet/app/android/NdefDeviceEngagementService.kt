@@ -70,8 +70,10 @@ class NdefDeviceEngagementService : HostApduService() {
         serviceErrorService
     }
 
-    private var engagement: MdocNfcEngagementHelper? = null
-    private var disableEngagementJob: Job? = null
+    // Written from the NFC APDU callback thread and from Dispatchers.Default coroutines;
+    // @Volatile ensures cross-thread visibility without a lock.
+    @Volatile private var engagement: MdocNfcEngagementHelper? = null
+    @Volatile private var disableEngagementJob: Job? = null
     private var listenForCancellationFromUiJob: Job? = null
     private lateinit var walletConfig: WalletConfig
 
@@ -126,6 +128,9 @@ class NdefDeviceEngagementService : HostApduService() {
         disableEngagementJob = null
         listenForCancellationFromUiJob?.cancel()
         listenForCancellationFromUiJob = null
+        // Cancel any presentment scope from a prior NFC tap so its coroutines don't
+        // keep running alongside the new engagement within the same service lifetime.
+        currentPresentationStateModel?.presentmentScope?.cancel()
 
         val ephemeralDeviceKey = Crypto.createEcPrivateKey(EcCurve.P256)
         val timeStarted = Clock.System.now()
