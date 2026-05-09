@@ -14,7 +14,7 @@ interface WalletNavigationController {
     fun navigateNewGraph(route: Route)
     fun navigatePending()
     fun invocationAwareBack()
-    fun returnToHome()
+    fun popToInvoker()
     // Exposed on the interface because ErrorRoute composable needs it to decide how to wrap errors.
     fun shouldFinishToCaller(): Boolean
 }

@@ -350,9 +350,9 @@ private fun TransientFlowNavHost(
                     intentState.presentationStateModel.value?.let {
                         PresentationViewModel(
                             presentationStateModel = it,
-                            navigateUp = { navigator.returnToHome() },
+                            navigateUp = { navigator.popToInvoker() },
                             onAuthenticationSuccess = { },
-                            navigateToHomeScreen = { navigator.returnToHome() },
+                            navigateToHomeScreen = { navigator.popToInvoker() },
                             walletMain = walletMain,
                             onClickLogo = onClickLogo,
                             onClickSettings = { navigator.navigate(SettingsRoute) })
@@ -366,7 +366,7 @@ private fun TransientFlowNavHost(
             if (vm != null) {
                 PresentationView(
                     vm,
-                    onPresentmentComplete = { navigator.returnToHome() },
+                    onPresentmentComplete = { navigator.popToInvoker() },
                     coroutineScope = walletMain.scope,
                     walletMain.snackbarService,
                     onError = { e ->
@@ -413,7 +413,7 @@ private fun TransientFlowNavHost(
                         navigateUp = navigator::navigateBack,
                         offer = offer,
                         onSubmit = { credentialIdentifierInfo, transactionCode, _ ->
-                            navigator.returnToHome()
+                            navigator.popToInvoker()
                             navigator.navigate(LoadingRoute)
                             walletMain.scope.launch {
                                 try {
@@ -422,7 +422,7 @@ private fun TransientFlowNavHost(
                                         credentialIdentifierInfo = credentialIdentifierInfo,
                                         transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null },
                                     )
-                                    navigator.returnToHome()
+                                    navigator.popToInvoker()
                                 } catch (e: Throwable) {
                                     walletMain.errorService.emit(e)
                                 }
@@ -547,7 +547,7 @@ private fun TransientFlowNavHost(
                     val response = vckJsonSerializer.encodeToString(DigitalCredentialOfferReturn.success())
                     walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, true)
                 }
-                navigator.returnToHome()
+                navigator.popToInvoker()
             }
 
             val backState = rememberNavigationEventState(NavigationEventInfo.None)
@@ -656,7 +656,7 @@ private fun TransientFlowNavHost(
                     walletMain = walletMain,
                     uri = backStackEntry.toRoute<SigningResumeIntentRoute>().uri,
                     onReturnToSigning = { navigator.navigateBack() },
-                    onFinish = { navigator.returnToHome() },
+                    onFinish = { navigator.popToInvoker() },
                     onFailure = { error ->
                         walletMain.errorService.emit(error)
                     }
@@ -689,10 +689,10 @@ private fun TransientFlowNavHost(
                     }
                     ErrorViewModel(
                         clearError = { walletMain.errorService.clear() },
-                        resetStack = { navigator.returnToHome() },
+                        resetStack = { navigator.popToInvoker() },
                         resetApp = {
                             walletMain.scope.launch { walletMain.resetApp() }
-                            navigator.returnToHome()
+                            navigator.popToInvoker()
                         },
                         throwable = throwable,
                         onClickLogo = onClickLogo,
@@ -700,7 +700,7 @@ private fun TransientFlowNavHost(
                 }.onSuccess {
                     ErrorView(remember { it })
                 }.onFailure {
-                    navigator.returnToHome()
+                    navigator.popToInvoker()
                 }
             }
         }
@@ -715,14 +715,14 @@ private fun TransientFlowNavHost(
                 version = walletMain.buildContext.versionName,
                 onClickShareLogFile = { navigator.navigate(LogRoute) },
                 onClickLogo = onClickLogo,
-                onClickSettings = { navigator.returnToHome() },
+                onClickSettings = { navigator.popToInvoker() },
                 onClickBack = navigator::navigateBack,
                 onClickFAQs = null,
                 onClickDataProtectionPolicy = null,
                 onClickLicenses = null,
                 onReset = {
                     walletMain.scope.launch { walletMain.resetApp() }
-                    navigator.returnToHome()
+                    navigator.popToInvoker()
                 },
                 koinScope = koinScope
             )

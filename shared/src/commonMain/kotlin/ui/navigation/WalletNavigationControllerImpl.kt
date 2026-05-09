@@ -64,7 +64,7 @@ internal open class WalletNavigationControllerImpl(
         scope.launch {
             Napier.d("Navigate back")
             if (!navController.navigateUpOnMain()) {
-                returnToHome()
+                popToInvoker()
             }
         }
     }
@@ -107,7 +107,7 @@ internal open class WalletNavigationControllerImpl(
         }
     }
 
-    override fun returnToHome() {
+    override fun popToInvoker() {
         scope.launch {
             if (hasHomeScreenInBackStack()) {
                 Napier.d("popBackStack: HomeScreenRoute")
@@ -139,7 +139,7 @@ internal open class WalletNavigationControllerImpl(
 // Overrides methods that differ in the transient external flow (no wallet home screen):
 // - invocationAwareBack() always finishes to the caller instead of checking shouldFinishToCaller()
 // - navigateBack() calls finishApp when the back stack is exhausted
-// - returnToHome() always prefers finishApp
+// - popToInvoker() always prefers finishApp
 internal class TransientFlowNavigationControllerImpl(
     navController: NavHostController,
     scope: CoroutineScope,
@@ -159,7 +159,7 @@ internal class TransientFlowNavigationControllerImpl(
         }
     }
 
-    override fun returnToHome() {
+    override fun popToInvoker() {
         intentState.finishApp?.invoke() ?: navigateBack()
     }
 }

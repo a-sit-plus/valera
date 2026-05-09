@@ -141,7 +141,7 @@ fun WalletNavigation(
             navigator = navigator,
             onClickLogo = onClickLogo,
             onError = { e ->
-                navigator.returnToHome()
+                navigator.popToInvoker()
                 errorService.emit(e)
             },
             koinScope = koinScope,
@@ -427,13 +427,13 @@ private fun WalletNavHost(
                             presentationStateModel = it,
                             navigateUp = { navigator.navigateBack() },
                             onAuthenticationSuccess = { },
-                            navigateToHomeScreen = { navigator.returnToHome() },
+                            navigateToHomeScreen = { navigator.popToInvoker() },
                             walletMain = walletMain,
                             onClickLogo = onClickLogo,
                             onClickSettings = { navigator.navigate(SettingsRoute) })
                     } ?: throw IllegalStateException("No presentation view model set")
                 } catch (e: Throwable) {
-                    navigator.returnToHome()
+                    navigator.popToInvoker()
                     walletMain.errorService.emit(e)
                     null
                 }
@@ -444,12 +444,12 @@ private fun WalletNavHost(
                 PresentationView(
                     vm,
                     onPresentmentComplete = {
-                        navigator.returnToHome()
+                        navigator.popToInvoker()
                     },
                     coroutineScope = walletMain.scope,
                     walletMain.snackbarService,
                     onError = { e ->
-                        navigator.returnToHome()
+                        navigator.popToInvoker()
                         walletMain.errorService.emit(e)
                     }
                 )
@@ -486,7 +486,7 @@ private fun WalletNavHost(
                         navigateUp = navigator::navigateBack,
                         hostString = backStackEntry.toRoute<LoadCredentialRoute>().host,
                         onSubmit = { credentialIdentifierInfo, _, _ ->
-                            navigator.returnToHome()
+                            navigator.popToInvoker()
                             walletMain.scope.launch {
                                 walletMain.startProvisioning(
                                     host = backStackEntry.toRoute<LoadCredentialRoute>().host,
@@ -498,7 +498,7 @@ private fun WalletNavHost(
                         onClickSettings = { navigator.navigate(SettingsRoute) })
                 }.onSuccess { vm = it }
                  .onFailure {
-                    navigator.returnToHome()
+                    navigator.popToInvoker()
                     walletMain.errorService.emit(it)
                 }
             }
@@ -529,7 +529,7 @@ private fun WalletNavHost(
                                         )
                                     }
                                 } catch (e: Throwable) {
-                                    navigator.returnToHome()
+                                    navigator.popToInvoker()
                                     walletMain.errorService.emit(e)
                                 }
                             }
@@ -539,7 +539,7 @@ private fun WalletNavHost(
                     )
                 }.onSuccess { vm = it }
                  .onFailure {
-                    navigator.returnToHome()
+                    navigator.popToInvoker()
                     walletMain.errorService.emit(it)
                 }
             }
@@ -570,7 +570,7 @@ private fun WalletNavHost(
                                         )
                                     }
                                 } catch (e: Throwable) {
-                                    navigator.returnToHome()
+                                    navigator.popToInvoker()
                                     walletMain.errorService.emit(e)
                                 }
                             }
@@ -580,7 +580,7 @@ private fun WalletNavHost(
                     )
                 }.onSuccess { vm = it }
                  .onFailure {
-                    navigator.returnToHome()
+                    navigator.popToInvoker()
                     walletMain.errorService.emit(it)
                 }
             }
@@ -597,7 +597,7 @@ private fun WalletNavHost(
                         navigateUp = navigator::navigateBack,
                         offer = offer,
                         onSubmit = { credentialIdentifierInfo, transactionCode, _ ->
-                            navigator.returnToHome()
+                            navigator.popToInvoker()
                             navigator.navigate(LoadingRoute)
                             walletMain.scope.launch {
                                 try {
@@ -607,9 +607,9 @@ private fun WalletNavHost(
                                         transactionCode = transactionCode?.ifEmpty { null }
                                             ?.ifBlank { null },
                                     )
-                                    navigator.returnToHome()
+                                    navigator.popToInvoker()
                                 } catch (e: Throwable) {
-                                    navigator.returnToHome()
+                                    navigator.popToInvoker()
                                     walletMain.errorService.emit(e)
                                 }
                             }
@@ -619,7 +619,7 @@ private fun WalletNavHost(
                     )
                 }.onSuccess { vm = it }
                  .onFailure {
-                    navigator.returnToHome()
+                    navigator.popToInvoker()
                     walletMain.errorService.emit(it)
                 }
             }
@@ -709,7 +709,7 @@ private fun WalletNavHost(
                     )
                 }.onSuccess { vm = it }
                     .onFailure {
-                        navigator.returnToHome()
+                        navigator.popToInvoker()
                         walletMain.errorService.emit(it)
                     }
             }
@@ -736,7 +736,7 @@ private fun WalletNavHost(
                     val response = vckJsonSerializer.encodeToString(DigitalCredentialOfferReturn.success())
                     walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, true)
                 }
-                navigator.returnToHome()
+                navigator.popToInvoker()
             }
 
             val backState = rememberNavigationEventState(NavigationEventInfo.None)
@@ -790,7 +790,7 @@ private fun WalletNavHost(
                     navigator.navigate(LogRoute)
                 },
                 onClickLogo = onClickLogo,
-                onClickSettings = { navigator.returnToHome() },
+                onClickSettings = { navigator.popToInvoker() },
                 onClickBack = navigator::navigateBack,
                 onClickFAQs = null,
                 onClickDataProtectionPolicy = null,
@@ -830,7 +830,7 @@ private fun WalletNavHost(
                     }
                     ErrorViewModel(
                         clearError = { walletMain.errorService.clear() },
-                        resetStack = { navigator.returnToHome() },
+                        resetStack = { navigator.popToInvoker() },
                         resetApp = {
                             walletMain.scope.launch {
                                 walletMain.resetApp()
@@ -846,7 +846,7 @@ private fun WalletNavHost(
                 }.onSuccess {
                     ErrorView(remember { it })
                 }.onFailure {
-                    navigator.returnToHome()
+                    navigator.popToInvoker()
                 }
             }
         }
@@ -896,7 +896,7 @@ private fun WalletNavHost(
                     walletMain = walletMain,
                     uri = backStackEntry.toRoute<SigningResumeIntentRoute>().uri,
                     onReturnToSigning = { navigator.navigateBack() },
-                    onFinish = { navigator.returnToHome() },
+                    onFinish = { navigator.popToInvoker() },
                     onFailure = { error ->
                         walletMain.errorService.emit(error)
                     })
@@ -988,7 +988,7 @@ private fun WalletNavHost(
                     walletMain = walletMain,
                     uri = backStackEntry.toRoute<SigningServiceIntentRoute>().uri,
                     onSuccess = {
-                        navigator.returnToHome()
+                        navigator.popToInvoker()
                     },
                     onFailure = { error ->
                         walletMain.errorService.emit(error)
@@ -1017,7 +1017,7 @@ private fun WalletNavHost(
                     walletMain = walletMain,
                     uri = backStackEntry.toRoute<SigningCredentialIntentRoute>().uri,
                     onSuccess = {
-                        navigator.returnToHome()
+                        navigator.popToInvoker()
                     },
                     onFailure = { error ->
                         walletMain.errorService.emit(error)
