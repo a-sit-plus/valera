@@ -17,8 +17,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import at.asitplus.openid.TransactionDataBase64Url
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.heading_label_authenticate_at_device_title
+import at.asitplus.valera.resources.heading_label_select_data
+import at.asitplus.valera.resources.heading_label_show_data
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
+import org.jetbrains.compose.resources.stringResource
 import ui.views.authentication.AuthenticationSuccessView
 import ui.views.authentication.TransactionDataView
 
@@ -47,6 +52,12 @@ fun PresentationGraphView(
             }
         }
     }
+    val startPageTitle = if (authenticateAtRelyingParty) {
+        stringResource(Res.string.heading_label_authenticate_at_device_title)
+    } else {
+        stringResource(Res.string.heading_label_show_data)
+    }
+    val selectionPageTitle = stringResource(Res.string.heading_label_select_data)
 
     NavHost(
         navController = navController,
@@ -74,6 +85,7 @@ fun PresentationGraphView(
     ) {
         composable<PresentationStartRoute> {
             CommonPresentationPageScaffold(
+                title = startPageTitle,
                 onClickLogo = onClickLogo,
                 onClickSettings = onClickSettings,
                 onNavigateUp = onNavigateUp,
@@ -109,6 +121,7 @@ fun PresentationGraphView(
 
         composable<PresentationBuilderGraphRoute> {
             PresentationBuilderGraphView(
+                title = selectionPageTitle,
                 authenticateAtRelyingParty = authenticateAtRelyingParty,
                 serviceProviderLocalizedName = serviceProviderNameLocalized,
                 serviceProviderLocalizedLocation = serviceProviderLocationLocalized,

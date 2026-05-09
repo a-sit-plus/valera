@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.presentation_connecting_to_verifier
+import at.asitplus.valera.resources.heading_label_select_data
 import at.asitplus.valera.resources.presentation_initialised
 import at.asitplus.valera.resources.presentation_missing_permission
 import at.asitplus.valera.resources.presentation_permission_required
@@ -140,6 +141,7 @@ fun PresentationView(
                     when (val matching = presentationViewModel.matchingCredentials) {
                         is DCQLMatchingResult -> {
                             AuthenticationSelectionViewScaffold(
+                                title = stringResource(Res.string.heading_label_select_data),
                                 onNavigateUp = presentationViewModel.navigateUp,
                                 onClickLogo = presentationViewModel.onClickLogo,
                                 onClickSettings = presentationViewModel.onClickSettings,

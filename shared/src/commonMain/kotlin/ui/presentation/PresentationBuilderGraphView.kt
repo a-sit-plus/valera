@@ -25,6 +25,7 @@ import kotlin.time.Duration.Companion.seconds
 @ExperimentalMaterial3Api
 @Composable
 fun PresentationBuilderGraphView(
+    title: String,
     authenticateAtRelyingParty: Boolean,
     serviceProviderLocalizedName: String?,
     serviceProviderLocalizedLocation: String,
@@ -38,6 +39,7 @@ fun PresentationBuilderGraphView(
 ) {
     when (selectionProvider) {
         is UiStateError -> CommonPresentationPageScaffold(
+            title = title,
             onClickLogo = onClickLogo,
             onClickSettings = onClickSettings,
             onNavigateUp = onNavigateToPresentationStart,
@@ -54,6 +56,7 @@ fun PresentationBuilderGraphView(
         }
 
         UiStateLoading -> CommonPresentationPageScaffold(
+            title = title,
             onClickLogo = onClickLogo,
             onClickSettings = onClickSettings,
             onNavigateUp = onNavigateToPresentationStart,
@@ -65,6 +68,7 @@ fun PresentationBuilderGraphView(
             when (val queryMatchingResult = selectionProvider.value.queryMatchingResult) {
                 is DCQLMatchingResult -> {
                     DCQLPresentationBuilderGraphView(
+                        title = title,
                         authenticateAtRelyingParty = authenticateAtRelyingParty,
                         serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
                         serviceProviderLocalizedName = serviceProviderLocalizedName,
