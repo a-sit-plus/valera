@@ -120,7 +120,6 @@ fun TransientFlowNavigation(
             navigator = navigator,
             onClickLogo = onClickLogo,
             onError = { e ->
-                navigator.returnToHome()
                 errorService.emit(e)
             },
             koinScope = koinScope,
