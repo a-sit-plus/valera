@@ -14,7 +14,7 @@ import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.WalletMain
 import io.github.aakira.napier.Napier
 import org.koin.compose.ComposeContextWrapper
-import org.koin.compose.LocalKoinScope
+import org.koin.compose.LocalKoinScopeContext
 import org.koin.compose.koinInject
 import ui.navigation.TransientFlowNavigation
 import ui.navigation.WalletNavigation
@@ -33,7 +33,7 @@ fun App(
     val koinScope = sessionService.scope.collectAsState().value
 
     CompositionLocalProvider(
-        LocalKoinScope provides ComposeContextWrapper(koinScope) { koinScope }
+        LocalKoinScopeContext provides ComposeContextWrapper(koinScope) { koinScope }
     ) {
         catchingUnwrapped {
             val walletMain: WalletMain = koinInject(scope = koinScope)
@@ -69,7 +69,7 @@ fun TransientFlowApp(
     val koinScope = sessionService.scope.collectAsState().value
 
     CompositionLocalProvider(
-        LocalKoinScope provides ComposeContextWrapper(koinScope) { koinScope }
+        LocalKoinScopeContext provides ComposeContextWrapper(koinScope) { koinScope }
     ) {
         WalletTheme {
             TransientFlowNavigation(
