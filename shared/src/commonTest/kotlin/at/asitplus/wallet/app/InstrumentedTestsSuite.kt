@@ -124,7 +124,7 @@ fun ComposeUiTest.endToEndTest() {
         }
 
         KoinApplication({
-            modules(appModule(), capabilitiesModule)
+            modules(appModule(), capabilitiesModule, module { single { walletDependencyProvider.buildContext } })
         }) {
             val sessionService = remember(walletDependencyProvider, intentState) {
                 SessionService().apply {
