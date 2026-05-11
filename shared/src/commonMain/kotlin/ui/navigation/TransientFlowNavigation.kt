@@ -77,12 +77,37 @@ fun TransientFlowNavigation(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    val initialLink = remember {
-        // appLink is always set alongside DC API data by registerDcapiPreRequest,
-        // registerDcapiInvocation, and applyPendingState, so reading appLink alone is sufficient.
-        intentState.appLink.value.also { link ->
-            if (link != null) intentState.appLink.value = null
+    fun startDestinationFor(link: String?): Route =
+        when (link) {
+            IntentService.IOS_DC_API_PRE_REQUEST ->
+                if (intentState.iosDcApiPreRequestData.value != null) IosDcApiPreRequestRoute else LoadingRoute
+            IntentService.IOS_DC_API_CALL ->
+                if (intentState.dcapiInvocationData.value != null) {
+                    intentService.handleIntent(IntentService.IOS_DC_API_CALL, IntentService.IntentType.DCAPIAuthorizationIntent)
+                } else {
+                    LoadingRoute
+                }
+            null -> LoadingRoute
+            else -> {
+                try {
+                    intentService.handleIntent(link)
+                } catch (e: Throwable) {
+                    Napier.e("TransientFlowNavigation could not parse initialLink", e)
+                    LoadingRoute
+                }
+            }
         }
+
+    val initialLink = remember {
+        val link = intentState.appLink.value ?: when {
+            intentState.iosDcApiPreRequestData.value != null -> IntentService.IOS_DC_API_PRE_REQUEST
+            intentState.dcapiInvocationData.value != null -> IntentService.IOS_DC_API_CALL
+            else -> null
+        }
+        if (intentState.appLink.value == link) {
+            intentState.appLink.value = null
+        }
+        link
     }
 
     val navigator: WalletNavigationController = remember(navController, scope) {
@@ -96,27 +121,12 @@ fun TransientFlowNavigation(
 
     val onClickLogo = { urlOpener("https://wallet.a-sit.at/") }
 
-    val startDestination = remember(initialLink) {
-        when (initialLink) {
-            null -> LoadingRoute
-            IntentService.IOS_DC_API_PRE_REQUEST -> IosDcApiPreRequestRoute
-            else -> {
-                try {
-                    intentService.handleIntent(initialLink)
-                } catch (e: Throwable) {
-                    Napier.e("TransientFlowNavigation could not parse initialLink", e)
-                    LoadingRoute
-                }
-            }
-        }
-    }
-
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { _ ->
         TransientFlowNavHost(
             navController = navController,
-            startDestination = startDestination,
+            startDestination = startDestinationFor(initialLink),
             navigator = navigator,
             onClickLogo = onClickLogo,
             onError = { e ->
@@ -276,6 +286,15 @@ private fun TransientFlowNavHost(
         }
 
         composable<IosDcApiPreRequestRoute> {
+            val preRequestData by intentState.iosDcApiPreRequestData.collectAsState()
+            val invocationData by intentState.dcapiInvocationData.collectAsState()
+
+            LaunchedEffect(preRequestData, invocationData) {
+                if (preRequestData == null && invocationData != null) {
+                    navigator.navigateNewGraph(DCAPIAuthorizationIntentRoute(IntentService.IOS_DC_API_CALL))
+                }
+            }
+
             IosDcApiPreRequestView(
                 intentState = intentState,
                 onError = onError,
