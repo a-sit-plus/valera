@@ -47,6 +47,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import ui.navigation.IntentService
 import kotlin.time.Clock.System
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 
 
@@ -310,7 +311,7 @@ class ProvisioningService(
 
     // Wait for the DataStore flow to emit a container that includes at least one new entry.
     private suspend fun resolveNewStoreEntryIds(idsBefore: Set<StoreEntryId>): List<StoreEntryId> {
-        return withTimeoutOrNull(1_000) {
+        return withTimeoutOrNull(3_000.milliseconds) {
             subjectCredentialStore.observeStoreContainer()
                 .map { container -> (container.credentials.map { it.first }.toSet() - idsBefore).toList() }
                 .first { it.isNotEmpty() }
