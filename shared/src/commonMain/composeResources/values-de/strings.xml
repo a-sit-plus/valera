@@ -253,7 +253,7 @@
     <string name="heading_label_show_data">Daten Vorzeigen</string>
     <string name="heading_label_show_data_third_party">Daten vorzeigen an dritte Bürger</string>
     <string name="heading_label_authentication_success">Angemeldet</string>
-    <string name="heading_label_credential_added_screen">Credential hinzugefügt</string>
+    <string name="heading_label_credential_added_screen">Ausweis hinzugefügt</string>
     <string name="heading_label_settings_screen">Einstellungen</string>
     <string name="heading_label_error_screen">Fehler</string>
     <string name="heading_label_loading_screen">Laden</string>

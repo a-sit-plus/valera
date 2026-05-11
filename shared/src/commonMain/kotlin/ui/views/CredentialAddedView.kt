@@ -166,7 +166,13 @@ fun CredentialAddedView(
             )
             credentialContent?.let {
                 Spacer(Modifier.height(24.dp))
-                it()
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    it()
+                }
             }
         }
     }
