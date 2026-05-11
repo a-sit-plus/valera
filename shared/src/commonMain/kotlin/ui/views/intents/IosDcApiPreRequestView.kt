@@ -2,9 +2,9 @@ package ui.views.intents
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.dcapi.IosParsedMdocRequestSummary
 import kotlinx.serialization.json.Json

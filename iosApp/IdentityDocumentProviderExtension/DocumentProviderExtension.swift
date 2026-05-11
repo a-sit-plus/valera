@@ -39,29 +39,56 @@ private struct ParsedRequestSummaryData {
     let summaryJson: String?
 }
 
+private struct ParsedRequestSummary: Encodable {
+    let documentRequests: [ParsedDocumentRequest]
+}
+
+private struct ParsedDocumentRequest: Encodable {
+    let docType: String
+    let namespaces: [String: [String: Bool]]
+}
+
+// The extension process can be reused across requests, so we need a stable fingerprint for
+// "same request vs. new request" detection that does not depend on object identity.
+private func buildRequestSignature(from requestContext: ISO18013MobileDocumentRequestContext) -> String {
+    let parsedRequestSummary = buildParsedRequestSummaryData(from: requestContext)
+    let originString = requestContext.requestingWebsiteOrigin?.absoluteString ?? ""
+    return originString + "|" + (parsedRequestSummary.summaryJson ?? "")
+}
+
 private func buildParsedRequestSummaryData(from requestContext: ISO18013MobileDocumentRequestContext) -> ParsedRequestSummaryData {
-    let documentRequests: [[String: Any]] = requestContext.request.presentmentRequests.flatMap { presentmentRequest in
+    let documentRequests: [ParsedDocumentRequest] = requestContext.request.presentmentRequests.flatMap { presentmentRequest in
         presentmentRequest.documentRequestSets.flatMap { documentRequestSet in
             documentRequestSet.requests.map { documentRequest in
+                // Sort namespaces and elements before encoding so the resulting JSON is stable
+                // across repeated setup calls for the same request.
                 let namespaces = Dictionary(
-                    uniqueKeysWithValues: documentRequest.namespaces.map { namespace, elements in
-                        return (namespace, elements.mapValues { value in
-                            value.isRetaining
-                        })
-                    }
+                    uniqueKeysWithValues: documentRequest.namespaces
+                        .sorted { lhs, rhs in lhs.key < rhs.key }
+                        .map { namespace, elements in
+                            let sortedElements = Dictionary(
+                                uniqueKeysWithValues: elements
+                                    .sorted { lhs, rhs in lhs.key < rhs.key }
+                                    .map { elementName, value in
+                                        (elementName, value.isRetaining)
+                                    }
+                            )
+                            return (namespace, sortedElements)
+                        }
                 )
-                return [
-                    "docType": documentRequest.documentType,
-                    "namespaces": namespaces
-                ]
+                return ParsedDocumentRequest(
+                    docType: documentRequest.documentType,
+                    namespaces: namespaces
+                )
             }
         }
     }
-    let summary: [String: Any] = [
-        "documentRequests": documentRequests
-    ]
-
-    let summaryJson = (try? JSONSerialization.data(withJSONObject: summary))
+    let summary = ParsedRequestSummary(documentRequests: documentRequests)
+    let encoder = JSONEncoder()
+    if #available(iOS 11.0, *) {
+        encoder.outputFormatting = [.sortedKeys]
+    }
+    let summaryJson = (try? encoder.encode(summary))
         .flatMap { String(data: $0, encoding: .utf8) }
 
     return ParsedRequestSummaryData(
@@ -103,8 +130,8 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
         
         class Coordinator {
             var requestStarted = false
-            // Tracks which requestContext was last wired up so updateUIViewController can detect a new request.
-            var lastRequestContext: ISO18013MobileDocumentRequestContext? = nil
+            // Tracks the last request fingerprint so updateUIViewController can detect a new request.
+            var lastRequestSignature: String? = nil
         }
 
         func makeCoordinator() -> Coordinator {
@@ -121,21 +148,30 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
         // controller. In that case SwiftUI calls updateUIViewController instead of makeUIViewController,
         // so we must detect the new requestContext and re-run the full setup.
         func updateUIViewController(_ uiViewController: StatefulViewController, context: Context) {
-            if requestContext !== context.coordinator.lastRequestContext {
+            let requestSignature = buildRequestSignature(from: requestContext)
+            if requestSignature != context.coordinator.lastRequestSignature {
                 setupForCurrentRequest(statefulViewController: uiViewController, context: context)
             }
+        }
+
+        private func markRequestFinished(context: Context) {
+            context.coordinator.requestStarted = false
+            context.coordinator.lastRequestSignature = nil
         }
 
         private func setupForCurrentRequest(statefulViewController: StatefulViewController, context: Context) {
             // Reset per-request state before wiring up the new request.
             context.coordinator.requestStarted = false
-            context.coordinator.lastRequestContext = requestContext
+            context.coordinator.lastRequestSignature = buildRequestSignature(from: requestContext)
 
             let originString: String? = requestContext.requestingWebsiteOrigin?.absoluteString
             let parsedRequestSummary = buildParsedRequestSummaryData(from: requestContext)
 
             let onCancel: () -> Void = {
                 Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onCancel called")
+                // Clear Kotlin-side transient state before cancelling the system request so the next
+                // external flow starts from a clean bridge state.
+                markRequestFinished(context: context)
                 IosSessionBridge.shared.clearDcapiPreRequest()
                 IosSessionBridge.shared.clearDcapiInvocation()
                 requestContext.cancel()
@@ -148,6 +184,8 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                 }
                 context.coordinator.requestStarted = true
 
+                // Once the user accepts the summary screen, replace the pre-request bridge object
+                // with the actual invocation state that will serve the credential response.
                 IosSessionBridge.shared.clearDcapiPreRequest()
                 Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onContinue called")
                 Task {
@@ -162,6 +200,9 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                                     continuation.resume(returning: data ?? Data())
                                 }
 
+                                // Hand the raw verifier request into shared Kotlin code, which drives
+                                // the actual consent/authentication flow and eventually calls back
+                                // into sendCredentialResponse.
                                 let invocationData = IosDCAPIInvocationData(
                                     rawRequest: String(decoding: rawRequest.requestData, as: UTF8.self),
                                     parsedRequestSummary: parsedRequestSummary.summaryJson,
@@ -173,16 +214,20 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                             }
 
                             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse handler finished")
+                            markRequestFinished(context: context)
                             return ISO18013MobileDocumentResponse(responseData: finalResponseData)
                         }
                     } catch {
                         Napier.shared.log(priority: LogLevel.error, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse failed: \(error)")
+                        markRequestFinished(context: context)
                         IosSessionBridge.shared.clearDcapiInvocation()
                         requestContext.cancel()
                     }
                 }
             }
 
+            // Expose the lightweight pre-request summary first so the UI can show the relying
+            // party and requested attributes before the verifier request is fully resumed.
             let preRequestData = IosDcApiPreRequestData(
                 parsedRequestSummary: parsedRequestSummary.summaryJson,
                 origin: originString,
