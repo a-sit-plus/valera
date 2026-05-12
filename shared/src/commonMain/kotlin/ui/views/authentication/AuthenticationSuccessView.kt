@@ -33,6 +33,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope
 import ui.composables.Logo
+import ui.composables.buttons.CloseButton
 import ui.composables.buttons.ConcludeButton
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.buttons.OpenUrlButton
@@ -87,6 +88,8 @@ fun AuthenticationSuccessView(
                 ) {
                     if (vm.isCrossDeviceFlow || vm.redirectUrl == null) {
                         ConcludeButton(navigateUp)
+                    } else {
+                        CloseButton(navigateUp)
                     }
                     if (vm.redirectUrl != null) {
                         OpenUrlButton({
