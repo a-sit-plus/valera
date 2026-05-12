@@ -316,12 +316,8 @@ class IosPlatformAdapter(
 
     override fun prepareDCAPICredentialResponse(response: String, success: Boolean) {
         Napier.w("Got error response: $response")
-        //TODO is there a way to convey error responses via ISO18013-7?
-        // send empty response for now
-        (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let {
-            it.sendCredentialResponse.invoke(ByteArray(0).toNSData())
-            IosSessionBridge.clearDcapiInvocation()
-        } ?: throw IllegalStateException("Callback for response not found")
+        (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.onCancel()
+            ?: throw IllegalStateException("Callback for response not found")
     }
 
     override fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean) =
