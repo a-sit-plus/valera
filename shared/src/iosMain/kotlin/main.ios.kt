@@ -287,7 +287,6 @@ class IosPlatformAdapter(
                 val isoMdocRequest = it.rawRequest?.let { request -> Json.decodeFromString<IsoMdocRequest>(request) }
                     ?: throw IllegalStateException("No request data available")
                 Napier.d("getCurrentDCAPIVerificationData: rawRequest docTypes=${isoMdocRequest.deviceRequest.docRequests.map { req -> req.itemsRequest.value.docType }}")
-                Napier.d("getCurrentDCAPIVerificationData: rawRequest namespaces=${isoMdocRequest.deviceRequest.docRequests.map { req -> req.itemsRequest.value.namespaces.mapValues { (_, items) -> items.map { (id, item) -> "$id→retain=${item.intentToRetain}" } } }}")
                 val parsedRequestSummary = it.parsedRequestSummary?.let { summary ->
                     Json.decodeFromString<IosParsedMdocRequestSummary>(summary)
                 } ?: throw IllegalStateException("No parsed request summary available")
@@ -323,7 +322,6 @@ class IosPlatformAdapter(
         (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let {
             Napier.d("prepareDCAPICredentialResponse called with $response")
             val encodedResponse = coseCompliantSerializer.encodeToByteArray(response)
-            Napier.d("encodedResponse: ${encodedResponse.toHexString()}")
             it.sendCredentialResponse.invoke(encodedResponse.toNSData())
             IosSessionBridge.clearDcapiInvocation()
         } ?: throw IllegalStateException("Callback for response not found")
