@@ -360,6 +360,7 @@ private fun TransientFlowNavHost(
                 onClickSettings = { navigator.navigate(SettingsRoute) },
                 koinScope = koinScope,
                 onNavigateUp = navigator::invocationAwareBack,
+                showStartRoute = false,
             )
         }
 

@@ -46,6 +46,7 @@ fun PresentationGraphView(
     transactionData: TransactionDataBase64Url?,
     presentationRequest: CredentialPresentationRequest?,
     navigateUpIsClose: Boolean = false,
+    showStartRoute: Boolean = true,
 ) {
     LaunchedEffect(selectionProvider) {
         selectionProvider.let {
@@ -63,7 +64,7 @@ fun PresentationGraphView(
 
     NavHost(
         navController = navController,
-        startDestination = PresentationStartRoute::class,
+        startDestination = if (showStartRoute) PresentationStartRoute::class else PresentationBuilderGraphRoute::class,
         popEnterTransition = {
             slideIntoContainer(
                 towards = AnimatedContentTransitionScope.SlideDirection.End,
