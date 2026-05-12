@@ -118,6 +118,87 @@ class IosParsedMdocRequestSummaryTest {
     }
 
     @Test
+    fun changedRetainFlagIsInconsistent() {
+        val rawRequest = rawRequest(
+            "org.iso.18013.5.1.mDL" to mapOf(
+                "org.iso.18013.5.1" to mapOf(
+                    "family_name" to false,
+                    "given_name" to true
+                )
+            )
+        )
+
+        val summary = IosParsedMdocRequestSummary(
+            documentRequests = listOf(
+                IosParsedMdocDocumentRequest(
+                    docType = "org.iso.18013.5.1.mDL",
+                    namespaces = mapOf(
+                        "org.iso.18013.5.1" to mapOf(
+                            "family_name" to false,
+                            "given_name" to false
+                        )
+                    )
+                )
+            )
+        )
+
+        assertFalse(summary.isConsistentWith(rawRequest))
+    }
+
+    @Test
+    fun missingDocumentIsInconsistent() {
+        val rawRequest = rawRequest(
+            "org.iso.18013.5.1.mDL" to mapOf(
+                "org.iso.18013.5.1" to mapOf("family_name" to false)
+            ),
+            "eu.europa.ec.eudi.pid.1" to mapOf(
+                "eu.europa.ec.eudi.pid.1" to mapOf("birth_date" to true)
+            )
+        )
+
+        val summary = IosParsedMdocRequestSummary(
+            documentRequests = listOf(
+                IosParsedMdocDocumentRequest(
+                    docType = "org.iso.18013.5.1.mDL",
+                    namespaces = mapOf(
+                        "org.iso.18013.5.1" to mapOf("family_name" to false)
+                    )
+                )
+            )
+        )
+
+        assertFalse(summary.isConsistentWith(rawRequest))
+    }
+
+    @Test
+    fun extraDocumentIsInconsistent() {
+        val rawRequest = rawRequest(
+            "org.iso.18013.5.1.mDL" to mapOf(
+                "org.iso.18013.5.1" to mapOf("family_name" to false)
+            )
+        )
+
+        val summary = IosParsedMdocRequestSummary(
+            documentRequests = listOf(
+                IosParsedMdocDocumentRequest(
+                    docType = "org.iso.18013.5.1.mDL",
+                    namespaces = mapOf(
+                        "org.iso.18013.5.1" to mapOf("family_name" to false)
+                    )
+                ),
+                IosParsedMdocDocumentRequest(
+                    docType = "eu.europa.ec.eudi.pid.1",
+                    namespaces = mapOf(
+                        "eu.europa.ec.eudi.pid.1" to mapOf("birth_date" to true)
+                    )
+                )
+            )
+        )
+
+        assertFalse(summary.isConsistentWith(rawRequest))
+    }
+
+    @Test
     fun summaryConvertsToDifInputDescriptors() {
         val summary = IosParsedMdocRequestSummary(
             documentRequests = listOf(
