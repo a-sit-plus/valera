@@ -141,17 +141,7 @@ public class AndroidPlatformAdapter(
     override fun getCameraPermission(): Boolean? {
         (context as? Activity)?.let { activity ->
             val permission = Manifest.permission.CAMERA
-            return when {
-                ContextCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED -> {
-                    true
-                }
-                ActivityCompat.shouldShowRequestPermissionRationale(activity, permission) -> {
-                    false
-                }
-                else -> {
-                    null
-                }
-            }
+            return ContextCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED
         }
         return null
     }

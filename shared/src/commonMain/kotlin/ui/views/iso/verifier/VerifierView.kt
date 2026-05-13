@@ -94,7 +94,13 @@ fun VerifierView(
             VerifierCustomSelectionView(onClickLogo, onClickSettings, { vm.setState(VerifierState.SelectDocument) }, vm)
         is VerifierState.SelectCombinedRequest ->
             VerifierCombinedSelectionView(onClickLogo, onClickSettings, { vm.setState(VerifierState.SelectDocument) }, vm)
-        is VerifierState.QrEngagement -> VerifierQrEngagementView(onClickLogo, { vm.setState(vm.engagementPreviousState) }, vm)
+        is VerifierState.QrEngagement -> VerifierQrEngagementView(
+            onClickLogo = onClickLogo,
+            onClickSettings = onClickSettings,
+            navigateUp = { vm.setState(vm.engagementPreviousState) },
+            vm = vm,
+            koinScope = koinScope,
+        )
         is VerifierState.WaitingForResponse -> LoadingView(
             customLabel = stringResource(Res.string.info_text_waiting_for_response),
             navigateUp = vm.onResume
