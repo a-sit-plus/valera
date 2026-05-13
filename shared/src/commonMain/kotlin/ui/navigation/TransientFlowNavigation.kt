@@ -40,6 +40,7 @@ import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import io.github.aakira.napier.Napier
@@ -240,6 +241,7 @@ private fun TransientFlowNavHost(
     onError: (Throwable) -> Unit,
     koinScope: Scope,
     walletMain: WalletMain = koinInject(scope = koinScope),
+    localPresentmentSessionCoordinator: LocalPresentmentSessionCoordinator = koinInject(scope = koinScope),
     intentState: IntentState,
 ) {
     NavHost(
@@ -330,14 +332,15 @@ private fun TransientFlowNavHost(
             PresentationIntentView(remember {
                 PresentationIntentViewModel(
                     walletMain = walletMain,
+                    localPresentmentSessionCoordinator = localPresentmentSessionCoordinator,
                     intentState = intentState,
                     uri = backStackEntry.toRoute<PresentationIntentRoute>().uri,
                     onSuccess = { route ->
                         Napier.d("valid presentation request")
                         navigator.navigateNewGraph(route)
                     },
-                    onFailure = {
-                        walletMain.errorService.emit(Exception("Invalid Presentation Request"))
+                    onFailure = { error ->
+                        walletMain.errorService.emit(error)
                     })
             })
         }
@@ -365,9 +368,14 @@ private fun TransientFlowNavHost(
         }
 
         composable<LocalPresentationAuthenticationConsentRoute> { backStackEntry ->
+            val activeSession = remember {
+                localPresentmentSessionCoordinator.activeSession()?.also { session ->
+                    localPresentmentSessionCoordinator.markUiAttached(session.sessionId)
+                }
+            }
             val vm = remember {
                 try {
-                    intentState.presentationStateModel.value?.let {
+                    activeSession?.presentationStateModel?.let {
                         PresentationViewModel(
                             presentationStateModel = it,
                             navigateUp = { navigator.popToInvoker() },
@@ -386,10 +394,22 @@ private fun TransientFlowNavHost(
             if (vm != null) {
                 PresentationView(
                     vm,
-                    onPresentmentComplete = { navigator.popToInvoker() },
+                    onPresentmentComplete = {
+                        activeSession?.let { session ->
+                            localPresentmentSessionCoordinator.finishSession(session.sessionId, "transient-presentment-complete")
+                        }
+                        intentState.presentationStateModel.value = null
+                        intentState.presentationStateModelProvider = null
+                        navigator.popToInvoker()
+                    },
                     coroutineScope = walletMain.scope,
                     walletMain.snackbarService,
                     onError = { e ->
+                        activeSession?.let { session ->
+                            localPresentmentSessionCoordinator.finishSession(session.sessionId, "transient-presentment-error")
+                        }
+                        intentState.presentationStateModel.value = null
+                        intentState.presentationStateModelProvider = null
                         walletMain.errorService.emit(e)
                     }
                 )

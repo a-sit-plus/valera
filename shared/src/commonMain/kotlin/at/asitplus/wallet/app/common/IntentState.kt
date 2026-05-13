@@ -26,6 +26,18 @@ class IntentState {
     val presentationStateModel = MutableStateFlow<PresentationStateModel?>(null)
 
     /**
+     * Optional provider for the active local presentment model.
+     *
+     * This is used by platform entrypoints that receive an external presentation trigger before
+     * the UI flow is fully established. It allows the destination ViewModel to resolve the latest
+     * model lazily instead of depending solely on an eagerly-copied StateFlow value.
+     */
+    private val _presentationStateModelProvider = atomic<(() -> PresentationStateModel?)?>(null)
+    var presentationStateModelProvider: (() -> PresentationStateModel?)?
+        get() = _presentationStateModelProvider.value
+        set(value) { _presentationStateModelProvider.value = value }
+
+    /**
      * Optional platform callback for "finish/return to caller".
      *
      * Platforms that cannot or should not close the host app can leave this `null`.
@@ -47,6 +59,7 @@ class IntentState {
         dcapiInvocationData.value = null
         iosDcApiPreRequestData.value = null
         presentationStateModel.value = null
+        presentationStateModelProvider = null
         finishApp = null
     }
 }

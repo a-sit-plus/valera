@@ -87,4 +87,9 @@ class PresentationViewModel(
             OpenId4VpWallet.AuthenticationSuccess(null)
         } ?: throw IllegalStateException("No finish method found")
 
+    override fun handleAuthenticationSuccess(result: OpenId4VpWallet.AuthenticationSuccess) {
+        // Local presentment must keep the sheet alive until the presenter coroutine has sent the
+        // device response and the transport flow completes.
+    }
+
 }

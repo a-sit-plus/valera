@@ -130,7 +130,9 @@ class PresentationService(
             else -> throw PresentationException(IllegalStateException("Must be a device response"))
         }
 
+        Napier.d("Local presentation created device response with ${deviceResponse.size} bytes")
         finishFunction(deviceResponse)
+        Napier.d("Local presentation handed device response back to presenter")
     }
 
 }

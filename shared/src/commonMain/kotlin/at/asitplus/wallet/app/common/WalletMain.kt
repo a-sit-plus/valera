@@ -11,6 +11,7 @@ import at.asitplus.valera.resources.snackbar_update_hint
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.dcapi.DCAPIExportService
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
+import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
@@ -58,6 +59,7 @@ class WalletMain(
     val errorService: ErrorService,
     val snackbarService: SnackbarService,
     val settingsRepository: SettingsRepository,
+    val localPresentmentSessionCoordinator: LocalPresentmentSessionCoordinator,
     val sessionService: SessionService,
     val capabilitiesService: CapabilitiesService,
     val credentialValidityService: CredentialValidityService,
@@ -90,6 +92,7 @@ class WalletMain(
         subjectCredentialStore.reset()
         signingService.reset()
         capabilitiesService.reset()
+        localPresentmentSessionCoordinator.resetAll("wallet-reset")
 
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_VCS)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
@@ -105,6 +108,7 @@ class WalletMain(
         Napier.d("Perform soft reset")
         appReady.value = false
         KeystoreService.clearKeyMaterial()
+        localPresentmentSessionCoordinator.resetAll("wallet-soft-reset")
         sessionService.newScope()
     }
 

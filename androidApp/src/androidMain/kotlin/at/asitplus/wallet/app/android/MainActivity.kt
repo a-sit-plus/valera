@@ -10,6 +10,7 @@ import at.asitplus.wallet.app.common.SessionService
 import io.github.aakira.napier.Napier
 import org.multipaz.prompt.AndroidPromptModel
 import org.multipaz.prompt.PromptModel
+import ui.navigation.IntentService.Companion.PRESENTATION_REQUESTED_INTENT
 
 class MainActivity : AbstractWalletActivity() {
     private val intentState = IntentState()
@@ -51,7 +52,23 @@ class MainActivity : AbstractWalletActivity() {
 
     override fun populateLink(intent: Intent) {
         Napier.d("MainActivity.populateLink url=${intent.data} action=${intent.action}")
-        intentState.appLink.value = intent.data?.toString()
+        when (intent.action) {
+            PRESENTATION_REQUESTED_INTENT -> {
+                Napier.d("MainActivity PRESENTATION_REQUESTED_INTENT")
+                intentState.presentationStateModelProvider = {
+                    NdefDeviceEngagementService.currentPresentationStateModel
+                }
+                intentState.presentationStateModel.value = NdefDeviceEngagementService.currentPresentationStateModel
+                intentState.appLink.value = PRESENTATION_REQUESTED_INTENT
+            }
+
+            else -> {
+                Napier.d("MainActivity appLink=${intent.data}")
+                intentState.presentationStateModel.value = null
+                intentState.presentationStateModelProvider = null
+                intentState.appLink.value = intent.data?.toString()
+            }
+        }
     }
 
     override fun onNewIntent(intent: Intent) {

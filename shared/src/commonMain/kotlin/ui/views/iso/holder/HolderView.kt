@@ -32,12 +32,13 @@ import ui.viewmodels.iso.holder.HolderViewModel
 import ui.views.LoadingView
 import ui.views.iso.common.MissingPreconditionView
 import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HolderView(
     navigateUp: () -> Unit,
-    onNavigateToPresentmentScreen: (PresentationStateModel) -> Unit,
+    onNavigateToPresentmentScreen: () -> Unit,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
     bottomBar: @Composable () -> Unit,
@@ -55,8 +56,9 @@ fun HolderView(
 
     val settingsReady by vm.settingsReady.collectAsStateWithLifecycle()
     val holderState by vm.holderState.collectAsState()
-    val presentationState by remember(vm.presentationStateModel) {
-        vm.presentationStateModel.state
+    val presentationStateModel = vm.presentationStateModel
+    val presentationState by remember(presentationStateModel) {
+        presentationStateModel?.state ?: MutableStateFlow(PresentationStateModel.State.IDLE)
     }.collectAsStateWithLifecycle()
 
     LaunchedEffect(transferSettingsState) {
@@ -138,15 +140,20 @@ fun HolderView(
             LaunchedEffect(holderState) {
                 if (vm.hasBeenCalledHack) return@LaunchedEffect
                 vm.hasBeenCalledHack = true
-                vm.setupPresentmentModel(
-                    bluetoothPermissionState,
-                    transferSettingsState.ble.required
-                )
-                vm.doHolderFlow(
-                    transferSettingsState.ble.settingOn,
-                    transferSettingsState.nfc.settingOn
-                ) { error ->
-                    handleError(error, vm, onNavigateToPresentmentScreen, onError)
+                runCatching {
+                    vm.setupPresentmentModel(
+                        bluetoothPermissionState,
+                        transferSettingsState.ble.required
+                    )
+                    vm.doHolderFlow(
+                        transferSettingsState.ble.settingOn,
+                        transferSettingsState.nfc.settingOn
+                    ) { error ->
+                        handleError(error, vm, onNavigateToPresentmentScreen, onError)
+                    }
+                }.onFailure {
+                    vm.finishPresentmentSession("holder-start-error")
+                    onError(it)
                 }
             }
         }
@@ -160,11 +167,14 @@ fun HolderView(
 private fun handleError(
     error: Throwable?,
     vm: HolderViewModel,
-    onNavigateToPresentmentScreen: (PresentationStateModel) -> Unit,
+    onNavigateToPresentmentScreen: () -> Unit,
     onError: (Throwable) -> Unit
 ) {
     when {
-        error == null -> onNavigateToPresentmentScreen(vm.presentationStateModel)
+        error == null -> {
+            vm.markPresentmentUiAttached()
+            onNavigateToPresentmentScreen()
+        }
         error is CancellationException &&
                 error.message?.contains("PresentationModel reset") == true -> {
             Napier.i(
@@ -172,6 +182,9 @@ private fun handleError(
                 tag = "ShowQrCodeView"
             )
         }
-        else -> onError(error)
+        else -> {
+            vm.finishPresentmentSession("holder-flow-error")
+            onError(error)
+        }
     }
 }

@@ -6,9 +6,11 @@ import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.RealCapabilitiesService
 import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.app.common.data.di.dataModule
 import at.asitplus.wallet.app.common.domain.di.domainModule
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.scopedOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.binds
@@ -16,6 +18,8 @@ import org.koin.dsl.module
 import ui.navigation.IntentService
 
 fun appModule(): Module = module {
+    singleOf(::LocalPresentmentSessionCoordinator)
+
     scope(named(SESSION_NAME)) {
         scopedOf(::WalletMain)
         scopedOf(::ErrorService)

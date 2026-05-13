@@ -12,7 +12,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,14 +73,6 @@ fun PresentationView(
         presentationViewModel.navigateUp
 
     val blePermissionState = rememberBluetoothPermissionState()
-
-    // Make sure we clean up the PresentmentModel when we're done. This is to ensure
-    // the mechanism is properly shut down, for example for proximity we need to release
-    // all BLE and NFC resources.
-    //
-    DisposableEffect(presentationStateModel) {
-        onDispose { presentationStateModel.reset() }
-    }
 
     val state = presentationStateModel.state.collectAsState().value
     when (state) {
