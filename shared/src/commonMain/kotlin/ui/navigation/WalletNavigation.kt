@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -39,7 +40,11 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.dcapi.issuance.DigitalCredentialOfferReturn
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_error_action_return_to_invoker
+import at.asitplus.valera.resources.refresh_snackbar_action
+import at.asitplus.valera.resources.refresh_snackbar_message_multiple
+import at.asitplus.valera.resources.refresh_snackbar_message_single
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.KeystoreService
@@ -47,6 +52,7 @@ import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.data.SettingsRepository
+import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import io.github.aakira.napier.Napier
@@ -145,6 +151,7 @@ fun WalletNavigation(
                 errorService.emit(e)
             },
             koinScope = koinScope,
+            snackbarHostState = snackbarHostState,
             intentState = intentState,
         )
     }
@@ -207,8 +214,10 @@ private fun WalletNavHost(
     onClickLogo: () -> Unit,
     onError: (Throwable) -> Unit,
     koinScope: Scope,
+    snackbarHostState: SnackbarHostState,
     walletMain: WalletMain = koinInject(scope = koinScope),
     settingsRepository: SettingsRepository = koinInject(scope = koinScope),
+    localPresentmentSessionCoordinator: LocalPresentmentSessionCoordinator = koinInject(scope = koinScope),
     intentState: IntentState,
 ) {
 
@@ -226,34 +235,42 @@ private fun WalletNavHost(
         }
     }
 
-    if (!isOnRefreshCenter && items.size == 1) {
-        val item = items.first()
-        if (!processedItemIds.contains(item.storeEntryId)) {
-            RefreshConfirmationDialog(
-                entry = item.entry,
-                onConfirm = {
-                    processedItemIds = processedItemIds + item.storeEntryId
-                    walletMain.credentialValidityService.refreshSingleWithStatus(item)
-                    navController.navigate(RefreshCenterRoute) { launchSingleTop = true }
-                },
-                onDismiss = {
-                    walletMain.credentialValidityService.removeRefreshRequest(item)
-                }
-            )
+    val singleRefreshItem = if (!isOnRefreshCenter && items.size == 1) items.first() else null
+    LaunchedEffect(singleRefreshItem?.storeEntryId) {
+        val item = singleRefreshItem ?: return@LaunchedEffect
+        if (processedItemIds.contains(item.storeEntryId)) return@LaunchedEffect
+        processedItemIds = processedItemIds + item.storeEntryId
+        val result = snackbarHostState.showSnackbar(
+            message = getString(Res.string.refresh_snackbar_message_single, item.entry.scheme.uiLabelNonCompose()),
+            actionLabel = getString(Res.string.refresh_snackbar_action),
+            withDismissAction = true,
+            duration = SnackbarDuration.Long,
+        )
+        when (result) {
+            SnackbarResult.ActionPerformed -> {
+                walletMain.credentialValidityService.refreshSingleWithStatus(item)
+                navController.navigate(RefreshCenterRoute) { launchSingleTop = true }
+            }
+            SnackbarResult.Dismissed -> walletMain.credentialValidityService.removeRefreshRequest(item)
         }
     }
 
-    if (!isOnRefreshCenter && items.size > 1 && !hasNavigatedToCenter) {
-        RefreshConfirmationDialog(
-            entry = null,
-            onConfirm = {
+    val shouldShowMultipleSnackbar = !isOnRefreshCenter && items.size > 1 && !hasNavigatedToCenter
+    LaunchedEffect(shouldShowMultipleSnackbar) {
+        if (!shouldShowMultipleSnackbar) return@LaunchedEffect
+        val result = snackbarHostState.showSnackbar(
+            message = getString(Res.string.refresh_snackbar_message_multiple),
+            actionLabel = getString(Res.string.refresh_snackbar_action),
+            withDismissAction = true,
+            duration = SnackbarDuration.Long,
+        )
+        when (result) {
+            SnackbarResult.ActionPerformed -> {
                 hasNavigatedToCenter = true
                 navController.navigate(RefreshCenterRoute) { launchSingleTop = true }
-            },
-            onDismiss = {
-                walletMain.credentialValidityService.clearAllRefreshRequests()
             }
-        )
+            SnackbarResult.Dismissed -> walletMain.credentialValidityService.clearAllRefreshRequests()
+        }
     }
 
     LaunchedEffect(items.size, isOnRefreshCenter) {
@@ -364,7 +381,6 @@ private fun WalletNavHost(
                 onClickLogo = onClickLogo,
                 onClickSettings = { navigator.navigate(SettingsRoute) },
                 onNavigateToPresentmentScreen = {
-                    intentState.presentationStateModel.value = it
                     navigator.navigate(LocalPresentationAuthenticationConsentRoute)
                 },
                 bottomBar = {
@@ -420,9 +436,14 @@ private fun WalletNavHost(
         }
 
         composable<LocalPresentationAuthenticationConsentRoute> { backStackEntry ->
+            val activeSession = remember {
+                localPresentmentSessionCoordinator.activeSession()?.also { session ->
+                    localPresentmentSessionCoordinator.markUiAttached(session.sessionId)
+                }
+            }
             val vm = remember {
                 try {
-                    intentState.presentationStateModel.value?.let {
+                    activeSession?.presentationStateModel?.let {
                         PresentationViewModel(
                             presentationStateModel = it,
                             navigateUp = { navigator.navigateBack() },
@@ -444,11 +465,21 @@ private fun WalletNavHost(
                 PresentationView(
                     vm,
                     onPresentmentComplete = {
+                        activeSession?.let { session ->
+                            localPresentmentSessionCoordinator.finishSession(session.sessionId, "wallet-presentment-complete")
+                        }
+                        intentState.presentationStateModel.value = null
+                        intentState.presentationStateModelProvider = null
                         navigator.popToInvoker()
                     },
                     coroutineScope = walletMain.scope,
                     walletMain.snackbarService,
                     onError = { e ->
+                        activeSession?.let { session ->
+                            localPresentmentSessionCoordinator.finishSession(session.sessionId, "wallet-presentment-error")
+                        }
+                        intentState.presentationStateModel.value = null
+                        intentState.presentationStateModelProvider = null
                         navigator.popToInvoker()
                         walletMain.errorService.emit(e)
                     }
@@ -970,6 +1001,7 @@ private fun WalletNavHost(
             PresentationIntentView(remember {
                 PresentationIntentViewModel(
                     walletMain = walletMain,
+                    localPresentmentSessionCoordinator = localPresentmentSessionCoordinator,
                     intentState = intentState,
                     uri = backStackEntry.toRoute<PresentationIntentRoute>().uri,
                     onSuccess = { route ->
@@ -977,8 +1009,8 @@ private fun WalletNavHost(
                         navigator.navigateBack()
                         navigator.navigate(route)
                     },
-                    onFailure = {
-                        walletMain.errorService.emit(Exception("Invalid Presentation Request"))
+                    onFailure = { error ->
+                        walletMain.errorService.emit(error)
                     })
             })
         }
