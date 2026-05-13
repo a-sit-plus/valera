@@ -160,6 +160,130 @@ class IosParsedMdocRequestSummaryTest {
         )
     }
 
+    @Test
+    fun changedRetainFlagIsInconsistent() {
+        val rawRequest = rawRequest(
+            "org.iso.18013.5.1.mDL" to mapOf(
+                "org.iso.18013.5.1" to mapOf(
+                    "family_name" to false,
+                    "given_name" to true
+                )
+            )
+        )
+
+        val summary = IosParsedMdocRequestSummary(
+            documentRequests = listOf(
+                IosParsedMdocDocumentRequest(
+                    docType = "org.iso.18013.5.1.mDL",
+                    namespaces = mapOf(
+                        "org.iso.18013.5.1" to mapOf(
+                            "family_name" to false,
+                            "given_name" to false
+                        )
+                    )
+                )
+            )
+        )
+
+        assertFalse(summary.isConsistentWith(rawRequest))
+    }
+
+    @Test
+    fun missingDocumentIsInconsistent() {
+        val rawRequest = rawRequest(
+            "org.iso.18013.5.1.mDL" to mapOf(
+                "org.iso.18013.5.1" to mapOf("family_name" to false)
+            ),
+            "eu.europa.ec.eudi.pid.1" to mapOf(
+                "eu.europa.ec.eudi.pid.1" to mapOf("birth_date" to true)
+            )
+        )
+
+        val summary = IosParsedMdocRequestSummary(
+            documentRequests = listOf(
+                IosParsedMdocDocumentRequest(
+                    docType = "org.iso.18013.5.1.mDL",
+                    namespaces = mapOf(
+                        "org.iso.18013.5.1" to mapOf("family_name" to false)
+                    )
+                )
+            )
+        )
+
+        assertFalse(summary.isConsistentWith(rawRequest))
+    }
+
+    @Test
+    fun extraDocumentIsInconsistent() {
+        val rawRequest = rawRequest(
+            "org.iso.18013.5.1.mDL" to mapOf(
+                "org.iso.18013.5.1" to mapOf("family_name" to false)
+            )
+        )
+
+        val summary = IosParsedMdocRequestSummary(
+            documentRequests = listOf(
+                IosParsedMdocDocumentRequest(
+                    docType = "org.iso.18013.5.1.mDL",
+                    namespaces = mapOf(
+                        "org.iso.18013.5.1" to mapOf("family_name" to false)
+                    )
+                ),
+                IosParsedMdocDocumentRequest(
+                    docType = "eu.europa.ec.eudi.pid.1",
+                    namespaces = mapOf(
+                        "eu.europa.ec.eudi.pid.1" to mapOf("birth_date" to true)
+                    )
+                )
+            )
+        )
+
+        assertFalse(summary.isConsistentWith(rawRequest))
+    }
+
+    @Test
+    fun summaryConvertsToDifInputDescriptors() {
+        val summary = IosParsedMdocRequestSummary(
+            documentRequests = listOf(
+                IosParsedMdocDocumentRequest(
+                    docType = "org.iso.18013.5.1.mDL",
+                    namespaces = mapOf(
+                        "org.iso.18013.5.1" to mapOf(
+                            "family_name" to false,
+                            "given_name" to true
+                        )
+                    )
+                )
+            )
+        )
+
+        val descriptors = summary.toDifInputDescriptors()
+
+        assertEquals(1, descriptors.size)
+        assertEquals("org.iso.18013.5.1.mDL", descriptors.single().id)
+        val fields = descriptors.single().constraints?.fields.orEmpty()
+        val familyNamePath = NormalizedJsonPath(
+            NameSegment("org.iso.18013.5.1"),
+            NameSegment("family_name"),
+        ).toString()
+        val givenNamePath = NormalizedJsonPath(
+            NameSegment("org.iso.18013.5.1"),
+            NameSegment("given_name"),
+        ).toString()
+        assertEquals(2, fields.size)
+        assertEquals(
+            setOf(familyNamePath, givenNamePath),
+            fields.map { it.path.single() }.toSet()
+        )
+        assertEquals(
+            mapOf(
+                familyNamePath to false,
+                givenNamePath to true
+            ),
+            fields.associate { it.path.single() to it.intentToRetain }
+        )
+    }
+
     private fun rawRequest(vararg docs: Pair<String, Map<String, Map<String, Boolean>>>) = IsoMdocRequest(
         deviceRequest = DeviceRequest(
             version = "1.0",

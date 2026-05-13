@@ -15,6 +15,7 @@ fun DCAPIPresentationGraphView(
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
     koinScope: Scope,
+    showStartRoute: Boolean = true,
     viewModel: DCAPIPresentationGraphViewModel = koinViewModel(scope = koinScope),
 ) {
     val isoMdocRequest = try {
@@ -60,5 +61,6 @@ fun DCAPIPresentationGraphView(
         transactionData = null,
         presentationRequest = (matchingResult as? UiStateSuccess)?.value?.second
             ?.queryMatchingResult?.presentationRequest,
+        showStartRoute = showStartRoute,
     )
 }

@@ -360,6 +360,7 @@ private fun TransientFlowNavHost(
                 onClickSettings = { navigator.navigate(SettingsRoute) },
                 koinScope = koinScope,
                 onNavigateUp = navigator::invocationAwareBack,
+                showStartRoute = false,
             )
         }
 
@@ -735,7 +736,7 @@ private fun TransientFlowNavHost(
                 version = walletMain.buildContext.versionName,
                 onClickShareLogFile = { navigator.navigate(LogRoute) },
                 onClickLogo = onClickLogo,
-                onClickSettings = { navigator.popToInvoker() },
+                onClickSettings = navigator::navigateBack,
                 onClickBack = navigator::navigateBack,
                 onClickFAQs = null,
                 onClickDataProtectionPolicy = null,

@@ -6,16 +6,13 @@ import at.asitplus.signum.supreme.UserInitiatedCancellationReason
 import at.asitplus.dcapi.DCAPIInfo
 import at.asitplus.dcapi.EncryptedResponse
 import at.asitplus.dcapi.EncryptedResponseData
+import at.asitplus.signum.supreme.UserInitiatedCancellationReason
 import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.iso.DeviceAuthentication
 import at.asitplus.iso.SessionTranscript
-import at.asitplus.iso.serializeOrigin
-import at.asitplus.iso.sha256
 import at.asitplus.iso.wrapInCborTag
-import at.asitplus.signum.indispensable.cosef.CoseKeyParams
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
-import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.wallet.lib.agent.CreatePresentationResult
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.PresentationException
@@ -28,13 +25,8 @@ import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
-import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.encodeToByteArray
-import org.multipaz.crypto.EcCurve
-import org.multipaz.crypto.EcPublicKeyDoubleCoordinate
-import org.multipaz.crypto.Hpke
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 class PresentationService(
     val platformAdapter: PlatformAdapter,
@@ -67,91 +59,18 @@ class PresentationService(
         preparationState = preparationState
     ).getOrThrow()
 
-    @OptIn(ExperimentalEncodingApi::class, ExperimentalStdlibApi::class)
+    @OptIn(ExperimentalStdlibApi::class)
     suspend fun finalizeIsoMdocDCAPIPresentation(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
         isoMdocWalletRequest: DCAPIWalletRequest.IsoMdoc
     ): OpenId4VpWallet.AuthenticationSuccess {
         Napier.d("Finalizing DCAPI response")
-
-        // TODO this code is probably duplicated in the Verifier
-        val hash = coseCompliantSerializer.encodeToByteArray(
-            DCAPIInfo(isoMdocWalletRequest.isoMdocRequest.encryptionInfo, isoMdocWalletRequest.callingOrigin)
-        ).sha256()
-        val handover = DCAPIHandover(type = TYPE_DCAPI, hash = hash)
-        val sessionTranscript = SessionTranscript.forDcApi(handover)
-        val callingOrigin = isoMdocWalletRequest.callingOrigin.serializeOrigin() ?:
-            throw IllegalArgumentException("Invalid calling origin")
-
-        val presentationResult = holderAgent.createPresentation(
-            request = PresentationRequestParameters(
-                nonce = isoMdocWalletRequest.isoMdocRequest.encryptionInfo.encryptionParameters.nonce
-                    ?.encodeToString(Base64UrlStrict) ?: throw IllegalArgumentException("no nonce"),
-                audience = callingOrigin,
-                calcIsoDeviceSignaturePlain = { input ->
-                    val deviceAuthentication = DeviceAuthentication(
-                        type = DeviceAuthentication.TYPE,
-                        sessionTranscript = sessionTranscript,
-                        docType = input.docType,
-                        namespaces = input.deviceNameSpaceBytes
-                    )
-
-                    val deviceAuthenticationBytes = coseCompliantSerializer
-                        .encodeToByteArray(ByteStringWrapper(deviceAuthentication))
-                        .wrapInCborTag(24)
-                    Napier.d("Device authentication signature input is ${deviceAuthenticationBytes.toHexString()}")
-                    SignCoseDetached<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
-                        .invoke(null, null, deviceAuthenticationBytes, ByteArraySerializer())
-                        .getOrElse { e ->
-                            Napier.w("Could not create DeviceAuth for presentation", e)
-                            // Unwrap user cancellation (e.g. biometric dismissed) so callers can
-                            // treat it separately from real errors.
-                            throw generateSequence(e as Throwable?) { it.cause }
-                                .filterIsInstance<UserInitiatedCancellationReason>()
-                                .firstOrNull() ?: PresentationException(e)
-                        }
-                },
-            ),
+        val encryptedResponse = IsoMdocDcapiResponseBuilder.buildEncryptedResponse(
             credentialPresentation = credentialPresentation,
+            isoMdocWalletRequest = isoMdocWalletRequest,
+            keyMaterial = keyMaterial,
+            holderAgent = holderAgent,
         )
-
-        val presentation =
-            presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
-
-        val deviceResponse = when (val firstResult = presentation.presentationResults.firstOrNull()
-            ?: throw PresentationException(IllegalStateException("Presentation did not return any device response"))) {
-            is CreatePresentationResult.DeviceResponse -> firstResult.deviceResponse
-            else -> throw PresentationException(IllegalStateException("Must be a device response"))
-        }
-        val deviceResponseSerialized =
-            coseCompliantSerializer.encodeToByteArray(deviceResponse) // TODO HPKE encryption multiplatform
-
-        val encryptionParameters = isoMdocWalletRequest.isoMdocRequest.encryptionInfo.encryptionParameters
-
-        val publicKey = try {
-            val x = (encryptionParameters.recipientPublicKey.keyParams as CoseKeyParams.EcKeyParams<*>).x
-            val y = (encryptionParameters.recipientPublicKey.keyParams as CoseKeyParams.EcKeyParams<*>).y
-            EcPublicKeyDoubleCoordinate(EcCurve.P256, x!!, y!! as ByteArray)
-        } catch (e: Throwable) {
-            Napier.e("Could not extract public key", e)
-            throw IllegalArgumentException("Could not extract public key")
-        }
-        val encodedSessionTranscript = coseCompliantSerializer.encodeToByteArray(sessionTranscript)
-        val encrypter = Hpke.getEncrypter(
-            cipherSuite = Hpke.CipherSuite.DHKEM_P256_HKDF_SHA256_HKDF_SHA256_AES_128_GCM,
-            receiverPublicKey = publicKey,
-            info = encodedSessionTranscript
-        )
-        val ciphertext = encrypter.encrypt(
-            plaintext = deviceResponseSerialized,
-            aad = ByteArray(0),
-        )
-        val encryptedResponseData = EncryptedResponseData(
-            enc = encrypter.encapsulatedKey.toByteArray(),
-            cipherText = ciphertext
-        )
-        val encryptedResponse = EncryptedResponse(TYPE_DCAPI, encryptedResponseData)
-
         platformAdapter.prepareIsoMdocDCAPICredentialResponse(encryptedResponse, true)
         return OpenId4VpWallet.AuthenticationSuccess()
     }

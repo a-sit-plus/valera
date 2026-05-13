@@ -324,7 +324,6 @@ class IosPlatformAdapter(
         (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let {
             Napier.d("prepareDCAPICredentialResponse called with $response")
             val encodedResponse = coseCompliantSerializer.encodeToByteArray(response)
-            Napier.d("encodedResponse: ${encodedResponse.toHexString()}")
             it.sendCredentialResponse.invoke(encodedResponse.toNSData())
             IosSessionBridge.clearDcapiInvocation()
         } ?: throw IllegalStateException("Callback for response not found")
