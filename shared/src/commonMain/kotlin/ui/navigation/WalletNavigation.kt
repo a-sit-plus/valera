@@ -262,6 +262,10 @@ private fun WalletNavHost(
                 },
                 onDismiss = {
                     walletMain.credentialValidityService.removeRefreshRequest(item)
+                },
+                onNeverShowAgain = {
+                    processedItemIds = processedItemIds + item.storeEntryId
+                    walletMain.credentialValidityService.suppressRefreshRequest(item)
                 }
             )
         }

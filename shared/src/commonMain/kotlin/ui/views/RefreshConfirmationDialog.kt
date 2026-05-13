@@ -1,5 +1,7 @@
 package ui.views
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -11,18 +13,22 @@ import at.asitplus.valera.resources.refresh_dialog_confirm
 import at.asitplus.valera.resources.refresh_dialog_dismiss
 import at.asitplus.valera.resources.refresh_dialog_message_multiple
 import at.asitplus.valera.resources.refresh_dialog_message_single
+import at.asitplus.valera.resources.refresh_dialog_never_show_again
 import at.asitplus.valera.resources.refresh_dialog_title_multiple
 import at.asitplus.valera.resources.refresh_dialog_title_single
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import data.credentials.displayTitle
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun RefreshConfirmationDialog(
     entry: SubjectCredentialStore.StoreEntry?,
     onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onNeverShowAgain: (() -> Unit)? = null,
 ) {
+    val credentialTitle = entry?.displayTitle(entry.scheme.uiLabel())
 
     val dialogTitle = if (entry != null) {
         stringResource(Res.string.refresh_dialog_title_single)
@@ -31,7 +37,7 @@ fun RefreshConfirmationDialog(
     }
 
     val dialogMessage = if (entry != null) {
-        stringResource(Res.string.refresh_dialog_message_single, entry.scheme.uiLabel())
+        stringResource(Res.string.refresh_dialog_message_single, credentialTitle ?: entry.scheme.uiLabel())
     } else {
         stringResource(Res.string.refresh_dialog_message_multiple)
     }
@@ -61,11 +67,30 @@ fun RefreshConfirmationDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(
-                    text = stringResource(Res.string.refresh_dialog_dismiss),
-                    color = MaterialTheme.colorScheme.secondary
-                )
+            if (onNeverShowAgain != null) {
+                Column {
+                    TextButton(onClick = onDismiss) {
+                        Text(
+                            text = stringResource(Res.string.refresh_dialog_dismiss),
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                    TextButton(onClick = onNeverShowAgain) {
+                        Text(
+                            text = stringResource(Res.string.refresh_dialog_never_show_again),
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
+            } else {
+                Row {
+                    TextButton(onClick = onDismiss) {
+                        Text(
+                            text = stringResource(Res.string.refresh_dialog_dismiss),
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
             }
         }
     )
