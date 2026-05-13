@@ -2,7 +2,6 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.dcapi.DCAPIHandover
 import at.asitplus.dcapi.DCAPIHandover.Companion.TYPE_DCAPI
-import at.asitplus.signum.supreme.UserInitiatedCancellationReason
 import at.asitplus.dcapi.DCAPIInfo
 import at.asitplus.dcapi.EncryptedResponse
 import at.asitplus.dcapi.EncryptedResponseData

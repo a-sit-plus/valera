@@ -80,6 +80,7 @@ import org.koin.compose.koinInject
 import org.koin.core.module.dsl.scopedOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.binds
+import org.koin.dsl.koinConfiguration
 import org.koin.dsl.module
 import org.koin.mp.KoinPlatform
 import org.multipaz.prompt.PromptModel
@@ -123,9 +124,11 @@ fun ComposeUiTest.endToEndTest() {
             }
         }
 
-        KoinApplication({
-            modules(appModule(), capabilitiesModule, module { single { walletDependencyProvider.buildContext } })
-        }) {
+        KoinApplication(
+            configuration = koinConfiguration {
+                modules(appModule(), capabilitiesModule, module { single { walletDependencyProvider.buildContext } })
+            }
+        ) {
             val sessionService = remember(walletDependencyProvider, intentState) {
                 SessionService().apply {
                     initialize {
