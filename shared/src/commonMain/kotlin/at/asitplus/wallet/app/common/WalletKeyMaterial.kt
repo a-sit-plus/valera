@@ -12,7 +12,8 @@ open class WalletKeyMaterial(val keyMaterial: KeyMaterial) :
 
     init {
         // Napier.i won't print anything to logcat, because it's not initialized yet
-        println("Using this WalletKeyMaterial: ${joseCompliantSerializer.encodeToString(keyMaterial.jsonWebKey)}")
+        println("Using this WalletKeyMaterial for init: ${keyMaterial.publicKey.didEncoded}")
+        Napier.i("Using this WalletKeyMaterial for init: ${keyMaterial.publicKey.didEncoded}")
     }
 
     override suspend fun sign(
@@ -25,9 +26,15 @@ open class WalletKeyMaterial(val keyMaterial: KeyMaterial) :
                         promptText?.let { message = it }
                         promptCancelText?.let { cancelText = it }
                     }
+                }.also {
+                    println("Using this WalletKeyMaterial for sign: ${signer.publicKey.didEncoded}")
+                    Napier.i("Using this WalletKeyMaterial for sign: ${signer.publicKey.didEncoded}")
                 }
 
-            else -> signer.sign(data)
+            else -> signer.sign(data).also {
+                println("Using this WalletKeyMaterial for sign: ${signer.publicKey.didEncoded}")
+                Napier.i("Using this WalletKeyMaterial for sign: ${signer.publicKey.didEncoded}")
+            }
         }.also {
             when (it) {
                 is SignatureResult.Error -> onSignError?.invoke()

@@ -6,5 +6,9 @@
 	<array>
 		<string>group.Compose.Wallet</string>
 	</array>
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)keychaingroup.Compose.Wallet</string>
+	</array>
 </dict>
 </plist>
