@@ -52,6 +52,7 @@ import org.multipaz.mdoc.transport.MdocTransportClosedException
 import org.multipaz.mdoc.transport.MdocTransportFactory
 import org.multipaz.mdoc.transport.MdocTransportOptions
 import org.multipaz.mdoc.transport.NfcTransportMdocReader
+import org.multipaz.nfc.NfcTagLostException
 import org.multipaz.mdoc.util.MdocUtil
 import org.multipaz.nfc.NfcTagReader
 import org.multipaz.util.Constants
@@ -63,6 +64,7 @@ class TransferManager(
     private val config: SettingsRepository,
     private val scope: CoroutineScope,
     private val updateProgress: (String) -> Unit,
+    private val onWarning: (Warning) -> Unit = {},
 ) {
     val TAG = "TransferManager"
 
@@ -70,6 +72,10 @@ class TransferManager(
         IDLE,
         RUNNING,
         DATA_RECEIVED
+    }
+
+    enum class Warning {
+        NFC_TAG_LOST_RETRYING
     }
 
     private val _state = MutableStateFlow(State.IDLE)
@@ -175,76 +181,19 @@ class TransferManager(
 
         scope.launch {
             try {
-                val negotiatedHandoverConnectionMethods = mutableListOf<MdocConnectionMethod>()
-                val bleUuid = UUID.randomUUID()
-                if (config.presentmentBleCentralClientModeEnabled.first()) {
-                    negotiatedHandoverConnectionMethods.add(
-                        MdocConnectionMethodBle(
-                            supportsPeripheralServerMode = false,
-                            supportsCentralClientMode = true,
-                            peripheralServerModeUuid = null,
-                            centralClientModeUuid = bleUuid,
+                while (true) {
+                    try {
+                        startNfcEngagementOnce(
+                            documentRequestList = documentRequestList,
+                            setDeviceResponseBytes = setDeviceResponseBytes
                         )
-                    )
-                }
-                if (config.presentmentBlePeripheralServerModeEnabled.first()) {
-                    negotiatedHandoverConnectionMethods.add(
-                        MdocConnectionMethodBle(
-                            supportsPeripheralServerMode = true,
-                            supportsCentralClientMode = false,
-                            peripheralServerModeUuid = bleUuid,
-                            centralClientModeUuid = null,
-                        )
-                    )
-                }
-                if (config.presentmentNfcDataTransferEnabled.first()) {
-                    negotiatedHandoverConnectionMethods.add(
-                        MdocConnectionMethodNfc(
-                            commandDataFieldMaxLength = 0xffff,
-                            responseDataFieldMaxLength = 0x10000
-                        )
-                    )
-                }
-                val nfcReader = NfcTagReader.getReaders().first()
-                val scanResult = nfcReader.scanMdocReader(
-                    message = getString(Res.string.info_text_nfc_mdoc_reader),
-                    options = MdocTransportOptions(
-                        bleUseL2CAP = config.bleUseL2CAPEnabled.first(),
-                        bleUseL2CAPInEngagement = config.bleUseL2CAPEnabled.first()
-                    ),
-                    selectConnectionMethod = { connectionMethods ->
-                        if (config.readerAutomaticallySelectTransport.first()) {
-                            updateProgress("Auto-selected first from $connectionMethods")
-                            connectionMethods[0]
-                        } else {
-                            selectConnectionMethod(
-                                connectionMethods,
-                                connectionMethodPickerData
-                            )
+                        break
+                    } catch (error: Throwable) {
+                        if (!error.isRecoverableNfcTagLoss()) {
+                            throw error
                         }
-                    },
-                    negotiatedHandoverConnectionMethods = negotiatedHandoverConnectionMethods
-                )
-
-                if (scanResult != null) {
-                    doReaderFlow(
-                        encodedDeviceEngagement = scanResult.encodedDeviceEngagement,
-                        existingTransport = scanResult.transport,
-                        handover = scanResult.handover,
-                        selectConnectionMethod = { connectionMethods ->
-                            if (config.readerAutomaticallySelectTransport.first()) {
-                                updateProgress("Auto-selected first from $connectionMethods")
-                                connectionMethods[0]
-                            } else {
-                                selectConnectionMethod(
-                                    connectionMethods,
-                                    connectionMethodPickerData
-                                )
-                            }
-                        },
-                        documentRequestList = documentRequestList,
-                        setDeviceResponseBytes = setDeviceResponseBytes
-                    )
+                        handleRecoverableNfcTagLoss(error)
+                    }
                 }
             } catch (e: Throwable) {
                 // TODO: Add populate error to verifier
@@ -252,6 +201,83 @@ class TransferManager(
                 updateProgress("NFC engagement failed with $e")
                 setDeviceResponseBytes(KmmResult.failure(e))
             }
+        }
+    }
+
+    private suspend fun startNfcEngagementOnce(
+        documentRequestList: RequestDocumentList,
+        setDeviceResponseBytes: (KmmResult<ByteArray>) -> Unit
+    ) {
+        val negotiatedHandoverConnectionMethods = mutableListOf<MdocConnectionMethod>()
+        val bleUuid = UUID.randomUUID()
+        if (config.presentmentBleCentralClientModeEnabled.first()) {
+            negotiatedHandoverConnectionMethods.add(
+                MdocConnectionMethodBle(
+                    supportsPeripheralServerMode = false,
+                    supportsCentralClientMode = true,
+                    peripheralServerModeUuid = null,
+                    centralClientModeUuid = bleUuid,
+                )
+            )
+        }
+        if (config.presentmentBlePeripheralServerModeEnabled.first()) {
+            negotiatedHandoverConnectionMethods.add(
+                MdocConnectionMethodBle(
+                    supportsPeripheralServerMode = true,
+                    supportsCentralClientMode = false,
+                    peripheralServerModeUuid = bleUuid,
+                    centralClientModeUuid = null,
+                )
+            )
+        }
+        if (config.presentmentNfcDataTransferEnabled.first()) {
+            negotiatedHandoverConnectionMethods.add(
+                MdocConnectionMethodNfc(
+                    commandDataFieldMaxLength = 0xffff,
+                    responseDataFieldMaxLength = 0x10000
+                )
+            )
+        }
+        val nfcReader = NfcTagReader.getReaders().first()
+        val scanResult = nfcReader.scanMdocReader(
+            message = getString(Res.string.info_text_nfc_mdoc_reader),
+            options = MdocTransportOptions(
+                bleUseL2CAP = config.bleUseL2CAPEnabled.first(),
+                bleUseL2CAPInEngagement = config.bleUseL2CAPEnabled.first()
+            ),
+            selectConnectionMethod = { connectionMethods ->
+                if (config.readerAutomaticallySelectTransport.first()) {
+                    updateProgress("Auto-selected first from $connectionMethods")
+                    connectionMethods[0]
+                } else {
+                    selectConnectionMethod(
+                        connectionMethods,
+                        connectionMethodPickerData
+                    )
+                }
+            },
+            negotiatedHandoverConnectionMethods = negotiatedHandoverConnectionMethods
+        )
+
+        if (scanResult != null) {
+            doReaderFlow(
+                encodedDeviceEngagement = scanResult.encodedDeviceEngagement,
+                existingTransport = scanResult.transport,
+                handover = scanResult.handover,
+                selectConnectionMethod = { connectionMethods ->
+                    if (config.readerAutomaticallySelectTransport.first()) {
+                        updateProgress("Auto-selected first from $connectionMethods")
+                        connectionMethods[0]
+                    } else {
+                        selectConnectionMethod(
+                            connectionMethods,
+                            connectionMethodPickerData
+                        )
+                    }
+                },
+                documentRequestList = documentRequestList,
+                setDeviceResponseBytes = setDeviceResponseBytes
+            )
         }
     }
 
@@ -333,30 +359,16 @@ class TransferManager(
                 // If user cancelled
                 return
             }
-            val transport = MdocTransportFactory.Default.createTransport(
-                connectionMethod,
-                MdocRole.MDOC_READER,
-                MdocTransportOptions(
-                    bleUseL2CAP = config.bleUseL2CAPEnabled.first(),
-                    bleUseL2CAPInEngagement = config.bleUseL2CAPInEngagementEnabled.first()
-                )
-            )
+            val transport = createReaderTransport(connectionMethod)
             if (transport is NfcTransportMdocReader) {
-                val nfcReader = NfcTagReader.getReaders().first()
-                nfcReader.scan(
-                    message = "QR engagement with NFC Data Transfer. Move into NFC field of the mdoc",
-                    tagInteractionFunc = { tag ->
-                        transport.setTag(tag)
-                        doReaderFlowWithTransport(
-                            transport = transport,
-                            encodedDeviceEngagement = encodedDeviceEngagement,
-                            handover = handover,
-                            eDeviceKey = eDeviceKey,
-                            eReaderKey = eReaderKey,
-                            documentRequestList = documentRequestList,
-                            setDeviceResponseBytes = setDeviceResponseBytes
-                        )
-                    }
+                doReaderFlowWithNfcTransportRetry(
+                    connectionMethod = connectionMethod,
+                    encodedDeviceEngagement = encodedDeviceEngagement,
+                    handover = handover,
+                    eDeviceKey = eDeviceKey,
+                    eReaderKey = eReaderKey,
+                    documentRequestList = documentRequestList,
+                    setDeviceResponseBytes = setDeviceResponseBytes
                 )
                 return
             }
@@ -472,5 +484,72 @@ class TransferManager(
             transport.close()
             readerTransport.value = null
         }
+    }
+
+    private suspend fun doReaderFlowWithNfcTransportRetry(
+        connectionMethod: MdocConnectionMethod,
+        encodedDeviceEngagement: ByteString,
+        handover: DataItem,
+        eDeviceKey: EcPublicKey,
+        eReaderKey: EcPrivateKey,
+        documentRequestList: RequestDocumentList,
+        setDeviceResponseBytes: (KmmResult<ByteArray>) -> Unit
+    ) {
+        val nfcReader = NfcTagReader.getReaders().first()
+        while (true) {
+            val transport = createReaderTransport(connectionMethod) as? NfcTransportMdocReader
+                ?: error("Expected NFC transport for connection method $connectionMethod")
+            try {
+                nfcReader.scan(
+                    message = "QR engagement with NFC Data Transfer. Move into NFC field of the mdoc",
+                    tagInteractionFunc = { tag ->
+                        transport.setTag(tag)
+                        doReaderFlowWithTransport(
+                            transport = transport,
+                            encodedDeviceEngagement = encodedDeviceEngagement,
+                            handover = handover,
+                            eDeviceKey = eDeviceKey,
+                            eReaderKey = eReaderKey,
+                            documentRequestList = documentRequestList,
+                            setDeviceResponseBytes = setDeviceResponseBytes
+                        )
+                    }
+                )
+                return
+            } catch (error: Throwable) {
+                transport.close()
+                if (!error.isRecoverableNfcTagLoss()) {
+                    throw error
+                }
+                handleRecoverableNfcTagLoss(error)
+            }
+        }
+    }
+
+    private suspend fun createReaderTransport(connectionMethod: MdocConnectionMethod): MdocTransport =
+        MdocTransportFactory.Default.createTransport(
+            connectionMethod,
+            MdocRole.MDOC_READER,
+            MdocTransportOptions(
+                bleUseL2CAP = config.bleUseL2CAPEnabled.first(),
+                bleUseL2CAPInEngagement = config.bleUseL2CAPInEngagementEnabled.first()
+            )
+        )
+
+    private fun handleRecoverableNfcTagLoss(error: Throwable) {
+        Napier.w("NFC tag lost, retrying scan", error, tag = TAG)
+        updateProgress("NFC tag lost, waiting for tag again")
+        onWarning(Warning.NFC_TAG_LOST_RETRYING)
+    }
+
+    private fun Throwable.isRecoverableNfcTagLoss(): Boolean {
+        var current: Throwable? = this
+        while (current != null) {
+            if (current is NfcTagLostException) {
+                return true
+            }
+            current = current.cause
+        }
+        return false
     }
 }
