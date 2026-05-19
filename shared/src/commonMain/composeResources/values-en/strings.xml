@@ -539,7 +539,10 @@
     <string name="text_label_instance_attestation">Instance attestation</string>
     <string name="text_label_unit_attestation">Unit attestation</string>
     <string name="button_label_load_attestation">Load attestation</string>
-    <string name="text_label_attestation_issued">Issued</string>
-    <string name="text_label_attestation_expiration">Expires</string>
+    <string name="text_label_attestation_issued">Token issued</string>
+    <string name="text_label_attestation_expiration">Token expires</string>
+    <string name="text_label_attestation_status_expiration">Status expires</string>
     <string name="text_label_attestation_storage_type">Key storage</string>
+    <string name="text_label_attestation_user_authentication">User authentication</string>
+
 </resources>

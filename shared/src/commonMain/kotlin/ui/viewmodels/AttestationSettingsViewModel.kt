@@ -14,9 +14,14 @@ class AttestationSettingsViewModel(
     val scope = CoroutineScope(Dispatchers.IO)
 
     val onError = MutableSharedFlow<Throwable>()
-    fun preload() = scope.launch {
-        attestationService.preloadAttestation().onFailure {
-            onError.emit(Throwable("Unable to obtain attestation from wallet provider.", it))
+    fun preloadKeyAttestation() = scope.launch {
+        attestationService.preloadKeyAttestation().onFailure {
+            onError.emit(Throwable("Unable to obtain key attestation from wallet provider.", it))
+        }
+    }
+    fun preloadInstanceAttestation() = scope.launch {
+        attestationService.preloadInstanceAttestation().onFailure {
+            onError.emit(Throwable("Unable to obtain instance attestation from wallet provider.", it))
         }
     }
 }

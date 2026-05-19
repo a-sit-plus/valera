@@ -24,7 +24,7 @@ class WalletConfig(
     private val config: Flow<ConfigData> =
         dataStoreService.getPreference(Configuration.DATASTORE_KEY_CONFIG).map {
             it?.let {
-                vckJsonSerializer.decodeFromString<ConfigData>(it)
+                joseCompliantSerializer.decodeFromString<ConfigData>(it)
             } ?: ConfigData()
         }
 

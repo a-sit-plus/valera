@@ -6,9 +6,8 @@ import at.asitplus.signum.indispensable.josef.JsonWebToken
 import at.asitplus.signum.indispensable.josef.JwsSigned
 import at.asitplus.signum.indispensable.josef.KeyAttestationJwt
 import at.asitplus.signum.indispensable.josef.toJsonWebKey
-import at.asitplus.wallet.app.common.HttpService
 import at.asitplus.wallet.app.common.WalletKeyMaterial
-import at.asitplus.wallet.lib.oidvci.WalletService.KeyAttestationInput
+import io.ktor.client.HttpClient
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -22,38 +21,42 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlin.collections.listOf
 import kotlin.time.Duration
 
-class UnitAttestationHelper(
+class KeyAttestationHelper(
     val host: Flow<String>,
-    httpService: HttpService,
+    val httpClient: HttpClient,
     val keyMaterial: WalletKeyMaterial,
 ) {
-    val unitEndpoint = host.map {
+    val keyAttestationEndpoint = host.map {
         URLBuilder(host.first()).apply {
             appendEncodedPathSegments(PATH_UNIT)
         }
     }
-    val httpClient = httpService.buildHttpClient()
 
-    suspend fun requestUnitAttestation(
+    suspend fun requestKeyAttestation(
         instanceAttestation: JwsSigned<JsonWebToken>,
         pop: JwsSigned<JsonWebToken>,
-        input: KeyAttestationInput,
+        nonce: String?,
+        preferredKeyStorageStatusPeriod: Duration?,
+        supportedAlgorithms: Collection<String>?
+
     ): JwsSigned<KeyAttestationJwt> {
         val holderKey = keyMaterial.getUnderLyingSigner()
 
-        val response = httpClient.post(Url(unitEndpoint.first())) {
+        val response = httpClient.post(Url(keyAttestationEndpoint.first())) {
             contentType(ContentType.Application.Json)
             setBody(
-                UnitAttestationRequest(
+                KeyAttestationRequest(
                     token = instanceAttestation.serialize(),
                     keys = listOf(holderKey.publicKey.toJsonWebKey()),
                     proof = pop.serialize(),
-                    nonce = input.clientNonce,
-                    credentialIssuer = input.credentialIssuer,
-                    preferredKeyStorageStatusPeriod = input.preferredKeyStorageStatusPeriod,
-                    supportedAlgorithms = input.supportedAlgorithms,
+                    nonce = nonce,
+                    keyStorage = setOf("iso_18045_moderate"),
+                    userAuthentication = setOf("iso_18045_moderate"),
+                    preferredKeyStorageStatusPeriod = preferredKeyStorageStatusPeriod,
+                    supportedAlgorithms = supportedAlgorithms,
                 )
             )
         }
@@ -66,12 +69,13 @@ class UnitAttestationHelper(
 }
 
 @Serializable
-data class UnitAttestationRequest(
+data class KeyAttestationRequest(
     @SerialName("token") val token: String,
     @SerialName("proof") val proof: String,
     @SerialName("keys") val keys: List<JsonWebKey>,
     @SerialName("nonce") val nonce: String?,
-    @SerialName("credential_issuer") val credentialIssuer: String?,
+    @SerialName("key_storage") val keyStorage: Set<String>,
+    @SerialName("user_authentication") val userAuthentication: Set<String>,
     @SerialName("preferred_key_storage_status_period")
     @Serializable(with = DurationSecondsIntSerializer::class)
     val preferredKeyStorageStatusPeriod: Duration?,

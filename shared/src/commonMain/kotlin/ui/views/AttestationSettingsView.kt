@@ -36,7 +36,9 @@ import at.asitplus.valera.resources.button_label_load_attestation
 import at.asitplus.valera.resources.heading_label_attestation
 import at.asitplus.valera.resources.text_label_attestation_expiration
 import at.asitplus.valera.resources.text_label_attestation_issued
+import at.asitplus.valera.resources.text_label_attestation_status_expiration
 import at.asitplus.valera.resources.text_label_attestation_storage_type
+import at.asitplus.valera.resources.text_label_attestation_user_authentication
 import at.asitplus.valera.resources.text_label_instance_attestation
 import at.asitplus.valera.resources.text_label_unit_attestation
 import at.asitplus.valera.resources.text_label_wallet_provider
@@ -59,7 +61,7 @@ fun AttestationSettingsView(
     LaunchedEffect(null) { vm.onError.collect { onError(it) } }
 
     val bufferedInstanceAttestation = vm.attestationService.bufferedInstanceAttestation.collectAsState(null)
-    val bufferedUnitAttestation = vm.attestationService.bufferedUnitAttestation.collectAsState(null)
+    val bufferedKeyAttestation = vm.attestationService.bufferedKeyAttestation.collectAsState(null)
 
     vm.attestationService.getWalletProviderHost().collectAsState(null).value?.let { it ->
         var host by remember { mutableStateOf(it) }
@@ -77,7 +79,7 @@ fun AttestationSettingsView(
                     actions = {
                         Logo(onClick = onClickLogo)
                         Column(modifier = Modifier.clickable(onClick = {
-                            vm.attestationService.setWalletProviderHost(host)
+                            if(host != it) vm.attestationService.setWalletProviderHost(host)
                             onClickSettings()
                         })) {
                             Icon(
@@ -89,7 +91,7 @@ fun AttestationSettingsView(
                     },
                     navigationIcon = {
                         NavigateUpButton(onClick = {
-                            vm.attestationService.setWalletProviderHost(host)
+                            if(host != it) vm.attestationService.setWalletProviderHost(host)
                             onClickBack()
                         })
                     },
@@ -112,37 +114,69 @@ fun AttestationSettingsView(
                         modifier = Modifier,
                     )
                     Spacer(Modifier.height(10.dp))
+                    Text(stringResource(Res.string.text_label_instance_attestation), fontWeight = FontWeight.Bold)
                     bufferedInstanceAttestation.value?.let {
-                        Text(stringResource(Res.string.text_label_instance_attestation), fontWeight = FontWeight.Bold)
-                        LabeledText(
-                            text = "${it.payload.issuedAt}",
-                            label = stringResource(Res.string.text_label_attestation_issued)
-                        )
-                        LabeledText(
-                            text = "${it.payload.expiration}",
-                            label = stringResource(Res.string.text_label_attestation_expiration)
-                        )
+                        it.payload.issuedAt?.let { issuedAt ->
+                            LabeledText(
+                                text = "$issuedAt",
+                                label = stringResource(Res.string.text_label_attestation_issued)
+                            )
+                        }
+                        it.payload.expiration?.let { expiration ->
+                            LabeledText(
+                                text = "$expiration",
+                                label = stringResource(Res.string.text_label_attestation_expiration)
+                            )
+                        }
+                        it.payload.clientStatus?.expiration?.let { expiration ->
+                            LabeledText(
+                                text = "$expiration",
+                                label = stringResource(Res.string.text_label_attestation_status_expiration)
+                            )
+                        }
+                    } ?: run {
+                        Button(onClick = {
+                            if(host != it) vm.attestationService.setWalletProviderHost(host)
+                            vm.preloadInstanceAttestation()
+                        }) {
+                            Text(stringResource(Res.string.button_label_load_attestation))
+                        }
                     }
                     Spacer(Modifier.height(20.dp))
-                    bufferedUnitAttestation.value?.let {
-                        Text(stringResource(Res.string.text_label_unit_attestation), fontWeight = FontWeight.Bold)
+                    Text(stringResource(Res.string.text_label_unit_attestation), fontWeight = FontWeight.Bold)
+                    bufferedKeyAttestation.value?.let {
                         LabeledText(
                             text = "${it.payload.issuedAt}",
                             label = stringResource(Res.string.text_label_attestation_issued)
                         )
-                        LabeledText(
-                            text = "${it.payload.expiration}",
-                            label = stringResource(Res.string.text_label_attestation_expiration)
-                        )
-                        LabeledText(
-                            text = it.payload.keyStorage?.joinToString().orEmpty(),
-                            label = stringResource(Res.string.text_label_attestation_storage_type)
-                        )
-                    }
-                    if (bufferedUnitAttestation.value == null || bufferedInstanceAttestation.value == null) {
+                        it.payload.expiration?.let { expiration ->
+                            LabeledText(
+                                text = "${it.payload.expiration}",
+                                label = stringResource(Res.string.text_label_attestation_expiration)
+                            )
+                        }
+                        it.payload.keyStorageStatus?.expiration?.let { expiration ->
+                            LabeledText(
+                                text = "$expiration",
+                                label = stringResource(Res.string.text_label_attestation_status_expiration)
+                            )
+                        }
+                        it.payload.keyStorage?.let { keyStorage ->
+                            LabeledText(
+                                text = keyStorage.joinToString(),
+                                label = stringResource(Res.string.text_label_attestation_storage_type)
+                            )
+                        }
+                        it.payload.userAuthentication?.let { userAuthentication ->
+                            LabeledText(
+                                text = userAuthentication.joinToString(),
+                                label = stringResource(Res.string.text_label_attestation_user_authentication)
+                            )
+                        }
+                    } ?: run {
                         Button(onClick = {
-                            vm.attestationService.setWalletProviderHost(host)
-                            vm.preload()
+                            if(host != it) vm.attestationService.setWalletProviderHost(host)
+                            vm.preloadKeyAttestation()
                         }) {
                             Text(stringResource(Res.string.button_label_load_attestation))
                         }

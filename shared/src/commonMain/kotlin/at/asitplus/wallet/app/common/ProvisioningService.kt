@@ -1,7 +1,7 @@
 package at.asitplus.wallet.app.common
 
-import at.asitplus.catching
 import at.asitplus.openid.CredentialOffer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.attestation.AttestationService
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
@@ -9,7 +9,6 @@ import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
-import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult
 import at.asitplus.wallet.lib.ktor.openid.OAuth2KtorClient
@@ -41,7 +40,7 @@ class ProvisioningService(
     private val config: SettingsRepository,
     private val errorService: ErrorService,
     private val httpService: HttpService,
-    private val attestationService: AttestationService,
+    private val attestationService: AttestationService
 ) {
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = httpService.buildHttpClient(cookieStorage = cookieStorage)
@@ -66,8 +65,8 @@ class ProvisioningService(
         val clientId = currentClientId()
         WalletService(
             clientId = clientId,
-            keyMaterial = keyMaterial,
             loadKeyAttestation = attestationService::loadKeyAttestation,
+            keyMaterial = keyMaterial,
             remoteResourceRetriever = { data ->
                 withContext(Dispatchers.IO) {
                     client.get(data.url).bodyAsText()
@@ -87,7 +86,7 @@ class ProvisioningService(
                 oAuth2Client = OAuth2Client(clientId = currentClientId(), redirectUrl = redirectUrl),
                 httpClientConfig = httpService.loggingConfig,
                 loadInstanceAttestation = attestationService::loadInstanceAttestation,
-                loadInstanceAttestationPop = { attestationService.loadInstanceAttestationPop() },
+                keyMaterial = attestationService.instanceAttestationHelper.instanceAttestationKeyMaterial()
             ),
             oid4vciService = walletService()
         ).also { openId4VciClientCached = it }
@@ -164,7 +163,11 @@ class ProvisioningService(
     }
 
     @Throws(Throwable::class)
-    suspend fun refreshCredential(renewalInfo: CredentialRenewalInfo, oldCredentialId: StoreEntryId, statusUpdater: ((Long, RefreshStatus) -> Unit)) {
+    suspend fun refreshCredential(
+        renewalInfo: CredentialRenewalInfo,
+        oldCredentialId: StoreEntryId,
+        statusUpdater: ((Long, RefreshStatus) -> Unit)
+    ) {
         Napier.d("refreshCredential with identifier ${renewalInfo.credentialIdentifier}")
         openId4VciClient().refreshCredentialReturningResult(renewalInfo).getOrThrow().also { result ->
             val storageResults = result.credentials.map { credentialInput ->
