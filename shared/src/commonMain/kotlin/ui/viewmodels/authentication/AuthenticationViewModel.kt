@@ -45,6 +45,10 @@ abstract class AuthenticationViewModel(
         navigateUp()
     }
 
+    open fun onError(error: Throwable) {
+        walletMain.errorService.emit(error)
+    }
+
     suspend fun onConsent() {
         matchingCredentials = findMatchingCredentials().getOrElse {
             viewState = AuthenticationViewState.NoMatchingCredential
@@ -123,7 +127,7 @@ abstract class AuthenticationViewModel(
         }.onSuccess {
             handleAuthenticationSuccess(it)
         }.onFailure {
-            walletMain.errorService.emit(it)
+            onError(it)
         }
     }
 }

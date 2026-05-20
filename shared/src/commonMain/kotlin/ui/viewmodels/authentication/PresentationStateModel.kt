@@ -80,7 +80,7 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
         PROCESSING,
 
         /**
-         * A request has been received and multiple documents can be presented and the user needs to pick one.
+         * A request has been received, and multiple documents can be presented, and the user needs to pick one.
          */
         WAITING_FOR_DOCUMENT_SELECTION,
 

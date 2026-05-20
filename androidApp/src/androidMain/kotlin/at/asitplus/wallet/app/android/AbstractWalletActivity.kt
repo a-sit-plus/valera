@@ -8,6 +8,9 @@ import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.credentials.CreateDigitalCredentialResponse
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import androidx.credentials.DigitalCredential
 import androidx.credentials.ExperimentalDigitalCredentialApi
 import androidx.credentials.GetCredentialResponse
@@ -106,21 +109,30 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
         )
     }
 
+    private var preferredServiceJob: Job? = null
+
     override fun onResume() {
         super.onResume()
-        NfcAdapter.getDefaultAdapter(this)?.let {
-            val cardEmulation = CardEmulation.getInstance(it)
-            if (!cardEmulation.setPreferredService(this, ComponentName(this, NdefDeviceEngagementService::class.java))) {
-                Napier.w("CardEmulation.setPreferredService() returned false")
-            }
-            if (!cardEmulation.categoryAllowsForegroundPreference(CardEmulation.CATEGORY_OTHER)) {
-                Napier.w("CardEmulation.categoryAllowsForegroundPreference(CATEGORY_OTHER) returned false")
+        val nfcAdapter = NfcAdapter.getDefaultAdapter(this) ?: return
+        val cardEmulation = CardEmulation.getInstance(nfcAdapter)
+        if (!cardEmulation.categoryAllowsForegroundPreference(CardEmulation.CATEGORY_OTHER)) {
+            Napier.w("CardEmulation.categoryAllowsForegroundPreference(CATEGORY_OTHER) returned false")
+        }
+        preferredServiceJob = lifecycleScope.launch {
+            NdefDeviceEngagementService.nfcDataTransferActive.collect { dataTransfer ->
+                val serviceClass = if (dataTransfer) NfcDataRetrievalService::class.java
+                                   else NdefDeviceEngagementService::class.java
+                if (!cardEmulation.setPreferredService(this@AbstractWalletActivity, ComponentName(this@AbstractWalletActivity, serviceClass))) {
+                    Napier.w("CardEmulation.setPreferredService() returned false for ${serviceClass.simpleName}")
+                }
             }
         }
     }
 
     override fun onPause() {
         super.onPause()
+        preferredServiceJob?.cancel()
+        preferredServiceJob = null
         NfcAdapter.getDefaultAdapter(this)?.let {
             val cardEmulation = CardEmulation.getInstance(it)
             if (!cardEmulation.unsetPreferredService(this)) {
