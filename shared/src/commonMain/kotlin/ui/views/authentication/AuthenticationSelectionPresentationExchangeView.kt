@@ -32,14 +32,12 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.error_credential_selection_error_invalid_request_id
 import at.asitplus.valera.resources.error_no_requests
-import at.asitplus.valera.resources.heading_label_navigate_back
+import at.asitplus.valera.resources.heading_label_select_data
 import at.asitplus.valera.resources.prompt_select_credential
-import at.asitplus.wallet.app.common.decodeImage
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CredentialSelectionGroup
-import ui.models.toCredentialFreshnessSummaryModel
 import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
 
 @Composable
@@ -56,6 +54,7 @@ fun AuthenticationSelectionPresentationExchangeView(
         val currentRequest = vm.iterableRequests[vm.requestIterator.value]
 
         AuthenticationSelectionViewScaffold(
+            title = stringResource(Res.string.heading_label_select_data),
             onClickLogo = onClickLogo,
             onClickSettings = onClickSettings,
             onNavigateUp = vm.onBack,
@@ -91,6 +90,7 @@ fun AuthenticationSelectionPresentationExchangeView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthenticationSelectionViewScaffold(
+    title: String,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
     onNavigateUp: () -> Unit,
@@ -104,7 +104,7 @@ fun AuthenticationSelectionViewScaffold(
                 title = {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            stringResource(Res.string.heading_label_navigate_back),
+                            title,
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.titleLarge,
                         )

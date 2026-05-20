@@ -1,6 +1,8 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.wallet.app.common.dcapi.DCAPIInvocationData
+import at.asitplus.wallet.app.dcapi.IosDcApiPreRequestData
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.flow.MutableStateFlow
 import ui.viewmodels.authentication.PresentationStateModel
 
@@ -17,14 +19,47 @@ class IntentState {
     /** Active Digital Credentials API invocation/session payload, if any. */
     val dcapiInvocationData = MutableStateFlow<DCAPIInvocationData?>(null)
 
+    /** Pending iOS-only Digital Credentials API pre-request payload, if any. */
+    val iosDcApiPreRequestData = MutableStateFlow<IosDcApiPreRequestData?>(null)
+
     /** Presentation model passed between routes during local presentment flows. */
     val presentationStateModel = MutableStateFlow<PresentationStateModel?>(null)
+
+    /**
+     * Optional provider for the active local presentment model.
+     *
+     * This is used by platform entrypoints that receive an external presentation trigger before
+     * the UI flow is fully established. It allows the destination ViewModel to resolve the latest
+     * model lazily instead of depending solely on an eagerly-copied StateFlow value.
+     */
+    private val _presentationStateModelProvider = atomic<(() -> PresentationStateModel?)?>(null)
+    var presentationStateModelProvider: (() -> PresentationStateModel?)?
+        get() = _presentationStateModelProvider.value
+        set(value) { _presentationStateModelProvider.value = value }
 
     /**
      * Optional platform callback for "finish/return to caller".
      *
      * Platforms that cannot or should not close the host app can leave this `null`.
      * Navigation code must handle `null` by falling back to local navigation.
+     *
+     * Backed by an [atomic] ref: on iOS this field is written under
+     * `IosSessionRuntime.stateLock` from the extension/Swift thread, but read from
+     * the UI (Main) thread in navigation code. A plain `var` has undefined visibility
+     * across threads on Kotlin/Native's strict memory model.
      */
-    var finishApp: (() -> Unit)? = null
+    private val _finishApp = atomic<(() -> Unit)?>(null)
+    var finishApp: (() -> Unit)?
+        get() = _finishApp.value
+        set(value) { _finishApp.value = value }
+
+    /** Clears all transient navigation state. Call before a session reset so navigation recomposes cleanly. */
+    fun reset() {
+        appLink.value = null
+        dcapiInvocationData.value = null
+        iosDcApiPreRequestData.value = null
+        presentationStateModel.value = null
+        presentationStateModelProvider = null
+        finishApp = null
+    }
 }

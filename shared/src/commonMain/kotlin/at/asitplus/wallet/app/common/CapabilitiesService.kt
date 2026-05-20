@@ -31,7 +31,8 @@ interface CapabilitiesService {
 class RealCapabilitiesService(
     private val keyStoreService: KeystoreService,
     private val dataStoreService: DataStoreService,
-    private val platformAdapter: PlatformAdapter
+    private val platformAdapter: PlatformAdapter,
+    sessionCoroutineScope: CoroutineScope,
 ) : CapabilitiesService {
     private val refreshTrigger = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val deviceLockStatus: Flow<Boolean> = refreshTrigger
@@ -80,7 +81,7 @@ class RealCapabilitiesService(
         }
 
     init {
-        CoroutineScope(Dispatchers.IO).launch {
+        sessionCoroutineScope.launch(Dispatchers.IO) {
             refreshStatus()
         }
     }

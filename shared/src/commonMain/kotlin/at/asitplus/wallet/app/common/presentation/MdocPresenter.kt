@@ -5,8 +5,11 @@ import at.asitplus.iso.SessionTranscript
 import at.asitplus.signum.indispensable.cosef.CoseKey
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import org.multipaz.cbor.Cbor
@@ -53,8 +56,16 @@ class MdocPresenter(
             // is, the X in the top-right
             Napier.i("Ending holderJob due to MdocTransportClosedException")
             stateModel.setCompleted()
+        } catch (error: CancellationException) {
+            if (stateModel.state.value == PresentationStateModel.State.COMPLETED
+                || stateModel.state.value == PresentationStateModel.State.IDLE
+            ) {
+                Napier.i("Ending holderJob after presentment teardown")
+            } else {
+                throw error
+            }
         } catch (error: Throwable) {
-            Napier.e("Caught exception", error)
+            Napier.e("MdocPresenter: Caught exception", error)
             stateModel.setCompleted(error)
         }
         transport.close()
@@ -108,18 +119,23 @@ class MdocPresenter(
                 finishFunction = credentialSelected,
                 sessionTranscript = sessionTranscript
             )
+            Napier.d("Waiting for credential selection from UI")
             val response = stateModel.requestCredentialSelection()
-
-            mechanism.transport.sendMessage(response.encrypt(sessionEncryption))
+            withContext(NonCancellable) {
+                Napier.d("Credential selected, sending ${response.size} bytes to reader")
+                mechanism.transport.sendMessage(response.encrypt(sessionEncryption))
+                Napier.d("Device response sent to reader")
+            }
 
             numRequestsServed.value += 1
             if (!mechanism.allowMultipleRequests) {
-                // Wait for transport to be closed as sendMessage does not block as advertised in its description
-                transport.state.first {
-                    it in listOf(State.CLOSED, State.FAILED)
+                withContext(NonCancellable) {
+                    // For the single-request local presentation flow we already send a session
+                    // termination status together with the response. Completing immediately avoids
+                    // hanging the UI on delayed or failed BLE close notifications.
+                    Napier.i("Response sent, completing single-request presentment")
+                    stateModel.setCompleted()
                 }
-                Napier.i("Response sent, closing connection")
-                stateModel.setCompleted()
                 break
             } else {
                 Napier.i("Response sent, keeping connection open")

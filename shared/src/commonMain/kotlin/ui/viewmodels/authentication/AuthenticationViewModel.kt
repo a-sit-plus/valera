@@ -45,6 +45,10 @@ abstract class AuthenticationViewModel(
         navigateUp()
     }
 
+    open fun onError(error: Throwable) {
+        walletMain.errorService.emit(error)
+    }
+
     suspend fun onConsent() {
         matchingCredentials = findMatchingCredentials().getOrElse {
             viewState = AuthenticationViewState.NoMatchingCredential
@@ -110,16 +114,20 @@ abstract class AuthenticationViewModel(
 
     abstract suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpWallet.AuthenticationResult
 
+    protected open fun handleAuthenticationSuccess(result: OpenId4VpWallet.AuthenticationSuccess) {
+        navigateUp()
+        onAuthenticationSuccess(result.redirectUri)
+    }
+
     private suspend fun finalizeAuthorization(credentialPresentation: CredentialPresentation) {
         catchingUnwrapped {
             walletMain.keyMaterial.promptText =
                 getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
             finalizationMethod(credentialPresentation) as OpenId4VpWallet.AuthenticationSuccess
         }.onSuccess {
-            navigateUp()
-            onAuthenticationSuccess(it.redirectUri)
+            handleAuthenticationSuccess(it)
         }.onFailure {
-            walletMain.errorService.emit(it)
+            onError(it)
         }
     }
 }

@@ -4,10 +4,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -53,6 +55,8 @@ fun CredentialAddedView(
     onClickButton: () -> Unit,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
+    isAutoDismissEnabled: Boolean = true,
+    credentialContent: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     var secondsRemaining by remember { mutableIntStateOf(5) }
     var isAcknowledged by remember { mutableStateOf(false) }
@@ -64,12 +68,16 @@ fun CredentialAddedView(
         }
     }
 
-    LaunchedEffect(Unit) {
-        while (secondsRemaining > 0) {
-            delay(1_000)
-            secondsRemaining--
+    LaunchedEffect(isAutoDismissEnabled, isAcknowledged, secondsRemaining) {
+        if (!isAutoDismissEnabled || isAcknowledged) {
+            return@LaunchedEffect
         }
-        if (!isAcknowledged) {
+        if (secondsRemaining > 0) {
+            delay(1_000)
+            if (isAutoDismissEnabled && !isAcknowledged) {
+                secondsRemaining--
+            }
+        } else {
             isAcknowledged = true
             onAutoDismiss()
         }
@@ -126,7 +134,13 @@ fun CredentialAddedView(
                         TextIconButton(
                             icon = {},
                             text = {
-                                Text("${stringResource(Res.string.button_label_ok)} ($secondsRemaining)")
+                                Text(
+                                    if (isAutoDismissEnabled) {
+                                        "${stringResource(Res.string.button_label_ok)} ($secondsRemaining)"
+                                    } else {
+                                        stringResource(Res.string.button_label_ok)
+                                    }
+                                )
                             },
                             onClick = acknowledge,
                         )
@@ -150,6 +164,16 @@ fun CredentialAddedView(
                 text = stringResource(Res.string.info_text_credential_added),
                 style = MaterialTheme.typography.bodyLarge,
             )
+            credentialContent?.let {
+                Spacer(Modifier.height(24.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    it()
+                }
+            }
         }
     }
 }

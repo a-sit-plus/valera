@@ -9,24 +9,23 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.heading_label_navigate_back
-import org.jetbrains.compose.resources.stringResource
 import ui.composables.buttons.NavigateUpButton
 
 @Composable
 @ExperimentalMaterial3Api
 fun CommonNavigateBackTopAppBar(
+    title: String,
     onNavigateUp: () -> Unit,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
+    navigateUpIsClose: Boolean = false,
 ) {
     TopAppBar(
         title = {
-            Row(Modifier.Companion.fillMaxWidth(), verticalAlignment = Alignment.Companion.CenterVertically) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    stringResource(Res.string.heading_label_navigate_back),
-                    modifier = Modifier.Companion.weight(1f),
+                    title,
+                    modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.titleLarge,
                 )
             }
@@ -38,7 +37,7 @@ fun CommonNavigateBackTopAppBar(
             )
         },
         navigationIcon = {
-            NavigateUpButton(onNavigateUp)
+            NavigateUpButton(onNavigateUp, isClose = navigateUpIsClose)
         },
     )
 }

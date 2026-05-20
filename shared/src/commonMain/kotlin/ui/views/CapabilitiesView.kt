@@ -5,6 +5,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -24,7 +27,6 @@ import at.asitplus.valera.resources.info_text_capabilities_no_internet
 import at.asitplus.valera.resources.info_text_capabilities_no_signing
 import at.asitplus.wallet.app.common.CapabilitiesData
 import getPlatformName
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
@@ -48,9 +50,19 @@ fun CapabilityView(
 ) {
     val capabilitiesData by vm.capabilitiesService.getDeviceStatus().collectAsState(null)
     val evaluation by vm.capabilitiesService.evaluatePrerequisites(prerequisites).collectAsState(null)
+    var cameraPermissionRequested by remember(prerequisites) {
+        mutableStateOf(false)
+    }
+    var retryCameraPermissionOnResume by remember(prerequisites) {
+        mutableStateOf(false)
+    }
 
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        CoroutineScope(Dispatchers.IO).launch {
+        if (prerequisites.contains(CAMERA) && retryCameraPermissionOnResume) {
+            retryCameraPermissionOnResume = false
+            cameraPermissionRequested = false
+        }
+        vm.walletMain.scope.launch(Dispatchers.IO) {
             vm.capabilitiesService.refreshStatus()
         }
     }
@@ -59,7 +71,10 @@ fun CapabilityView(
         val statusData = prepareCapabilityCards(
             prerequisites,
             data,
-            { vm.walletMain.platformAdapter.openDeviceSettings() }
+            {
+                retryCameraPermissionOnResume = true
+                vm.walletMain.platformAdapter.openDeviceSettings()
+            }
         )
 
         if (evaluation == true) {
@@ -67,7 +82,10 @@ fun CapabilityView(
         }
 
         when {
-            prerequisites.contains(CAMERA) && data.cameraPermission == null -> {
+            prerequisites.contains(CAMERA) && data.cameraPermission != true && !cameraPermissionRequested -> {
+                LaunchedEffect(data.cameraPermission) {
+                    cameraPermissionRequested = true
+                }
                 LoadingView()
                 RequestCameraPermission()
             }

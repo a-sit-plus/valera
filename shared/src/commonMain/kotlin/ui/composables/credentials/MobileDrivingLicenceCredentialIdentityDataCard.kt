@@ -10,11 +10,15 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -52,13 +56,16 @@ fun MobileDrivingLicenceCredentialIdentityDataCardContent(
     modifier: Modifier = Modifier
 ) {
     var columnSize by remember { mutableStateOf(Size.Zero) }
+    val portraitBitmap by produceState<ImageBitmap?>(null, credentialAdapter) {
+        value = withContext(Dispatchers.Default) { credentialAdapter.portraitBitmap }
+    }
     Row(
         horizontalArrangement = Arrangement.Start,
         modifier = modifier.fillMaxWidth().onGloballyPositioned { layoutCoordinates ->
             columnSize = layoutCoordinates.size.toSize()
         },
     ) {
-        credentialAdapter.portraitBitmap?.let { portraitBitmap ->
+        portraitBitmap?.let { portraitBitmap ->
             // source: https://stackoverflow.com/questions/69455135/does-jetpack-compose-have-maxheight-and-maxwidth-like-xml
             // weird way to get "at most 1/4th of max width"
             val maxWidth = LocalDensity.current.run { (0.25f * columnSize.width).toDp() }

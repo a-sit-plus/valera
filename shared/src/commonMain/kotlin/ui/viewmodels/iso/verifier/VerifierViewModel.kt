@@ -5,6 +5,8 @@ import at.asitplus.iso.DeviceResponse
 import at.asitplus.iso.Document
 import at.asitplus.iso.MobileSecurityObject
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.snackbar_nfc_tag_lost_retrying
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
@@ -25,6 +27,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromByteArray
+import org.jetbrains.compose.resources.getString
 import ui.viewmodels.iso.common.TransferOptionsViewModel
 
 class VerifierViewModel(
@@ -32,7 +35,22 @@ class VerifierViewModel(
     settingsRepository: SettingsRepository
 ) : TransferOptionsViewModel(walletMain, settingsRepository) {
     private val transferManager: TransferManager by lazy {
-        TransferManager(settingsRepository, walletMain.scope) { message -> } // TODO: handle update messages
+        TransferManager(
+            settingsRepository,
+            walletMain.scope,
+            updateProgress = { _ -> },
+            onWarning = { warning ->
+                when (warning) {
+                    TransferManager.Warning.NFC_TAG_LOST_RETRYING -> {
+                        walletMain.scope.launch {
+                            walletMain.snackbarService.showSnackbar(
+                                getString(Res.string.snackbar_nfc_tag_lost_retrying)
+                            )
+                        }
+                    }
+                }
+            }
+        )
     }
 
     private val _verifierState = MutableStateFlow<VerifierState>(VerifierState.Settings)
@@ -52,7 +70,12 @@ class VerifierViewModel(
     val onResume: () -> Unit = {
         setState(VerifierState.Settings)
         _requestDocumentList.clear()
+        engagementPreviousState = VerifierState.SelectDocument
     }
+
+    // Tracks which selection state the user came from before QrEngagement, so back can return there.
+    var engagementPreviousState: VerifierState = VerifierState.SelectDocument
+        private set
 
     val onConsentSettings: () -> Unit = { setState(VerifierState.CheckSettings) }
 
@@ -93,7 +116,7 @@ class VerifierViewModel(
 
     private fun checkResponse(deviceResponse: DeviceResponse) {
         setState(VerifierState.CheckResponse)
-        val verifyDocument: suspend (MobileSecurityObject, Document) -> Boolean = { _, doc ->
+        val verifyDocument: suspend (MobileSecurityObject, Document) -> Boolean = { _, _ ->
             // TODO: verification of device authentication
             true
         }
@@ -114,6 +137,7 @@ class VerifierViewModel(
 
 
     fun onRequestSelected(request: SelectableRequest) {
+        engagementPreviousState = VerifierState.SelectDocument
         _requestDocumentList.addRequestDocument(
             RequestDocumentBuilder.buildRequestDocument(request)
         )
@@ -129,6 +153,7 @@ class VerifierViewModel(
     }
 
     fun onReceiveCombinedSelection(requestSelectionList: List<SelectableRequest>) {
+        engagementPreviousState = VerifierState.SelectCombinedRequest
         requestSelectionList.forEach { request ->
             _requestDocumentList.addRequestDocument(
                 RequestDocumentBuilder.buildRequestDocument(request)
@@ -141,6 +166,7 @@ class VerifierViewModel(
         selectedDocumentType: String,
         selectedEntries: Collection<String>
     ) {
+        engagementPreviousState = VerifierState.SelectCustomRequest
         val config = RequestDocumentBuilder.getDocTypeConfig(selectedDocumentType) ?: return
         _requestDocumentList.addRequestDocument(
             RequestDocumentBuilder.buildRequestDocument(config.scheme, selectedEntries)

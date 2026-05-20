@@ -12,12 +12,13 @@
     <string name="unknown_exception">Unknown exception</string>
 
     <string name="app_display_name">Valera</string>
-    <string name="snackbar_credential_loaded_successfully">Data has been loaded successfully</string>
     <string name="snackbar_reset_app_successfully">App has been reset successfully</string>
     <string name="snackbar_clear_log_successfully">Log has been cleared successfully</string>
     <string name="snackbar_update_hint">Your app is out-of-date, please update to %1$s.</string>
     <string name="snackbar_update_action">Open</string>
     <string name="snackbar_sign_successful">Signed successfully</string>
+    <string name="snackbar_digital_credentials_store_failed">Digital Credential API support could not be activated.</string>
+    <string name="snackbar_nfc_tag_lost_retrying">NFC connection lost. Hold the other device close again.</string>
 
     <string name="button_label_use_device_credential">Passcode</string>
     <string name="button_label_confirm">Confirm</string>
@@ -39,6 +40,7 @@
     <string name="button_label_start">Start</string>
     <string name="button_label_save">Save</string>
     <string name="button_label_conclude">Conclude</string>
+    <string name="button_label_close">Close</string>
     <string name="button_label_open_url">Open URL</string>
     <string name="button_label_scan_qr_code">Scan QR-Code</string>
     <string name="button_label_faq">FAQ</string>
@@ -209,7 +211,7 @@
     <string name="navigation_button_label_show_data">Present</string>
     <string name="navigation_button_label_my_data">Data</string>
     <string name="navigation_button_label_settings">Settings</string>
-    <string name="navigation_button_label_check">Check</string>
+    <string name="navigation_button_label_check">Verify</string>
 
     <string name="id_format_plain_jwt_label">PLAIN_JWT</string>
     <string name="id_format_sd_jwt_label">SD-JWT</string>
@@ -276,6 +278,7 @@
     <string name="heading_label_show_qr_code_screen">Scan me!</string>
     <string name="heading_label_received_data">Received Data</string>
     <string name="heading_label_capabilities">Device capabilities</string>
+    <string name="heading_label_select_data">Select data</string>
 
     <string name="heading_label_select_vda">Select VDA</string>
     <string name="heading_label_sign">Sign</string>
@@ -288,6 +291,7 @@
     <string name="biometric_authentication_prompt_to_bind_credentials_title">Create device binding</string>
 
     <string name="content_description_navigate_back">Back</string>
+    <string name="content_description_close">Close</string>
     <string name="content_description_delete_credential">Delete</string>
     <string name="content_description_portrait">Portrait</string>
     <string name="content_description_refresh_credentials">Load Data</string>
@@ -419,6 +423,7 @@
     <string name="presentation_success">The information was shared</string>
     <string name="presentation_error">Something went wrong</string>
     <string name="presentation_canceled">Presentment was canceled</string>
+    <string name="warning_authentication_cancelled">Authentication was cancelled</string>
     <string name="presentation_timeout">Timed out waiting for reader</string>
     <string name="presentation_waiting_for_request">Waiting for request</string>
     <string name="presentation_missing_permission">Presentation cannot be finished without permissions.</string>
@@ -522,12 +527,9 @@
     <string name="button_dismiss">Dismiss</string>
     <string name="button_remove">Remove</string>
     <string name="button_refresh">Refresh</string>
-    <string name="refresh_dialog_title_single">Update Available</string>
-    <string name="refresh_dialog_title_multiple">Updates Available</string>
-    <string name="refresh_dialog_message_single">A refreshment of '%1$s' is required. Would you like to update it now?</string>
-    <string name="refresh_dialog_message_multiple">A refreshments are required for several credentials. Would you like to update them now?</string>
-    <string name="refresh_dialog_confirm">Update Now</string>
-    <string name="refresh_dialog_dismiss">Later</string>
+    <string name="refresh_snackbar_message_single">Update available for \'%1$s\'</string>
+    <string name="refresh_snackbar_message_multiple">Updates available for multiple credentials</string>
+    <string name="refresh_snackbar_action">Update Now</string>
     <string name="error_no_refresh_token">No refresh token available</string>
     <string name="success_refreshed">Refreshed</string>
     <string name="success_reissued">Re-issued</string>

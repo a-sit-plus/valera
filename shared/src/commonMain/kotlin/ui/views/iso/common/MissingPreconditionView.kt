@@ -25,7 +25,6 @@ import at.asitplus.valera.resources.heading_label_missing_precondition
 import at.asitplus.wallet.app.common.iso.transfer.method.NfcEnabledState
 import at.asitplus.wallet.app.common.iso.transfer.state.PreconditionState
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.multipaz.compose.permissions.BluetoothEnabledState
@@ -45,7 +44,8 @@ fun MissingPreconditionView(
     navigateUp: (() -> Unit),
     onClickLogo: (() -> Unit),
     onClickBackToSettings: (() -> Unit),
-    onOpenAppSettings: (() -> Unit)
+    onOpenAppSettings: (() -> Unit),
+    coroutineScope: CoroutineScope,
 ) {
     Scaffold(
         topBar = {
@@ -84,7 +84,7 @@ fun MissingPreconditionView(
                         BleSelectedButNotEnabledView(
                             onClickBackToSettings = onClickBackToSettings,
                             onEnableBluetooth = {
-                                CoroutineScope(Dispatchers.Main).launch {
+                                coroutineScope.launch {
                                     bluetoothEnabledState.enable()
                                 }
                             }
@@ -93,7 +93,7 @@ fun MissingPreconditionView(
                         NfcSelectedButNotEnabledView(
                             onClickBackToSettings = onClickBackToSettings,
                             onOpenDeviceSettings = {
-                                CoroutineScope(Dispatchers.Main).launch {
+                                coroutineScope.launch {
                                     nfcEnabledState.enable()
                                 }
                             }
@@ -110,7 +110,7 @@ fun MissingPreconditionView(
                         NfcEngagementNotAvailableView(
                             onClickBackToSettings = onClickBackToSettings,
                             onOpenDeviceSettings = {
-                                CoroutineScope(Dispatchers.Main).launch {
+                                coroutineScope.launch {
                                     nfcEnabledState.enable()
                                 }
                             }

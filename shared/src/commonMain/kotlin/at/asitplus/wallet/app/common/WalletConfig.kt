@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.KmmResult
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import data.storage.DataStoreService
@@ -9,6 +10,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -20,6 +23,8 @@ class WalletConfig(
     val dataStoreService: DataStoreService,
     val errorService: ErrorService
 ) : SettingsRepository {
+    private val configMutex = Mutex()
+
     private val config: Flow<ConfigData> =
         dataStoreService.getPreference(Configuration.DATASTORE_KEY_CONFIG).map {
             it?.let { vckJsonSerializer.decodeFromString<ConfigData>(it) }
@@ -43,6 +48,53 @@ class WalletConfig(
     override val readerAutomaticallySelectTransport: Flow<Boolean> = config.map { it.readerAutomaticallySelectTransport }
     override val connectionTimeout: Flow<Duration> = config.map { it.connectionTimeout }
 
+    override fun setPresentmentBleEnabled(enabled: Boolean): KmmResult<Unit> =
+        updateConfig { current ->
+            if (!enabled) {
+                current.copy(
+                    presentmentBleCentralClientModeEnabled = false,
+                    presentmentBlePeripheralServerModeEnabled = false,
+                )
+            } else {
+                val restoreDefault = !current.presentmentBleCentralClientModeRemembered &&
+                        !current.presentmentBlePeripheralServerModeRemembered
+                val centralEnabled = if (restoreDefault) {
+                    ConfigDataDefaults.presentmentBleCentralClientModeEnabled
+                } else {
+                    current.presentmentBleCentralClientModeRemembered
+                }
+                val peripheralEnabled = if (restoreDefault) {
+                    ConfigDataDefaults.presentmentBlePeripheralServerModeEnabled
+                } else {
+                    current.presentmentBlePeripheralServerModeRemembered
+                }
+                current.copy(
+                    presentmentBleCentralClientModeEnabled = centralEnabled,
+                    presentmentBlePeripheralServerModeEnabled = peripheralEnabled,
+                    presentmentBleCentralClientModeRemembered = centralEnabled,
+                    presentmentBlePeripheralServerModeRemembered = peripheralEnabled,
+                )
+            }
+        }
+
+    override fun setPresentmentBleCentralClientModeEnabled(enabled: Boolean): KmmResult<Unit> =
+        updateConfig { current ->
+            current.copy(
+                presentmentBleCentralClientModeEnabled = enabled,
+                presentmentBleCentralClientModeRemembered = enabled,
+                presentmentBlePeripheralServerModeRemembered = current.presentmentBlePeripheralServerModeEnabled,
+            )
+        }
+
+    override fun setPresentmentBlePeripheralServerModeEnabled(enabled: Boolean): KmmResult<Unit> =
+        updateConfig { current ->
+            current.copy(
+                presentmentBlePeripheralServerModeEnabled = enabled,
+                presentmentBlePeripheralServerModeRemembered = enabled,
+                presentmentBleCentralClientModeRemembered = current.presentmentBleCentralClientModeEnabled,
+            )
+        }
+
     override fun set(
         host: String?,
         clientId: String?,
@@ -57,39 +109,43 @@ class WalletConfig(
         readerAutomaticallySelectTransport: Boolean?,
         connectionTimeout: Duration?,
         completionHandler: CompletionHandler
-    ): Result<Unit> = runCatching {
-        runBlocking {
-            val newConfig = ConfigData(
-                host = host ?: this@WalletConfig.host.first(),
-                clientId = clientId ?: this@WalletConfig.clientId.first(),
-                isConditionsAccepted = isConditionsAccepted
-                    ?: this@WalletConfig.isConditionsAccepted.first(),
-                presentmentUseNegotiatedHandover = presentmentUseNegotiatedHandover
-                    ?: this@WalletConfig.presentmentUseNegotiatedHandover.first(),
-                presentmentBleCentralClientModeEnabled = presentmentBleCentralClientModeEnabled
-                    ?: this@WalletConfig.presentmentBleCentralClientModeEnabled.first(),
-                presentmentBlePeripheralServerModeEnabled = presentmentBlePeripheralServerModeEnabled
-                    ?: this@WalletConfig.presentmentBlePeripheralServerModeEnabled.first(),
-                presentmentNfcDataTransferEnabled = presentmentNfcDataTransferEnabled
-                    ?: this@WalletConfig.presentmentNfcDataTransferEnabled.first(),
-                bleUseL2CAPEnabled = bleUseL2CAPEnabled
-                    ?: this@WalletConfig.bleUseL2CAPEnabled.first(),
-                bleUseL2CAPInEngagementEnabled = bleUseL2CAPInEngagementEnabled
-                    ?: this@WalletConfig.bleUseL2CAPInEngagementEnabled.first(),
-                presentmentAllowMultipleRequests = presentmentAllowMultipleRequests
-                    ?: this@WalletConfig.presentmentAllowMultipleRequests.first(),
-                readerAutomaticallySelectTransport = readerAutomaticallySelectTransport
-                    ?: this@WalletConfig.readerAutomaticallySelectTransport.first(),
-                connectionTimeout = connectionTimeout ?: this@WalletConfig.connectionTimeout.first(),
-            )
+    ): KmmResult<Unit> = updateConfig { current ->
+        val bleModesProvided = presentmentBleCentralClientModeEnabled != null ||
+                presentmentBlePeripheralServerModeEnabled != null
+        val centralEnabled = presentmentBleCentralClientModeEnabled
+            ?: current.presentmentBleCentralClientModeEnabled
+        val peripheralEnabled = presentmentBlePeripheralServerModeEnabled
+            ?: current.presentmentBlePeripheralServerModeEnabled
 
-            dataStoreService.setPreference(
-                vckJsonSerializer.encodeToString(newConfig),
-                Configuration.DATASTORE_KEY_CONFIG
+        current.copy(
+                host = host ?: current.host,
+                clientId = clientId ?: current.clientId,
+                isConditionsAccepted = isConditionsAccepted ?: current.isConditionsAccepted,
+                presentmentUseNegotiatedHandover = presentmentUseNegotiatedHandover
+                    ?: current.presentmentUseNegotiatedHandover,
+                presentmentBleCentralClientModeEnabled = centralEnabled,
+                presentmentBlePeripheralServerModeEnabled = peripheralEnabled,
+                presentmentBleCentralClientModeRemembered = if (bleModesProvided) {
+                    centralEnabled
+                } else {
+                    current.presentmentBleCentralClientModeRemembered
+                },
+                presentmentBlePeripheralServerModeRemembered = if (bleModesProvided) {
+                    peripheralEnabled
+                } else {
+                    current.presentmentBlePeripheralServerModeRemembered
+                },
+                presentmentNfcDataTransferEnabled = presentmentNfcDataTransferEnabled
+                    ?: current.presentmentNfcDataTransferEnabled,
+                bleUseL2CAPEnabled = bleUseL2CAPEnabled ?: current.bleUseL2CAPEnabled,
+                bleUseL2CAPInEngagementEnabled = bleUseL2CAPInEngagementEnabled
+                    ?: current.bleUseL2CAPInEngagementEnabled,
+                presentmentAllowMultipleRequests = presentmentAllowMultipleRequests
+                    ?: current.presentmentAllowMultipleRequests,
+                readerAutomaticallySelectTransport = readerAutomaticallySelectTransport
+                    ?: current.readerAutomaticallySelectTransport,
+                connectionTimeout = connectionTimeout ?: current.connectionTimeout,
             )
-        }
-    }.onFailure {
-        errorService.emit(it)
     }
 
     override val presentmentNegotiatedHandoverPreferredOrder: List<String> = listOf(
@@ -114,6 +170,29 @@ class WalletConfig(
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_CONFIG)
     }
 
+    private fun updateConfig(transform: (ConfigData) -> ConfigData): KmmResult<Unit> =
+        try {
+            runBlocking {
+                configMutex.withLock {
+                    val current = readConfigData()
+                    val updated = transform(current)
+                    dataStoreService.setPreference(
+                        vckJsonSerializer.encodeToString(updated),
+                        Configuration.DATASTORE_KEY_CONFIG
+                    )
+                }
+            }
+            KmmResult.success(Unit)
+        } catch (error: Throwable) {
+            errorService.emit(error)
+            KmmResult.failure(error)
+        }
+
+    private suspend fun readConfigData(): ConfigData =
+        dataStoreService.getPreference(Configuration.DATASTORE_KEY_CONFIG).first()
+            ?.let { vckJsonSerializer.decodeFromString<ConfigData>(it) }
+            ?: ConfigDataDefaults
+
     companion object {
         private const val BLE_CENTRAL_CLIENT_MODE = "ble:central_client_mode:"
         private const val BLE_PERIPHERAL_SERVER_MODE = "ble:peripheral_server_mode:"
@@ -132,6 +211,8 @@ private data class ConfigData(
     val presentmentUseNegotiatedHandover: Boolean = true,
     val presentmentBleCentralClientModeEnabled: Boolean = true,
     val presentmentBlePeripheralServerModeEnabled: Boolean = true,
+    val presentmentBleCentralClientModeRemembered: Boolean = true,
+    val presentmentBlePeripheralServerModeRemembered: Boolean = true,
     val presentmentNfcDataTransferEnabled: Boolean = false,
     val bleUseL2CAPEnabled: Boolean = true,
     val bleUseL2CAPInEngagementEnabled: Boolean = true,

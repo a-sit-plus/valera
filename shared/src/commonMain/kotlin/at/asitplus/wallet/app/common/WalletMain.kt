@@ -11,6 +11,7 @@ import at.asitplus.valera.resources.snackbar_update_hint
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.dcapi.DCAPIExportService
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
+import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
@@ -25,6 +26,7 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -57,9 +59,11 @@ class WalletMain(
     val errorService: ErrorService,
     val snackbarService: SnackbarService,
     val settingsRepository: SettingsRepository,
+    val localPresentmentSessionCoordinator: LocalPresentmentSessionCoordinator,
     val sessionService: SessionService,
     val capabilitiesService: CapabilitiesService,
     val credentialValidityService: CredentialValidityService,
+    sessionCoroutineScope: CoroutineScope,
 ) {
     val appReady = MutableStateFlow<Boolean?>(null)
 
@@ -69,13 +73,13 @@ class WalletMain(
     }
     val scope =
         CoroutineScope(
-            Dispatchers.Default + coroutineExceptionHandler + promptModel + CoroutineName(
+            sessionCoroutineScope.coroutineContext + coroutineExceptionHandler + promptModel + CoroutineName(
                 "WalletMain"
             )
-        )
+    )
+    private var dcApiRegistrationJob: Job? = null
 
     init {
-        startListeningForNewCredentialsDCAPI()
         credentialValidityService.startChecking()
         if (keyMaterial.keyMaterial is FallBackKeyMaterial) {
             Napier.e("FallBackKeyMaterial: ${keyMaterial.keyMaterial.reason}")
@@ -88,6 +92,7 @@ class WalletMain(
         subjectCredentialStore.reset()
         signingService.reset()
         capabilitiesService.reset()
+        localPresentmentSessionCoordinator.resetAll("wallet-reset")
 
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_VCS)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
@@ -103,6 +108,7 @@ class WalletMain(
         Napier.d("Perform soft reset")
         appReady.value = false
         KeystoreService.clearKeyMaterial()
+        localPresentmentSessionCoordinator.resetAll("wallet-soft-reset")
         sessionService.newScope()
     }
 
@@ -133,12 +139,13 @@ class WalletMain(
         }
     }
 
-    private fun startListeningForNewCredentialsDCAPI() {
+    fun startDcApiCredentialRegistration() {
+        if (dcApiRegistrationJob != null) {
+            return
+        }
         try {
-            val scope =
-                CoroutineScope(Dispatchers.IO + coroutineExceptionHandler + CoroutineName("startListeningForNewCredentialsDCAPI"))
             Napier.d("DC API: Starting to observe credentials")
-            subjectCredentialStore.observeStoreContainer().onEach { storeContainer ->
+            dcApiRegistrationJob = subjectCredentialStore.observeStoreContainer().onEach { storeContainer ->
                 dcApiExportService.registerCredentialWithSystem(storeContainer, scope)
             }.launchIn(scope)
         } catch (e: Throwable) {

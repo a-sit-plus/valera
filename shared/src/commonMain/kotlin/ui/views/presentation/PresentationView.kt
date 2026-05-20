@@ -12,13 +12,13 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.presentation_connecting_to_verifier
+import at.asitplus.valera.resources.heading_label_select_data
 import at.asitplus.valera.resources.presentation_initialised
 import at.asitplus.valera.resources.presentation_missing_permission
 import at.asitplus.valera.resources.presentation_permission_required
@@ -74,14 +74,6 @@ fun PresentationView(
 
     val blePermissionState = rememberBluetoothPermissionState()
 
-    // Make sure we clean up the PresentmentModel when we're done. This is to ensure
-    // the mechanism is properly shut down, for example for proximity we need to release
-    // all BLE and NFC resources.
-    //
-    DisposableEffect(presentationStateModel) {
-        onDispose { presentationStateModel.reset() }
-    }
-
     val state = presentationStateModel.state.collectAsState().value
     when (state) {
         PresentationStateModel.State.IDLE,
@@ -116,7 +108,7 @@ fun PresentationView(
                             navigateUp = presentationViewModel.navigateUp,
                             onCancel = { presentationViewModel.onCancel() },
                             buttonConsent = {
-                                CoroutineScope(Dispatchers.IO).launch {
+                                coroutineScope.launch(Dispatchers.IO) {
                                     presentationViewModel.onConsent()
                                 }
                             },
@@ -140,6 +132,7 @@ fun PresentationView(
                     when (val matching = presentationViewModel.matchingCredentials) {
                         is DCQLMatchingResult -> {
                             AuthenticationSelectionViewScaffold(
+                                title = stringResource(Res.string.heading_label_select_data),
                                 onNavigateUp = presentationViewModel.navigateUp,
                                 onClickLogo = presentationViewModel.onClickLogo,
                                 onClickSettings = presentationViewModel.onClickSettings,

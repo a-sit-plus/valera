@@ -5,24 +5,24 @@ import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
 import at.asitplus.wallet.app.common.presentation.PresentmentMechanism
 import io.github.aakira.napier.Napier
-import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
 import org.multipaz.mdoc.sessionencryption.SessionEncryption
 import org.multipaz.util.Constants
 import ui.viewmodels.authentication.PresentationStateModel.DismissType.CLICK
 import ui.viewmodels.authentication.PresentationStateModel.DismissType.DOUBLE_CLICK
 import ui.viewmodels.authentication.PresentationStateModel.DismissType.LONG_CLICK
+import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -80,7 +80,7 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
         PROCESSING,
 
         /**
-         * A request has been received and multiple documents can be presented and the user needs to pick one.
+         * A request has been received, and multiple documents can be presented, and the user needs to pick one.
          */
         WAITING_FOR_DOCUMENT_SELECTION,
 
@@ -136,6 +136,11 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
      * Resets the model to [State.IDLE].
      */
     fun reset() {
+        Napier.d("Resetting presentation model", tag = TAG)
+        credentialSelectorContinuation?.resumeWithException(
+            CancellationException("PresentationModel reset")
+        )
+        credentialSelectorContinuation = null
         _mechanism?.close()
         _mechanism = null
         _error = null
@@ -234,6 +239,10 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
         _mechanism?.close()
         _mechanism = null
         _error = error
+        credentialSelectorContinuation?.resumeWithException(
+            CancellationException("PresentationModel completed")
+        )
+        credentialSelectorContinuation = null
         _state.value = State.COMPLETED
         // TODO: Hack to ensure that [state] collectors (using [presentationScope]) gets called for State.COMPLETED
         _presentmentScope.launch {
@@ -334,7 +343,7 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
         }
     }
 
-    private var credentialSelectorContinuation: CancellableContinuation<ByteArray>? = null
+    private var credentialSelectorContinuation: Continuation<ByteArray>? = null
 
     fun setPermissionState(granted: Boolean) {
         check(State.CHECK_PERMISSIONS)
@@ -347,7 +356,7 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
 
     suspend fun requestCredentialSelection(): ByteArray {
         _state.value = State.WAITING_FOR_DOCUMENT_SELECTION
-        return suspendCancellableCoroutine { continuation ->
+        return suspendCoroutine { continuation ->
             credentialSelectorContinuation = continuation
         }
     }
@@ -361,6 +370,11 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
      */
     fun credentialSelected(deviceResponse: ByteArray) {
         check(State.WAITING_FOR_DOCUMENT_SELECTION)
-        credentialSelectorContinuation!!.resume(deviceResponse)
+        val continuation = credentialSelectorContinuation
+            ?: throw IllegalStateException("No pending credential selection continuation")
+        credentialSelectorContinuation = null
+        _state.value = State.PROCESSING
+        Napier.d("Resuming presentment with selected credential", tag = TAG)
+        continuation.resume(deviceResponse)
     }
 }

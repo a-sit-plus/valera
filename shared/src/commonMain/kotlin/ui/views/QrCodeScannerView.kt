@@ -46,7 +46,7 @@ fun QrCodeScannerView(
             )
         }
 
-        GenericQrCodeScannerView(
+        QrCodeScannerScreen(
             title = title,
             subTitle = subtitle,
             navigateUp = onNavigateUp,
@@ -64,7 +64,9 @@ fun QrCodeScannerView(
                 )
             },
             onClickLogo = onClickLogo,
-            onClickSettings = onClickSettings
+            onClickSettings = onClickSettings,
+            koinScope = koinScope,
+            walletMain = vm.walletMain,
         )
     }
 }

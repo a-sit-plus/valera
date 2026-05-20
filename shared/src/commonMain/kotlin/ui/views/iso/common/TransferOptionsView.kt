@@ -59,10 +59,7 @@ fun TransferOptionsView(
         GroupSwitch(
             title = stringResource(Res.string.switch_label_use_ble),
             isChecked = bluetoothEnabled,
-            onCheckedChange = { enabled ->
-                transferOptionsViewModel.setPresentmentBleCentralClientModeEnabled(enabled)
-                transferOptionsViewModel.setPresentmentBlePeripheralServerModeEnabled(enabled)
-            },
+            onCheckedChange = { enabled -> transferOptionsViewModel.setPresentmentBleEnabled(enabled) },
             onOptionalClick = { showBluetoothOptions = !showBluetoothOptions }
         )
 

@@ -4,6 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_check_response
 import at.asitplus.valera.resources.info_text_check_settings
@@ -65,6 +68,19 @@ fun VerifierView(
         }
     }
 
+    // System back exits the verifier entirely from any substate; disabled in Settings
+    // so the route is popped normally from there too.
+    val backState = rememberNavigationEventState(NavigationEventInfo.None)
+    NavigationBackHandler(state = backState, isBackEnabled = verifierState !is VerifierState.Settings) {
+        when (verifierState) {
+            is VerifierState.SelectDocument -> vm.setState(VerifierState.Settings)
+            is VerifierState.SelectCustomRequest -> vm.setState(VerifierState.SelectDocument)
+            is VerifierState.SelectCombinedRequest -> vm.setState(VerifierState.SelectDocument)
+            is VerifierState.QrEngagement -> vm.setState(vm.engagementPreviousState)
+            else -> vm.onResume()
+        }
+    }
+
     when (val state = verifierState) {
         is VerifierState.Settings ->
             VerifierSettingsView(onClickLogo, onClickSettings, bottomBar, vm)
@@ -73,12 +89,18 @@ fun VerifierView(
             navigateUp = vm.onResume
         )
         is VerifierState.SelectDocument ->
-            VerifierDocumentSelectionView(onClickLogo, onClickSettings, vm, bottomBar)
+            VerifierDocumentSelectionView(onClickLogo, onClickSettings, { vm.setState(VerifierState.Settings) }, vm, bottomBar)
         is VerifierState.SelectCustomRequest ->
-            VerifierCustomSelectionView(onClickLogo, onClickSettings, vm)
+            VerifierCustomSelectionView(onClickLogo, onClickSettings, { vm.setState(VerifierState.SelectDocument) }, vm)
         is VerifierState.SelectCombinedRequest ->
-            VerifierCombinedSelectionView(onClickLogo, onClickSettings, vm)
-        is VerifierState.QrEngagement -> VerifierQrEngagementView(onClickLogo, vm)
+            VerifierCombinedSelectionView(onClickLogo, onClickSettings, { vm.setState(VerifierState.SelectDocument) }, vm)
+        is VerifierState.QrEngagement -> VerifierQrEngagementView(
+            onClickLogo = onClickLogo,
+            onClickSettings = onClickSettings,
+            navigateUp = { vm.setState(vm.engagementPreviousState) },
+            vm = vm,
+            koinScope = koinScope,
+        )
         is VerifierState.WaitingForResponse -> LoadingView(
             customLabel = stringResource(Res.string.info_text_waiting_for_response),
             navigateUp = vm.onResume
@@ -99,7 +121,8 @@ fun VerifierView(
             navigateUp = vm.onResume,
             onClickLogo = onClickLogo,
             onClickBackToSettings = vm.onResume,
-            onOpenAppSettings = { appSettings.open() }
+            onOpenAppSettings = { appSettings.open() },
+            coroutineScope = vm.walletMain.scope,
         )
     }
 }

@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common.data
 
+import at.asitplus.KmmResult
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.flow.Flow
@@ -44,6 +45,12 @@ interface SettingsRepository {
             NFC_DATA_TRANSFER
         )
 
+    fun setPresentmentBleEnabled(enabled: Boolean): KmmResult<Unit>
+
+    fun setPresentmentBleCentralClientModeEnabled(enabled: Boolean): KmmResult<Unit>
+
+    fun setPresentmentBlePeripheralServerModeEnabled(enabled: Boolean): KmmResult<Unit>
+
     fun set(
         host: String? = null,
         clientId: String? = null,
@@ -58,7 +65,7 @@ interface SettingsRepository {
         readerAutomaticallySelectTransport: Boolean? = null,
         connectionTimeout: Duration? = null,
         completionHandler: CompletionHandler = {},
-    ): Result<Unit>
+    ): KmmResult<Unit>
 
     suspend fun isConnectionMethodEnabled(prefix: String): Boolean =
         if (prefix.startsWith(BLE_CENTRAL_CLIENT_MODE)) {

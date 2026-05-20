@@ -37,49 +37,87 @@ class StatefulViewController: UIViewController {
 
 private struct ParsedRequestSummaryData {
     let summaryJson: String?
-    let requestedElements: [String]
+}
+
+private struct ParsedRequestSummary: Encodable {
+    let documentRequests: [ParsedDocumentRequest]
+}
+
+private struct ParsedDocumentRequest: Encodable {
+    let docType: String
+    let namespaces: [String: [String: Bool]]
+}
+
+// The extension process can be reused across requests, so we need a stable fingerprint for
+// "same request vs. new request" detection that does not depend on object identity.
+private func buildRequestSignature(from requestContext: ISO18013MobileDocumentRequestContext) -> String {
+    let parsedRequestSummary = buildParsedRequestSummaryData(from: requestContext)
+    let originString = requestContext.requestingWebsiteOrigin?.absoluteString ?? ""
+    return originString + "|" + (parsedRequestSummary.summaryJson ?? "")
 }
 
 private func buildParsedRequestSummaryData(from requestContext: ISO18013MobileDocumentRequestContext) -> ParsedRequestSummaryData {
-    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "buildparsedrequestsummarydata called")
-    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "\(requestContext)")
-    var requestedElements: [String] = []
-    let documentRequests: [[String: Any]] = requestContext.request.presentmentRequests.flatMap { presentmentRequest in
+    let documentRequests: [ParsedDocumentRequest] = requestContext.request.presentmentRequests.flatMap { presentmentRequest in
         presentmentRequest.documentRequestSets.flatMap { documentRequestSet in
             documentRequestSet.requests.map { documentRequest in
+                // Sort namespaces and elements before encoding so the resulting JSON is stable
+                // across repeated setup calls for the same request.
                 let namespaces = Dictionary(
-                    uniqueKeysWithValues: documentRequest.namespaces.map { namespace, elements in
-                        for (elementIdentifier, _) in elements {
-                            requestedElements.append(elementIdentifier)
+                    uniqueKeysWithValues: documentRequest.namespaces
+                        .sorted { lhs, rhs in lhs.key < rhs.key }
+                        .map { namespace, elements in
+                            let sortedElements = Dictionary(
+                                uniqueKeysWithValues: elements
+                                    .sorted { lhs, rhs in lhs.key < rhs.key }
+                                    .map { elementName, value in
+                                        (elementName, value.isRetaining)
+                                    }
+                            )
+                            return (namespace, sortedElements)
                         }
-                        return (namespace, elements.mapValues { value in
-                            value.isRetaining
-                        })
-                    }
                 )
-                return [
-                    "docType": documentRequest.documentType,
-                    "namespaces": namespaces
-                ]
+                return ParsedDocumentRequest(
+                    docType: documentRequest.documentType,
+                    namespaces: namespaces
+                )
             }
         }
     }
-    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "\(documentRequests)")
-    let summary: [String: Any] = [
-        "documentRequests": documentRequests
-    ]
-
-    let summaryJson = (try? JSONSerialization.data(withJSONObject: summary))
+    let summary = ParsedRequestSummary(documentRequests: documentRequests)
+    let encoder = JSONEncoder()
+    if #available(iOS 11.0, *) {
+        encoder.outputFormatting = [.sortedKeys]
+    }
+    let summaryJson = (try? encoder.encode(summary))
         .flatMap { String(data: $0, encoding: .utf8) }
 
     return ParsedRequestSummaryData(
-        summaryJson: summaryJson,
-        requestedElements: requestedElements
+        summaryJson: summaryJson
     )
 }
 
 @main
 struct DocumentProviderExtension: IdentityDocumentProvider {
+    #if DEBUG
+    private let buildType = BuildType.debug
+    #else
+    private let buildType = BuildType.release_
+    #endif
+
+    init() {
+        IosSessionBridge.shared.bootstrap(
+            buildContext: BuildContext(
+                buildType: buildType,
+                packageName: Bundle.main.bundleIdentifier ?? "at.asitplus.wallet.compose",
+                // CFBundleVersion is always a String in modern bundles; cast it to String
+                // first and then convert — a direct `as? Int32` cast always fails and falls back to 1.
+                versionCode: (Bundle.main.infoDictionary?["CFBundleVersion"] as? String).flatMap { Int32($0) } ?? 1,
+                versionName: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0",
+                osVersion: "iOS " + UIDevice.current.systemVersion
+            ),
+            antilog: OSLogNapierAntilog()
+        )
+    }
 
     struct RootViewController: UIViewControllerRepresentable {
         let requestContext: ISO18013MobileDocumentRequestContext
@@ -91,7 +129,9 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
         #endif
         
         class Coordinator {
-            var onSendResponseCalled = false
+            var requestStarted = false
+            // Tracks the last request fingerprint so updateUIViewController can detect a new request.
+            var lastRequestSignature: String? = nil
         }
 
         func makeCoordinator() -> Coordinator {
@@ -99,89 +139,115 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
         }
 
         func makeUIViewController(context: Context) -> StatefulViewController {
-            Napier.shared.base(antilog:OSLogNapierAntilog())
-            Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "makeUIViewController called")
-
-            let mainViewController = Main_iosKt.MainViewController(
-                buildContext: BuildContext(
-                    buildType: buildType,
-                    packageName: Bundle.main.bundleIdentifier ?? "at.asitplus.wallet.compose",
-                    versionCode: Bundle.main.infoDictionary?["CFBundleVersion"] as? Int32 ?? 1,
-                    versionName: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String  ?? "1.0.0",
-                    osVersion: "iOS " + UIDevice.current.systemVersion
-                ),
-            )
-
             let statefulViewController = StatefulViewController()
+            setupForCurrentRequest(statefulViewController: statefulViewController, context: context)
+            return statefulViewController
+        }
+
+        // iOS may reuse the extension process for a second DC API request without recreating the view
+        // controller. In that case SwiftUI calls updateUIViewController instead of makeUIViewController,
+        // so we must detect the new requestContext and re-run the full setup.
+        func updateUIViewController(_ uiViewController: StatefulViewController, context: Context) {
+            let requestSignature = buildRequestSignature(from: requestContext)
+            if requestSignature != context.coordinator.lastRequestSignature {
+                setupForCurrentRequest(statefulViewController: uiViewController, context: context)
+            }
+        }
+
+        private func markRequestFinished(context: Context) {
+            context.coordinator.requestStarted = false
+            context.coordinator.lastRequestSignature = nil
+        }
+
+        private func setupForCurrentRequest(statefulViewController: StatefulViewController, context: Context) {
+            // Reset per-request state before wiring up the new request.
+            context.coordinator.requestStarted = false
+            context.coordinator.lastRequestSignature = buildRequestSignature(from: requestContext)
 
             let originString: String? = requestContext.requestingWebsiteOrigin?.absoluteString
             let parsedRequestSummary = buildParsedRequestSummaryData(from: requestContext)
 
-            let onSendResponse: (Data) -> Void = { payload in
-                if context.coordinator.onSendResponseCalled {
-                    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onSendResponse already called, ignoring")
+            let onCancel: () -> Void = {
+                Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onCancel called")
+                // Clear Kotlin-side transient state before cancelling the system request so the next
+                // external flow starts from a clean bridge state.
+                markRequestFinished(context: context)
+                IosSessionBridge.shared.clearDcapiPreRequest()
+                IosSessionBridge.shared.clearDcapiInvocation()
+                requestContext.cancel()
+            }
+
+            let onContinue: () -> Void = {
+                if context.coordinator.requestStarted {
+                    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onContinue already called, ignoring")
                     return
                 }
-                context.coordinator.onSendResponseCalled = true
+                context.coordinator.requestStarted = true
 
-                Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onSendResponse called")
+                // Once the user accepts the summary screen, replace the pre-request bridge object
+                // with the actual invocation state that will serve the credential response.
+                IosSessionBridge.shared.clearDcapiPreRequest()
+                Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onContinue called")
                 Task {
                     do {
                         try await requestContext.sendResponse { rawRequest in
-                            // TODO show pre-request inside our UI so that we can use user-friendly names for the requested attributes and
                             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse handler started")
                             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "rawRequest: \(String(decoding: rawRequest.requestData, as: UTF8.self))")
                             let finalResponseData = await withCheckedContinuation { continuation in
                                 Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "withCheckedContinuation started")
-                                let onFinish: (Data?) -> Void = { data in
-                                    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onFinish called \(String(decoding: data ?? Data(), as: UTF8.self))")
+                                let sendCredentialResponse: (Data?) -> Void = { data in
+                                    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "sendCredentialResponse called \(String(decoding: data ?? Data(), as: UTF8.self))")
                                     continuation.resume(returning: data ?? Data())
                                 }
-                                
+
+                                // Hand the raw verifier request into shared Kotlin code, which drives
+                                // the actual consent/authentication flow and eventually calls back
+                                // into sendCredentialResponse.
                                 let invocationData = IosDCAPIInvocationData(
                                     rawRequest: String(decoding: rawRequest.requestData, as: UTF8.self),
                                     parsedRequestSummary: parsedRequestSummary.summaryJson,
                                     origin: originString,
-                                    onFinish: onFinish
+                                    sendCredentialResponse: sendCredentialResponse,
+                                    onCancel: onCancel
                                 )
-                                MdocSessionManager.shared.setSession(data: invocationData)
-                                
-                                Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "Before displaying MainViewController")
-
-                                DispatchQueue.main.async {
-                                    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "Displaying MainViewController")
-                                    statefulViewController.display(viewController: mainViewController)
-                                }
+                                IosSessionBridge.shared.registerDcapiInvocation(data: invocationData)
                             }
-                            
+
                             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse handler finished")
+                            markRequestFinished(context: context)
                             return ISO18013MobileDocumentResponse(responseData: finalResponseData)
                         }
                     } catch {
                         Napier.shared.log(priority: LogLevel.error, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse failed: \(error)")
+                        markRequestFinished(context: context)
+                        IosSessionBridge.shared.clearDcapiInvocation()
                         requestContext.cancel()
                     }
                 }
             }
 
-            let onCancel: () -> Void = {
-                Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onCancel called")
-                requestContext.cancel()
-            }
-
-            let mdocRequestViewController = Main_iosKt.MdocRequestViewController(
-                requestingWebsiteOrigin: originString,
-                requestedElements: parsedRequestSummary.requestedElements,
-                onSendResponse: onSendResponse,
+            // Expose the lightweight pre-request summary first so the UI can show the relying
+            // party and requested attributes before the verifier request is fully resumed.
+            let preRequestData = IosDcApiPreRequestData(
+                parsedRequestSummary: parsedRequestSummary.summaryJson,
+                origin: originString,
+                onContinue: onContinue,
                 onCancel: onCancel
             )
-            
-            statefulViewController.display(viewController: mdocRequestViewController)
+            IosSessionBridge.shared.registerDcapiPreRequest(data: preRequestData)
 
-            return statefulViewController
-        }
-
-        func updateUIViewController(_ uiViewController: StatefulViewController, context: Context) {
+            let mainViewController = Main_iosKt.TransientFlowMainViewController(
+                buildContext: BuildContext(
+                    buildType: buildType,
+                    packageName: Bundle.main.bundleIdentifier ?? "at.asitplus.wallet.compose",
+                    // CFBundleVersion is always a String in modern bundles; cast it to String
+                // first and then convert — a direct `as? Int32` cast always fails and falls back to 1.
+                versionCode: (Bundle.main.infoDictionary?["CFBundleVersion"] as? String).flatMap { Int32($0) } ?? 1,
+                    versionName: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0",
+                    osVersion: "iOS " + UIDevice.current.systemVersion
+                )
+            )
+            statefulViewController.display(viewController: mainViewController)
         }
     }
 
