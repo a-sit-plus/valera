@@ -218,7 +218,7 @@ private data class ConfigData(
     val bleUseL2CAPInEngagementEnabled: Boolean = true,
     val presentmentAllowMultipleRequests: Boolean = false,
     val readerAutomaticallySelectTransport: Boolean = true,
-    val connectionTimeout: Duration = 15.seconds,
+    val connectionTimeout: Duration = 30.seconds, // ISO 18013-5 9.4: "the time-out should be no less than 30 seconds"
 )
 
 private val ConfigDataDefaults = ConfigData(
