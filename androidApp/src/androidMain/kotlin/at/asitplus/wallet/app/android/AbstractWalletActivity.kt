@@ -18,6 +18,7 @@ import androidx.credentials.exceptions.CreateCredentialCustomException
 import androidx.credentials.exceptions.GetCredentialCustomException
 import androidx.credentials.provider.PendingIntentHandler
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import at.asitplus.wallet.app.common.dcapi.data.ErrorResponse
 import io.github.aakira.napier.Napier
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -119,7 +120,7 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
             Napier.w("CardEmulation.categoryAllowsForegroundPreference(CATEGORY_OTHER) returned false")
         }
         preferredServiceJob = lifecycleScope.launch {
-            NdefDeviceEngagementService.nfcDataTransferActive.collect { dataTransfer ->
+            NfcTransferState.nfcDataTransferActive.collect { dataTransfer ->
                 val serviceClass = if (dataTransfer) NfcDataRetrievalService::class.java
                                    else NdefDeviceEngagementService::class.java
                 if (!cardEmulation.setPreferredService(this@AbstractWalletActivity, ComponentName(this@AbstractWalletActivity, serviceClass))) {

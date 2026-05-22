@@ -8,6 +8,7 @@ import at.asitplus.wallet.app.common.presentation.LocalPresentmentEngagementMeth
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSource
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
+import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -178,6 +179,10 @@ class HolderViewModel(
                 )
                 Napier.d("advertisedTransports = $advertisedTransports", tag = TAG)
 
+                if (connectionMethods.any { it is MdocConnectionMethodNfc }) {
+                    NfcTransferState.nfcDataTransferActive.value = true
+                }
+
                 val deviceEngagement = buildDeviceEngagement(
                     eDeviceKey = ephemeralDeviceKey.publicKey,
                     version = MdocConstants.VERSION
@@ -209,6 +214,8 @@ class HolderViewModel(
                 completionHandler(null)
             } catch (throwable: Throwable) {
                 completionHandler(throwable)
+            } finally {
+                NfcTransferState.nfcDataTransferActive.value = false
             }
         }
     }

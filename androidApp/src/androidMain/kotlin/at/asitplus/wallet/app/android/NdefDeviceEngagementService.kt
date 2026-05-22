@@ -17,6 +17,7 @@ import at.asitplus.wallet.app.common.presentation.LocalPresentmentEngagementMeth
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSource
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
+import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import at.asitplus.wallet.app.common.presentation.PresentmentTimeout
 import data.storage.RealDataStoreService
 import data.storage.getDataStore
@@ -29,7 +30,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -46,6 +46,7 @@ import org.multipaz.mdoc.nfc.MdocNfcEngagementHelper
 import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.transport.MdocTransportFactory
 import org.multipaz.mdoc.transport.MdocTransportOptions
+import org.multipaz.mdoc.transport.NfcTransportMdoc
 import org.multipaz.mdoc.transport.advertise
 import org.multipaz.mdoc.transport.waitForConnection
 import org.multipaz.nfc.CommandApdu
@@ -70,10 +71,6 @@ class NdefDeviceEngagementService : HostApduService() {
         @Volatile
         var currentPresentationStateModel: PresentationStateModel? = null
             private set
-
-        // True once engagement handover is complete; the activity observes this to switch the
-        // preferred HCE service from the engagement service to the data retrieval service.
-        val nfcDataTransferActive = MutableStateFlow(false)
 
         @Volatile
         private var activeSessionId: String? = null
@@ -120,6 +117,24 @@ class NdefDeviceEngagementService : HostApduService() {
             Napier.d("NdefDeviceEngagementService cleared currentPresentationStateModel reason=$reason", tag = TAG)
         }
 
+        private fun startConnectingTimeout(model: PresentationStateModel, walletConfig: WalletConfig) {
+            if (activeDisableEngagementJob != null) return
+            Napier.d("NdefDeviceEngagementService: starting connecting timeout", tag = TAG)
+            activeDisableEngagementJob = activePresentmentScope.launch(CoroutineName("NdefDeviceEngagementService:connectingTimeout")) {
+                try {
+                    model.waitForConnectionUsingMainTransport(walletConfig.connectionTimeout.first())
+                    Napier.d("NdefDeviceEngagementService: Main transport connected")
+                    // Success: session-cleanup and listenOnMethods handle teardown.
+                } catch (_: TimeoutCancellationException) {
+                    val message =
+                        "NdefDeviceEngagementService: Reader didn't connect in ${walletConfig.connectionTimeout.first()}, closing"
+                    Napier.w(message, tag = TAG)
+                    model.setCompleted(PresentmentTimeout(message))
+                    clearActiveEngagement("connecting-timeout")
+                }
+            }
+        }
+
         private fun clearActiveEngagement(reason: String) {
             activeEngagement = null
             activeStarted = false
@@ -127,7 +142,7 @@ class NdefDeviceEngagementService : HostApduService() {
             activePresentationUiLaunched = false
             activeDisableEngagementJob?.cancel()
             activeDisableEngagementJob = null
-            nfcDataTransferActive.value = false
+            NfcTransferState.nfcDataTransferActive.value = false
             Napier.d("NdefDeviceEngagementService cleared active engagement reason=$reason", tag = TAG)
         }
     }
@@ -183,6 +198,26 @@ class NdefDeviceEngagementService : HostApduService() {
         commandApduListenJob?.cancel()
         serviceScope.cancel()
         serviceErrorService = null
+
+        // On some devices onDestroy fires without a prior onDeactivated call. Ensure the
+        // CONNECTING-state timeout is started so the session does not hang forever.
+        val model = currentPresentationStateModel ?: return
+        when (model.state.value) {
+            PresentationStateModel.State.INITIALISING -> {
+                val message = "NdefDeviceEngagementService: Service destroyed during INITIALISING, aborting"
+                Napier.w(message, tag = TAG)
+                model.setCompleted(PresentmentTimeout(message))
+                clearActiveEngagement("onDestroy-initialising")
+            }
+            PresentationStateModel.State.CONNECTING -> {
+                Napier.d(
+                    "NdefDeviceEngagementService: onDestroy in CONNECTING without prior onDeactivated, starting timeout",
+                    tag = TAG
+                )
+                startConnectingTimeout(model, walletConfig)
+            }
+            else -> {}
+        }
     }
 
     private var commandApduListenJob: Job? = null
@@ -220,7 +255,7 @@ class NdefDeviceEngagementService : HostApduService() {
         activeDisableEngagementJob = null
         activeBleHandoverPending = false
         activePresentationUiLaunched = false
-        nfcDataTransferActive.value = false
+        NfcTransferState.nfcDataTransferActive.value = false
 
         val ephemeralDeviceKey = Crypto.createEcPrivateKey(EcCurve.P256)
         val timeStarted = Clock.System.now()
@@ -303,7 +338,7 @@ class NdefDeviceEngagementService : HostApduService() {
             onHandoverComplete = { connectionMethods, encodedDeviceEngagement, handover ->
                 Napier.d("Waiting for start", tag = TAG)
                 vibrateSuccess()
-                nfcDataTransferActive.value = true
+                NfcTransferState.nfcDataTransferActive.value = true
                 activeBleHandoverPending = connectionMethods.any { it is MdocConnectionMethodBle }
                 model.start(activeBleHandoverPending)
                 if (activeBleHandoverPending) {
@@ -312,7 +347,7 @@ class NdefDeviceEngagementService : HostApduService() {
                         model.setPermissionState(true)
                     } else {
                         Napier.d("BLE permissions missing, launching UI to request them", tag = TAG)
-                        launchPresentationUiIfNeeded("missing-ble-permission")
+                        //launchPresentationUiIfNeeded("missing-ble-permission")
                     }
                 }
 
@@ -353,6 +388,9 @@ class NdefDeviceEngagementService : HostApduService() {
                         && it != PresentationStateModel.State.CHECK_PERMISSIONS
             }
             Napier.d("${model.state.value} reached, wait for connection using main transport", tag = TAG)
+            // Launch the UI now so the user sees the connecting state and any subsequent
+            // errors (e.g. timeout) rather than a silent hang.
+            //launchPresentationUiIfNeeded("connecting")
             val advertisedTransports = connectionMethods.advertise(
                 role = MdocRole.MDOC,
                 transportFactory = MdocTransportFactory.Default,
@@ -364,6 +402,13 @@ class NdefDeviceEngagementService : HostApduService() {
 
             val transport = advertisedTransports.waitForConnection(eDeviceKey.publicKey)
             activeBleHandoverPending = false
+            // Cancel the connecting timeout BEFORE setMechanism() changes the state.
+            // The timeout job watches for state to leave CONNECTING; if we cancel after
+            // setMechanism(), there is a race where the job calls clearActiveEngagement()
+            // (resetting nfcDataTransferActive) before cancel() takes effect.
+            activeDisableEngagementJob?.cancel()
+            activeDisableEngagementJob = null
+            activeEngagement = null
             model.setMechanism(
                 MdocPresentmentMechanism(
                     transport = transport,
@@ -378,9 +423,6 @@ class NdefDeviceEngagementService : HostApduService() {
                 )
             )
             launchPresentationUiIfNeeded("transport-connected")
-            activeDisableEngagementJob?.cancel()
-            activeDisableEngagementJob = null
-            activeEngagement = null
         }
     }
 
@@ -442,18 +484,7 @@ class NdefDeviceEngagementService : HostApduService() {
                     "NdefDeviceEngagementService: NFC link ended while waiting for main transport; blePending=$activeBleHandoverPending",
                     tag = TAG
                 )
-                activeDisableEngagementJob = activePresentmentScope.launch(CoroutineName("NdefDeviceEngagementService:onDeactivated")) {
-                    try {
-                        model.waitForConnectionUsingMainTransport(walletConfig.connectionTimeout.first())
-                        Napier.d("NdefDeviceEngagementService: Main transport connected")
-                    } catch (_: TimeoutCancellationException) {
-                        val message =
-                            "NdefDeviceEngagementService: Reader didn't connect in ${walletConfig.connectionTimeout.first()}, closing"
-                        Napier.w(message)
-                        model.setCompleted(PresentmentTimeout(message))
-                    }
-                    clearActiveEngagement("deactivated-timeout")
-                }
+                startConnectingTimeout(model, walletConfig)
             }
             else -> {}
         }
