@@ -542,4 +542,9 @@
     <string name="success_reissued">Neu ausgestellt</string>
     <string name="error_reissue_failed">Neuausstellung fehlgeschlagen</string>
     <string name="error_refresh_failed">Aktualisierung fehlgeschlagen</string>
+
+    <string name="heading_label_nfc_transfer">Datenübertragung</string>
+    <string name="info_text_nfc_engagement_verifier">Halten Sie dieses Gerät an das NFC-Feld des anderen Geräts.</string>
+    <string name="info_text_nfc_data_transfer">Bitte halten Sie beide Geräte im NFC-Feld, bis die Übertragung abgeschlossen ist.</string>
+    <string name="info_text_ble_data_transfer">Warte auf Daten via Bluetooth…</string>
 </resources>

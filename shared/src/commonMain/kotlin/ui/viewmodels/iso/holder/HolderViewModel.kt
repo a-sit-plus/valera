@@ -8,6 +8,7 @@ import at.asitplus.wallet.app.common.presentation.LocalPresentmentEngagementMeth
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSource
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
+import at.asitplus.wallet.app.common.presentation.NfcDispatchSuppressionMode
 import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CompletionHandler
@@ -180,6 +181,12 @@ class HolderViewModel(
                 Napier.d("advertisedTransports = $advertisedTransports", tag = TAG)
 
                 if (connectionMethods.any { it is MdocConnectionMethodNfc }) {
+                    Napier.i(
+                        "Holder QR flow includes NFC data transfer; switching preferred HCE service to data retrieval",
+                        tag = TAG
+                    )
+                    NfcTransferState.verifierNfcTransferActive.value = false
+                    NfcTransferState.verifierNfcTagDispatchSuppressed.value = NfcDispatchSuppressionMode.NONE
                     NfcTransferState.nfcDataTransferActive.value = true
                 }
 
@@ -195,8 +202,13 @@ class HolderViewModel(
                 setState(HolderState.ShowQrCode)
 
                 // Then wait for connection
+                Napier.i("Holder waiting for main transport connection; methods=$connectionMethods", tag = TAG)
                 val transport = advertisedTransports.waitForConnection(
                     eSenderKey = ephemeralDeviceKey.publicKey
+                )
+                Napier.i(
+                    "Holder main transport connected: ${transport::class.simpleName}, state=${transport.state.value}",
+                    tag = TAG
                 )
 
                 model.setMechanism(
@@ -213,8 +225,13 @@ class HolderViewModel(
                 _qrCode.value = null
                 completionHandler(null)
             } catch (throwable: Throwable) {
+                Napier.e("Holder flow failed while waiting for or using main transport", throwable, tag = TAG)
                 completionHandler(throwable)
             } finally {
+                Napier.i(
+                    "Holder clearing NFC data-transfer HCE preference; modelState=${model.state.value}, holderState=${holderState.value}",
+                    tag = TAG
+                )
                 NfcTransferState.nfcDataTransferActive.value = false
             }
         }

@@ -14,6 +14,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -41,6 +42,8 @@ import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
+import at.asitplus.wallet.app.common.presentation.NfcDispatchSuppressionMode
+import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import io.github.aakira.napier.Napier
@@ -715,6 +718,14 @@ private fun TransientFlowNavHost(
         }
 
         composable<ErrorRoute> {
+            DisposableEffect(Unit) {
+                NfcTransferState.nfcDataTransferActive.value = false
+                NfcTransferState.verifierNfcTransferActive.value = false
+                NfcTransferState.verifierNfcTagDispatchSuppressed.value = NfcDispatchSuppressionMode.DISABLED
+                onDispose {
+                    NfcTransferState.verifierNfcTagDispatchSuppressed.value = NfcDispatchSuppressionMode.NONE
+                }
+            }
             walletMain.errorService.error.collectAsState(null).value?.let {
                 catchingUnwrapped {
                     val existingOverride = it.throwable as? ErrorHandlingOverrideException

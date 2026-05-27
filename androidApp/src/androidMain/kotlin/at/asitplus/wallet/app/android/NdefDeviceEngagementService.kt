@@ -30,6 +30,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -78,6 +79,8 @@ class NdefDeviceEngagementService : HostApduService() {
         private var activeEngagement: MdocNfcEngagementHelper? = null
         @Volatile
         private var activeDisableEngagementJob: Job? = null
+        @Volatile
+        private var activeNfcTransportCleanupJob: Job? = null
         @Volatile
         private var activeBleHandoverPending = false
         @Volatile
@@ -136,15 +139,39 @@ class NdefDeviceEngagementService : HostApduService() {
         }
 
         private fun clearActiveEngagement(reason: String) {
+            val wasNfcDataTransferActive = NfcTransferState.nfcDataTransferActive.value
             activeEngagement = null
             activeStarted = false
             activeBleHandoverPending = false
             activePresentationUiLaunched = false
             activeDisableEngagementJob?.cancel()
             activeDisableEngagementJob = null
-            NfcTransferState.nfcDataTransferActive.value = false
+            activeNfcTransportCleanupJob?.cancel()
+            activeNfcTransportCleanupJob = null
+            if (wasNfcDataTransferActive) {
+                activeNfcTransportCleanupJob = activePresentmentScope.launch(
+                    CoroutineName("NdefDeviceEngagementService:nfcTransportCleanup")
+                ) {
+                    Napier.i(
+                        "Delaying NFC data-transfer cleanup after $reason so reader can finish APDU exchange",
+                        tag = TAG
+                    )
+                    delay(NFC_TRANSPORT_CLEANUP_DELAY_MS)
+                    runCatching { NfcTransportMdoc.onDeactivated() }
+                        .onFailure { Napier.w("NFC transport cleanup failed", it, tag = TAG) }
+                    NfcTransferState.nfcDataTransferActive.value = false
+                    activeNfcTransportCleanupJob = null
+                    Napier.i("NFC data-transfer cleanup finished after $reason", tag = TAG)
+                }
+            } else {
+                runCatching { NfcTransportMdoc.onDeactivated() }
+                    .onFailure { Napier.w("NFC transport cleanup failed", it, tag = TAG) }
+                NfcTransferState.nfcDataTransferActive.value = false
+            }
             Napier.d("NdefDeviceEngagementService cleared active engagement reason=$reason", tag = TAG)
         }
+
+        private const val NFC_TRANSPORT_CLEANUP_DELAY_MS = 2_000L
     }
 
     private var serviceErrorService: ErrorService? = null
@@ -253,8 +280,13 @@ class NdefDeviceEngagementService : HostApduService() {
 
         activeDisableEngagementJob?.cancel()
         activeDisableEngagementJob = null
+        activeNfcTransportCleanupJob?.cancel()
+        activeNfcTransportCleanupJob = null
         activeBleHandoverPending = false
         activePresentationUiLaunched = false
+        runCatching { NfcTransportMdoc.onDeactivated() }
+            .onFailure { Napier.w("Pre-engagement NFC transport cleanup failed", it, tag = TAG) }
+        Napier.i("Resetting NFC data-transfer active flag before starting NDEF engagement", tag = TAG)
         NfcTransferState.nfcDataTransferActive.value = false
 
         val ephemeralDeviceKey = Crypto.createEcPrivateKey(EcCurve.P256)
@@ -336,10 +368,16 @@ class NdefDeviceEngagementService : HostApduService() {
         activeEngagement = MdocNfcEngagementHelper(
             eDeviceKey = ephemeralDeviceKey.publicKey,
             onHandoverComplete = { connectionMethods, encodedDeviceEngagement, handover ->
-                Napier.d("Waiting for start", tag = TAG)
+                Napier.i(
+                    "NFC engagement handover complete; methods=$connectionMethods, " +
+                            "handover=${handover::class.simpleName}, deviceEngagementBytes=${encodedDeviceEngagement.size}",
+                    tag = TAG
+                )
                 vibrateSuccess()
+                Napier.i("Switching preferred HCE service to NFC data retrieval after handover", tag = TAG)
                 NfcTransferState.nfcDataTransferActive.value = true
                 activeBleHandoverPending = connectionMethods.any { it is MdocConnectionMethodBle }
+                Napier.i("Starting presentation model after NFC handover; blePending=$activeBleHandoverPending", tag = TAG)
                 model.start(activeBleHandoverPending)
                 if (activeBleHandoverPending) {
                     if (hasBlePermissions()) {
@@ -391,6 +429,7 @@ class NdefDeviceEngagementService : HostApduService() {
             // Launch the UI now so the user sees the connecting state and any subsequent
             // errors (e.g. timeout) rather than a silent hang.
             //launchPresentationUiIfNeeded("connecting")
+            Napier.i("Advertising main transports after NFC handover; methods=$connectionMethods", tag = TAG)
             val advertisedTransports = connectionMethods.advertise(
                 role = MdocRole.MDOC,
                 transportFactory = MdocTransportFactory.Default,
@@ -400,7 +439,12 @@ class NdefDeviceEngagementService : HostApduService() {
                 )
             )
 
+            Napier.i("Waiting for main transport connection after NFC handover", tag = TAG)
             val transport = advertisedTransports.waitForConnection(eDeviceKey.publicKey)
+            Napier.i(
+                "Main transport connected after NFC handover: ${transport::class.simpleName}, state=${transport.state.value}",
+                tag = TAG
+            )
             activeBleHandoverPending = false
             // Cancel the connecting timeout BEFORE setMechanism() changes the state.
             // The timeout job watches for state to leave CONNECTING; if we cancel after
@@ -409,6 +453,7 @@ class NdefDeviceEngagementService : HostApduService() {
             activeDisableEngagementJob?.cancel()
             activeDisableEngagementJob = null
             activeEngagement = null
+            Napier.i("Setting presentation mechanism for NFC-engaged local presentment", tag = TAG)
             model.setMechanism(
                 MdocPresentmentMechanism(
                     transport = transport,
@@ -462,11 +507,21 @@ class NdefDeviceEngagementService : HostApduService() {
         Napier.i("onDeactivated: reason=$reason", tag = TAG)
         activeStarted = false
         if (activeEngagement == null) {
-            Napier.d("NdefDeviceEngagementService: Engagement is not running")
+            Napier.d(
+                "NdefDeviceEngagementService: Engagement is not running; " +
+                        "nfcDataTransferActive=${NfcTransferState.nfcDataTransferActive.value}",
+                tag = TAG
+            )
             return
         }
 
         val model = currentPresentationStateModel ?: return
+        Napier.i(
+            "NDEF engagement service deactivated; modelState=${model.state.value}, " +
+                    "blePending=$activeBleHandoverPending, " +
+                    "nfcDataTransferActive=${NfcTransferState.nfcDataTransferActive.value}",
+            tag = TAG
+        )
 
         when (model.state.value) {
             PresentationStateModel.State.INITIALISING -> {

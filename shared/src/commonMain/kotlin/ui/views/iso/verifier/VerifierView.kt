@@ -77,6 +77,8 @@ fun VerifierView(
             is VerifierState.SelectCustomRequest -> vm.setState(VerifierState.SelectDocument)
             is VerifierState.SelectCombinedRequest -> vm.setState(VerifierState.SelectDocument)
             is VerifierState.QrEngagement -> vm.setState(vm.engagementPreviousState)
+            is VerifierState.NfcEngagement -> vm.cancelNfcEngagement()
+            is VerifierState.NfcTransferring -> vm.cancelNfcEngagement()
             else -> vm.onResume()
         }
     }
@@ -101,6 +103,13 @@ fun VerifierView(
             vm = vm,
             koinScope = koinScope,
         )
+        is VerifierState.NfcEngagement -> VerifierNfcEngagementView(
+            onCancel = vm::cancelNfcEngagement
+        )
+        is VerifierState.NfcTransferring -> VerifierNfcTransferringView(
+            isNfc = state.isNfc,
+            onCancel = vm::cancelNfcEngagement
+        )
         is VerifierState.WaitingForResponse -> LoadingView(
             customLabel = stringResource(Res.string.info_text_waiting_for_response),
             navigateUp = vm.onResume
@@ -110,7 +119,14 @@ fun VerifierView(
             navigateUp = vm.onResume
         )
         is VerifierState.Presentation ->
-            VerifierPresentationView(navigateUp, onClickLogo, vm)
+            VerifierPresentationView(
+                navigateUp = {
+                    vm.onResume()
+                    navigateUp()
+                },
+                onClickLogo = onClickLogo,
+                vm = vm
+            )
         is VerifierState.Error -> onError(vm.throwable.value!!)
         is VerifierState.MissingPrecondition -> MissingPreconditionView(
             reason = state.reason,

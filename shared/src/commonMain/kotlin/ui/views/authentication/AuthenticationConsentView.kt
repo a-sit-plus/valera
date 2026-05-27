@@ -33,6 +33,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -78,7 +79,13 @@ fun AuthenticationConsentView(
     vm: AuthenticationConsentViewModel,
     onError: (Throwable) -> Unit,
 ) {
-    vm.walletMain.keyMaterial.onUnauthenticated = vm.navigateUp
+    DisposableEffect(vm) {
+        val previousOnUnauthenticated = vm.walletMain.keyMaterial.onUnauthenticated
+        vm.walletMain.keyMaterial.onUnauthenticated = vm.onUnauthenticated
+        onDispose {
+            vm.walletMain.keyMaterial.onUnauthenticated = previousOnUnauthenticated
+        }
+    }
     val isLocalPresentation = vm.spLocation == "Local Presentation"
     val topBarTitle = if (isLocalPresentation) {
         stringResource(Res.string.heading_label_show_data)

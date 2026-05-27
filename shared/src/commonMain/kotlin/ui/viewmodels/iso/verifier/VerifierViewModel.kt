@@ -15,6 +15,9 @@ import at.asitplus.wallet.app.common.iso.transfer.method.DeviceEngagementMethods
 import at.asitplus.wallet.app.common.iso.transfer.state.VerifierState
 import at.asitplus.wallet.app.common.iso.verifier.DeviceResponseException
 import at.asitplus.wallet.app.common.iso.verifier.VerifyResponseException
+import at.asitplus.wallet.app.common.presentation.NfcDispatchSuppressionMode
+import at.asitplus.wallet.app.common.presentation.NfcTransferState
+import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
 import at.asitplus.wallet.lib.agent.VerifierAgent
 import at.asitplus.wallet.lib.data.IsoDocumentParsed
 import data.document.RequestDocumentBuilder
@@ -23,11 +26,13 @@ import data.document.SelectableRequest
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromByteArray
 import org.jetbrains.compose.resources.getString
+import at.asitplus.valera.resources.presentation_canceled
 import ui.viewmodels.iso.common.TransferOptionsViewModel
 
 class VerifierViewModel(
@@ -49,6 +54,11 @@ class VerifierViewModel(
                         }
                     }
                 }
+            },
+            onTransportSelected = { isNfc ->
+                Napier.i("Verifier transport selected; isNfc=$isNfc", tag = "VerifierViewModel")
+                if (isNfc) NfcTransferState.verifierNfcTransferActive.value = true
+                setState(VerifierState.NfcTransferring(isNfc))
             }
         )
     }
@@ -68,6 +78,8 @@ class VerifierViewModel(
     val responseDocumentList: MutableList<IsoDocumentParsed> = _responseDocumentList
 
     val onResume: () -> Unit = {
+        NfcTransferState.verifierNfcTagDispatchSuppressed.value = NfcDispatchSuppressionMode.NONE
+        NfcTransferState.verifierNfcTransferActive.value = false
         setState(VerifierState.Settings)
         _requestDocumentList.clear()
         engagementPreviousState = VerifierState.SelectDocument
@@ -95,6 +107,9 @@ class VerifierViewModel(
     }
 
     private fun doNfcEngagement() {
+        NfcTransferState.nfcDataTransferActive.value = false
+        NfcTransferState.verifierNfcTagDispatchSuppressed.value = NfcDispatchSuppressionMode.NONE
+        setState(VerifierState.NfcEngagement)
         _requestDocumentList.let { requestDocumentList ->
             transferManager.startNfcEngagement(requestDocumentList) { deviceResponseResult ->
                 handleResponse(deviceResponseResult)
@@ -102,7 +117,17 @@ class VerifierViewModel(
         }
     }
 
+    fun cancelNfcEngagement() {
+        Napier.i("Cancelling verifier NFC engagement/data transfer", tag = "VerifierViewModel")
+        NfcTransferState.verifierNfcTagDispatchSuppressed.value = NfcDispatchSuppressionMode.NONE
+        NfcTransferState.verifierNfcTransferActive.value = false
+        transferManager.cancel()
+        onResume()
+    }
+
     private fun handleResponse(result: KmmResult<ByteArray>) {
+        Napier.i("Verifier response callback received; clearing NFC transfer active flag", tag = "VerifierViewModel")
+        NfcTransferState.verifierNfcTransferActive.value = false
         result.onSuccess { deviceResponseBytes ->
             Napier.d("deviceResponseBytes =\n${deviceResponseBytes.toHexString()}")
             try {
@@ -111,7 +136,22 @@ class VerifierViewModel(
             } catch (e: Exception) {
                 handleError(DeviceResponseException("Failed to decode DeviceResponse", e, deviceResponseBytes))
             }
-        }.onFailure { handleError(it) }
+        }.onFailure {
+            if (it is PresentmentCanceled) {
+                handleHolderCanceled()
+            } else {
+                handleError(it)
+            }
+        }
+    }
+
+    private fun handleHolderCanceled() {
+        Napier.i("Holder canceled verifier presentment; returning to previous screen", tag = "VerifierViewModel")
+        walletMain.scope.launch {
+            walletMain.snackbarService.showSnackbar(getString(Res.string.presentation_canceled))
+            delay(700)
+            setState(engagementPreviousState)
+        }
     }
 
     private fun checkResponse(deviceResponse: DeviceResponse) {

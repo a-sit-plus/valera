@@ -295,6 +295,15 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
      */
     fun dismiss(dismissType: DismissType) {
         val mdocMechanism = mechanism as? MdocPresentmentMechanism
+        val canceled = PresentmentCanceled("The presentment was canceled by the user")
+        if (_state.value == State.WAITING_FOR_DOCUMENT_SELECTION && dismissType == CLICK && mdocMechanism != null) {
+            Napier.i("Holder cancel requested during document selection; delegating encrypted termination to presenter", tag = TAG)
+            _error = canceled
+            credentialSelectorContinuation?.resumeWithException(canceled)
+            credentialSelectorContinuation = null
+            _state.value = State.PROCESSING
+            return
+        }
         if (mdocMechanism != null) {
             _presentmentScope.launch {
                 try {
@@ -318,10 +327,13 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
                 } catch (error: Throwable) {
                     Napier.e("Caught exception closing transport", error, tag=TAG)
                     error.printStackTrace()
+                } finally {
+                    setCompleted(canceled)
                 }
             }
+            return
         }
-        setCompleted(PresentmentCanceled("The presentment was canceled by the user"))
+        setCompleted(canceled)
     }
 
     private suspend fun startPresentmentFlow(presentationViewModel: PresentationViewModel) {

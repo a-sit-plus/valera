@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,8 +70,13 @@ fun PresentationView(
     onError: (Throwable) -> Unit
 ) {
     val presentationStateModel = presentationViewModel.presentationStateModel
-    presentationViewModel.walletMain.keyMaterial.onUnauthenticated =
-        presentationViewModel.navigateUp
+    DisposableEffect(presentationViewModel) {
+        val previousOnUnauthenticated = presentationViewModel.walletMain.keyMaterial.onUnauthenticated
+        presentationViewModel.walletMain.keyMaterial.onUnauthenticated = {}
+        onDispose {
+            presentationViewModel.walletMain.keyMaterial.onUnauthenticated = previousOnUnauthenticated
+        }
+    }
 
     val blePermissionState = rememberBluetoothPermissionState()
 
@@ -115,7 +121,8 @@ fun PresentationView(
                             walletMain = presentationViewModel.walletMain,
                             presentationRequest = presentationViewModel.presentationRequest,
                             onClickLogo = presentationViewModel.onClickLogo,
-                            onClickSettings = presentationViewModel.onClickSettings
+                            onClickSettings = presentationViewModel.onClickSettings,
+                            onUnauthenticated = {}
                         ),
                         onError = onError
                     )

@@ -9,6 +9,9 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -93,7 +96,15 @@ private fun WalletRootView(
     intentState: IntentState,
     sessionService: SessionService
 ) {
-    PromptDialogs(promptModel)
+    // PromptDialogs must be in the composition during NFC engagement so that
+    // NfcTagReader.scan() can bind the PromptModel to UI. Once the handover
+    // completes and the data transfer begins, we remove it: that cancels the
+    // ScanNfcTagPromptDialog NoDialogState LaunchedEffect before its 3-second
+    // disableReaderMode() fires, keeping the active isoDep connection alive.
+    val verifierNfcActive by NfcTransferState.verifierNfcTransferActive.collectAsState()
+    if (!verifierNfcActive) {
+        PromptDialogs(promptModel)
+    }
 
     App(
         sessionService = sessionService,

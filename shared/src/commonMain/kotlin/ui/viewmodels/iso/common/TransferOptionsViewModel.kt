@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -32,15 +33,22 @@ open class TransferOptionsViewModel(
         }
     }
 
-    private val _selectedEngagementMethod = MutableStateFlow(DeviceEngagementMethods.QR_CODE)
-    val selectedEngagementMethod: StateFlow<DeviceEngagementMethods> = _selectedEngagementMethod
+    val selectedEngagementMethod: StateFlow<DeviceEngagementMethods> =
+        settingsRepository.presentmentDeviceEngagementMethod.map { persistedValue ->
+            DeviceEngagementMethods.entries.firstOrNull { it.name == persistedValue }
+                ?: DeviceEngagementMethods.QR_CODE
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = DeviceEngagementMethods.QR_CODE
+        )
 
     private val bleCentralClientModeOverride = MutableStateFlow<Boolean?>(null)
     private val blePeripheralServerModeOverride = MutableStateFlow<Boolean?>(null)
 
     fun setEngagementMethod(method: DeviceEngagementMethods) {
-        if(_selectedEngagementMethod.value == method) return
-        _selectedEngagementMethod.value = method
+        if (selectedEngagementMethod.value == method) return
+        update(block = { set(presentmentDeviceEngagementMethod = method.name) })
     }
 
     val presentmentUseNegotiatedHandover =

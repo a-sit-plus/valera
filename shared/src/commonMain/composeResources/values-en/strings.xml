@@ -535,4 +535,9 @@
     <string name="success_reissued">Re-issued</string>
     <string name="error_reissue_failed">Re-issue failed</string>
     <string name="error_refresh_failed">Refresh failed</string>
+
+    <string name="heading_label_nfc_transfer">Data Transfer</string>
+    <string name="info_text_nfc_engagement_verifier">Hold this device near the NFC field of the other device.</string>
+    <string name="info_text_nfc_data_transfer">Keep both devices in the NFC field until the transfer is complete.</string>
+    <string name="info_text_ble_data_transfer">Waiting for data via Bluetooth…</string>
 </resources>

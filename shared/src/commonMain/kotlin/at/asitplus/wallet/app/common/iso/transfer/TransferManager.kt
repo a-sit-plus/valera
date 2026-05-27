@@ -8,13 +8,16 @@ import at.asitplus.valera.resources.info_text_nfc_mdoc_reader
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import data.document.RequestDocumentList
 import io.github.aakira.napier.Napier
+import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -65,6 +68,7 @@ class TransferManager(
     private val scope: CoroutineScope,
     private val updateProgress: (String) -> Unit,
     private val onWarning: (Warning) -> Unit = {},
+    private val onTransportSelected: ((isNfc: Boolean) -> Unit)? = null,
 ) {
     val TAG = "TransferManager"
 
@@ -81,6 +85,29 @@ class TransferManager(
     private val _state = MutableStateFlow(State.IDLE)
 
     val state = _state.asStateFlow()
+
+    private var engagementJob: kotlinx.coroutines.Job? = null
+
+    fun cancel() {
+        val transport = readerTransport.value
+        engagementJob?.cancel()
+        engagementJob = null
+        readerTransport.value = null
+        readerSessionEncryption.value = null
+        if (transport != null) {
+            scope.launch {
+                try {
+                    transport.sendMessage(
+                        SessionEncryption.encodeStatus(Constants.SESSION_DATA_STATUS_SESSION_TERMINATION)
+                    )
+                } catch (e: Throwable) {
+                    Napier.d("Could not send session termination during cancel: ${e.message}", tag = TAG)
+                } finally {
+                    runCatching { transport.close() }
+                }
+            }
+        }
+    }
 
     var readerMostRecentDeviceResponse = mutableStateOf<ByteArray?>(null)
     var readerSessionTranscript: ByteArray? = null
@@ -179,7 +206,7 @@ class TransferManager(
     ) {
         readerMostRecentDeviceResponse.value = null
 
-        scope.launch {
+        engagementJob = scope.launch {
             try {
                 while (true) {
                     try {
@@ -196,6 +223,10 @@ class TransferManager(
                     }
                 }
             } catch (e: Throwable) {
+                if (e is kotlinx.coroutines.CancellationException) {
+                    Napier.d("NFC engagement cancelled", tag = TAG)
+                    return@launch
+                }
                 // TODO: Add populate error to verifier
                 Napier.e("NFC engagement failed", e, tag = TAG)
                 updateProgress("NFC engagement failed with $e")
@@ -238,9 +269,13 @@ class TransferManager(
                 )
             )
         }
+        Napier.i(
+            "Starting NFC engagement as reader; negotiatedMethods=$negotiatedHandoverConnectionMethods",
+            tag = TAG
+        )
         val nfcReader = NfcTagReader.getReaders().first()
         val scanResult = nfcReader.scanMdocReader(
-            message = getString(Res.string.info_text_nfc_mdoc_reader),
+            message = null, // our own VerifierNfcEngagementView is shown instead
             options = MdocTransportOptions(
                 bleUseL2CAP = config.bleUseL2CAPEnabled.first(),
                 bleUseL2CAPInEngagement = config.bleUseL2CAPEnabled.first()
@@ -260,24 +295,44 @@ class TransferManager(
         )
 
         if (scanResult != null) {
-            doReaderFlow(
-                encodedDeviceEngagement = scanResult.encodedDeviceEngagement,
-                existingTransport = scanResult.transport,
-                handover = scanResult.handover,
-                selectConnectionMethod = { connectionMethods ->
-                    if (config.readerAutomaticallySelectTransport.first()) {
-                        updateProgress("Auto-selected first from $connectionMethods")
-                        connectionMethods[0]
-                    } else {
-                        selectConnectionMethod(
-                            connectionMethods,
-                            connectionMethodPickerData
-                        )
-                    }
-                },
-                documentRequestList = documentRequestList,
-                setDeviceResponseBytes = setDeviceResponseBytes
+            Napier.i(
+                "NFC engagement scan completed; transport=${scanResult.transport::class.simpleName}, " +
+                        "handover=${scanResult.handover::class.simpleName}, " +
+                        "deviceEngagementBytes=${scanResult.encodedDeviceEngagement.size}",
+                tag = TAG
             )
+            try {
+                doReaderFlow(
+                    encodedDeviceEngagement = scanResult.encodedDeviceEngagement,
+                    existingTransport = scanResult.transport,
+                    handover = scanResult.handover,
+                    selectConnectionMethod = { connectionMethods ->
+                        if (config.readerAutomaticallySelectTransport.first()) {
+                            updateProgress("Auto-selected first from $connectionMethods")
+                            connectionMethods[0]
+                        } else {
+                            selectConnectionMethod(
+                                connectionMethods,
+                                connectionMethodPickerData
+                            )
+                        }
+                    },
+                    documentRequestList = documentRequestList,
+                    setDeviceResponseBytes = setDeviceResponseBytes
+                )
+            } catch (e: Throwable) {
+                // Re-throw CancellationException so the coroutine machinery can handle it.
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                // Any error after engagement (during data transfer) is fatal — do not retry.
+                Napier.e(
+                    "Reader flow failed after NFC engagement completed; not retrying current handover",
+                    e,
+                    tag = TAG
+                )
+                setDeviceResponseBytes(KmmResult.failure(e))
+            }
+        } else {
+            Napier.i("NFC engagement scan returned null", tag = TAG)
         }
     }
 
@@ -344,6 +399,12 @@ class TransferManager(
         val eReaderKey = Crypto.createEcPrivateKey(eDeviceKey.curve)
 
         val transport = if (existingTransport != null) {
+            Napier.i(
+                "Using transport returned by engagement: ${existingTransport::class.simpleName}, " +
+                        "isNfc=${existingTransport is NfcTransportMdocReader}",
+                tag = TAG
+            )
+            onTransportSelected?.invoke(existingTransport is NfcTransportMdocReader)
             existingTransport
         } else {
             val connectionMethods = MdocConnectionMethod.disambiguate(
@@ -357,10 +418,13 @@ class TransferManager(
             }
             if (connectionMethod == null) {
                 // If user cancelled
+                Napier.i("Reader connection-method selection was cancelled", tag = TAG)
                 return
             }
+            Napier.i("Reader selected connection method $connectionMethod", tag = TAG)
             val transport = createReaderTransport(connectionMethod)
             if (transport is NfcTransportMdocReader) {
+                onTransportSelected?.invoke(true)
                 doReaderFlowWithNfcTransportRetry(
                     connectionMethod = connectionMethod,
                     encodedDeviceEngagement = encodedDeviceEngagement,
@@ -372,6 +436,7 @@ class TransferManager(
                 )
                 return
             }
+            onTransportSelected?.invoke(false)
             transport
         }
         doReaderFlowWithTransport(
@@ -427,13 +492,32 @@ class TransferManager(
         val deviceRequest = deviceRequestBuilder.build()
         val encodedDeviceRequest = Cbor.encode(deviceRequest.toDataItem())
 
+        var responseReceived = false
+        var completionReported = false
+
+        fun reportHolderCanceled(message: String) {
+            if (!completionReported && !responseReceived) {
+                completionReported = true
+                setDeviceResponseBytes(KmmResult.failure(PresentmentCanceled(message)))
+            }
+        }
+
         try {
+            Napier.i(
+                "Opening reader transport ${transport::class.simpleName}; eDeviceCurve=${eDeviceKey.curve.name}",
+                tag = TAG
+            )
             transport.open(eDeviceKey)
+            Napier.i("Reader transport opened; state=${transport.state.value}", tag = TAG)
             transport.sendMessage(
                 sessionEncryption.encryptMessage(
                     messagePlaintext = encodedDeviceRequest,
                     statusCode = null
                 )
+            )
+            Napier.i(
+                "Reader sent DeviceRequest over ${transport::class.simpleName}; bytes=${encodedDeviceRequest.size}",
+                tag = TAG
             )
             while (true) {
                 Napier.d("Waiting for message", tag = TAG)
@@ -441,6 +525,7 @@ class TransferManager(
                 Napier.d("Got message", tag = TAG)
                 if (sessionData.isEmpty()) {
                     updateProgress("Received transport-specific session termination message from holder")
+                    reportHolderCanceled("The holder canceled the presentment")
                     transport.close()
                     break
                 }
@@ -448,12 +533,17 @@ class TransferManager(
                 val (message, status) = sessionEncryption.decryptMessage(sessionData)
                 Napier.i("Holder sent ${message?.size} bytes status $status")
                 if (message != null) {
+                    responseReceived = true
+                    completionReported = true
                     readerMostRecentDeviceResponse.value = message
                     setDeviceResponseBytes(KmmResult.success(message))
                     _state.value = State.DATA_RECEIVED
                 }
                 if (status == Constants.SESSION_DATA_STATUS_SESSION_TERMINATION) {
                     updateProgress("Received session termination message from holder")
+                    if (message == null) {
+                        reportHolderCanceled("The holder canceled the presentment")
+                    }
                     Napier.i("Holder indicated they closed the connection. " +
                             "Closing and ending reader loop", tag = TAG
                     )
@@ -480,8 +570,19 @@ class TransferManager(
             // Nothing to do, this is thrown when at.asitplus.wallet.verifier.transport.close() is called from another coroutine, that
             // is, the onClick handlers for the close buttons.
             Napier.i("Ending reader flow due to MdocTransportClosedException", tag = TAG)
+            reportHolderCanceled("The holder closed the presentment connection")
+        } catch (error: Throwable) {
+            Napier.e(
+                "Reader flow failed on transport ${transport::class.simpleName}; state=${transport.state.value}",
+                error,
+                tag = TAG
+            )
+            throw error
         } finally {
-            transport.close()
+            withContext(NonCancellable) {
+                Napier.i("Closing reader transport ${transport::class.simpleName}; state=${transport.state.value}", tag = TAG)
+                transport.close()
+            }
             readerTransport.value = null
         }
     }
@@ -500,9 +601,11 @@ class TransferManager(
             val transport = createReaderTransport(connectionMethod) as? NfcTransportMdocReader
                 ?: error("Expected NFC transport for connection method $connectionMethod")
             try {
+                Napier.i("Scanning again for NFC data-transfer transport after QR/static engagement", tag = TAG)
                 nfcReader.scan(
                     message = "QR engagement with NFC Data Transfer. Move into NFC field of the mdoc",
                     tagInteractionFunc = { tag ->
+                        Napier.i("NFC data-transfer tag discovered; binding tag to reader transport", tag = TAG)
                         transport.setTag(tag)
                         doReaderFlowWithTransport(
                             transport = transport,
@@ -519,6 +622,7 @@ class TransferManager(
             } catch (error: Throwable) {
                 transport.close()
                 if (!error.isRecoverableNfcTagLoss()) {
+                    Napier.e("NFC data-transfer scan failed with non-recoverable error", error, tag = TAG)
                     throw error
                 }
                 handleRecoverableNfcTagLoss(error)

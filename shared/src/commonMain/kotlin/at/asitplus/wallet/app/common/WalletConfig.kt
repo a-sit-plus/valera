@@ -42,6 +42,7 @@ class WalletConfig(
     override val presentmentBleCentralClientModeEnabled: Flow<Boolean> = config.map { it.presentmentBleCentralClientModeEnabled }
     override val presentmentBlePeripheralServerModeEnabled: Flow<Boolean> = config.map { it.presentmentBlePeripheralServerModeEnabled }
     override val presentmentNfcDataTransferEnabled: Flow<Boolean> = config.map { it.presentmentNfcDataTransferEnabled }
+    override val presentmentDeviceEngagementMethod: Flow<String> = config.map { it.presentmentDeviceEngagementMethod }
     override val bleUseL2CAPEnabled: Flow<Boolean> = config.map { it.bleUseL2CAPEnabled }
     override val bleUseL2CAPInEngagementEnabled: Flow<Boolean> = config.map { it.bleUseL2CAPInEngagementEnabled }
     override val presentmentAllowMultipleRequests: Flow<Boolean> = config.map { it.presentmentAllowMultipleRequests }
@@ -103,6 +104,7 @@ class WalletConfig(
         presentmentBleCentralClientModeEnabled: Boolean?,
         presentmentBlePeripheralServerModeEnabled: Boolean?,
         presentmentNfcDataTransferEnabled: Boolean?,
+        presentmentDeviceEngagementMethod: String?,
         bleUseL2CAPEnabled: Boolean?,
         bleUseL2CAPInEngagementEnabled: Boolean?,
         presentmentAllowMultipleRequests: Boolean?,
@@ -137,6 +139,8 @@ class WalletConfig(
                 },
                 presentmentNfcDataTransferEnabled = presentmentNfcDataTransferEnabled
                     ?: current.presentmentNfcDataTransferEnabled,
+                presentmentDeviceEngagementMethod = presentmentDeviceEngagementMethod
+                    ?: current.presentmentDeviceEngagementMethod,
                 bleUseL2CAPEnabled = bleUseL2CAPEnabled ?: current.bleUseL2CAPEnabled,
                 bleUseL2CAPInEngagementEnabled = bleUseL2CAPInEngagementEnabled
                     ?: current.bleUseL2CAPInEngagementEnabled,
@@ -214,6 +218,7 @@ private data class ConfigData(
     val presentmentBleCentralClientModeRemembered: Boolean = true,
     val presentmentBlePeripheralServerModeRemembered: Boolean = true,
     val presentmentNfcDataTransferEnabled: Boolean = false,
+    val presentmentDeviceEngagementMethod: String = SettingsRepository.DEFAULT_PRESENTMENT_DEVICE_ENGAGEMENT_METHOD,
     val bleUseL2CAPEnabled: Boolean = true,
     val bleUseL2CAPInEngagementEnabled: Boolean = true,
     val presentmentAllowMultipleRequests: Boolean = false,

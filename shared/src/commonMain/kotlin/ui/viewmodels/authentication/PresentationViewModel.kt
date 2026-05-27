@@ -94,11 +94,10 @@ class PresentationViewModel(
 
     override fun onCancel() {
         presentationStateModel.dismiss(PresentationStateModel.DismissType.CLICK)
-        super.onCancel()
     }
 
     override fun onError(error: Throwable) {
-        if (error is UserInitiatedCancellationReason) {
+        if (error.isRecoverableAuthenticationCancel()) {
             walletMain.scope.launch {
                 walletMain.snackbarService.showSnackbar(getString(Res.string.warning_authentication_cancelled))
             }
@@ -107,6 +106,14 @@ class PresentationViewModel(
         presentationStateModel.dismiss(PresentationStateModel.DismissType.CLICK)
         super.onError(error)
     }
+
+    private fun Throwable.isRecoverableAuthenticationCancel(): Boolean =
+        generateSequence(this as Throwable?) { it.cause }.any { current ->
+            current is UserInitiatedCancellationReason ||
+                    (current::class.simpleName == "UnlockFailed" &&
+                            current.message?.contains("Cancel", ignoreCase = true) == true) ||
+                    current.message?.contains("No signature from native code", ignoreCase = true) == true
+        }
 
     override fun handleAuthenticationSuccess(result: OpenId4VpWallet.AuthenticationSuccess) {
         // Local presentment must keep the sheet alive until the presenter coroutine has sent the
