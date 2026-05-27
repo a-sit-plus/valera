@@ -87,6 +87,7 @@ class AttestationService(
     }
 
     suspend fun loadKeyAttestation(input: KeyAttestationInput) = catching {
+        if (input.clientNonce != null) bufferedKeyAttestation.emit(null)
         requestKeyAttestation(input).also { keyAttestation ->
             bufferedKeyAttestation.emit(keyAttestation)
         }
