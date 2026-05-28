@@ -4,7 +4,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import at.asitplus.KmmResult
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.info_text_nfc_mdoc_reader
+import at.asitplus.valera.resources.info_text_nfc_engagement_verifier
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import data.document.RequestDocumentList
 import io.github.aakira.napier.Napier
@@ -275,7 +275,12 @@ class TransferManager(
         )
         val nfcReader = NfcTagReader.getReaders().first()
         val scanResult = nfcReader.scanMdocReader(
-            message = null, // our own VerifierNfcEngagementView is shown instead
+            message = if (nfcReader.dialogAlwaysShown) {
+                getString(Res.string.info_text_nfc_engagement_verifier)
+            } else {
+                // Our own VerifierNfcEngagementView is shown instead.
+                null
+            },
             options = MdocTransportOptions(
                 bleUseL2CAP = config.bleUseL2CAPEnabled.first(),
                 bleUseL2CAPInEngagement = config.bleUseL2CAPEnabled.first()
