@@ -47,6 +47,7 @@ class NfcDataRetrievalService: HostApduService() {
     override fun onDeactivated(reason: Int) {
         Napier.i( "NfcDataRetrievalService: Deactivation event received because of $reason")
         NfcTransportMdoc.onDeactivated()
+        NfcTransferState.holderNfcDataTransferActive.value = false
         NfcTransferState.nfcDataTransferActive.value = false
     }
 

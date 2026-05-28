@@ -14,6 +14,11 @@ object NfcTransferState {
     // service (NdefDeviceEngagementService) and the data retrieval service (NfcDataRetrievalService).
     val nfcDataTransferActive = MutableStateFlow(false)
 
+    // True only when the holder's main transport is actually NFC. This is narrower than
+    // nfcDataTransferActive, which is also used after NFC engagement handover to switch HCE
+    // services while the selected main transport may still be BLE.
+    val holderNfcDataTransferActive = MutableStateFlow(false)
+
     // True while the verifier role is actively transferring data over NFC.
     // The activity observes this to keep NFC reader mode enabled, counteracting the 3-second
     // disableReaderMode() call that multipaz's ScanNfcTagPromptDialog schedules after the

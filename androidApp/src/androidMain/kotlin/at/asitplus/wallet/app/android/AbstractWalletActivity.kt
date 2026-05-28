@@ -192,12 +192,12 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
         }
         verifierTagDispatchJob = lifecycleScope.launch {
             combine(
-                NfcTransferState.nfcDataTransferActive,
+                NfcTransferState.holderNfcDataTransferActive,
                 NfcTransferState.verifierNfcTransferActive,
                 NfcTransferState.verifierNfcTagDispatchSuppressed,
-            ) { holderTransfer, verifierTransfer, suppressionMode ->
-                Triple(holderTransfer, verifierTransfer, suppressionMode)
-            }.collect { (holderTransfer, verifierTransfer, suppressionMode) ->
+            ) { holderNfcTransfer, verifierTransfer, suppressionMode ->
+                Triple(holderNfcTransfer, verifierTransfer, suppressionMode)
+            }.collect { (holderNfcTransfer, verifierTransfer, suppressionMode) ->
                 when (suppressionMode) {
                     NfcDispatchSuppressionMode.REDISPATCH -> {
                         disableHolderForegroundDispatch(nfcAdapter)
@@ -222,12 +222,9 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
                     }
 
                     NfcDispatchSuppressionMode.NONE -> {
-                        if (holderTransfer && !verifierTransfer) {
-                            Napier.i("Holder NFC data transfer active; disabling reader mode and capturing foreground tag dispatch")
-                            withContext(Dispatchers.IO) {
-                                nfcAdapter.disableReaderMode(this@AbstractWalletActivity)
-                            }
-                            enableHolderForegroundDispatch(nfcAdapter)
+                        if (holderNfcTransfer && !verifierTransfer) {
+                            disableHolderForegroundDispatch(nfcAdapter)
+                            Napier.i("Holder NFC data transfer active; leaving NFC dispatch unchanged")
                         } else if (!verifierTransfer) {
                             disableHolderForegroundDispatch(nfcAdapter)
                             Napier.i("Verifier NFC tag redispatch suppression ended; disabling reader mode")
@@ -266,10 +263,12 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
                 }
             }
             if (NfcTransferState.verifierNfcTransferActive.value ||
+                NfcTransferState.holderNfcDataTransferActive.value ||
                 NfcTransferState.verifierNfcTagDispatchSuppressed.value != NfcDispatchSuppressionMode.NONE
             ) {
                 Napier.i(
-                    "Activity paused during active verifier NFC transfer; keeping reader mode unchanged " +
+                    "Activity paused during active NFC transfer/suppression; keeping reader mode unchanged " +
+                            "holderActive=${NfcTransferState.holderNfcDataTransferActive.value}, " +
                             "verifierActive=${NfcTransferState.verifierNfcTransferActive.value}, " +
                             "tagDispatchSuppressed=${NfcTransferState.verifierNfcTagDispatchSuppressed.value}"
                 )

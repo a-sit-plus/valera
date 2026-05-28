@@ -720,6 +720,7 @@ private fun TransientFlowNavHost(
         composable<ErrorRoute> {
             DisposableEffect(Unit) {
                 NfcTransferState.nfcDataTransferActive.value = false
+                NfcTransferState.holderNfcDataTransferActive.value = false
                 NfcTransferState.verifierNfcTransferActive.value = false
                 NfcTransferState.verifierNfcTagDispatchSuppressed.value = NfcDispatchSuppressionMode.DISABLED
                 onDispose {

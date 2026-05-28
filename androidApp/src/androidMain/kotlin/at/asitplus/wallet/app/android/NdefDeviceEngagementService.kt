@@ -159,6 +159,7 @@ class NdefDeviceEngagementService : HostApduService() {
                     delay(NFC_TRANSPORT_CLEANUP_DELAY_MS)
                     runCatching { NfcTransportMdoc.onDeactivated() }
                         .onFailure { Napier.w("NFC transport cleanup failed", it, tag = TAG) }
+                    NfcTransferState.holderNfcDataTransferActive.value = false
                     NfcTransferState.nfcDataTransferActive.value = false
                     activeNfcTransportCleanupJob = null
                     Napier.i("NFC data-transfer cleanup finished after $reason", tag = TAG)
@@ -166,6 +167,7 @@ class NdefDeviceEngagementService : HostApduService() {
             } else {
                 runCatching { NfcTransportMdoc.onDeactivated() }
                     .onFailure { Napier.w("NFC transport cleanup failed", it, tag = TAG) }
+                NfcTransferState.holderNfcDataTransferActive.value = false
                 NfcTransferState.nfcDataTransferActive.value = false
             }
             Napier.d("NdefDeviceEngagementService cleared active engagement reason=$reason", tag = TAG)
@@ -287,6 +289,7 @@ class NdefDeviceEngagementService : HostApduService() {
         runCatching { NfcTransportMdoc.onDeactivated() }
             .onFailure { Napier.w("Pre-engagement NFC transport cleanup failed", it, tag = TAG) }
         Napier.i("Resetting NFC data-transfer active flag before starting NDEF engagement", tag = TAG)
+        NfcTransferState.holderNfcDataTransferActive.value = false
         NfcTransferState.nfcDataTransferActive.value = false
 
         val ephemeralDeviceKey = Crypto.createEcPrivateKey(EcCurve.P256)
@@ -445,6 +448,7 @@ class NdefDeviceEngagementService : HostApduService() {
                 "Main transport connected after NFC handover: ${transport::class.simpleName}, state=${transport.state.value}",
                 tag = TAG
             )
+            NfcTransferState.holderNfcDataTransferActive.value = transport is NfcTransportMdoc
             activeBleHandoverPending = false
             // Cancel the connecting timeout BEFORE setMechanism() changes the state.
             // The timeout job watches for state to leave CONNECTING; if we cancel after

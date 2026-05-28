@@ -30,6 +30,7 @@ import org.multipaz.mdoc.engagement.buildDeviceEngagement
 import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.transport.MdocTransportFactory
 import org.multipaz.mdoc.transport.MdocTransportOptions
+import org.multipaz.mdoc.transport.NfcTransportMdoc
 import org.multipaz.mdoc.transport.advertise
 import org.multipaz.mdoc.transport.waitForConnection
 import org.multipaz.util.UUID
@@ -210,6 +211,7 @@ class HolderViewModel(
                     "Holder main transport connected: ${transport::class.simpleName}, state=${transport.state.value}",
                     tag = TAG
                 )
+                NfcTransferState.holderNfcDataTransferActive.value = transport is NfcTransportMdoc
 
                 model.setMechanism(
                     MdocPresentmentMechanism(
@@ -233,6 +235,7 @@ class HolderViewModel(
                     tag = TAG
                 )
                 NfcTransferState.nfcDataTransferActive.value = false
+                NfcTransferState.holderNfcDataTransferActive.value = false
             }
         }
     }

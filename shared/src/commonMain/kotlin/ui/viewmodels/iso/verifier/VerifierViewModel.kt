@@ -78,6 +78,7 @@ class VerifierViewModel(
     val responseDocumentList: MutableList<IsoDocumentParsed> = _responseDocumentList
 
     val onResume: () -> Unit = {
+        NfcTransferState.holderNfcDataTransferActive.value = false
         NfcTransferState.verifierNfcTagDispatchSuppressed.value = NfcDispatchSuppressionMode.NONE
         NfcTransferState.verifierNfcTransferActive.value = false
         setState(VerifierState.Settings)
@@ -108,6 +109,7 @@ class VerifierViewModel(
 
     private fun doNfcEngagement() {
         NfcTransferState.nfcDataTransferActive.value = false
+        NfcTransferState.holderNfcDataTransferActive.value = false
         NfcTransferState.verifierNfcTagDispatchSuppressed.value = NfcDispatchSuppressionMode.NONE
         setState(VerifierState.NfcEngagement)
         _requestDocumentList.let { requestDocumentList ->
