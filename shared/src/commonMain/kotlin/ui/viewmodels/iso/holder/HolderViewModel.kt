@@ -4,6 +4,7 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants
 import at.asitplus.wallet.app.common.iso.transfer.state.HolderState
+import at.asitplus.wallet.app.common.iso.transfer.state.PreconditionState
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentEngagementMethod
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSource
@@ -28,6 +29,7 @@ import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodBle
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodNfc
 import org.multipaz.mdoc.engagement.buildDeviceEngagement
 import org.multipaz.mdoc.role.MdocRole
+import org.multipaz.mdoc.transport.MdocTransport
 import org.multipaz.mdoc.transport.MdocTransportFactory
 import org.multipaz.mdoc.transport.MdocTransportOptions
 import org.multipaz.mdoc.transport.NfcTransportMdoc
@@ -128,6 +130,8 @@ class HolderViewModel(
             ?: throw IllegalStateException("No local presentment session active")
         model.presentmentScope.launch {
             Napier.d("Do Holder flow ...", tag = TAG)
+            var advertisedTransports: List<MdocTransport> = emptyList()
+            var transportHandedToModel = false
             try {
                 val connectionMethods = mutableListOf<MdocConnectionMethod>()
                 val bleUuid = UUID.Companion.randomUUID()
@@ -166,12 +170,17 @@ class HolderViewModel(
                     }
                 }
                 Napier.d("connectionMethods = $connectionMethods", tag = TAG)
+                if (connectionMethods.isEmpty()) {
+                    setState(HolderState.MissingPrecondition(PreconditionState.NO_TRANSFER_METHOD_SELECTED))
+                    finishPresentmentSession("no-transfer-method-selected")
+                    return@launch
+                }
 
                 val ephemeralDeviceKey = Crypto.createEcPrivateKey(EcCurve.P256)
                 lateinit var encodedDeviceEngagement: ByteString
 
                 // First advertise the connection methods
-                val advertisedTransports = connectionMethods.advertise(
+                advertisedTransports = connectionMethods.advertise(
                     role = MdocRole.MDOC,
                     transportFactory = MdocTransportFactory.Default,
                     options = MdocTransportOptions(
@@ -223,19 +232,40 @@ class HolderViewModel(
                         allowMultipleRequests = false
                     )
                 )
-                setState(HolderState.Finished)
+                transportHandedToModel = true
                 _qrCode.value = null
                 completionHandler(null)
             } catch (throwable: Throwable) {
                 Napier.e("Holder flow failed while waiting for or using main transport", throwable, tag = TAG)
                 completionHandler(throwable)
             } finally {
-                Napier.i(
-                    "Holder clearing NFC data-transfer HCE preference; modelState=${model.state.value}, holderState=${holderState.value}",
-                    tag = TAG
-                )
-                NfcTransferState.nfcDataTransferActive.value = false
-                NfcTransferState.holderNfcDataTransferActive.value = false
+                if (transportHandedToModel) {
+                    // The NFC transport is live and the model owns it. Clearing nfcDataTransferActive
+                    // here is safe (setPreferredService only affects future taps). But
+                    // holderNfcDataTransferActive must NOT be cleared until the ISO-DEP exchange
+                    // finishes: clearing it triggers verifierTagDispatchJob → disableReaderMode()
+                    // on the holder, which disrupts the active channel before the verifier's
+                    // ENVELOPE APDU arrives. NfcDataRetrievalService.onDeactivated() will clear
+                    // both flags once the NFC link actually drops.
+                    Napier.i(
+                        "Holder transport handed to model; clearing HCE preference for future taps " +
+                                "but keeping holderNfcDataTransferActive; modelState=${model.state.value}",
+                        tag = TAG
+                    )
+                    NfcTransferState.nfcDataTransferActive.value = false
+                } else {
+                    Napier.i(
+                        "Holder flow ended without handing transport to model; clearing NFC flags; " +
+                                "modelState=${model.state.value}, holderState=${holderState.value}",
+                        tag = TAG
+                    )
+                    NfcTransferState.nfcDataTransferActive.value = false
+                    NfcTransferState.holderNfcDataTransferActive.value = false
+                    advertisedTransports.forEach { transport ->
+                        runCatching { transport.close() }
+                            .onFailure { Napier.w("Failed to close advertised holder transport", it, tag = TAG) }
+                    }
+                }
             }
         }
     }

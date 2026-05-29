@@ -18,6 +18,7 @@ import at.asitplus.wallet.app.common.iso.transfer.state.TransferPrecondition
 import at.asitplus.wallet.app.common.iso.transfer.state.evaluateTransferPrecondition
 import at.asitplus.wallet.app.common.iso.transfer.state.rememberTransferSettingsState
 import at.asitplus.wallet.app.common.iso.transfer.state.toEnum
+import at.asitplus.wallet.app.common.presentation.LocalPresentmentBusyException
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
@@ -153,6 +154,11 @@ fun HolderView(
                     }
                 }.onFailure {
                     vm.finishPresentmentSession("holder-start-error")
+                    if (it is LocalPresentmentBusyException) {
+                        vm.hasBeenCalledHack = false
+                        vm.setState(HolderState.Settings)
+                        return@onFailure
+                    }
                     onError(it)
                 }
             }
@@ -160,7 +166,6 @@ fun HolderView(
 
         is HolderState.ShowQrCode -> HolderShowQrCodeView(onClickLogo, vm, onError)
         is HolderState.ShowNfcInfo -> HolderShowNfcView(onClickLogo, vm)
-        is HolderState.Finished -> LoadingView()
     }
 }
 

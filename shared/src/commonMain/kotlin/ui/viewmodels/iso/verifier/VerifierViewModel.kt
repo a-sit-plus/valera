@@ -59,6 +59,10 @@ class VerifierViewModel(
                 Napier.i("Verifier transport selected; isNfc=$isNfc", tag = "VerifierViewModel")
                 if (isNfc) NfcTransferState.verifierNfcTransferActive.value = true
                 setState(VerifierState.NfcTransferring(isNfc))
+            },
+            onNfcDataTransferSelected = {
+                Napier.i("Verifier QR flow selected NFC data transfer; waiting for device tap", tag = "VerifierViewModel")
+                setState(VerifierState.QrNfcDataTransferTap)
             }
         )
     }
@@ -79,6 +83,7 @@ class VerifierViewModel(
 
     val onResume: () -> Unit = {
         NfcTransferState.holderNfcDataTransferActive.value = false
+        NfcTransferState.verifierNfcReaderModeActive.value = false
         NfcTransferState.verifierNfcTagDispatchSuppressed.value = NfcDispatchSuppressionMode.NONE
         NfcTransferState.verifierNfcTransferActive.value = false
         setState(VerifierState.Settings)
@@ -110,6 +115,7 @@ class VerifierViewModel(
     private fun doNfcEngagement() {
         NfcTransferState.nfcDataTransferActive.value = false
         NfcTransferState.holderNfcDataTransferActive.value = false
+        NfcTransferState.verifierNfcReaderModeActive.value = false
         NfcTransferState.verifierNfcTagDispatchSuppressed.value = NfcDispatchSuppressionMode.NONE
         setState(VerifierState.NfcEngagement)
         _requestDocumentList.let { requestDocumentList ->
@@ -121,6 +127,7 @@ class VerifierViewModel(
 
     fun cancelNfcEngagement() {
         Napier.i("Cancelling verifier NFC engagement/data transfer", tag = "VerifierViewModel")
+        NfcTransferState.verifierNfcReaderModeActive.value = false
         NfcTransferState.verifierNfcTagDispatchSuppressed.value = NfcDispatchSuppressionMode.NONE
         NfcTransferState.verifierNfcTransferActive.value = false
         transferManager.cancel()
@@ -129,6 +136,7 @@ class VerifierViewModel(
 
     private fun handleResponse(result: KmmResult<ByteArray>) {
         Napier.i("Verifier response callback received; clearing NFC transfer active flag", tag = "VerifierViewModel")
+        NfcTransferState.verifierNfcReaderModeActive.value = false
         NfcTransferState.verifierNfcTransferActive.value = false
         result.onSuccess { deviceResponseBytes ->
             Napier.d("deviceResponseBytes =\n${deviceResponseBytes.toHexString()}")
@@ -218,7 +226,6 @@ class VerifierViewModel(
 
     val onFoundPayload: (String) -> Unit = { payload ->
         if (payload.startsWith(MDOC_PREFIX)) {
-            setState(VerifierState.WaitingForResponse)
             _requestDocumentList.let { requestDocumentList ->
                 transferManager.doQrFlow(
                     payload.removePrefix(MDOC_PREFIX),

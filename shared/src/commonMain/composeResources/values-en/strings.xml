@@ -19,6 +19,8 @@
     <string name="snackbar_sign_successful">Signed successfully</string>
     <string name="snackbar_digital_credentials_store_failed">Digital Credential API support could not be activated.</string>
     <string name="snackbar_nfc_tag_lost_retrying">NFC connection lost. Hold the other device close again.</string>
+    <string name="snackbar_local_presentment_busy">A presentation is already in progress.</string>
+    <string name="snackbar_local_presentment_cancel_action">Cancel</string>
 
     <string name="button_label_use_device_credential">Passcode</string>
     <string name="button_label_confirm">Confirm</string>
@@ -359,7 +361,8 @@
     <string name="info_text_no_matching_credential">Your credentials don't match the request.</string>
     <string name="info_text_data_is_being_loaded">Loading Data</string>
     <string name="info_text_missing_permission">Permission missing</string>
-    <string name="info_text_qr_code_loading">Loading QR Code</string>
+    <string name="info_text_qr_code_loading">Preparing QR code and transfer methods</string>
+    <string name="info_text_holder_connecting_to_verifier">Connecting to the other device. Waiting for the verifier request…</string>
     <string name="info_text_nfc_mdoc_reader">Hold near credential holder's phone.</string>
     <string name="info_text_waiting_for_response">Waiting for response of holder device</string>
     <string name="info_text_check_response">Check response</string>
@@ -538,6 +541,7 @@
 
     <string name="heading_label_nfc_transfer">Data Transfer</string>
     <string name="info_text_nfc_engagement_verifier">Hold this device near the NFC field of the other device.</string>
+    <string name="info_text_qr_nfc_data_transfer_tap">Hold both devices together to start NFC data transfer.</string>
     <string name="info_text_nfc_data_transfer">Keep both devices in the NFC field until the transfer is complete.</string>
     <string name="info_text_ble_data_transfer">Waiting for data via Bluetooth…</string>
 </resources>

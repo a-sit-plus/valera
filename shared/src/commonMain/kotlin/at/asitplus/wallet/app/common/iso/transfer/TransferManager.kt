@@ -8,6 +8,7 @@ import at.asitplus.valera.resources.info_text_nfc_mdoc_reader
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import data.document.RequestDocumentList
 import io.github.aakira.napier.Napier
+import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineScope
@@ -69,6 +70,7 @@ class TransferManager(
     private val updateProgress: (String) -> Unit,
     private val onWarning: (Warning) -> Unit = {},
     private val onTransportSelected: ((isNfc: Boolean) -> Unit)? = null,
+    private val onNfcDataTransferSelected: (() -> Unit)? = null,
 ) {
     val TAG = "TransferManager"
 
@@ -424,7 +426,7 @@ class TransferManager(
             Napier.i("Reader selected connection method $connectionMethod", tag = TAG)
             val transport = createReaderTransport(connectionMethod)
             if (transport is NfcTransportMdocReader) {
-                onTransportSelected?.invoke(true)
+                onNfcDataTransferSelected?.invoke()
                 doReaderFlowWithNfcTransportRetry(
                     connectionMethod = connectionMethod,
                     encodedDeviceEngagement = encodedDeviceEngagement,
@@ -602,10 +604,23 @@ class TransferManager(
                 ?: error("Expected NFC transport for connection method $connectionMethod")
             try {
                 Napier.i("Scanning again for NFC data-transfer transport after QR/static engagement", tag = TAG)
+                NfcTransferState.verifierNfcReaderModeActive.value = true
+                val promptMessage = if (nfcReader.dialogAlwaysShown) {
+                    "QR engagement with NFC Data Transfer. Move into NFC field of the mdoc"
+                } else {
+                    null
+                }
                 nfcReader.scan(
-                    message = "QR engagement with NFC Data Transfer. Move into NFC field of the mdoc",
+                    message = promptMessage,
                     tagInteractionFunc = { tag ->
                         Napier.i("NFC data-transfer tag discovered; binding tag to reader transport", tag = TAG)
+                        // verifierNfcReaderModeActive stays true throughout the data transfer so
+                        // preferredServiceJob stays in unset-preferred-service mode and never briefly
+                        // selects NdefDeviceEngagementService (which would disrupt the NFC channel).
+                        // onTransportSelected is intentionally NOT called here: it would set
+                        // verifierNfcTransferActive=true, causing WalletRootView to remove PromptDialogs
+                        // from composition, which cancels the LaunchedEffect managing NFC reader mode
+                        // and throws PromptDismissedException into the still-running data transfer.
                         transport.setTag(tag)
                         doReaderFlowWithTransport(
                             transport = transport,
@@ -620,12 +635,14 @@ class TransferManager(
                 )
                 return
             } catch (error: Throwable) {
-                transport.close()
                 if (!error.isRecoverableNfcTagLoss()) {
                     Napier.e("NFC data-transfer scan failed with non-recoverable error", error, tag = TAG)
                     throw error
                 }
                 handleRecoverableNfcTagLoss(error)
+            } finally {
+                NfcTransferState.verifierNfcReaderModeActive.value = false
+                runCatching { transport.close() }
             }
         }
     }

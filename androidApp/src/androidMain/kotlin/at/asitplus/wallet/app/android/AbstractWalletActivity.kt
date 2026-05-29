@@ -141,19 +141,20 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
         preferredServiceJob = lifecycleScope.launch {
             combine(
                 NfcTransferState.nfcDataTransferActive,
+                NfcTransferState.verifierNfcReaderModeActive,
                 NfcTransferState.verifierNfcTransferActive,
                 NfcTransferState.verifierNfcTagDispatchSuppressed,
-            ) { dataTransfer, verifierTransfer, suppressionMode ->
-                Triple(dataTransfer, verifierTransfer, suppressionMode)
-            }.collect { (dataTransfer, verifierTransfer, suppressionMode) ->
-                if (verifierTransfer) {
+            ) { dataTransfer, verifierReaderMode, verifierTransfer, suppressionMode ->
+                arrayOf(dataTransfer, verifierReaderMode, verifierTransfer, suppressionMode != NfcDispatchSuppressionMode.NONE)
+            }.collect { (dataTransfer, verifierReaderMode, verifierTransfer, suppressed) ->
+                if (verifierReaderMode || verifierTransfer) {
                     Napier.i("Verifier NFC reader active; unsetting preferred NFC HCE service")
                     if (!cardEmulation.unsetPreferredService(this@AbstractWalletActivity)) {
                         Napier.w("CardEmulation.unsetPreferredService() returned false")
                     }
                     return@collect
                 }
-                if (suppressionMode != NfcDispatchSuppressionMode.NONE) {
+                if (suppressed) {
                     Napier.i("NFC dispatch suppressed; unsetting preferred NFC HCE service")
                     if (!cardEmulation.unsetPreferredService(this@AbstractWalletActivity)) {
                         Napier.w("CardEmulation.unsetPreferredService() returned false")
@@ -177,6 +178,7 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
             }
         }
         verifierNfcJob = lifecycleScope.launch {
+            // seenActive prevents suppression from firing on the initial false emission at resume.
             var seenActive = false
             NfcTransferState.verifierNfcTransferActive.collect { isActive ->
                 if (isActive) {
@@ -279,6 +281,8 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
         }
     }
 
+    // Currently unused — the foreground-dispatch approach was superseded by enableReaderMode.
+    // Retained in case a future flow needs it; remove if still dead after cleanup is confirmed.
     private fun enableHolderForegroundDispatch(nfcAdapter: NfcAdapter) {
         if (holderForegroundDispatchEnabled) return
         registerHolderForegroundDispatchReceiver()

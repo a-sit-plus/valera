@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_device_engagement
 import at.asitplus.valera.resources.info_text_nfc_engagement_verifier
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ScreenHeading
 import ui.composables.buttons.CancelButton
@@ -34,6 +35,8 @@ import ui.composables.buttons.NavigateUpButton
 @Composable
 fun VerifierNfcEngagementView(
     onCancel: () -> Unit,
+    heading: StringResource = Res.string.heading_label_device_engagement,
+    message: StringResource = Res.string.info_text_nfc_engagement_verifier,
 ) {
     Scaffold(
         topBar = {
@@ -41,7 +44,7 @@ fun VerifierNfcEngagementView(
                 title = {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Column(modifier = Modifier.weight(1f)) {
-                            ScreenHeading(stringResource(Res.string.heading_label_device_engagement))
+                            ScreenHeading(stringResource(heading))
                         }
                     }
                 },
@@ -67,7 +70,7 @@ fun VerifierNfcEngagementView(
                         modifier = Modifier.size(120.dp)
                     )
                     Text(
-                        text = stringResource(Res.string.info_text_nfc_engagement_verifier),
+                        text = stringResource(message),
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.padding(bottom = 24.dp)
                     )

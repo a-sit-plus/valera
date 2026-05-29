@@ -19,6 +19,8 @@
     <string name="snackbar_sign_successful">Signatur erfolgreich</string>
     <string name="snackbar_digital_credentials_store_failed">Die Digital Credentials API Unterstützung konnte nicht aktiviert werden.</string>
     <string name="snackbar_nfc_tag_lost_retrying">NFC-Verbindung verloren. Bitte das andere Gerät erneut nahe halten.</string>
+    <string name="snackbar_local_presentment_busy">Eine Präsentation läuft bereits.</string>
+    <string name="snackbar_local_presentment_cancel_action">Abbrechen</string>
 
     <string name="button_label_use_device_credential">Passwort</string>
     <string name="button_label_confirm">Bestätigen</string>
@@ -355,7 +357,8 @@
     <string name="info_text_no_matching_credential">Es wurde kein passendes Credential für die Anfrage gefunden.</string>
     <string name="info_text_data_is_being_loaded">Daten werden geladen</string>
     <string name="info_text_missing_permission">Berechtigung fehlt</string>
-    <string name="info_text_qr_code_loading">QR-Code wird geladen</string>
+    <string name="info_text_qr_code_loading">QR-Code und Übertragungsmethoden werden vorbereitet</string>
+    <string name="info_text_holder_connecting_to_verifier">Verbindungsaufbau mit dem anderen Gerät. Warte auf die Anfrage des Überprüfers…</string>
     <string name="info_text_nfc_mdoc_reader">In die Nähe des Gerätes des Ausweishalters halten.</string>
     <string name="info_text_waiting_for_response">Warte auf Antwort vom Gerät des Ausweishalters</string>
     <string name="info_text_check_response">Überprüfung der Antwort</string>
@@ -545,6 +548,7 @@
 
     <string name="heading_label_nfc_transfer">Datenübertragung</string>
     <string name="info_text_nfc_engagement_verifier">Halten Sie dieses Gerät an das NFC-Feld des anderen Geräts.</string>
+    <string name="info_text_qr_nfc_data_transfer_tap">Halten Sie beide Geräte zusammen, um die NFC-Datenübertragung zu starten.</string>
     <string name="info_text_nfc_data_transfer">Bitte halten Sie beide Geräte im NFC-Feld, bis die Übertragung abgeschlossen ist.</string>
     <string name="info_text_ble_data_transfer">Warte auf Daten via Bluetooth…</string>
 </resources>

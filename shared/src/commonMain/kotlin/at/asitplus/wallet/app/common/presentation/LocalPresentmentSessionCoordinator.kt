@@ -8,6 +8,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
 import ui.viewmodels.authentication.PresentationStateModel
 import org.multipaz.util.UUID
 
@@ -22,6 +25,13 @@ enum class LocalPresentmentEngagementMethod {
 }
 
 class LocalPresentmentBusyException(message: String) : IllegalStateException(message)
+
+data class LocalPresentmentBusyEvent(
+    val sessionId: String,
+    val source: LocalPresentmentSource,
+    val state: PresentationStateModel.State,
+    val reason: String,
+)
 
 data class ActiveLocalPresentmentSession(
     val sessionId: String,
@@ -46,6 +56,9 @@ class LocalPresentmentSessionCoordinator {
         SupervisorJob() + Dispatchers.Default + CoroutineName(TAG)
     )
     private var activeSession: ManagedSession? = null
+    private var lastBusyNotificationSessionId: String? = null
+
+    val busySessionEvents = MutableSharedFlow<LocalPresentmentBusyEvent>(extraBufferCapacity = 1)
 
     fun startSession(
         source: LocalPresentmentSource,
@@ -53,6 +66,7 @@ class LocalPresentmentSessionCoordinator {
     ): ActiveLocalPresentmentSession = synchronized(stateLock) {
         activeSession?.let { managed ->
             val state = managed.snapshot.presentationStateModel.state.value
+            emitBusyEventLocked(managed, "start-session")
             throw LocalPresentmentBusyException(
                 "Local presentment already active " +
                         "sessionId=${managed.snapshot.sessionId} " +
@@ -77,6 +91,27 @@ class LocalPresentmentSessionCoordinator {
             tag = TAG
         )
         snapshot
+    }
+
+    private fun emitBusyEventLocked(managed: ManagedSession, reason: String) {
+        if (lastBusyNotificationSessionId == managed.snapshot.sessionId) {
+            return
+        }
+        lastBusyNotificationSessionId = managed.snapshot.sessionId
+        busySessionEvents.tryEmit(
+            LocalPresentmentBusyEvent(
+                sessionId = managed.snapshot.sessionId,
+                source = managed.snapshot.source,
+                state = managed.snapshot.presentationStateModel.state.value,
+                reason = reason,
+            )
+        )
+    }
+
+    fun notifyActiveSessionBusy(reason: String): Boolean = synchronized(stateLock) {
+        val managed = activeSession ?: return false
+        emitBusyEventLocked(managed, reason)
+        true
     }
 
     fun activeSession(): ActiveLocalPresentmentSession? = synchronized(stateLock) {
@@ -126,6 +161,9 @@ class LocalPresentmentSessionCoordinator {
                 return
             }
             activeSession = null
+            if (lastBusyNotificationSessionId == sessionId) {
+                lastBusyNotificationSessionId = null
+            }
             current
         }
         val model = managed.snapshot.presentationStateModel
@@ -141,6 +179,21 @@ class LocalPresentmentSessionCoordinator {
                 .onFailure { Napier.w("Cleanup callback failed for sessionId=$sessionId", it, tag = TAG) }
         }
         Napier.d("Finished local presentment sessionId=$sessionId reason=$reason state=$state", tag = TAG)
+    }
+
+    fun cancelSession(sessionId: String, reason: String) {
+        val session = synchronized(stateLock) {
+            activeSession?.snapshot?.takeIf { it.sessionId == sessionId }
+        } ?: return
+        runCatching {
+            session.presentationStateModel.dismiss(PresentationStateModel.DismissType.CLICK)
+        }.onFailure { error ->
+            Napier.w("Failed to dismiss local presentment sessionId=$sessionId", error, tag = TAG)
+        }
+        coordinatorScope.launch {
+            delay(250)
+            finishSession(sessionId, reason)
+        }
     }
 
     fun resetAll(reason: String) {

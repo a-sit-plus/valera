@@ -60,6 +60,13 @@ internal open class WalletNavigationControllerImpl(
         }
     }
 
+    override fun navigateReplacingCurrent(route: Route) {
+        scope.launch {
+            Napier.d("Navigate to: $route (replacing current)")
+            navController.replaceCurrentOnMain(route)
+        }
+    }
+
     override fun navigateBack() {
         scope.launch {
             Napier.d("Navigate back")

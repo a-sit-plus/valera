@@ -14,6 +14,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_loading_screen
 import org.jetbrains.compose.resources.stringResource
@@ -24,7 +25,8 @@ import ui.composables.buttons.NavigateUpButton
 @Composable
 fun LoadingView(
     customLabel: String = "",
-    navigateUp: (() -> Unit)? = null
+    navigateUp: (() -> Unit)? = null,
+    action: (@Composable () -> Unit)? = null,
 ) {
     Scaffold(
         topBar = {
@@ -38,14 +40,15 @@ fun LoadingView(
             )
         }
     ) { scaffoldPadding ->
-        LoadingViewBody(scaffoldPadding, customLabel)
+        LoadingViewBody(scaffoldPadding, customLabel, action)
     }
 }
 
 @Composable
 fun LoadingViewBody(
     scaffoldPadding: PaddingValues,
-    customLabel: String = ""
+    customLabel: String = "",
+    action: (@Composable () -> Unit)? = null,
 ) {
     Column(
         modifier = Modifier.padding(scaffoldPadding).fillMaxSize(),
@@ -59,7 +62,13 @@ fun LoadingViewBody(
         )
         Text(
             text = customLabel,
-            style = MaterialTheme.typography.labelLarge
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
+        action?.let {
+            Column(modifier = Modifier.padding(top = 16.dp)) {
+                it()
+            }
+        }
     }
 }

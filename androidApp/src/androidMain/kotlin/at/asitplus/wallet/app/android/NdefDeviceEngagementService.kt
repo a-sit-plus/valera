@@ -17,6 +17,7 @@ import at.asitplus.wallet.app.common.presentation.LocalPresentmentEngagementMeth
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSource
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
+import at.asitplus.wallet.app.common.presentation.NfcDispatchSuppressionMode
 import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import at.asitplus.wallet.app.common.presentation.PresentmentTimeout
 import data.storage.RealDataStoreService
@@ -87,6 +88,7 @@ class NdefDeviceEngagementService : HostApduService() {
         private var activePresentationUiLaunched = false
         @Volatile
         private var activeStarted = false
+        // Outlives individual service instances so connecting-timeout jobs survive onDestroy.
         private val activePresentmentScope = CoroutineScope(
             SupervisorJob() + Dispatchers.Default + CoroutineName("NdefDeviceEngagementService:presentment")
         )
@@ -121,6 +123,7 @@ class NdefDeviceEngagementService : HostApduService() {
         }
 
         private fun startConnectingTimeout(model: PresentationStateModel, walletConfig: WalletConfig) {
+            // Guard: both onDeactivated and onDestroy can reach this; only start one timeout.
             if (activeDisableEngagementJob != null) return
             Napier.d("NdefDeviceEngagementService: starting connecting timeout", tag = TAG)
             activeDisableEngagementJob = activePresentmentScope.launch(CoroutineName("NdefDeviceEngagementService:connectingTimeout")) {
@@ -139,6 +142,7 @@ class NdefDeviceEngagementService : HostApduService() {
         }
 
         private fun clearActiveEngagement(reason: String) {
+            // Snapshot the flag before nulling activeEngagement so the cleanup branch is chosen correctly.
             val wasNfcDataTransferActive = NfcTransferState.nfcDataTransferActive.value
             activeEngagement = null
             activeStarted = false
@@ -275,10 +279,32 @@ class NdefDeviceEngagementService : HostApduService() {
         }
     }
 
-    private var started = false
-
     private suspend fun startEngagement() {
         Napier.i("startNdefEngagement", tag = TAG)
+
+        val rejectReason = when {
+            NfcTransferState.verifierNfcTagDispatchSuppressed.value != NfcDispatchSuppressionMode.NONE ->
+                "verifier NFC tag dispatch is suppressed"
+            NfcTransferState.verifierNfcReaderModeActive.value ->
+                "verifier NFC reader mode is active"
+            NfcTransferState.verifierNfcTransferActive.value ->
+                "verifier NFC transfer is active"
+            else -> null
+        }
+        if (rejectReason != null) {
+            throw LocalPresentmentBusyException("Rejecting NFC engagement while $rejectReason")
+        }
+
+        val localPresentmentSessionCoordinator = localPresentmentSessionCoordinator()
+        localPresentmentSessionCoordinator.activeSession()?.let { activeSession ->
+            val state = activeSession.presentationStateModel.state.value
+            localPresentmentSessionCoordinator.notifyActiveSessionBusy("ndef-engagement")
+            throw LocalPresentmentBusyException(
+                "Local presentment already active " +
+                        "sessionId=${activeSession.sessionId} " +
+                        "source=${activeSession.source} state=$state"
+            )
+        }
 
         activeDisableEngagementJob?.cancel()
         activeDisableEngagementJob = null
@@ -294,7 +320,7 @@ class NdefDeviceEngagementService : HostApduService() {
 
         val ephemeralDeviceKey = Crypto.createEcPrivateKey(EcCurve.P256)
         val timeStarted = Clock.System.now()
-        val session = localPresentmentSessionCoordinator().startSession(
+        val session = localPresentmentSessionCoordinator.startSession(
             source = LocalPresentmentSource.ANDROID_EXTERNAL_NFC,
             engagementMethod = LocalPresentmentEngagementMethod.NFC,
         )
@@ -302,14 +328,14 @@ class NdefDeviceEngagementService : HostApduService() {
         val model = session.presentationStateModel
         setCurrentPresentationStateModel(model)
         model.init()
-        localPresentmentSessionCoordinator().registerCleanup(session.sessionId) {
+        localPresentmentSessionCoordinator.registerCleanup(session.sessionId) {
             clearActiveEngagement("session-cleanup")
             clearCurrentPresentationStateModel(reason = "session-cleanup")
         }
         model.presentmentScope.launch {
             model.state.first { it == PresentationStateModel.State.COMPLETED }
             activeSessionId?.let { sessionId ->
-                localPresentmentSessionCoordinator().finishSession(sessionId, "external-presentation-completed")
+                localPresentmentSessionCoordinator.finishSession(sessionId, "external-presentation-completed")
             }
         }
 
@@ -484,7 +510,7 @@ class NdefDeviceEngagementService : HostApduService() {
                 startEngagement()
             } catch (error: LocalPresentmentBusyException) {
                 activeStarted = false
-                Napier.w("Rejecting new NFC engagement while another presentment is active", error, tag = TAG)
+                Napier.w("Rejecting new NFC engagement", error, tag = TAG)
                 return null
             }
         }

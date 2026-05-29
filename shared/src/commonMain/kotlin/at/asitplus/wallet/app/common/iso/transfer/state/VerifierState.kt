@@ -9,6 +9,8 @@ sealed class VerifierState {
     object QrEngagement : VerifierState()
     // Waiting for the user to tap the verifier device to the holder's NFC field
     object NfcEngagement : VerifierState()
+    // QR engagement is done; waiting for the user to tap devices for NFC data transfer
+    object QrNfcDataTransferTap : VerifierState()
     // NFC handover done; data transfer in progress
     // isNfc=true → NFC data transfer (keep devices in field)
     // isNfc=false → BLE data transfer (devices can move apart)

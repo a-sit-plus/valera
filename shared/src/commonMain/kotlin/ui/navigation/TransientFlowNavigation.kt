@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -36,6 +37,8 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.dcapi.issuance.DigitalCredentialOfferReturn
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_error_action_return_to_invoker
+import at.asitplus.valera.resources.snackbar_local_presentment_busy
+import at.asitplus.valera.resources.snackbar_local_presentment_cancel_action
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.IntentState
@@ -44,6 +47,7 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.app.common.presentation.NfcDispatchSuppressionMode
 import at.asitplus.wallet.app.common.presentation.NfcTransferState
+import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import io.github.aakira.napier.Napier
@@ -51,6 +55,7 @@ import io.ktor.http.URLBuilder
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
 import org.koin.compose.koinInject
 import org.koin.core.scope.Scope
 import ui.composables.credentials.CredentialCard
@@ -75,6 +80,7 @@ fun TransientFlowNavigation(
     snackbarService: SnackbarService = koinInject(scope = koinScope),
     errorService: ErrorService = koinInject(scope = koinScope),
     walletMain: WalletMain = koinInject(scope = koinScope),
+    localPresentmentSessionCoordinator: LocalPresentmentSessionCoordinator = koinInject(scope = koinScope),
     urlOpener: UrlOpener = koinInject(scope = koinScope),
 ) {
     val navController: NavHostController = rememberNavController()
@@ -175,6 +181,20 @@ fun TransientFlowNavigation(
                 when (snackbarHostState.showSnackbar(text, actionLabel, true, duration)) {
                     SnackbarResult.Dismissed -> {}
                     SnackbarResult.ActionPerformed -> callback?.invoke()
+                }
+            }
+        }
+        this.launch {
+            localPresentmentSessionCoordinator.busySessionEvents.collect { event ->
+                snackbarService.showSnackbar(
+                    text = getString(Res.string.snackbar_local_presentment_busy),
+                    actionLabel = getString(Res.string.snackbar_local_presentment_cancel_action),
+                    duration = SnackbarDuration.Indefinite,
+                ) {
+                    localPresentmentSessionCoordinator.cancelSession(
+                        sessionId = event.sessionId,
+                        reason = "busy-snackbar-cancel",
+                    )
                 }
             }
         }
@@ -409,11 +429,17 @@ private fun TransientFlowNavHost(
                     walletMain.snackbarService,
                     onError = { e ->
                         activeSession?.let { session ->
-                            localPresentmentSessionCoordinator.finishSession(session.sessionId, "transient-presentment-error")
+                            localPresentmentSessionCoordinator.finishSession(
+                                session.sessionId,
+                                if (e is PresentmentCanceled) "transient-presentment-canceled" else "transient-presentment-error"
+                            )
                         }
                         intentState.presentationStateModel.value = null
                         intentState.presentationStateModelProvider = null
-                        walletMain.errorService.emit(e)
+                        navigator.popToInvoker()
+                        if (e !is PresentmentCanceled) {
+                            walletMain.errorService.emit(e)
+                        }
                     }
                 )
             }
@@ -721,6 +747,7 @@ private fun TransientFlowNavHost(
             DisposableEffect(Unit) {
                 NfcTransferState.nfcDataTransferActive.value = false
                 NfcTransferState.holderNfcDataTransferActive.value = false
+                NfcTransferState.verifierNfcReaderModeActive.value = false
                 NfcTransferState.verifierNfcTransferActive.value = false
                 NfcTransferState.verifierNfcTagDispatchSuppressed.value = NfcDispatchSuppressionMode.DISABLED
                 onDispose {

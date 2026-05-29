@@ -35,7 +35,7 @@ import ui.composables.buttons.NavigateUpButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VerifierNfcTransferringView(
+fun VerifierTransportTransferringView(
     isNfc: Boolean,
     onCancel: () -> Unit,
 ) {

@@ -19,6 +19,10 @@ object NfcTransferState {
     // services while the selected main transport may still be BLE.
     val holderNfcDataTransferActive = MutableStateFlow(false)
 
+    // True while the verifier is using Android reader mode for NFC scanning. This suppresses
+    // wallet HCE services without removing PromptDialogs, which are needed to install reader mode.
+    val verifierNfcReaderModeActive = MutableStateFlow(false)
+
     // True while the verifier role is actively transferring data over NFC.
     // The activity observes this to keep NFC reader mode enabled, counteracting the 3-second
     // disableReaderMode() call that multipaz's ScanNfcTagPromptDialog schedules after the

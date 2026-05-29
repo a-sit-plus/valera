@@ -10,7 +10,9 @@ import androidx.navigationevent.compose.rememberNavigationEventState
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_check_response
 import at.asitplus.valera.resources.info_text_check_settings
+import at.asitplus.valera.resources.info_text_qr_nfc_data_transfer_tap
 import at.asitplus.valera.resources.info_text_waiting_for_response
+import at.asitplus.valera.resources.heading_label_nfc_transfer
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberAppSettings
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberNfcEnabledState
 import at.asitplus.wallet.app.common.iso.transfer.state.TransferPrecondition
@@ -78,6 +80,7 @@ fun VerifierView(
             is VerifierState.SelectCombinedRequest -> vm.setState(VerifierState.SelectDocument)
             is VerifierState.QrEngagement -> vm.setState(vm.engagementPreviousState)
             is VerifierState.NfcEngagement -> vm.cancelNfcEngagement()
+            is VerifierState.QrNfcDataTransferTap -> vm.cancelNfcEngagement()
             is VerifierState.NfcTransferring -> vm.cancelNfcEngagement()
             else -> vm.onResume()
         }
@@ -106,7 +109,12 @@ fun VerifierView(
         is VerifierState.NfcEngagement -> VerifierNfcEngagementView(
             onCancel = vm::cancelNfcEngagement
         )
-        is VerifierState.NfcTransferring -> VerifierNfcTransferringView(
+        is VerifierState.QrNfcDataTransferTap -> VerifierNfcEngagementView(
+            onCancel = vm::cancelNfcEngagement,
+            heading = Res.string.heading_label_nfc_transfer,
+            message = Res.string.info_text_qr_nfc_data_transfer_tap
+        )
+        is VerifierState.NfcTransferring -> VerifierTransportTransferringView(
             isNfc = state.isNfc,
             onCancel = vm::cancelNfcEngagement
         )
@@ -120,10 +128,7 @@ fun VerifierView(
         )
         is VerifierState.Presentation ->
             VerifierPresentationView(
-                navigateUp = {
-                    vm.onResume()
-                    navigateUp()
-                },
+                navigateUp = vm.onResume,
                 onClickLogo = onClickLogo,
                 vm = vm
             )

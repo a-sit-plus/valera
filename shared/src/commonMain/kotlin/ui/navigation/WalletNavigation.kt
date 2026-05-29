@@ -44,6 +44,8 @@ import at.asitplus.valera.resources.info_text_error_action_return_to_invoker
 import at.asitplus.valera.resources.refresh_snackbar_action
 import at.asitplus.valera.resources.refresh_snackbar_message_multiple
 import at.asitplus.valera.resources.refresh_snackbar_message_single
+import at.asitplus.valera.resources.snackbar_local_presentment_busy
+import at.asitplus.valera.resources.snackbar_local_presentment_cancel_action
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
 import at.asitplus.wallet.app.common.ErrorService
@@ -56,6 +58,7 @@ import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.app.common.presentation.NfcDispatchSuppressionMode
 import at.asitplus.wallet.app.common.presentation.NfcTransferState
+import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import io.github.aakira.napier.Napier
@@ -96,6 +99,7 @@ fun WalletNavigation(
     snackbarService: SnackbarService = koinInject(scope = koinScope),
     errorService: ErrorService = koinInject(scope = koinScope),
     walletMain: WalletMain = koinInject(scope = koinScope),
+    localPresentmentSessionCoordinator: LocalPresentmentSessionCoordinator = koinInject(scope = koinScope),
     urlOpener: UrlOpener = koinInject(scope = koinScope),
 ) {
     val navController: NavHostController = rememberNavController()
@@ -193,6 +197,20 @@ fun WalletNavigation(
                 when (snackbarHostState.showSnackbar(text, actionLabel, true, duration)) {
                     SnackbarResult.Dismissed -> {}
                     SnackbarResult.ActionPerformed -> callback?.invoke()
+                }
+            }
+        }
+        this.launch {
+            localPresentmentSessionCoordinator.busySessionEvents.collect { event ->
+                snackbarService.showSnackbar(
+                    text = getString(Res.string.snackbar_local_presentment_busy),
+                    actionLabel = getString(Res.string.snackbar_local_presentment_cancel_action),
+                    duration = SnackbarDuration.Indefinite,
+                ) {
+                    localPresentmentSessionCoordinator.cancelSession(
+                        sessionId = event.sessionId,
+                        reason = "busy-snackbar-cancel",
+                    )
                 }
             }
         }
@@ -384,7 +402,7 @@ private fun WalletNavHost(
                 onClickLogo = onClickLogo,
                 onClickSettings = { navigator.navigate(SettingsRoute) },
                 onNavigateToPresentmentScreen = {
-                    navigator.navigate(LocalPresentationAuthenticationConsentRoute)
+                    navigator.navigateReplacingCurrent(LocalPresentationAuthenticationConsentRoute)
                 },
                 bottomBar = {
                     BottomBar(
@@ -479,12 +497,17 @@ private fun WalletNavHost(
                     walletMain.snackbarService,
                     onError = { e ->
                         activeSession?.let { session ->
-                            localPresentmentSessionCoordinator.finishSession(session.sessionId, "wallet-presentment-error")
+                            localPresentmentSessionCoordinator.finishSession(
+                                session.sessionId,
+                                if (e is PresentmentCanceled) "wallet-presentment-canceled" else "wallet-presentment-error"
+                            )
                         }
                         intentState.presentationStateModel.value = null
                         intentState.presentationStateModelProvider = null
                         navigator.popToInvoker()
-                        walletMain.errorService.emit(e)
+                        if (e !is PresentmentCanceled) {
+                            walletMain.errorService.emit(e)
+                        }
                     }
                 )
             }
@@ -849,6 +872,7 @@ private fun WalletNavHost(
             DisposableEffect(Unit) {
                 NfcTransferState.nfcDataTransferActive.value = false
                 NfcTransferState.holderNfcDataTransferActive.value = false
+                NfcTransferState.verifierNfcReaderModeActive.value = false
                 NfcTransferState.verifierNfcTransferActive.value = false
                 NfcTransferState.verifierNfcTagDispatchSuppressed.value = NfcDispatchSuppressionMode.DISABLED
                 onDispose {
