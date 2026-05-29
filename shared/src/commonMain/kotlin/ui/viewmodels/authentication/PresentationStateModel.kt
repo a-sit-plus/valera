@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -232,18 +233,25 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
      * @param error pass a [Throwable] if the presentation failed, `null` if successful.
      */
     fun setCompleted(error: Throwable? = null) {
-        if (_state.value == State.COMPLETED) {
-            Napier.w("Already completed, ignoring second call", tag=TAG)
+        if (!completedContinuationLock.tryLock()) {
+            Napier.w("setCompleted already in progress, dropping concurrent call", tag=TAG)
             return
         }
-        _mechanism?.close()
-        _mechanism = null
-        _error = error
-        credentialSelectorContinuation?.resumeWithException(
-            CancellationException("PresentationModel completed")
-        )
-        credentialSelectorContinuation = null
-        _state.value = State.COMPLETED
+        try {
+            if (_state.value == State.COMPLETED) {
+                Napier.w("Already completed, ignoring second call", tag=TAG)
+                return
+            }
+            _mechanism?.close()
+            _mechanism = null
+            _error = error
+            val continuation = credentialSelectorContinuation
+            credentialSelectorContinuation = null
+            _state.value = State.COMPLETED
+            continuation?.resumeWithException(CancellationException("PresentationModel completed"))
+        } finally {
+            completedContinuationLock.unlock()
+        }
         // TODO: Hack to ensure that [state] collectors (using [presentationScope]) gets called for State.COMPLETED
         _presentmentScope.launch {
             delay(1.seconds)
@@ -356,6 +364,7 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
     }
 
     private var credentialSelectorContinuation: Continuation<ByteArray>? = null
+    private val completedContinuationLock = Mutex()
 
     fun setPermissionState(granted: Boolean) {
         check(State.CHECK_PERMISSIONS)

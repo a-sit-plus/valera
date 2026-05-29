@@ -13,6 +13,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -187,14 +188,14 @@ fun PresentationView(
         }
 
         PresentationStateModel.State.COMPLETED -> {
-            coroutineScope.launch {
+            // LaunchedEffect(Unit) fires once per composition entry, preventing repeated
+            // calls to onPresentmentComplete/onError when the composable recomposes.
+            LaunchedEffect(Unit) {
                 when (val error = presentationStateModel.error) {
                     null -> {
-                        // Delay for a short amount of time so the user has a chance to see the success indication
                         delay(3.seconds)
                         onPresentmentComplete()
                     }
-
                     else -> onError(error)
                 }
             }
@@ -224,9 +225,12 @@ fun PresentationView(
                     action = loadingAction
                 )
 
-                PresentationStateModel.State.COMPLETED -> PresentationCompletedView(
-                    presentationStateModel.error
-                )
+                PresentationStateModel.State.COMPLETED ->
+                    if (presentationStateModel.error == null) {
+                        PresentationCompletedView(null)
+                    }
+                    // Error case: render nothing. onError() is already in flight from the
+                    // coroutineScope.launch above and will navigate to the error screen immediately.
 
                 PresentationStateModel.State.WAITING_FOR_DOCUMENT_SELECTION ->
                     throw IllegalStateException("should not be reachable")
