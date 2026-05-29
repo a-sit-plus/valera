@@ -54,6 +54,7 @@ private fun createWalletSessionScope(
     }
 }
 
+/** Creates the persistent main wallet session and immediately triggers DC API credential registration. */
 fun createMainWalletSessionScope(
     sessionName: String,
     intentState: IntentState,
@@ -76,6 +77,7 @@ fun createMainWalletSessionScope(
     }
 }
 
+/** Creates a short-lived session for external-flow activities (e.g. presentation or issuance initiated by a third party). Does not register DC API credentials. */
 fun createTransientFlowWalletSessionScope(
     sessionName: String,
     intentState: IntentState,

@@ -15,5 +15,6 @@ data class WalletSessionBindings(
     val platformAdapter: PlatformAdapter,
     val dataStoreService: DataStoreService,
     val keystoreService: KeystoreService,
+    /** Cancelled via [SessionHandle.onClose] when the session scope is replaced or closed. */
     val sessionCoroutineScope: CoroutineScope,
 )

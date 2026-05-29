@@ -24,6 +24,10 @@ import org.koin.dsl.binds
 import org.koin.dsl.module
 import org.multipaz.prompt.PromptModel
 
+/**
+ * Bridges the imperative session setup in [WalletSessionScopeFactory] with Koin's declarative DI
+ * by unwrapping each field of [WalletSessionBindings] into its own session-scoped binding.
+ */
 fun platformModule() = module {
     scope(named(SESSION_NAME)) {
         scoped<IntentState> { get<WalletSessionBindings>().intentState }

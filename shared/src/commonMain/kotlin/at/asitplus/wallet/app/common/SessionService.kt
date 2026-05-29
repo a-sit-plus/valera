@@ -8,6 +8,7 @@ const val SESSION_NAME = "WALLET_SESSION"
 
 data class SessionHandle(
     val scope: Scope,
+    /** Called before [scope] is closed; use to cancel coroutines or release activity-held resources. */
     val onClose: () -> Unit = {},
 )
 
@@ -23,6 +24,7 @@ class SessionService(
     val scope: MutableStateFlow<Scope>
         get() = _scope
 
+    /** Two-phase init: [scopeFactory] often captures [SessionService] itself, so it cannot be a constructor parameter. */
     fun initialize(onReset: () -> Unit = {}, scopeFactory: () -> SessionHandle) {
         this.scopeFactory = scopeFactory
         this.onReset = onReset
@@ -30,6 +32,7 @@ class SessionService(
         _scope = MutableStateFlow(currentSessionHandle.scope)
     }
 
+    /** Creates a new scope before closing the old one to avoid a window with no active scope. */
     fun newScope() {
         check(::scopeFactory.isInitialized) { "SessionService not initialized" }
         check(::currentSessionHandle.isInitialized) { "SessionService not initialized" }
@@ -43,6 +46,7 @@ class SessionService(
         closeSession(previousSessionHandle)
     }
 
+    /** Closes the current session; safe to call if [initialize] was never called. */
     fun close() {
         if (!::currentSessionHandle.isInitialized) {
             return
