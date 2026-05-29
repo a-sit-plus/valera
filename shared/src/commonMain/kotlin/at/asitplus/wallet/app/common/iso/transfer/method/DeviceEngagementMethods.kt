@@ -11,6 +11,6 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
 
 enum class DeviceEngagementMethods(val friendlyName: String, val icon: ImageVector) {
-    NFC(runBlocking { getString(Res.string.nfc) }, Icons.Outlined.Nfc),
+    NFC(runBlocking { getString(Res.string.nfc) }, Nfc),
     QR_CODE(runBlocking { getString(Res.string.qr) }, Icons.Outlined.QrCode)
 }

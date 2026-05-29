@@ -12,6 +12,7 @@ import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
 import at.asitplus.wallet.app.common.iso.transfer.TransferManager
 import at.asitplus.wallet.app.common.iso.transfer.method.DeviceEngagementMethods
+import at.asitplus.wallet.app.common.iso.transfer.state.TransferTransport
 import at.asitplus.wallet.app.common.iso.transfer.state.VerifierState
 import at.asitplus.wallet.app.common.iso.verifier.DeviceResponseException
 import at.asitplus.wallet.app.common.iso.verifier.VerifyResponseException
@@ -55,10 +56,10 @@ class VerifierViewModel(
                     }
                 }
             },
-            onTransportSelected = { isNfc ->
-                Napier.i("Verifier transport selected; isNfc=$isNfc", tag = "VerifierViewModel")
-                if (isNfc) NfcTransferState.verifierNfcTransferActive.value = true
-                setState(VerifierState.NfcTransferring(isNfc))
+            onTransportSelected = { transport ->
+                Napier.i("Verifier transport selected; transport=$transport", tag = "VerifierViewModel")
+                if (transport == TransferTransport.NFC) NfcTransferState.verifierNfcTransferActive.value = true
+                setState(VerifierState.NfcTransferring(transport))
             },
             onNfcDataTransferSelected = {
                 Napier.i("Verifier QR flow selected NFC data transfer; waiting for device tap", tag = "VerifierViewModel")

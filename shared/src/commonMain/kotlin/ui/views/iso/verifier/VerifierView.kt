@@ -115,7 +115,7 @@ fun VerifierView(
             message = Res.string.info_text_qr_nfc_data_transfer_tap
         )
         is VerifierState.NfcTransferring -> VerifierTransportTransferringView(
-            isNfc = state.isNfc,
+            transport = state.transport,
             onCancel = vm::cancelNfcEngagement
         )
         is VerifierState.WaitingForResponse -> LoadingView(

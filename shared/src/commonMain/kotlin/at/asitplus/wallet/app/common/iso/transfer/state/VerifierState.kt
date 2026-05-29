@@ -1,5 +1,7 @@
 package at.asitplus.wallet.app.common.iso.transfer.state
 
+enum class TransferTransport { NFC, BLUETOOTH }
+
 sealed class VerifierState {
     object Settings : VerifierState()
     object CheckSettings : VerifierState()
@@ -11,10 +13,8 @@ sealed class VerifierState {
     object NfcEngagement : VerifierState()
     // QR engagement is done; waiting for the user to tap devices for NFC data transfer
     object QrNfcDataTransferTap : VerifierState()
-    // NFC handover done; data transfer in progress
-    // isNfc=true → NFC data transfer (keep devices in field)
-    // isNfc=false → BLE data transfer (devices can move apart)
-    data class NfcTransferring(val isNfc: Boolean) : VerifierState()
+    // Handover done; data transfer in progress over the given transport
+    data class NfcTransferring(val transport: TransferTransport) : VerifierState()
     object WaitingForResponse : VerifierState()
     object CheckResponse : VerifierState()
     object Presentation : VerifierState()

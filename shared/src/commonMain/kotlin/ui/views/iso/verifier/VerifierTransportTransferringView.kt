@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Bluetooth
 import androidx.compose.material.icons.outlined.Nfc
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,8 +25,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_nfc_transfer
+import at.asitplus.valera.resources.icon_bluetooth
 import at.asitplus.valera.resources.info_text_ble_data_transfer
 import at.asitplus.valera.resources.info_text_nfc_data_transfer
+import at.asitplus.wallet.app.common.iso.transfer.state.TransferTransport
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ScreenHeading
 import ui.composables.buttons.CancelButton
@@ -36,7 +38,7 @@ import ui.composables.buttons.NavigateUpButton
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VerifierTransportTransferringView(
-    isNfc: Boolean,
+    transport: TransferTransport,
     onCancel: () -> Unit,
 ) {
     Scaffold(
@@ -64,16 +66,26 @@ fun VerifierTransportTransferringView(
                     verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    Icon(
-                        imageVector = if (isNfc) Icons.Outlined.Nfc else Icons.Outlined.Bluetooth,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(80.dp)
-                    )
+                    when (transport) {
+                        TransferTransport.NFC -> Icon(
+                            imageVector = Nfc,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(80.dp)
+                        )
+                        TransferTransport.BLUETOOTH -> Icon(
+                            painter = painterResource(Res.drawable.icon_bluetooth),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(80.dp)
+                        )
+                    }
                     Text(
                         text = stringResource(
-                            if (isNfc) Res.string.info_text_nfc_data_transfer
-                            else Res.string.info_text_ble_data_transfer
+                            when (transport) {
+                                TransferTransport.NFC -> Res.string.info_text_nfc_data_transfer
+                                TransferTransport.BLUETOOTH -> Res.string.info_text_ble_data_transfer
+                            }
                         ),
                         style = MaterialTheme.typography.bodyLarge
                     )

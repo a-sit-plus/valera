@@ -3,6 +3,7 @@ package at.asitplus.wallet.app.common.iso.transfer
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import at.asitplus.KmmResult
+import at.asitplus.wallet.app.common.iso.transfer.state.TransferTransport
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_nfc_engagement_verifier
 import at.asitplus.wallet.app.common.data.SettingsRepository
@@ -70,7 +71,7 @@ class TransferManager(
     private val scope: CoroutineScope,
     private val updateProgress: (String) -> Unit,
     private val onWarning: (Warning) -> Unit = {},
-    private val onTransportSelected: ((isNfc: Boolean) -> Unit)? = null,
+    private val onTransportSelected: ((TransferTransport) -> Unit)? = null,
     private val onNfcDataTransferSelected: (() -> Unit)? = null,
 ) {
     val TAG = "TransferManager"
@@ -412,7 +413,10 @@ class TransferManager(
                         "isNfc=${existingTransport is NfcTransportMdocReader}",
                 tag = TAG
             )
-            onTransportSelected?.invoke(existingTransport is NfcTransportMdocReader)
+            onTransportSelected?.invoke(
+                if (existingTransport is NfcTransportMdocReader) TransferTransport.NFC
+                else TransferTransport.BLUETOOTH
+            )
             existingTransport
         } else {
             val connectionMethods = MdocConnectionMethod.disambiguate(
@@ -444,7 +448,7 @@ class TransferManager(
                 )
                 return
             }
-            onTransportSelected?.invoke(false)
+            onTransportSelected?.invoke(TransferTransport.BLUETOOTH)
             transport
         }
         doReaderFlowWithTransport(
