@@ -11,6 +11,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import at.asitplus.wallet.app.common.presentation.NfcDispatchSuppressionMode
 import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.app.ActivityCompat
@@ -96,13 +97,22 @@ private fun WalletRootView(
     intentState: IntentState,
     sessionService: SessionService
 ) {
-    // PromptDialogs must be in the composition during NFC engagement so that
-    // NfcTagReader.scan() can bind the PromptModel to UI. Once the handover
-    // completes and the data transfer begins, we remove it: that cancels the
-    // ScanNfcTagPromptDialog NoDialogState LaunchedEffect before its 3-second
-    // disableReaderMode() fires, keeping the active isoDep connection alive.
+    // PromptDialogs must be in the composition during NFC scanning so that
+    // NfcTagReader.scan() can bind the PromptModel to UI. We remove it in two cases:
+    //
+    // 1. verifierNfcTransferActive=true (data transfer in progress): cancels the
+    //    ScanNfcTagPromptDialog NoDialogState 3-second disableReaderMode() countdown,
+    //    keeping the active isoDep connection alive.
+    //
+    // 2. verifierNfcTagDispatchSuppressed=REDISPATCH (post-transfer suppression):
+    //    after the transfer, verifierNfcTransferActive goes false but REDISPATCH is set
+    //    to prevent the still-present tag from being re-dispatched. Re-adding PromptDialogs
+    //    at that point restarts the 3-second countdown, which then disables reader mode and
+    //    ends the suppression — letting the system see the tag and showing "new tag detected".
+    //    Keeping PromptDialogs removed while REDISPATCH is active avoids this.
     val verifierNfcActive by NfcTransferState.verifierNfcTransferActive.collectAsState()
-    if (!verifierNfcActive) {
+    val verifierNfcSuppressed by NfcTransferState.verifierNfcTagDispatchSuppressed.collectAsState()
+    if (!verifierNfcActive && verifierNfcSuppressed == NfcDispatchSuppressionMode.NONE) {
         PromptDialogs(promptModel)
     }
 

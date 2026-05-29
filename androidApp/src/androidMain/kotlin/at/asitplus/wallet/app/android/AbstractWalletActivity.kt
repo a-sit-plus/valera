@@ -1,14 +1,11 @@
 package at.asitplus.wallet.app.android
 
-import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.nfc.NfcAdapter
 import android.nfc.cardemulation.CardEmulation
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -281,41 +278,12 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
         }
     }
 
-    // Currently unused — the foreground-dispatch approach was superseded by enableReaderMode.
-    // Retained in case a future flow needs it; remove if still dead after cleanup is confirmed.
-    private fun enableHolderForegroundDispatch(nfcAdapter: NfcAdapter) {
-        if (holderForegroundDispatchEnabled) return
-        registerHolderForegroundDispatchReceiver()
-        val intent = Intent(ACTION_SUPPRESS_HOLDER_NFC_TAG).setPackage(packageName)
-        val pendingIntent = PendingIntent.getBroadcast(
-            this,
-            0,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
-        )
-        Napier.i("Enabling holder foreground NFC dispatch during data transfer")
-        nfcAdapter.enableForegroundDispatch(this, pendingIntent, null, null)
-        holderForegroundDispatchEnabled = true
-    }
-
     private fun disableHolderForegroundDispatch(nfcAdapter: NfcAdapter) {
         if (!holderForegroundDispatchEnabled) return
         Napier.i("Disabling holder foreground NFC dispatch")
         nfcAdapter.disableForegroundDispatch(this)
         holderForegroundDispatchEnabled = false
         unregisterHolderForegroundDispatchReceiver()
-    }
-
-    private fun registerHolderForegroundDispatchReceiver() {
-        if (holderForegroundDispatchReceiverRegistered) return
-        val filter = IntentFilter(ACTION_SUPPRESS_HOLDER_NFC_TAG)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(holderForegroundDispatchReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            @Suppress("DEPRECATION")
-            registerReceiver(holderForegroundDispatchReceiver, filter)
-        }
-        holderForegroundDispatchReceiverRegistered = true
     }
 
     private fun unregisterHolderForegroundDispatchReceiver() {
@@ -328,8 +296,4 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
         holderForegroundDispatchReceiverRegistered = false
     }
 
-    companion object {
-        private const val ACTION_SUPPRESS_HOLDER_NFC_TAG =
-            "at.asitplus.wallet.app.android.action.SUPPRESS_HOLDER_NFC_TAG"
-    }
 }

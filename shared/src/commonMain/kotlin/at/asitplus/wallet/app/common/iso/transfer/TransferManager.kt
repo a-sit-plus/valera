@@ -8,6 +8,7 @@ import at.asitplus.valera.resources.info_text_nfc_engagement_verifier
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import data.document.RequestDocumentList
 import io.github.aakira.napier.Napier
+import at.asitplus.wallet.app.common.presentation.NfcDispatchSuppressionMode
 import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
 import kotlinx.coroutines.CancellableContinuation
@@ -638,6 +639,13 @@ class TransferManager(
                         )
                     }
                 )
+                // Suppress NFC tag redispatch after a successful scan, mirroring what
+                // verifierNfcJob does for the NFC-engagement flow. Without this, the
+                // NoDialogState 3-second countdown in ScanNfcTagPromptDialog disables reader
+                // mode, exposing the still-present holder tag to the system and triggering
+                // "new tag detected". REDISPATCH keeps reader mode active with a no-op callback
+                // until the user navigates back (vm.onResume() clears the suppression).
+                NfcTransferState.verifierNfcTagDispatchSuppressed.value = NfcDispatchSuppressionMode.REDISPATCH
                 return
             } catch (error: Throwable) {
                 if (!error.isRecoverableNfcTagLoss()) {
