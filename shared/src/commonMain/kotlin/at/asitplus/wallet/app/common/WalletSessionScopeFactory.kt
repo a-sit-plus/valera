@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import data.storage.DataStoreService
 import kotlinx.coroutines.cancel
 import org.koin.core.qualifier.named
@@ -49,6 +50,12 @@ private fun createWalletSessionScope(
         )
     )
     scope.declare(resolvedErrorService)
+    // Wire the coordinator (a Koin single) to this session's ErrorService so exceptions in its
+    // coroutine scope surface to the user. The lambda is re-evaluated on each exception, so
+    // scope.get() throwing after the scope is closed will be caught by createErrorReportingScope
+    // and fall back to Napier.
+    KoinPlatform.getKoin().get<LocalPresentmentSessionCoordinator>()
+        .setErrorServiceProvider { scope.get<ErrorService>() }
     return SessionHandle(scope = scope) {
         sessionCoroutineScope.cancel()
     }

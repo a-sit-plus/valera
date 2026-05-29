@@ -5,6 +5,7 @@ import android.os.Bundle
 import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import org.multipaz.mdoc.transport.NfcTransportMdoc
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -15,7 +16,10 @@ import org.multipaz.nfc.CommandApdu
 // Based on the identity-credential sample code
 // https://github.com/openwallet-foundation-labs/identity-credential/tree/main/samples/testapp
 class NfcDataRetrievalService: HostApduService() {
-    private val responseScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val responseScope = CoroutineScope(
+        SupervisorJob() + Dispatchers.Default +
+                CoroutineExceptionHandler { _, e -> Napier.e("NfcDataRetrievalService: sendResponseApdu failed", e) }
+    )
 
     override fun processCommandApdu(commandApdu: ByteArray, extras: Bundle?): ByteArray? {
         runCatching { CommandApdu.decode(commandApdu) }

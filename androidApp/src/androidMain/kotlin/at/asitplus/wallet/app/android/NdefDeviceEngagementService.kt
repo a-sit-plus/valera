@@ -24,10 +24,7 @@ import data.storage.RealDataStoreService
 import data.storage.getDataStore
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
@@ -88,10 +85,15 @@ class NdefDeviceEngagementService : HostApduService() {
         private var activePresentationUiLaunched = false
         @Volatile
         private var activeStarted = false
+        // Set by the service instance in onCreate/onDestroy so the app-lifetime scope can route
+        // exceptions to the current service's ErrorService while one is active.
+        @Volatile
+        private var activeServiceErrorService: ErrorService? = null
+
         // Outlives individual service instances so connecting-timeout jobs survive onDestroy.
-        private val activePresentmentScope = CoroutineScope(
-            SupervisorJob() + Dispatchers.Default + CoroutineName("NdefDeviceEngagementService:presentment")
-        )
+        private val activePresentmentScope = createErrorReportingScope(
+            "NdefDeviceEngagementService:presentment"
+        ) { activeServiceErrorService }
 
         private fun localPresentmentSessionCoordinator(): LocalPresentmentSessionCoordinator =
             GlobalContext.get().get()
@@ -230,6 +232,7 @@ class NdefDeviceEngagementService : HostApduService() {
         )
         commandApduListenJob?.cancel()
         serviceScope.cancel()
+        activeServiceErrorService = null
         serviceErrorService = null
 
         // On some devices onDestroy fires without a prior onDeactivated call. Ensure the
@@ -267,6 +270,7 @@ class NdefDeviceEngagementService : HostApduService() {
             errorService = ErrorService(serviceScope)
         )
         serviceErrorService = walletConfig.errorService
+        activeServiceErrorService = serviceErrorService
 
         commandApduListenJob = serviceScope.launch {
             while (true) {

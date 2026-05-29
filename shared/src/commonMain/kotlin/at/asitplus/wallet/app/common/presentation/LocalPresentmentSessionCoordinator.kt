@@ -3,9 +3,10 @@ package at.asitplus.wallet.app.common.presentation
 import io.github.aakira.napier.Napier
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
+import at.asitplus.wallet.app.common.ErrorService
+import at.asitplus.wallet.app.common.createErrorReportingScope
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
@@ -52,13 +53,18 @@ class LocalPresentmentSessionCoordinator {
     )
 
     private val stateLock = SynchronizedObject()
-    private val coordinatorScope = CoroutineScope(
-        SupervisorJob() + Dispatchers.Default + CoroutineName(TAG)
-    )
+    // Updated by the session factory each time a new session scope is created so the coordinator
+    // can route unexpected exceptions to the active session's ErrorService.
+    private var errorServiceProvider: () -> ErrorService? = { null }
+    private val coordinatorScope = createErrorReportingScope(TAG) { errorServiceProvider() }
     private var activeSession: ManagedSession? = null
     private var lastBusyNotificationSessionId: String? = null
 
     val busySessionEvents = MutableSharedFlow<LocalPresentmentBusyEvent>(extraBufferCapacity = 1)
+
+    fun setErrorServiceProvider(provider: () -> ErrorService?) {
+        errorServiceProvider = provider
+    }
 
     fun startSession(
         source: LocalPresentmentSource,
