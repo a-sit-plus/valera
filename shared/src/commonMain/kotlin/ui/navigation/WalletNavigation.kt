@@ -77,6 +77,7 @@ import ui.navigation.routes.RoutePrerequisites.CRYPTO
 import ui.presentation.DCAPIPresentationGraphView
 import ui.presentation.DefaultPresentationGraphView
 import ui.viewmodels.*
+import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.authentication.PresentationViewModel
 import ui.viewmodels.intents.*
 import ui.views.*
@@ -469,7 +470,17 @@ private fun WalletNavHost(
                             presentationStateModel = it,
                             navigateUp = { navigator.navigateBack() },
                             onAuthenticationSuccess = { },
-                            navigateToHomeScreen = { navigator.popToInvoker() },
+                            navigateToHomeScreen = {
+                                // Notify the verifier that we can't fulfil the request by
+                                // sending a session-termination message before navigating away.
+                                // dismiss(CLICK) sends the termination, completes the session
+                                // with PresentmentCanceled, and lets onError → popToInvoker()
+                                // handle the navigation. Fallback to direct navigation if no
+                                // active session model is available.
+                                activeSession?.presentationStateModel
+                                    ?.dismiss(PresentationStateModel.DismissType.CLICK)
+                                    ?: navigator.popToInvoker()
+                            },
                             walletMain = walletMain,
                             onClickLogo = onClickLogo,
                             onClickSettings = { navigator.navigate(SettingsRoute) })
