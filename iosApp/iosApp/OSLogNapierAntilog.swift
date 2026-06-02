@@ -42,7 +42,7 @@ final class OSLogNapierAntilog: Antilog {
             oslogType = .default
         }
 
-        var text = "HIER!!!!!! "
+        var text = ""
 
         if let tag, !tag.isEmpty {
             text += "[\(tag)] "
