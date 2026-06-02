@@ -1,6 +1,7 @@
 package data.storage
 
 import at.asitplus.KmmResult
+import at.asitplus.catchingUnwrapped
 import at.asitplus.iso.IssuerSigned
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
@@ -151,11 +152,11 @@ class PersistentSubjectCredentialStore(
         if (input == null) {
             return StoreContainer(credentials = mutableListOf())
         } else {
-            val export: ExportableStoreContainer = kotlin.runCatching {
+            val export: ExportableStoreContainer = catchingUnwrapped {
                 joseCompliantSerializer.decodeFromString<ExportableStoreContainer>(input)
             }.getOrElse {
                 Napier.w("dataStoreValueToContainer failed for new format", it)
-                kotlin.runCatching {
+                catchingUnwrapped {
                     ExportableStoreContainer(
                         joseCompliantSerializer.decodeFromString<OldExportableStoreContainer>(input).credentials.mapIndexed { index, it ->
                             index.toLong() to it

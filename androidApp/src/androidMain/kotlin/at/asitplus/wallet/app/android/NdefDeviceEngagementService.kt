@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
 import androidx.core.content.ContextCompat
+import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.DummyPlatformAdapter
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.WalletConfig
@@ -71,7 +72,7 @@ class NdefDeviceEngagementService : HostApduService() {
         }
     }
 
-    private fun vibrate(pattern: Int) = kotlin.runCatching {
+    private fun vibrate(pattern: Int) = catchingUnwrapped {
         val vibrator = ContextCompat.getSystemService(
             applicationContext,
             Vibrator::class.java

@@ -66,7 +66,7 @@ class RealCapabilitiesService(
 
     override fun getDeviceStatus(): Flow<CapabilitiesData?> =
         combine(flows) {
-            runCatching {
+            catchingUnwrapped {
                 CapabilitiesData(
                     it[0] as Boolean,
                     it[1] as Boolean,
@@ -105,12 +105,11 @@ class RealCapabilitiesService(
         }
 
 
-    private suspend fun getAttestationPreference() =
-        runCatching {
-            joseCompliantSerializer.decodeFromString<Boolean>(
-                dataStoreService.getPreference(DATASTORE_CAPABILITIES_ATTESTATION).first()!!
-            )
-        }
+    private suspend fun getAttestationPreference() = catchingUnwrapped {
+        joseCompliantSerializer.decodeFromString<Boolean>(
+            dataStoreService.getPreference(DATASTORE_CAPABILITIES_ATTESTATION).first()!!
+        )
+    }
 
 
     private suspend fun setAttestationPreference(value: Boolean) =

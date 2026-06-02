@@ -4,6 +4,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import at.asitplus.catchingUnwrapped
 import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeListEntry
 import at.asitplus.jsonpath.core.NormalizedJsonPath
@@ -89,7 +90,7 @@ class AuthenticationSelectionPresentationExchangeViewModel(
                             val (namespace, attributeName) = attribute.segments.map {
                                 (it as NormalizedJsonPathSegment.NameSegment).memberName
                             }
-                            runCatching {
+                            catchingUnwrapped {
                                 claimStructure.jsonObject[namespace]!!.jsonObject[attributeName] != null
                             }.getOrNull() ?: false
                         }
