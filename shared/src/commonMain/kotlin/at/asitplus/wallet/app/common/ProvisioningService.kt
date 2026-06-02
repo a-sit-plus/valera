@@ -35,6 +35,7 @@ import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
 import data.storage.StoreEntryId
 import data.storage.WalletSubjectCredentialStore
+import data.storage.persistentStringMapStore
 import io.github.aakira.napier.Napier
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -68,6 +69,10 @@ class ProvisioningService(
 
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = httpService.buildHttpClient(cookieStorage = cookieStorage)
+    private val stateToCodeStore = persistentStringMapStore(
+        dataStoreService = dataStoreService,
+        preferenceKey = Configuration.DATASTORE_KEY_PROVISIONING_STATE_TO_CODE_STORE,
+    )
 
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback/provisioning"
     private var cachedClientId: String? = null
@@ -132,7 +137,11 @@ class ProvisioningService(
             oauth2Client = OAuth2KtorClient(
                 engine = client.engine,
                 cookiesStorage = cookieStorage,
-                oAuth2Client = OAuth2Client(clientId = currentClientId(), redirectUrl = redirectUrl),
+                oAuth2Client = OAuth2Client(
+                    clientId = currentClientId(),
+                    redirectUrl = redirectUrl,
+                    stateToCodeStore = stateToCodeStore
+                ),
                 httpClientConfig = httpService.loggingConfig,
                 loadClientAttestationJwt = { clientAttestationJwt() },
                 signClientAttestationPop = SignJwt(keyMaterial, JwsHeaderNone()),
@@ -204,7 +213,8 @@ class ProvisioningService(
                     .also { dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT) }
             }?.let { context ->
                 openId4VciClient().resumeWithAuthCode(redirectedUrl, context).getOrThrow().let { result ->
-                    val idsBefore = subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
+                    val idsBefore =
+                        subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
                     Napier.d("resumeWithAuthCode idsBefore=$idsBefore")
                     Napier.d("resumeWithAuthCode received ${result.credentials.size} credential(s)")
                     val storageResults = result.credentials.map { cred ->
@@ -230,7 +240,11 @@ class ProvisioningService(
     }
 
     @Throws(Throwable::class)
-    suspend fun refreshCredential(renewalInfo: CredentialRenewalInfo, oldCredentialId: StoreEntryId, statusUpdater: ((Long, RefreshStatus) -> Unit)) {
+    suspend fun refreshCredential(
+        renewalInfo: CredentialRenewalInfo,
+        oldCredentialId: StoreEntryId,
+        statusUpdater: ((Long, RefreshStatus) -> Unit)
+    ) {
         Napier.d("refreshCredential with identifier ${renewalInfo.credentialIdentifier}")
         openId4VciClient().refreshCredentialReturningResult(renewalInfo).getOrThrow().also { result ->
             val storageResults = result.credentials.map { credentialInput ->
@@ -289,8 +303,10 @@ class ProvisioningService(
                     storeContextOpenIntent()
                     StoredCredentialIssuanceResult(credentialIssuanceResult = this)
                 }
+
                 is CredentialIssuanceResult.Success -> {
-                    val idsBefore = subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
+                    val idsBefore =
+                        subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
                     Napier.d("loadCredentialWithOffer idsBefore=$idsBefore")
                     Napier.d("loadCredentialWithOffer received ${credentials.size} credential(s) without browser auth")
                     credentials.forEach {
