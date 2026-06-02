@@ -510,7 +510,7 @@ private fun WalletNavHost(
         composable<LoadCredentialRoute> { backStackEntry ->
             remember {
                 runBlocking {
-                    runCatching {
+                    catchingUnwrapped {
                         LoadCredentialViewModel.init(
                             walletMain = walletMain,
                             navigateUp = navigateBack,
@@ -541,7 +541,7 @@ private fun WalletNavHost(
         composable<AddCredentialWithLinkRoute> { backStackEntry ->
             remember {
                 runBlocking {
-                    runCatching {
+                    catchingUnwrapped {
                         LoadCredentialViewModel.init(
                             walletMain = walletMain,
                             navigateUp = navigateBack,
@@ -582,7 +582,7 @@ private fun WalletNavHost(
             val offer = backStackEntry.toRoute<AddCredentialPreAuthnRoute>().credentialOffer
             remember {
                 runBlocking {
-                    runCatching {
+                    catchingUnwrapped {
                         LoadCredentialViewModel.init(
                             walletMain = walletMain,
                             navigateUp = navigateBack,

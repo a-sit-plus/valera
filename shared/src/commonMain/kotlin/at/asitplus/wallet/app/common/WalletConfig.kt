@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import data.storage.DataStoreService
@@ -57,7 +58,7 @@ class WalletConfig(
         readerAutomaticallySelectTransport: Boolean?,
         connectionTimeout: Duration?,
         completionHandler: CompletionHandler
-    ): Result<Unit> = runCatching {
+    ): Result<Unit> = catchingUnwrapped {
         runBlocking {
             val newConfig = ConfigData(
                 host = host ?: this@WalletConfig.host.first(),

@@ -1,6 +1,7 @@
 package data.credentials
 
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.ageverification.AgeVerificationScheme
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
@@ -12,7 +13,7 @@ import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 
 fun SubjectCredentialStore.StoreEntry.displayTitle(schemeLabel: String): String {
-    val detail = runCatching {
+    val detail = catchingUnwrapped {
         when (scheme) {
             is EuPidScheme,
             is EuPidSdJwtScheme -> EuPidCredentialAdapter.createFromStoreEntry(this, failingImageDecoder)

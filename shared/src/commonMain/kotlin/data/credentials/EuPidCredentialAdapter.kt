@@ -3,6 +3,7 @@
 package data.credentials
 
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.catchingUnwrapped
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.memberName
@@ -249,10 +250,10 @@ private data class EuPidCredentialVcPayload(
         get() = sex?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code } }
 
     val nationality: String?
-        get() = nationalityElement?.let { runCatching { it.jsonPrimitive.content }.getOrNull() }
+        get() = nationalityElement?.let { catchingUnwrapped { it.jsonPrimitive.content }.getOrNull() }
 
     val nationalities: Collection<String>?
-        get() = nationalityElement?.let { runCatching { it.jsonArray.map { item -> item.jsonPrimitive.content } }.getOrNull() }
+        get() = nationalityElement?.let { catchingUnwrapped { it.jsonArray.map { item -> item.jsonPrimitive.content } }.getOrNull() }
 }
 
 private class EuPidCredentialVcAdapter(
@@ -562,7 +563,7 @@ private class EuPidCredentialSdJwtAdapter(
 
     override val placeOfBirth: PlaceOfBirth?
         get() = attributes[SdJwtAttributes.PREFIX_PLACE_OF_BIRTH]?.let {
-            runCatching { joseCompliantSerializer.decodeFromJsonElement<PlaceOfBirth>(it) }.getOrNull()
+            catchingUnwrapped { joseCompliantSerializer.decodeFromJsonElement<PlaceOfBirth>(it) }.getOrNull()
         }
 
     override val birthPlace: String?
