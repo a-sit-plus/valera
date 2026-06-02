@@ -50,8 +50,13 @@ kotlin {
                     // Only make cinterop processing depend on Xcode builds when on macOS
                     if (isMacHost) {
                         tasks[interopProcessingTaskName].apply {
-                            dependsOn(":cinterop:buildIphoneos")
-                            dependsOn(":cinterop:buildIphonesimulator")
+                            dependsOn(
+                                when (platform) {
+                                    "iphoneos" -> ":cinterop:buildIphoneos"
+                                    "iphonesimulator" -> ":cinterop:buildIphonesimulator"
+                                    else -> error("Unsupported platform $platform")
+                                }
+                            )
                         }
                     }
                 }

@@ -264,8 +264,9 @@ class IosPlatformAdapter(
                 if (!success) {
                     scope.launch {
                         val baseMessage = getString(Res.string.snackbar_digital_credentials_store_failed)
+                        val details = errorMessage?.toString()?.takeIf { it.isNotBlank() }
                         IosSessionBridge.showSnackbar(
-                            listOfNotNull(baseMessage, errorMessage.takeIf { it.isNotBlank() })
+                            listOfNotNull(baseMessage, details)
                                 .joinToString(": "),
                             SnackbarDuration.Long
                         )
