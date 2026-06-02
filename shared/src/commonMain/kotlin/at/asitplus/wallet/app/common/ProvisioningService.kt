@@ -86,7 +86,7 @@ class ProvisioningService(
                 oAuth2Client = OAuth2Client(clientId = currentClientId(), redirectUrl = redirectUrl),
                 httpClientConfig = httpService.loggingConfig,
                 loadInstanceAttestation = attestationService::loadInstanceAttestation,
-                keyMaterial = attestationService.instanceAttestationHelper.instanceAttestationKeyMaterial()
+                keyMaterial = attestationService.getInstanceAttestationKeyMaterial()
             ),
             oid4vciService = walletService()
         ).also { openId4VciClientCached = it }

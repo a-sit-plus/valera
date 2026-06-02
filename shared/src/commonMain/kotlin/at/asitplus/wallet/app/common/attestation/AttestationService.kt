@@ -1,9 +1,10 @@
 package at.asitplus.wallet.app.common.attestation
 
+import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.openid.ClientNonceResponse
 import at.asitplus.signum.indispensable.josef.JsonWebToken
-import at.asitplus.signum.indispensable.josef.JwsSigned
+import at.asitplus.signum.indispensable.josef.JwsCompactTyped
 import at.asitplus.signum.indispensable.josef.KeyAttestationJwt
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.HttpService
@@ -26,36 +27,36 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.seconds
 
 class AttestationService(
     holderKey: WalletKeyMaterial,
     private val config: SettingsRepository,
     buildContext: BuildContext,
-    httpService: HttpService
+    httpService: HttpService,
 ) {
-    val httpClient = httpService.buildHttpClient()
+    private val scope = CoroutineScope(Dispatchers.IO)
+    private val httpClient = httpService.buildHttpClient()
 
-    val challengeEndpoint = config.walletProviderHost.map {
+    private val challengeEndpoint = config.walletProviderHost.map {
         URLBuilder(it).apply {
             appendEncodedPathSegments(PATH_NONCE)
         }
     }
 
-    val instanceAttestationHelper = InstanceAttestationHelper(
+    private val instanceAttestationHelper = InstanceAttestationHelper(
         config.walletProviderHost,
         httpClient,
-        buildContext
+        buildContext,
     )
-    
-    val keyAttestationHelper = KeyAttestationHelper(config.walletProviderHost, httpClient, holderKey)
-    val bufferedInstanceAttestation = MutableStateFlow<JwsSigned<JsonWebToken>?>(null)
-    val bufferedKeyAttestation = MutableStateFlow<JwsSigned<KeyAttestationJwt>?>(null)
 
-    private val scope = CoroutineScope(Dispatchers.IO)
+    private val keyAttestationHelper = KeyAttestationHelper(config.walletProviderHost, httpClient, holderKey)
+    val bufferedInstanceAttestation = MutableStateFlow<JwsCompactTyped<JsonWebToken>?>(null)
+    val bufferedKeyAttestation = MutableStateFlow<JwsCompactTyped<KeyAttestationJwt>?>(null)
 
-    suspend fun preloadInstanceAttestation() = catching {
+    suspend fun getInstanceAttestationKeyMaterial() = instanceAttestationHelper.keyMaterial()
+
+    suspend fun preloadInstanceAttestation() = runCatching {
         Napier.d("AttestationService: Preload instance attestation")
         requestInstanceAttestation().let {
             bufferedInstanceAttestation.emit(it)
@@ -63,7 +64,8 @@ class AttestationService(
     }.onFailure {
         Napier.e("AttestationService: Error preloading instance attestation. $it")
     }
-    suspend fun preloadKeyAttestation() = catching {
+
+    suspend fun preloadKeyAttestation() = runCatching {
         Napier.d("AttestationService: Preload key attestation")
         requestKeyAttestation(
             KeyAttestationInput(
@@ -80,18 +82,18 @@ class AttestationService(
     }
 
     suspend fun loadInstanceAttestation(input: LoadInstanceAttestationInput) = catching {
-        requestInstanceAttestation(input.preferredClientStatusPeriod ?: PREFERRED_DEFAULT_TTL).let { instanceAttestation ->
-            bufferedInstanceAttestation.emit(null)
-            instanceAttestation
-        }
+        requestInstanceAttestation(
+            input.preferredClientStatusPeriod ?: PREFERRED_DEFAULT_TTL
+        )
     }
 
-    suspend fun loadKeyAttestation(input: KeyAttestationInput) = catching {
-        if (input.clientNonce != null) bufferedKeyAttestation.emit(null)
-        requestKeyAttestation(input).also { keyAttestation ->
-            bufferedKeyAttestation.emit(keyAttestation)
+    suspend fun loadKeyAttestation(input: KeyAttestationInput): KmmResult<JwsCompactTyped<KeyAttestationJwt>> =
+        catching {
+            if (!input.allowBuffer()) bufferedKeyAttestation.emit(null)
+            requestKeyAttestation(input).also { keyAttestation ->
+                bufferedKeyAttestation.emit(keyAttestation)
+            }
         }
-    }
 
     fun getWalletProviderHost() = config.walletProviderHost
     fun setWalletProviderHost(host: String) = scope.launch {
@@ -102,7 +104,7 @@ class AttestationService(
 
     private suspend fun requestInstanceAttestation(
         preferredClientStatusPeriod: Duration = PREFERRED_DEFAULT_TTL
-    ): JwsSigned<JsonWebToken> {
+    ): JwsCompactTyped<JsonWebToken> {
         bufferedInstanceAttestation.firstOrNull()?.let { buffer ->
             if (buffer.hasRemainingClientStatusPeriod(preferredClientStatusPeriod)) {
                 Napier.d("AttestationService: Use buffered instance attestation")
@@ -111,14 +113,14 @@ class AttestationService(
         }
 
         Napier.d("AttestationService: Request new instance attestation")
-        val instanceAttestation = instanceAttestationHelper.requestInstanceAttestation(preferredClientStatusPeriod)
+        val instanceAttestation = instanceAttestationHelper.instanceAttestation(preferredClientStatusPeriod)
         bufferedInstanceAttestation.emit(instanceAttestation)
         return instanceAttestation
     }
 
     private suspend fun requestKeyAttestation(
         input: KeyAttestationInput,
-    ): JwsSigned<KeyAttestationJwt> {
+    ): JwsCompactTyped<KeyAttestationJwt> {
         val preferredKeyStorageStatusPeriod = input.preferredKeyStorageStatusPeriod ?: PREFERRED_DEFAULT_TTL
 
         bufferedKeyAttestation.firstOrNull()?.let { buffer ->
@@ -147,19 +149,19 @@ class AttestationService(
         )
     }
 
-    private fun JwsSigned<KeyAttestationJwt>.hasRemainingKeyStorageStatusPeriod(ttl: Duration): Boolean {
+    private fun JwsCompactTyped<KeyAttestationJwt>.hasRemainingKeyStorageStatusPeriod(ttl: Duration): Boolean {
         val now = Clock.System.now()
         return payload.expiration?.let { it > now + 10.seconds } == true &&
                 payload.keyStorageStatus?.expiration?.let { it > now + ttl } == true
     }
 
-    private fun JwsSigned<JsonWebToken>.hasRemainingClientStatusPeriod(ttl: Duration): Boolean {
+    private fun JwsCompactTyped<JsonWebToken>.hasRemainingClientStatusPeriod(ttl: Duration): Boolean {
         val now = Clock.System.now()
         return payload.expiration?.let { it > now + 10.seconds } == true &&
                 payload.clientStatus?.expiration?.let { it > now + ttl } == true
     }
 
-    private suspend fun getChallenge() = catching {
+    private suspend fun getChallenge() = runCatching {
         httpClient.get(challengeEndpoint.first().build()) {
         }.body<ClientNonceResponse>().clientNonce
     }.onFailure {
@@ -167,3 +169,5 @@ class AttestationService(
     }.getOrNull()
 
 }
+
+fun KeyAttestationInput.allowBuffer() = (this.credentialIssuer == null && this.clientNonce == null)

@@ -1,12 +1,12 @@
 package at.asitplus.wallet.app.common.attestation
 
-import at.asitplus.attestation.supreme.AttestationChallenge
 import at.asitplus.attestation.supreme.AttestationClient
-import at.asitplus.attestation.supreme.createCsr
+import at.asitplus.attestation.supreme.createAttestationProof
+import at.asitplus.catching
 import at.asitplus.signum.indispensable.asn1.ObjectIdentifier
 import at.asitplus.signum.indispensable.asn1.encoding.encodeToAsn1Primitive
 import at.asitplus.signum.indispensable.josef.JsonWebToken
-import at.asitplus.signum.indispensable.josef.JwsSigned
+import at.asitplus.signum.indispensable.josef.JwsCompactTyped
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.signum.indispensable.pki.Pkcs10CertificationRequestAttribute
 import at.asitplus.signum.indispensable.pki.X509Certificate
@@ -29,100 +29,101 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
 class InstanceAttestationHelper(
-    val host: Flow<String>,
-    val httpClient: HttpClient,
-    val buildContext: BuildContext,
+    private val host: Flow<String>,
+    private val httpClient: HttpClient,
+    private val buildContext: BuildContext,
 ) {
-    val challengeEndpoint = host.map {
+    private val challengeEndpoint = host.map {
         URLBuilder(host.first()).apply {
             appendEncodedPathSegments(PATH_CHALLENGE)
         }
     }
-    val instanceEndpoint = host.map {
+    private val instanceEndpoint = host.map {
         URLBuilder(host.first()).apply {
             appendEncodedPathSegments(PATH_INSTANCE)
         }
     }
 
-    val client = AttestationClient(httpClient)
+    private val client = AttestationClient(httpClient)
 
-    val challenge by lazy { runBlocking { getAttestationChallenge().getOrThrow() }
+    private var instanceAttestationCache: JwsCompactTyped<JsonWebToken>? = null
+    private var keyMaterialCache: KeyMaterial? = null
+
+    suspend fun instanceAttestation(
+        preferredClientStatusPeriod: Duration
+    ) = instanceAttestationCache ?: getInstanceAttestation(preferredClientStatusPeriod).let { (attestation, _) ->
+        attestation
     }
 
-    val instanceAttestationSigner by lazy {
-        runBlocking {
-            PlatformSigningProvider.deleteSigningKey(KS_ALIAS_WIA)
-            val alias = KS_ALIAS_WIA
-            createAttestationSigner(challenge, alias)
+    suspend fun keyMaterial() = keyMaterialCache ?: run {
+        getInstanceAttestation(PREFERRED_DEFAULT_TTL).let { (_, keyMaterial) ->
+            keyMaterial
         }
     }
 
-
-    fun instanceAttestationKeyMaterial() = object : SignerBasedKeyMaterial(instanceAttestationSigner) {
-        override suspend fun getCertificate(): X509Certificate? = null
-    }
-
-    suspend fun createAttestationSigner(challenge: AttestationChallenge, alias: String) =
-        PlatformSigningProvider.createSigningKey(alias) {
-            ec {}
-            hardware {
-                attestation {
-                    this.challenge = challenge.nonce
-                }
-            }
-        }.getOrThrow()
-
     private suspend fun getAttestationChallenge() = client.getChallenge(Url(challengeEndpoint.first()))
 
-    suspend fun requestInstanceAttestation(
-        preferredClientStatusPeriod: Duration
-    ) =
-        challenge.let { challenge ->
-            val csr = instanceAttestationSigner.createCsr(
-                challenge = challenge, additionalAttributes = listOf(
+    private suspend fun getAttestationProof(preferredClientStatusPeriod: Duration) =
+        getAttestationChallenge().getOrThrow().let { challenge ->
+            PlatformSigningProvider.deleteSigningKey(alias = KS_ALIAS_WIA)
+            challenge.createAttestationProof(
+                alias = KS_ALIAS_WIA, additionalCsrAttributes = listOf(
                     Pkcs10CertificationRequestAttribute(
                         oid = ObjectIdentifier(oid = WALLET_SOLUTION_OID), listOf(
                             joseCompliantSerializer.encodeToString(
                                 InstanceAttestationRequest(
-                                    buildContext.versionName,
-                                    preferredClientStatusPeriod
+                                    buildContext.versionName, preferredClientStatusPeriod
                                 )
                             ).encodeToAsn1Primitive(),
                         )
                     )
                 )
             ).getOrThrow()
-            val response = httpClient.post(Url(instanceEndpoint.first())) {
-                contentType(ContentType.Application.OctetStream)
-                setBody(csr.encodeToDer())
+        }
+
+    private suspend fun getInstanceAttestation(
+        preferredClientStatusPeriod: Duration
+    ) = getAttestationProof(preferredClientStatusPeriod).let { proof ->
+        val response = httpClient.post(Url(instanceEndpoint.first())) {
+            contentType(ContentType.Application.OctetStream)
+            setBody(proof.encodeToDer())
+        }
+
+        val keyMaterial = signerBasedKeyMaterial().also {
+            keyMaterialCache = it
+        }
+
+        val attestation = catching { JwsCompactTyped<JsonWebToken>(response.bodyAsText()) }.getOrThrow().also {
+            instanceAttestationCache = it
+        }
+        Pair(attestation, keyMaterial)
+    }
+
+    private suspend fun signerBasedKeyMaterial() =
+        PlatformSigningProvider.getSignerForKey(KS_ALIAS_WIA).getOrThrow().let {
+            object : SignerBasedKeyMaterial(it) {
+                override suspend fun getCertificate(): X509Certificate? = null
             }
-            JwsSigned.deserialize<JsonWebToken>(
-                it = response.bodyAsText(),
-                deserializationStrategy = JsonWebToken.serializer(),
-            ).getOrThrow()
         }
 
     suspend fun buildProofOfPossession(
         audience: String,
         nonce: String?,
-    ): JwsSigned<JsonWebToken> =
-        BuildClientAttestationPoPJwt.invoke(
-            clientId = buildContext.versionName,
-            signJwt = SignJwt(instanceAttestationKeyMaterial(), headerModifier = JwsHeaderNone()),
-            lifetime = 1.minutes,
-            audience = audience,
-            nonce = nonce
-        )
+    ): JwsCompactTyped<JsonWebToken> = BuildClientAttestationPoPJwt.invoke(
+        clientId = buildContext.versionName,
+        signJwt = SignJwt(keyMaterial(), headerModifier = JwsHeaderNone()),
+        lifetime = 1.minutes,
+        audience = audience,
+        nonce = nonce
+    )
 }
 
 @Serializable
-data class InstanceAttestationRequest(
-    val versionName: String,
-    val preferredClientStatusPeriod: Duration? = null
+private data class InstanceAttestationRequest(
+    val versionName: String, val preferredClientStatusPeriod: Duration? = null
 )
