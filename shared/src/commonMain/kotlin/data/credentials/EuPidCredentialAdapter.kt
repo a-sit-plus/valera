@@ -243,8 +243,6 @@ private data class EuPidCredentialVcPayload(
     val trustAnchor: String? = null,
     @SerialName(Attributes.LOCATION_STATUS)
     val locationStatus: String? = null,
-    @SerialName(Attributes.ADMINISTRATIVE_NUMBER)
-    val administrativeNumber: String? = null,
 ) {
     val sexAsEnum: IsoIec5218Gender?
         get() = sex?.let { code -> IsoIec5218Gender.entries.firstOrNull { it.code == code } }
