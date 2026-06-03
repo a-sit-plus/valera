@@ -217,10 +217,8 @@ class ProvisioningService(
                             statusUpdater?.invoke(id, RefreshStatus.Succeeded)
                         }
                     } else {
-                        storageResults.filter { it.isFailure }.forEach {
-                            Napier.e("storeCredential failed", it.exceptionOrNull())
-                        }
                         context.reissuingStoreEntryId?.let { statusUpdater?.invoke(it, RefreshStatus.Failed) }
+                        storageResults.first { it.isFailure }.getOrThrow()
                     }
                 }
             }
@@ -238,10 +236,8 @@ class ProvisioningService(
                 subjectCredentialStore.removeStoreEntryById(oldCredentialId)
                 statusUpdater(oldCredentialId, RefreshStatus.Succeeded)
             } else {
-                storageResults.filter { it.isFailure }.forEach {
-                    Napier.e("storeCredential failed", it.exceptionOrNull())
-                }
                 statusUpdater(oldCredentialId, RefreshStatus.Failed)
+                storageResults.first { it.isFailure }.getOrThrow()
             }
         }
     }
@@ -280,9 +276,7 @@ class ProvisioningService(
                 is CredentialIssuanceResult.OpenUrlForAuthnRequest -> storeContextOpenIntent()
                 is CredentialIssuanceResult.Success -> {
                     credentials.forEach {
-                        holderAgent.storeCredential(it).onFailure { ex ->
-                            Napier.e("storeCredential failed", ex)
-                        }
+                        holderAgent.storeCredential(it).getOrThrow()
                     }
                 }
             }
