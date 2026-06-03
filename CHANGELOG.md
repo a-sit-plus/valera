@@ -1,4 +1,5 @@
 # Release 5.7.7 (unreleased)
+ * Update to VC-K 5.13.0
  * Credentials: Show credential titles in refresh prompts and allow suppressing a prompt for a single credential
 
 # Release 5.7.6
