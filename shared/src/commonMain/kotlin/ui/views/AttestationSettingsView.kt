@@ -16,9 +16,11 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,8 +34,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.button_label_attestation_apply
 import at.asitplus.valera.resources.button_label_load_attestation
 import at.asitplus.valera.resources.heading_label_attestation
+import at.asitplus.valera.resources.section_heading_attestation_certificates
+import at.asitplus.valera.resources.section_heading_general
 import at.asitplus.valera.resources.text_label_attestation_expiration
 import at.asitplus.valera.resources.text_label_attestation_issued
 import at.asitplus.valera.resources.text_label_attestation_status_expiration
@@ -62,9 +67,8 @@ fun AttestationSettingsView(
 
     val bufferedInstanceAttestation = vm.attestationService.bufferedInstanceAttestation.collectAsState(null)
     val bufferedKeyAttestation = vm.attestationService.bufferedKeyAttestation.collectAsState(null)
-
-    vm.attestationService.getWalletProviderHost().collectAsState(null).value?.let { it ->
-        var host by remember { mutableStateOf(it) }
+    vm.attestationService.getWalletProviderHost().collectAsState(null).value?.let { host ->
+        var hostInput by remember { mutableStateOf(host) }
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -79,7 +83,6 @@ fun AttestationSettingsView(
                     actions = {
                         Logo(onClick = onClickLogo)
                         Column(modifier = Modifier.clickable(onClick = {
-                            if(host != it) vm.attestationService.setWalletProviderHost(host)
                             onClickSettings()
                         })) {
                             Icon(
@@ -91,7 +94,6 @@ fun AttestationSettingsView(
                     },
                     navigationIcon = {
                         NavigateUpButton(onClick = {
-                            if(host != it) vm.attestationService.setWalletProviderHost(host)
                             onClickBack()
                         })
                     },
@@ -99,86 +101,130 @@ fun AttestationSettingsView(
             }
         ) { scaffoldPadding ->
             Box(modifier = Modifier.padding(scaffoldPadding)) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 16.dp).verticalScroll(rememberScrollState())
-                ) {
-                    OutlinedTextField(
-                        label = {
-                            Text(stringResource(Res.string.text_label_wallet_provider))
-                        },
-                        singleLine = true,
-                        readOnly = false,
-                        value = host,
-                        onValueChange = { host = it },
-                        enabled = true,
-                        modifier = Modifier,
-                    )
-                    Spacer(Modifier.height(10.dp))
-                    Text(stringResource(Res.string.text_label_instance_attestation), fontWeight = FontWeight.Bold)
-                    bufferedInstanceAttestation.value?.let {
-                        it.payload.issuedAt?.let { issuedAt ->
-                            LabeledText(
-                                text = "$issuedAt",
-                                label = stringResource(Res.string.text_label_attestation_issued)
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    Column(
+                        modifier = Modifier.padding(end = 16.dp, start = 16.dp)
+                    ) {
+                        val layoutSpacingModifier = Modifier.padding(top = 24.dp)
+
+                        Column(
+                            modifier = layoutSpacingModifier
+                        ) {
+                            val listSpacingModifier = Modifier.padding(top = 8.dp)
+                            Text(
+                                text = stringResource(Res.string.section_heading_general),
+                                style = MaterialTheme.typography.titleMedium,
                             )
-                        }
-                        it.payload.expiration?.let { expiration ->
-                            LabeledText(
-                                text = "$expiration",
-                                label = stringResource(Res.string.text_label_attestation_expiration)
-                            )
-                        }
-                        it.payload.clientStatus?.expiration?.let { expiration ->
-                            LabeledText(
-                                text = "$expiration",
-                                label = stringResource(Res.string.text_label_attestation_status_expiration)
-                            )
-                        }
-                    } ?: run {
-                        Button(onClick = {
-                            if(host != it) vm.attestationService.setWalletProviderHost(host)
-                            vm.preloadInstanceAttestation()
-                        }) {
-                            Text(stringResource(Res.string.button_label_load_attestation))
-                        }
-                    }
-                    Spacer(Modifier.height(20.dp))
-                    Text(stringResource(Res.string.text_label_unit_attestation), fontWeight = FontWeight.Bold)
-                    bufferedKeyAttestation.value?.let {
-                        LabeledText(
-                            text = "${it.payload.issuedAt}",
-                            label = stringResource(Res.string.text_label_attestation_issued)
-                        )
-                        it.payload.expiration?.let { expiration ->
-                            LabeledText(
-                                text = "${it.payload.expiration}",
-                                label = stringResource(Res.string.text_label_attestation_expiration)
-                            )
-                        }
-                        it.payload.keyStorageStatus?.expiration?.let { expiration ->
-                            LabeledText(
-                                text = "$expiration",
-                                label = stringResource(Res.string.text_label_attestation_status_expiration)
-                            )
-                        }
-                        it.payload.keyStorage?.let { keyStorage ->
-                            LabeledText(
-                                text = keyStorage.joinToString(),
-                                label = stringResource(Res.string.text_label_attestation_storage_type)
-                            )
-                        }
-                        it.payload.userAuthentication?.let { userAuthentication ->
-                            LabeledText(
-                                text = userAuthentication.joinToString(),
-                                label = stringResource(Res.string.text_label_attestation_user_authentication)
-                            )
-                        }
-                    } ?: run {
-                        Button(onClick = {
-                            if(host != it) vm.attestationService.setWalletProviderHost(host)
-                            vm.preloadKeyAttestation()
-                        }) {
-                            Text(stringResource(Res.string.button_label_load_attestation))
+                            Row(
+                                modifier = listSpacingModifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                OutlinedTextField(
+                                    label = {
+                                        Text(stringResource(Res.string.text_label_wallet_provider))
+                                    },
+                                    singleLine = true,
+                                    readOnly = false,
+                                    value = hostInput,
+                                    onValueChange = { hostInput = it },
+                                    enabled = true,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                TextButton(
+                                    onClick = {
+                                        vm.attestationService.setWalletProviderHost(hostInput)
+                                    }, enabled = hostInput != host
+                                ) {
+                                    Text(stringResource(Res.string.button_label_attestation_apply))
+                                }
+                            }
+
+
+                            Column(
+                                modifier = layoutSpacingModifier
+                            ) {
+                                val listSpacingModifier = Modifier.padding(top = 8.dp)
+                                Column(modifier = listSpacingModifier.fillMaxWidth()) {
+                                    Text(
+                                        text = stringResource(Res.string.section_heading_attestation_certificates),
+                                        style = MaterialTheme.typography.titleMedium,
+                                    )
+                                    Text(
+                                        stringResource(Res.string.text_label_instance_attestation),
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    bufferedInstanceAttestation.value?.let {
+                                        it.payload.issuedAt?.let { issuedAt ->
+                                            LabeledText(
+                                                text = "$issuedAt",
+                                                label = stringResource(Res.string.text_label_attestation_issued)
+                                            )
+                                        }
+                                        it.payload.expiration?.let { expiration ->
+                                            LabeledText(
+                                                text = "$expiration",
+                                                label = stringResource(Res.string.text_label_attestation_expiration)
+                                            )
+                                        }
+                                        it.payload.clientStatus?.expiration?.let { expiration ->
+                                            LabeledText(
+                                                text = "$expiration",
+                                                label = stringResource(Res.string.text_label_attestation_status_expiration)
+                                            )
+                                        }
+                                    } ?: run {
+                                        Button(onClick = {
+                                            vm.preloadInstanceAttestation()
+                                        }) {
+                                            Text(stringResource(Res.string.button_label_load_attestation))
+                                        }
+                                    }
+                                    Spacer(Modifier.height(20.dp))
+                                    Text(
+                                        stringResource(Res.string.text_label_unit_attestation),
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    bufferedKeyAttestation.value?.let {
+                                        LabeledText(
+                                            text = "${it.payload.issuedAt}",
+                                            label = stringResource(Res.string.text_label_attestation_issued)
+                                        )
+                                        it.payload.expiration?.let { expiration ->
+                                            LabeledText(
+                                                text = "${it.payload.expiration}",
+                                                label = stringResource(Res.string.text_label_attestation_expiration)
+                                            )
+                                        }
+                                        it.payload.keyStorageStatus?.expiration?.let { expiration ->
+                                            LabeledText(
+                                                text = "$expiration",
+                                                label = stringResource(Res.string.text_label_attestation_status_expiration)
+                                            )
+                                        }
+                                        it.payload.keyStorage?.let { keyStorage ->
+                                            LabeledText(
+                                                text = keyStorage.joinToString(),
+                                                label = stringResource(Res.string.text_label_attestation_storage_type)
+                                            )
+                                        }
+                                        it.payload.userAuthentication?.let { userAuthentication ->
+                                            LabeledText(
+                                                text = userAuthentication.joinToString(),
+                                                label = stringResource(Res.string.text_label_attestation_user_authentication)
+                                            )
+                                        }
+                                    } ?: run {
+                                        Button(onClick = {
+                                            vm.preloadKeyAttestation()
+                                        }) {
+                                            Text(stringResource(Res.string.button_label_load_attestation))
+                                        }
+                                    }
+                                }
+
+
+                            }
                         }
                     }
                 }

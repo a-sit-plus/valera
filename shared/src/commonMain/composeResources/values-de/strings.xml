@@ -545,6 +545,8 @@
     <string name="text_label_instance_attestation">Instance-Attestation</string>
     <string name="text_label_unit_attestation">Unit-Attestation</string>
     <string name="button_label_load_attestation">Attestation laden</string>
+    <string name="button_label_attestation_apply">Anwenden</string>
+    <string name="section_heading_attestation_certificates">Zertifikate</string>
     <string name="text_label_attestation_issued">Token gültig von</string>
     <string name="text_label_attestation_expiration">Token gültig bis</string>
     <string name="text_label_attestation_status_expiration">Status gültig bis</string>

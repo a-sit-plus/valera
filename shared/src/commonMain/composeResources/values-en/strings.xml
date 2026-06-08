@@ -539,6 +539,8 @@
     <string name="text_label_instance_attestation">Instance attestation</string>
     <string name="text_label_unit_attestation">Unit attestation</string>
     <string name="button_label_load_attestation">Load attestation</string>
+    <string name="button_label_attestation_apply">Apply</string>
+    <string name="section_heading_attestation_certificates">Certificates</string>
     <string name="text_label_attestation_issued">Token issued</string>
     <string name="text_label_attestation_expiration">Token expires</string>
     <string name="text_label_attestation_status_expiration">Status expires</string>
