@@ -1,7 +1,6 @@
 package at.asitplus.wallet.app.common.attestation
 
-import at.asitplus.KmmResult
-import at.asitplus.catching
+import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.ClientNonceResponse
 import at.asitplus.signum.indispensable.josef.JsonWebToken
 import at.asitplus.signum.indispensable.josef.JwsCompactTyped
@@ -56,7 +55,7 @@ class AttestationService(
 
     suspend fun getInstanceAttestationKeyMaterial() = instanceAttestationHelper.keyMaterial()
 
-    suspend fun preloadInstanceAttestation() = runCatching {
+    suspend fun preloadInstanceAttestation() = catchingUnwrapped {
         Napier.d("AttestationService: Preload instance attestation")
         requestInstanceAttestation().let {
             bufferedInstanceAttestation.emit(it)
@@ -65,7 +64,7 @@ class AttestationService(
         Napier.e("AttestationService: Error preloading instance attestation. $it")
     }
 
-    suspend fun preloadKeyAttestation() = runCatching {
+    suspend fun preloadKeyAttestation() = catchingUnwrapped {
         Napier.d("AttestationService: Preload key attestation")
         requestKeyAttestation(
             KeyAttestationInput(
@@ -81,14 +80,14 @@ class AttestationService(
         Napier.e("AttestationService: Error preloading key attestation. $it")
     }
 
-    suspend fun loadInstanceAttestation(input: LoadInstanceAttestationInput) = catching {
+    suspend fun loadInstanceAttestation(input: LoadInstanceAttestationInput) = catchingUnwrapped {
         requestInstanceAttestation(
             input.preferredClientStatusPeriod ?: PREFERRED_DEFAULT_TTL
         )
     }
 
-    suspend fun loadKeyAttestation(input: KeyAttestationInput): KmmResult<JwsCompactTyped<KeyAttestationJwt>> =
-        catching {
+    suspend fun loadKeyAttestation(input: KeyAttestationInput): Result<JwsCompactTyped<KeyAttestationJwt>> =
+        catchingUnwrapped {
             if (!input.allowBuffer()) bufferedKeyAttestation.emit(null)
             requestKeyAttestation(input).also { keyAttestation ->
                 bufferedKeyAttestation.emit(keyAttestation)
@@ -161,7 +160,7 @@ class AttestationService(
                 payload.clientStatus?.expiration?.let { it > now + ttl } == true
     }
 
-    private suspend fun getChallenge() = runCatching {
+    private suspend fun getChallenge() = catchingUnwrapped {
         httpClient.get(challengeEndpoint.first().build()) {
         }.body<ClientNonceResponse>().clientNonce
     }.onFailure {

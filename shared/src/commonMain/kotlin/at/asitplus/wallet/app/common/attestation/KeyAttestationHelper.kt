@@ -1,6 +1,6 @@
 package at.asitplus.wallet.app.common.attestation
 
-import at.asitplus.catching
+import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.DurationSecondsIntSerializer
 import at.asitplus.signum.indispensable.josef.JsonWebKey
 import at.asitplus.signum.indispensable.josef.JsonWebToken
@@ -61,7 +61,7 @@ class KeyAttestationHelper(
             )
         }
 
-        return catching { JwsCompactTyped<KeyAttestationJwt>(response.bodyAsText()) }.getOrThrow()
+        return catchingUnwrapped { JwsCompactTyped<KeyAttestationJwt>(response.bodyAsText()) }.getOrThrow()
     }
 
 }

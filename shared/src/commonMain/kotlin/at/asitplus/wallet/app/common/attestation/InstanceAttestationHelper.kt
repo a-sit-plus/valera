@@ -2,7 +2,7 @@ package at.asitplus.wallet.app.common.attestation
 
 import at.asitplus.attestation.supreme.AttestationClient
 import at.asitplus.attestation.supreme.createAttestationProof
-import at.asitplus.catching
+import at.asitplus.catchingUnwrapped
 import at.asitplus.signum.indispensable.asn1.ObjectIdentifier
 import at.asitplus.signum.indispensable.asn1.encoding.encodeToAsn1Primitive
 import at.asitplus.signum.indispensable.josef.JsonWebToken
@@ -98,7 +98,9 @@ class InstanceAttestationHelper(
             keyMaterialCache = it
         }
 
-        val attestation = catching { JwsCompactTyped<JsonWebToken>(response.bodyAsText()) }.getOrThrow().also {
+        val attestation = catchingUnwrapped {
+            JwsCompactTyped<JsonWebToken>(response.bodyAsText())
+        }.getOrThrow().also {
             instanceAttestationCache = it
         }
         Pair(attestation, keyMaterial)
