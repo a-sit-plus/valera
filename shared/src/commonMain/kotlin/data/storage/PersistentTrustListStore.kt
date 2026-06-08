@@ -1,26 +1,27 @@
 package data.storage
 
-import LoTE.LoTEClient
 import at.asitplus.etsi.ListOfTrustedEntities
 import at.asitplus.etsi.TrustListPayload
 import at.asitplus.signum.indispensable.josef.JwsCompact
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
-import kotlin.collections.unzip
+
+data class CachedTrustList(
+    val loTe: ListOfTrustedEntities,
+    val lastFetched: Long
+)
 
 class PersistentTrustListStore(
     private val dataStoreService: DataStoreService,
-    private val loteClient: LoTEClient
 ) {
 
-    suspend fun persistTrustList(url: String, rawJwsText: String) {
+    suspend fun persistTrustList(url: String, rawJwsText: String, timestampMillis: Long) {
         val key = TrustListStorageKeys.mapUrlToKey(url) ?: return
         dataStoreService.setPreference(rawJwsText, key)
+        dataStoreService.setPreference(timestampMillis.toString(), "${key}_last_success")
     }
 
-
-    fun observeTrustContainer(): Flow<Map<String, ListOfTrustedEntities>> {
+    fun observeTrustContainer(): Flow<Map<String, CachedTrustList>> {
         val keys = listOf(
             TrustListStorageKeys.PID_PROVIDERS,
             TrustListStorageKeys.WALLET_PROVIDERS,
@@ -31,22 +32,28 @@ class PersistentTrustListStore(
         )
 
         val flows = keys.map { key ->
-            dataStoreService.getPreference(key).map { rawJws ->
-                key to safeParseLoTE(rawJws)
+            combine(
+                dataStoreService.getPreference(key),
+                dataStoreService.getPreference("${key}_last_success")
+            ) { rawJws, timestampStr ->
+                val lote = parseLoTE(rawJws)
+                val timestamp = timestampStr?.toLongOrNull() ?: 0L
+
+                if (lote != null) {
+                    key to CachedTrustList(lote, timestamp)
+                } else {
+                    key to null
+                }
             }
         }
 
         return combine(flows) { array ->
-            array.unzip().let { (keyList, entityList) ->
-                keyList.zip(entityList)
-                    .filter { it.second != null }
-                    .associate { it.first to it.second!! }
-            }
+            array.filter { it.second != null }
+                .associate { it.first to it.second!! }
         }
     }
 
-
-    private fun safeParseLoTE(rawJws: String?): ListOfTrustedEntities? {
+    private fun parseLoTE(rawJws: String?): ListOfTrustedEntities? {
         if (rawJws.isNullOrBlank()) return null
         return runCatching {
             val (_, payload) = JwsCompact.parse<TrustListPayload>(rawJws).getOrThrow()
@@ -54,7 +61,6 @@ class PersistentTrustListStore(
         }.getOrNull()
     }
 }
-
 
 object TrustListStorageKeys {
     private const val PREFIX = "lote_cache_"

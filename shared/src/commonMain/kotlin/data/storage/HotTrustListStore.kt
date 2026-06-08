@@ -13,17 +13,17 @@ class HotTrustListStore(
     private val delegate: PersistentTrustListStore,
     val coroutineScope: CoroutineScope
 ) {
-    val hotTrustContainer: StateFlow<Map<String, ListOfTrustedEntities>?> =
+    val hotTrustContainer: StateFlow<Map<String, CachedTrustList>?> =
         delegate.observeTrustContainer().stateIn(
             scope = coroutineScope,
             started = SharingStarted.Eagerly,
             initialValue = null
         )
 
-    fun observeTrustContainer(): Flow<Map<String, ListOfTrustedEntities>> =
+    fun observeTrustContainer(): Flow<Map<String, CachedTrustList>> =
         hotTrustContainer.filterNotNull()
 
-    suspend fun getActiveCache(): Map<String, ListOfTrustedEntities> {
+    suspend fun getActiveCache(): Map<String, CachedTrustList> {
         return observeTrustContainer().first()
     }
 }
