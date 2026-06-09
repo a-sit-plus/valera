@@ -14,7 +14,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthenticationResponseResult
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -121,7 +121,7 @@ class DefaultPresentationGraphViewModel(
         authenticationResult: OpenId4VpWallet.AuthenticationForward,
     ): OpenId4VpWallet.AuthenticationSuccess {
         authenticationResult.authenticationResponseResult.params.let {
-            walletMain.presentationService.finalizeOpenId4VpDCAPIPresentation(vckJsonSerializer.encodeToString(it))
+            walletMain.presentationService.finalizeOpenId4VpDCAPIPresentation(joseCompliantSerializer.encodeToString(it))
         }
         return OpenId4VpWallet.AuthenticationSuccess()
     }
@@ -129,5 +129,5 @@ class DefaultPresentationGraphViewModel(
 
 internal fun serializeDcApiPresentationResponse(
     authenticationResponseResult: AuthenticationResponseResult.DcApi,
-) = vckJsonSerializer.encodeToString(authenticationResponseResult.params.data)
+) = joseCompliantSerializer.encodeToString(authenticationResponseResult.params.data)
 

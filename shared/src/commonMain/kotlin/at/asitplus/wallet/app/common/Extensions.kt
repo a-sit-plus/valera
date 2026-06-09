@@ -35,7 +35,7 @@ import at.asitplus.wallet.lib.data.VcDataModelConstants.VERIFIABLE_CREDENTIAL
 import at.asitplus.wallet.lib.data.VcFallbackCredentialScheme
 import at.asitplus.wallet.lib.data.dif.ConstraintFieldsEvaluationException
 import at.asitplus.wallet.lib.data.dif.PresentationExchangeInputEvaluator
-import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.lib.oidvci.toFormat
 import data.credentials.JsonClaimReference
 import data.credentials.JwtClaimDefinition
@@ -274,7 +274,7 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
 
     return (dataElements + (requestedElements ?: listOf())).associateWith { "" }.let { attributes ->
         when (representation) {
-            PLAIN_JWT -> vckJsonSerializer.encodeToJsonElement(attributes + ("type" to this.vcType))
+            PLAIN_JWT -> joseCompliantSerializer.encodeToJsonElement(attributes + ("type" to this.vcType))
             SD_JWT -> buildJsonObject {
                 addSdJwtDummyMetadata()
                 attributes.forEach {
@@ -286,7 +286,7 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
                 }
             }
 
-            ISO_MDOC -> vckJsonSerializer.encodeToJsonElement(mapOf(this.isoNamespace to attributes))
+            ISO_MDOC -> joseCompliantSerializer.encodeToJsonElement(mapOf(this.isoNamespace to attributes))
         }
     }
 }

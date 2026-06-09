@@ -60,7 +60,7 @@ import at.asitplus.wallet.app.common.presentation.NfcDispatchSuppressionMode
 import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
-import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import io.github.aakira.napier.Napier
 import io.ktor.http.URLBuilder
 import kotlinx.coroutines.flow.combineTransform
@@ -739,7 +739,7 @@ private fun WalletNavHost(
                         actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
                         onAcknowledge = {
                             if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
-                                val response = vckJsonSerializer.encodeToString(
+                                val response = joseCompliantSerializer.encodeToString(
                                     DigitalCredentialOfferReturn.error(status = "offer_declined")
                                 )
                                 walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, false)
@@ -802,7 +802,7 @@ private fun WalletNavHost(
             }
             val onAcknowledge = {
                 if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
-                    val response = vckJsonSerializer.encodeToString(DigitalCredentialOfferReturn.success())
+                    val response = joseCompliantSerializer.encodeToString(DigitalCredentialOfferReturn.success())
                     walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, true)
                 }
                 navigator.popToInvoker()

@@ -10,7 +10,7 @@ import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
 import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
-import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
 import io.github.aakira.napier.Napier
@@ -128,7 +128,7 @@ class PersistentSubjectCredentialStore(
 
         val exportableContainer = ExportableStoreContainer(exportableCredentials)
 
-        val json = vckJsonSerializer.encodeToString(exportableContainer)
+        val json = joseCompliantSerializer.encodeToString(exportableContainer)
         dataStore.setPreference(key = Configuration.DATASTORE_KEY_VCS, value = json)
     }
 
@@ -152,12 +152,12 @@ class PersistentSubjectCredentialStore(
             return StoreContainer(credentials = mutableListOf())
         } else {
             val export: ExportableStoreContainer = kotlin.runCatching {
-                vckJsonSerializer.decodeFromString<ExportableStoreContainer>(input)
+                joseCompliantSerializer.decodeFromString<ExportableStoreContainer>(input)
             }.getOrElse {
                 Napier.w("dataStoreValueToContainer failed for new format", it)
                 kotlin.runCatching {
                     ExportableStoreContainer(
-                        vckJsonSerializer.decodeFromString<OldExportableStoreContainer>(input).credentials.mapIndexed { index, it ->
+                        joseCompliantSerializer.decodeFromString<OldExportableStoreContainer>(input).credentials.mapIndexed { index, it ->
                             index.toLong() to it
                         }
                     )

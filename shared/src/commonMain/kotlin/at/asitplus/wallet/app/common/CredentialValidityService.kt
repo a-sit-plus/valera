@@ -6,7 +6,9 @@ import at.asitplus.valera.resources.error_reissue_failed
 import at.asitplus.valera.resources.success_refreshed
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
+import data.storage.DataStoreService
 import data.storage.StoreEntryId
 import data.storage.WalletSubjectCredentialStore
 import kotlinx.coroutines.CoroutineScope
@@ -15,6 +17,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -29,6 +32,7 @@ class CredentialValidityService(
     private val provisioningService: ProvisioningService,
     private val errorService: ErrorService,
     private val sessionCoroutineScope: CoroutineScope,
+    private val dataStoreService: DataStoreService
 ) {
     private var job: Job? = null
 
@@ -41,8 +45,22 @@ class CredentialValidityService(
         _refreshItems.update { list -> list.filterNot { it.storeEntryId == item.storeEntryId } }
     }
 
-    fun requestRefreshmentBatch(entriesWithIds: List<Pair<StoreEntryId, SubjectCredentialStore.StoreEntry>>) {
-        _refreshItems.update { entriesWithIds.map { RefreshItem(storeEntryId = it.first, entry = it.second) } }
+    suspend fun requestRefreshmentBatch(entriesWithIds: List<Pair<StoreEntryId, SubjectCredentialStore.StoreEntry>>) {
+        val suppressedIds = getSuppressedRefreshCredentialIds()
+        _refreshItems.update {
+            entriesWithIds
+                .filterNot { it.first in suppressedIds }
+                .map { RefreshItem(storeEntryId = it.first, entry = it.second) }
+        }
+    }
+
+    fun suppressRefreshRequest(item: RefreshItem): Job = scope.launch {
+        val suppressedIds = getSuppressedRefreshCredentialIds() + item.storeEntryId
+        dataStoreService.setPreference(
+            key = Configuration.DATASTORE_KEY_REFRESH_SUPPRESSED_CREDENTIALS,
+            value = vckJsonSerializer.encodeToString(suppressedIds.toList()),
+        )
+        removeRefreshRequest(item)
     }
 
     /**
@@ -128,6 +146,15 @@ class CredentialValidityService(
             }
         }
     }
+
+    private suspend fun getSuppressedRefreshCredentialIds(): Set<StoreEntryId> =
+        dataStoreService.getPreference(Configuration.DATASTORE_KEY_REFRESH_SUPPRESSED_CREDENTIALS)
+            .first()
+            ?.let {
+                runCatching { vckJsonSerializer.decodeFromString<List<StoreEntryId>>(it).toSet() }
+                    .getOrDefault(emptySet())
+            }
+            ?: emptySet()
 }
 
 data class RefreshItem(
