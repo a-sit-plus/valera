@@ -5,14 +5,20 @@ import at.asitplus.iso.DeviceResponse
 import at.asitplus.iso.Document
 import at.asitplus.iso.MobileSecurityObject
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.snackbar_nfc_tag_lost_retrying
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants.MDOC_PREFIX
 import at.asitplus.wallet.app.common.iso.transfer.TransferManager
 import at.asitplus.wallet.app.common.iso.transfer.method.DeviceEngagementMethods
+import at.asitplus.wallet.app.common.iso.transfer.state.TransferTransport
 import at.asitplus.wallet.app.common.iso.transfer.state.VerifierState
 import at.asitplus.wallet.app.common.iso.verifier.DeviceResponseException
 import at.asitplus.wallet.app.common.iso.verifier.VerifyResponseException
+import at.asitplus.wallet.app.common.presentation.NfcDispatchSuppressionMode
+import at.asitplus.wallet.app.common.presentation.NfcTransferState
+import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
 import at.asitplus.wallet.lib.agent.VerifierAgent
 import at.asitplus.wallet.lib.data.IsoDocumentParsed
 import data.document.RequestDocumentBuilder
@@ -21,10 +27,13 @@ import data.document.SelectableRequest
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromByteArray
+import org.jetbrains.compose.resources.getString
+import at.asitplus.valera.resources.presentation_canceled
 import ui.viewmodels.iso.common.TransferOptionsViewModel
 
 class VerifierViewModel(
@@ -32,7 +41,31 @@ class VerifierViewModel(
     settingsRepository: SettingsRepository
 ) : TransferOptionsViewModel(walletMain, settingsRepository) {
     private val transferManager: TransferManager by lazy {
-        TransferManager(settingsRepository, walletMain.scope) { message -> } // TODO: handle update messages
+        TransferManager(
+            settingsRepository,
+            walletMain.scope,
+            updateProgress = { _ -> },
+            onWarning = { warning ->
+                when (warning) {
+                    TransferManager.Warning.NFC_TAG_LOST_RETRYING -> {
+                        walletMain.scope.launch {
+                            walletMain.snackbarService.showSnackbar(
+                                getString(Res.string.snackbar_nfc_tag_lost_retrying)
+                            )
+                        }
+                    }
+                }
+            },
+            onTransportSelected = { transport ->
+                Napier.i("Verifier transport selected; transport=$transport", tag = "VerifierViewModel")
+                if (transport == TransferTransport.NFC) NfcTransferState.verifierNfcTransferActive.value = true
+                setState(VerifierState.NfcTransferring(transport))
+            },
+            onNfcDataTransferSelected = {
+                Napier.i("Verifier QR flow selected NFC data transfer; waiting for device tap", tag = "VerifierViewModel")
+                setState(VerifierState.QrNfcDataTransferTap)
+            }
+        )
     }
 
     private val _verifierState = MutableStateFlow<VerifierState>(VerifierState.Settings)
@@ -50,9 +83,18 @@ class VerifierViewModel(
     val responseDocumentList: MutableList<IsoDocumentParsed> = _responseDocumentList
 
     val onResume: () -> Unit = {
+        NfcTransferState.holderNfcDataTransferActive.value = false
+        NfcTransferState.verifierNfcReaderModeActive.value = false
+        NfcTransferState.verifierNfcTagDispatchSuppressed.value = NfcDispatchSuppressionMode.NONE
+        NfcTransferState.verifierNfcTransferActive.value = false
         setState(VerifierState.Settings)
         _requestDocumentList.clear()
+        engagementPreviousState = VerifierState.SelectDocument
     }
+
+    // Tracks which selection state the user came from before QrEngagement, so back can return there.
+    var engagementPreviousState: VerifierState = VerifierState.SelectDocument
+        private set
 
     val onConsentSettings: () -> Unit = { setState(VerifierState.CheckSettings) }
 
@@ -72,6 +114,11 @@ class VerifierViewModel(
     }
 
     private fun doNfcEngagement() {
+        NfcTransferState.nfcDataTransferActive.value = false
+        NfcTransferState.holderNfcDataTransferActive.value = false
+        NfcTransferState.verifierNfcReaderModeActive.value = false
+        NfcTransferState.verifierNfcTagDispatchSuppressed.value = NfcDispatchSuppressionMode.NONE
+        setState(VerifierState.NfcEngagement)
         _requestDocumentList.let { requestDocumentList ->
             transferManager.startNfcEngagement(requestDocumentList) { deviceResponseResult ->
                 handleResponse(deviceResponseResult)
@@ -79,7 +126,19 @@ class VerifierViewModel(
         }
     }
 
+    fun cancelNfcEngagement() {
+        Napier.i("Cancelling verifier NFC engagement/data transfer", tag = "VerifierViewModel")
+        NfcTransferState.verifierNfcReaderModeActive.value = false
+        NfcTransferState.verifierNfcTagDispatchSuppressed.value = NfcDispatchSuppressionMode.NONE
+        NfcTransferState.verifierNfcTransferActive.value = false
+        transferManager.cancel()
+        onResume()
+    }
+
     private fun handleResponse(result: KmmResult<ByteArray>) {
+        Napier.i("Verifier response callback received; clearing NFC transfer active flag", tag = "VerifierViewModel")
+        NfcTransferState.verifierNfcReaderModeActive.value = false
+        NfcTransferState.verifierNfcTransferActive.value = false
         result.onSuccess { deviceResponseBytes ->
             Napier.d("deviceResponseBytes =\n${deviceResponseBytes.toHexString()}")
             try {
@@ -88,12 +147,27 @@ class VerifierViewModel(
             } catch (e: Exception) {
                 handleError(DeviceResponseException("Failed to decode DeviceResponse", e, deviceResponseBytes))
             }
-        }.onFailure { handleError(it) }
+        }.onFailure {
+            if (it is PresentmentCanceled) {
+                handleHolderCanceled()
+            } else {
+                handleError(it)
+            }
+        }
+    }
+
+    private fun handleHolderCanceled() {
+        Napier.i("Holder canceled verifier presentment; returning to previous screen", tag = "VerifierViewModel")
+        walletMain.scope.launch {
+            walletMain.snackbarService.showSnackbar(getString(Res.string.presentation_canceled))
+            delay(700)
+            setState(engagementPreviousState)
+        }
     }
 
     private fun checkResponse(deviceResponse: DeviceResponse) {
         setState(VerifierState.CheckResponse)
-        val verifyDocument: suspend (MobileSecurityObject, Document) -> Boolean = { _, doc ->
+        val verifyDocument: suspend (MobileSecurityObject, Document) -> Boolean = { _, _ ->
             // TODO: verification of device authentication
             true
         }
@@ -114,6 +188,7 @@ class VerifierViewModel(
 
 
     fun onRequestSelected(request: SelectableRequest) {
+        engagementPreviousState = VerifierState.SelectDocument
         _requestDocumentList.addRequestDocument(
             RequestDocumentBuilder.buildRequestDocument(request)
         )
@@ -129,6 +204,7 @@ class VerifierViewModel(
     }
 
     fun onReceiveCombinedSelection(requestSelectionList: List<SelectableRequest>) {
+        engagementPreviousState = VerifierState.SelectCombinedRequest
         requestSelectionList.forEach { request ->
             _requestDocumentList.addRequestDocument(
                 RequestDocumentBuilder.buildRequestDocument(request)
@@ -141,6 +217,7 @@ class VerifierViewModel(
         selectedDocumentType: String,
         selectedEntries: Collection<String>
     ) {
+        engagementPreviousState = VerifierState.SelectCustomRequest
         val config = RequestDocumentBuilder.getDocTypeConfig(selectedDocumentType) ?: return
         _requestDocumentList.addRequestDocument(
             RequestDocumentBuilder.buildRequestDocument(config.scheme, selectedEntries)
@@ -150,7 +227,6 @@ class VerifierViewModel(
 
     val onFoundPayload: (String) -> Unit = { payload ->
         if (payload.startsWith(MDOC_PREFIX)) {
-            setState(VerifierState.WaitingForResponse)
             _requestDocumentList.let { requestDocumentList ->
                 transferManager.doQrFlow(
                     payload.removePrefix(MDOC_PREFIX),

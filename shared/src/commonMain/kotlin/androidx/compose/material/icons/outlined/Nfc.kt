@@ -16,12 +16,11 @@
 
 package androidx.compose.material.icons.outlined
 
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.materialIcon
 import androidx.compose.material.icons.materialPath
 import androidx.compose.ui.graphics.vector.ImageVector
 
-public val Icons.Outlined.Nfc: ImageVector
+public val Nfc: ImageVector
     get() {
         if (_nfc != null) {
             return _nfc!!

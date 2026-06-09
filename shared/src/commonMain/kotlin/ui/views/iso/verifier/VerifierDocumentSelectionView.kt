@@ -49,6 +49,7 @@ import ui.views.iso.verifier.requests.RequestItemData
 fun VerifierDocumentSelectionView(
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
+    navigateUp: () -> Unit,
     vm: VerifierViewModel,
     bottomBar: @Composable () -> Unit
 ) {
@@ -76,7 +77,7 @@ fun VerifierDocumentSelectionView(
                     }
                     Spacer(Modifier.width(15.dp))
                 },
-                navigationIcon = { NavigateUpButton({ vm.onResume() }) }
+                navigationIcon = { NavigateUpButton(navigateUp) }
             )
         },
         bottomBar = { bottomBar() }

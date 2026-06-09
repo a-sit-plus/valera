@@ -138,6 +138,7 @@ class SigningService(
         val credentialInfo = getCredentialInfo(token)
         config.getCurrent().credentialInfo = credentialInfo
         exportToDataStore()
+        state = null
     }
 
     suspend fun start(signatureRequestParameters: SignatureRequestParameters) {
@@ -174,6 +175,7 @@ class SigningService(
             }
 
             val targetUrl = createCredentialAuthRequest()
+            state = SigningState.CredentialRequest
 
             intentService.openIntent(
                 url = targetUrl,
@@ -238,6 +240,7 @@ class SigningService(
                     .formUrlEncode()
             )
         }
+        state = null
         catchingUnwrapped { response.body<QtspFinalRedirect>() }.getOrNull()?.let {
             intentService.openIntent(it.redirect_uri)
         }

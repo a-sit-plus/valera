@@ -10,9 +10,7 @@ import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import data.storage.StoreEntryId
 import data.storage.WalletSubjectCredentialStore
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,10 +27,10 @@ class CredentialValidityService(
     private val subjectCredentialStore: WalletSubjectCredentialStore,
     private val snackbarService: SnackbarService,
     private val provisioningService: ProvisioningService,
-    private val errorService: ErrorService
+    private val errorService: ErrorService,
+    private val sessionCoroutineScope: CoroutineScope,
 ) {
     private var job: Job? = null
-    val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private val _refreshItems = MutableStateFlow<List<RefreshItem>>(emptyList())
     val refreshItems: StateFlow<List<RefreshItem>> = _refreshItems.asStateFlow()
@@ -53,7 +51,7 @@ class CredentialValidityService(
     fun startChecking(interval: Duration = 5.minutes) {
         job?.cancel()
 
-        job = scope.launch {
+        job = sessionCoroutineScope.launch {
             delay(10.seconds)
             while (isActive) {
                 requestRefreshmentBatch(subjectCredentialStore.getInvalidCredentials())
@@ -65,14 +63,14 @@ class CredentialValidityService(
     /**
      * Refreshes the credential
      */
-    fun refreshSingle(entry: SubjectCredentialStore.StoreEntry, storeId: Long): Job = scope.launch {
+    fun refreshSingle(entry: SubjectCredentialStore.StoreEntry, storeId: Long): Job = sessionCoroutineScope.launch {
         performRefreshLogic(entry, storeId)
     }
 
     /**
      * Wraps core refresh logic with status updates for [ui.views.RefreshCredentialsView]
      */
-    fun refreshSingleWithStatus(item: RefreshItem): Job = scope.launch {
+    fun refreshSingleWithStatus(item: RefreshItem): Job = sessionCoroutineScope.launch {
         if (item.status == RefreshStatus.InProgress) return@launch
 
         updateStatus(item.storeEntryId, RefreshStatus.InProgress)

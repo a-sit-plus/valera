@@ -3,12 +3,16 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import at.asitplus.wallet.app.common.presentation.NfcDispatchSuppressionMode
+import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -36,28 +40,17 @@ import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.app.android.dcapi.AndroidDCAPIInvocationData
 import at.asitplus.wallet.app.android.dcapi.CustomRegistry
 import at.asitplus.wallet.app.common.BuildContext
-import at.asitplus.wallet.app.common.CapabilitiesService
 import at.asitplus.wallet.app.common.IntentState
-import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
-import at.asitplus.wallet.app.common.RealCapabilitiesService
-import at.asitplus.wallet.app.common.SESSION_NAME
-import at.asitplus.wallet.app.common.WalletDependencyProvider
+import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
-import at.asitplus.wallet.app.common.di.appModule
 import at.asitplus.wallet.lib.data.vckJsonSerializer
-import data.storage.RealDataStoreService
-import data.storage.getDataStore
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToByteArray
-import org.koin.core.module.dsl.scopedOf
-import org.koin.core.qualifier.named
-import org.koin.dsl.binds
-import org.koin.dsl.module
 import org.multipaz.compose.prompt.PromptDialogs
 import org.multipaz.prompt.PromptModel
 import ui.theme.darkScheme
@@ -85,12 +78,14 @@ actual fun getColorScheme(): ColorScheme {
 fun MainView(
     buildContext: BuildContext,
     promptModel: PromptModel,
-    intentState: IntentState
+    intentState: IntentState,
+    sessionService: SessionService
 ) {
     WalletRootView(
         buildContext = buildContext,
         promptModel = promptModel,
-        intentState = intentState
+        intentState = intentState,
+        sessionService = sessionService
     )
 }
 
@@ -99,34 +94,62 @@ fun MainView(
 private fun WalletRootView(
     buildContext: BuildContext,
     promptModel: PromptModel,
-    intentState: IntentState
+    intentState: IntentState,
+    sessionService: SessionService
 ) {
-    val platformAdapter = AndroidPlatformAdapter(LocalContext.current, intentState)
-    val dataStoreService = RealDataStoreService(
-        getDataStore(LocalContext.current),
-        platformAdapter
-    )
-    val ks = KeystoreService(dataStoreService)
-
-    PromptDialogs(promptModel)
-
-    val walletDependencyProvider = WalletDependencyProvider(
-        keystoreService = ks,
-        dataStoreService = dataStoreService,
-        platformAdapter = platformAdapter,
-        buildContext = buildContext,
-        promptModel = promptModel
-    )
-
-    val capabilitiesModule = module {
-        scope(named(SESSION_NAME)) {
-            scopedOf(::RealCapabilitiesService) binds arrayOf(CapabilitiesService::class)
-        }
+    // PromptDialogs must be in the composition during NFC scanning so that
+    // NfcTagReader.scan() can bind the PromptModel to UI. We remove it in two cases:
+    //
+    // 1. verifierNfcTransferActive=true (data transfer in progress): cancels the
+    //    ScanNfcTagPromptDialog NoDialogState 3-second disableReaderMode() countdown,
+    //    keeping the active isoDep connection alive.
+    //
+    // 2. verifierNfcTagDispatchSuppressed=REDISPATCH (post-transfer suppression):
+    //    after the transfer, verifierNfcTransferActive goes false but REDISPATCH is set
+    //    to prevent the still-present tag from being re-dispatched. Re-adding PromptDialogs
+    //    at that point restarts the 3-second countdown, which then disables reader mode and
+    //    ends the suppression — letting the system see the tag and showing "new tag detected".
+    //    Keeping PromptDialogs removed while REDISPATCH is active avoids this.
+    val verifierNfcActive by NfcTransferState.verifierNfcTransferActive.collectAsState()
+    val verifierNfcSuppressed by NfcTransferState.verifierNfcTagDispatchSuppressed.collectAsState()
+    if (!verifierNfcActive && verifierNfcSuppressed == NfcDispatchSuppressionMode.NONE) {
+        PromptDialogs(promptModel)
     }
-    val module = appModule(walletDependencyProvider, capabilitiesModule)
 
     App(
-        koinModule = module,
+        sessionService = sessionService,
+        intentState = intentState
+    )
+}
+
+@ExperimentalMaterial3Api
+@Composable
+fun TransientFlowView(
+    buildContext: BuildContext,
+    promptModel: PromptModel,
+    intentState: IntentState,
+    sessionService: SessionService
+) {
+    TransientFlowRootView(
+        buildContext = buildContext,
+        promptModel = promptModel,
+        intentState = intentState,
+        sessionService = sessionService
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TransientFlowRootView(
+    buildContext: BuildContext,
+    promptModel: PromptModel,
+    intentState: IntentState,
+    sessionService: SessionService
+) {
+    PromptDialogs(promptModel)
+
+    TransientFlowApp(
+        sessionService = sessionService,
         intentState = intentState
     )
 }
@@ -139,17 +162,7 @@ public class AndroidPlatformAdapter(
     override fun getCameraPermission(): Boolean? {
         (context as? Activity)?.let { activity ->
             val permission = Manifest.permission.CAMERA
-            return when {
-                ContextCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED -> {
-                    true
-                }
-                ActivityCompat.shouldShowRequestPermissionRationale(activity, permission) -> {
-                    false
-                }
-                else -> {
-                    null
-                }
-            }
+            return ContextCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED
         }
         return null
     }
@@ -157,12 +170,18 @@ public class AndroidPlatformAdapter(
     override fun openUrl(url: String) {
         Napier.d("Open URL: ${url.toUri()}")
         val uri = url.toUri()
-        val customTabsIntent = CustomTabsIntent.Builder().build()
+        val customTabsIntent = CustomTabsIntent.Builder().build().apply {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+        }
         try {
             customTabsIntent.launchUrl(context, uri)
         } catch (e: Throwable) {
             Napier.w("Custom tab failed, falling back to browser intent", e)
-            context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW, uri).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+                }
+            )
         }
     }
 
@@ -395,7 +414,12 @@ public class AndroidPlatformAdapter(
 
     override fun openDeviceSettings() {
         Napier.d("Open Device settings")
-        context.startActivity(Intent(Settings.ACTION_SETTINGS))
+        context.startActivity(
+            Intent(
+                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.fromParts("package", context.packageName, null)
+            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
     }
 
 }

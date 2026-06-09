@@ -5,24 +5,25 @@ import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
 import at.asitplus.wallet.app.common.presentation.PresentmentMechanism
 import io.github.aakira.napier.Napier
-import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
 import org.multipaz.mdoc.sessionencryption.SessionEncryption
 import org.multipaz.util.Constants
 import ui.viewmodels.authentication.PresentationStateModel.DismissType.CLICK
 import ui.viewmodels.authentication.PresentationStateModel.DismissType.DOUBLE_CLICK
 import ui.viewmodels.authentication.PresentationStateModel.DismissType.LONG_CLICK
+import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -80,7 +81,7 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
         PROCESSING,
 
         /**
-         * A request has been received and multiple documents can be presented and the user needs to pick one.
+         * A request has been received, and multiple documents can be presented, and the user needs to pick one.
          */
         WAITING_FOR_DOCUMENT_SELECTION,
 
@@ -136,6 +137,11 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
      * Resets the model to [State.IDLE].
      */
     fun reset() {
+        Napier.d("Resetting presentation model", tag = TAG)
+        credentialSelectorContinuation?.resumeWithException(
+            CancellationException("PresentationModel reset")
+        )
+        credentialSelectorContinuation = null
         _mechanism?.close()
         _mechanism = null
         _error = null
@@ -227,14 +233,25 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
      * @param error pass a [Throwable] if the presentation failed, `null` if successful.
      */
     fun setCompleted(error: Throwable? = null) {
-        if (_state.value == State.COMPLETED) {
-            Napier.w("Already completed, ignoring second call", tag=TAG)
+        if (!completedContinuationLock.tryLock()) {
+            Napier.w("setCompleted already in progress, dropping concurrent call", tag=TAG)
             return
         }
-        _mechanism?.close()
-        _mechanism = null
-        _error = error
-        _state.value = State.COMPLETED
+        try {
+            if (_state.value == State.COMPLETED) {
+                Napier.w("Already completed, ignoring second call", tag=TAG)
+                return
+            }
+            _mechanism?.close()
+            _mechanism = null
+            _error = error
+            val continuation = credentialSelectorContinuation
+            credentialSelectorContinuation = null
+            _state.value = State.COMPLETED
+            continuation?.resumeWithException(CancellationException("PresentationModel completed"))
+        } finally {
+            completedContinuationLock.unlock()
+        }
         // TODO: Hack to ensure that [state] collectors (using [presentationScope]) gets called for State.COMPLETED
         _presentmentScope.launch {
             delay(1.seconds)
@@ -286,6 +303,15 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
      */
     fun dismiss(dismissType: DismissType) {
         val mdocMechanism = mechanism as? MdocPresentmentMechanism
+        val canceled = PresentmentCanceled("The presentment was canceled by the user")
+        if (_state.value == State.WAITING_FOR_DOCUMENT_SELECTION && dismissType == CLICK && mdocMechanism != null) {
+            Napier.i("Holder cancel requested during document selection; delegating encrypted termination to presenter", tag = TAG)
+            _error = canceled
+            credentialSelectorContinuation?.resumeWithException(canceled)
+            credentialSelectorContinuation = null
+            _state.value = State.PROCESSING
+            return
+        }
         if (mdocMechanism != null) {
             _presentmentScope.launch {
                 try {
@@ -309,10 +335,13 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
                 } catch (error: Throwable) {
                     Napier.e("Caught exception closing transport", error, tag=TAG)
                     error.printStackTrace()
+                } finally {
+                    setCompleted(canceled)
                 }
             }
+            return
         }
-        setCompleted(PresentmentCanceled("The presentment was canceled by the user"))
+        setCompleted(canceled)
     }
 
     private suspend fun startPresentmentFlow(presentationViewModel: PresentationViewModel) {
@@ -334,7 +363,8 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
         }
     }
 
-    private var credentialSelectorContinuation: CancellableContinuation<ByteArray>? = null
+    private var credentialSelectorContinuation: Continuation<ByteArray>? = null
+    private val completedContinuationLock = Mutex()
 
     fun setPermissionState(granted: Boolean) {
         check(State.CHECK_PERMISSIONS)
@@ -347,7 +377,7 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
 
     suspend fun requestCredentialSelection(): ByteArray {
         _state.value = State.WAITING_FOR_DOCUMENT_SELECTION
-        return suspendCancellableCoroutine { continuation ->
+        return suspendCoroutine { continuation ->
             credentialSelectorContinuation = continuation
         }
     }
@@ -361,6 +391,11 @@ class PresentationStateModel(private var _presentmentScope: CoroutineScope) {
      */
     fun credentialSelected(deviceResponse: ByteArray) {
         check(State.WAITING_FOR_DOCUMENT_SELECTION)
-        credentialSelectorContinuation!!.resume(deviceResponse)
+        val continuation = credentialSelectorContinuation
+            ?: throw IllegalStateException("No pending credential selection continuation")
+        credentialSelectorContinuation = null
+        _state.value = State.PROCESSING
+        Napier.d("Resuming presentment with selected credential", tag = TAG)
+        continuation.resume(deviceResponse)
     }
 }

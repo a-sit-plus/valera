@@ -35,6 +35,7 @@ import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
 import data.storage.StoreEntryId
 import data.storage.WalletSubjectCredentialStore
+import data.storage.persistentStringMapStore
 import io.github.aakira.napier.Napier
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -42,9 +43,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import ui.navigation.IntentService
 import kotlin.time.Clock.System
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 
 
@@ -58,8 +62,17 @@ class ProvisioningService(
     private val errorService: ErrorService,
     private val httpService: HttpService,
 ) {
+    data class StoredCredentialIssuanceResult(
+        val credentialIssuanceResult: CredentialIssuanceResult,
+        val storedEntryIds: List<StoreEntryId> = emptyList(),
+    )
+
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = httpService.buildHttpClient(cookieStorage = cookieStorage)
+    private val stateToCodeStore = persistentStringMapStore(
+        dataStoreService = dataStoreService,
+        preferenceKey = Configuration.DATASTORE_KEY_PROVISIONING_STATE_TO_CODE_STORE,
+    )
 
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback/provisioning"
     private var cachedClientId: String? = null
@@ -124,7 +137,11 @@ class ProvisioningService(
             oauth2Client = OAuth2KtorClient(
                 engine = client.engine,
                 cookiesStorage = cookieStorage,
-                oAuth2Client = OAuth2Client(clientId = currentClientId(), redirectUrl = redirectUrl),
+                oAuth2Client = OAuth2Client(
+                    clientId = currentClientId(),
+                    redirectUrl = redirectUrl,
+                    stateToCodeStore = stateToCodeStore
+                ),
                 httpClientConfig = httpService.loggingConfig,
                 loadClientAttestationJwt = { clientAttestationJwt() },
                 signClientAttestationPop = SignJwt(keyMaterial, JwsHeaderNone()),
@@ -184,18 +201,27 @@ class ProvisioningService(
      * Called after getting the redirect back from ID Austria to the Issuing Service
      */
     @Throws(Throwable::class)
-    suspend fun resumeWithAuthCode(redirectedUrl: String, statusUpdater: ((Long, RefreshStatus) -> Unit)? = null) {
+    suspend fun resumeWithAuthCode(
+        redirectedUrl: String,
+        statusUpdater: ((Long, RefreshStatus) -> Unit)? = null
+    ): List<StoreEntryId> {
         Napier.d("handleResponse with $redirectedUrl")
-        dataStoreService.getPreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
+        return dataStoreService.getPreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
             .firstOrNull()
             ?.let {
                 vckJsonSerializer.decodeFromString<ProvisioningContext>(it)
                     .also { dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT) }
             }?.let { context ->
-                openId4VciClient().resumeWithAuthCode(redirectedUrl, context).getOrThrow().also { result ->
+                openId4VciClient().resumeWithAuthCode(redirectedUrl, context).getOrThrow().let { result ->
+                    val idsBefore =
+                        subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
+                    Napier.d("resumeWithAuthCode idsBefore=$idsBefore")
+                    Napier.d("resumeWithAuthCode received ${result.credentials.size} credential(s)")
                     val storageResults = result.credentials.map { cred ->
                         holderAgent.storeCredential(cred, result.refreshToken)
                     }
+                    val storedEntryIds = resolveNewStoreEntryIds(idsBefore)
+                    Napier.d("resumeWithAuthCode resolved storeEntryIds=$storedEntryIds")
 
                     if (storageResults.all { it.isSuccess }) {
                         context.reissuingStoreEntryId?.let { id ->
@@ -208,12 +234,17 @@ class ProvisioningService(
                         }
                         context.reissuingStoreEntryId?.let { statusUpdater?.invoke(it, RefreshStatus.Failed) }
                     }
+                    storedEntryIds
                 }
-            }
+            } ?: emptyList()
     }
 
     @Throws(Throwable::class)
-    suspend fun refreshCredential(renewalInfo: CredentialRenewalInfo, oldCredentialId: StoreEntryId, statusUpdater: ((Long, RefreshStatus) -> Unit)) {
+    suspend fun refreshCredential(
+        renewalInfo: CredentialRenewalInfo,
+        oldCredentialId: StoreEntryId,
+        statusUpdater: ((Long, RefreshStatus) -> Unit)
+    ) {
         Napier.d("refreshCredential with identifier ${renewalInfo.credentialIdentifier}")
         openId4VciClient().refreshCredentialReturningResult(renewalInfo).getOrThrow().also { result ->
             val storageResults = result.credentials.map { credentialInput ->
@@ -259,25 +290,50 @@ class ProvisioningService(
         credentialIdentifierInfo: CredentialIdentifierInfo,
         transactionCode: String? = null,
         authorizationServerMetadata: OAuth2AuthorizationServerMetadata? = null
-    ): CredentialIssuanceResult {
+    ): StoredCredentialIssuanceResult {
         return openId4VciClient().loadCredentialWithOfferReturningResult(
             credentialOffer,
             credentialIdentifierInfo,
             transactionCode,
             authorizationServerMetadata
         ).getOrThrow().run {
-            this.also {
-                when (this) {
-                    is CredentialIssuanceResult.OpenUrlForAuthnRequest -> storeContextOpenIntent()
-                    is CredentialIssuanceResult.Success -> {
-                        credentials.forEach {
-                            holderAgent.storeCredential(it).onFailure { ex ->
-                                Napier.e("storeCredential failed", ex)
-                            }
+            when (this) {
+                is CredentialIssuanceResult.OpenUrlForAuthnRequest -> {
+                    Napier.d("loadCredentialWithOffer requires browser auth")
+                    storeContextOpenIntent()
+                    StoredCredentialIssuanceResult(credentialIssuanceResult = this)
+                }
+
+                is CredentialIssuanceResult.Success -> {
+                    val idsBefore =
+                        subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
+                    Napier.d("loadCredentialWithOffer idsBefore=$idsBefore")
+                    Napier.d("loadCredentialWithOffer received ${credentials.size} credential(s) without browser auth")
+                    credentials.forEach {
+                        holderAgent.storeCredential(it).onFailure { ex ->
+                            Napier.e("storeCredential failed", ex)
                         }
                     }
+                    val storedEntryIds = resolveNewStoreEntryIds(idsBefore)
+                    Napier.d("loadCredentialWithOffer resolved storeEntryIds=$storedEntryIds")
+                    StoredCredentialIssuanceResult(
+                        credentialIssuanceResult = this,
+                        storedEntryIds = storedEntryIds,
+                    )
                 }
             }
+        }
+    }
+
+    // Wait for the DataStore flow to emit a container that includes at least one new entry.
+    private suspend fun resolveNewStoreEntryIds(idsBefore: Set<StoreEntryId>): List<StoreEntryId> {
+        return withTimeoutOrNull(3_000.milliseconds) {
+            subjectCredentialStore.observeStoreContainer()
+                .map { container -> (container.credentials.map { it.first }.toSet() - idsBefore).toList() }
+                .first { it.isNotEmpty() }
+        } ?: run {
+            Napier.w("resolveNewStoreEntryIds timed out waiting for new store entries")
+            emptyList()
         }
     }
 

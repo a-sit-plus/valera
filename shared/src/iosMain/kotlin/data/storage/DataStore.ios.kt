@@ -11,7 +11,6 @@ import platform.Foundation.NSURL
 import platform.Foundation.NSUserDomainMask
 
 private const val appGroupIdentifierInfoPlistKey = "WalletAppGroupIdentifier"
-private const val fallbackAppGroupIdentifier = "group.Compose.Wallet"
 
 // Modified from https://github.com/android/kotlin-multiplatform-samples/tree/main
 @OptIn(ExperimentalForeignApi::class)
@@ -65,13 +64,12 @@ private fun resolveLegacyDataStorePath(): String {
 @OptIn(ExperimentalForeignApi::class)
 private fun getAppGroupIdentifier(): String {
     val appGroupIdentifier = NSBundle.mainBundle.objectForInfoDictionaryKey(appGroupIdentifierInfoPlistKey) as? String
-    if (appGroupIdentifier != null) {
+    if (!appGroupIdentifier.isNullOrBlank()) {
         return appGroupIdentifier
     }
 
-    Napier.w(
-        "Could not resolve app group identifier from Info.plist key $appGroupIdentifierInfoPlistKey, " +
-            "falling back to $fallbackAppGroupIdentifier"
+    error(
+        "Could not resolve app group identifier from Info.plist key $appGroupIdentifierInfoPlistKey. " +
+            "Configure APP_GROUP_IDENTIFIER in iosApp/Configuration/Config.xcconfig or Signing.local.xcconfig."
     )
-    return fallbackAppGroupIdentifier
 }

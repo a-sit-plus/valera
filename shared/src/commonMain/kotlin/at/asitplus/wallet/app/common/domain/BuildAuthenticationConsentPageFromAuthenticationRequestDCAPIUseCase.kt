@@ -3,7 +3,6 @@ package at.asitplus.wallet.app.common.domain
 import at.asitplus.KmmResult
 import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.wallet.lib.data.vckJsonSerializer
-import ui.navigation.routes.DCAPIAuthenticationConsentRoute
 import ui.navigation.routes.DCAPIPresentationViewRoute
 
 class BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase {

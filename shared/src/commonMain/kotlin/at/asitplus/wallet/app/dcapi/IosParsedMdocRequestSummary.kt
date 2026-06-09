@@ -1,6 +1,13 @@
 package at.asitplus.wallet.app.dcapi
 
 import at.asitplus.dcapi.request.IsoMdocRequest
+import at.asitplus.dif.Constraint
+import at.asitplus.dif.ConstraintField
+import at.asitplus.dif.DifInputDescriptor
+import at.asitplus.dif.FormatContainerJwt
+import at.asitplus.dif.FormatHolder
+import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.NameSegment
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -9,6 +16,29 @@ data class IosParsedMdocRequestSummary(
 ) {
     fun isConsistentWith(rawRequest: IsoMdocRequest): Boolean =
         normalizedDocumentRequests() == rawRequest.normalizedDocumentRequests()
+
+    fun toDifInputDescriptors(): List<DifInputDescriptor> =
+        documentRequests.map { request ->
+            DifInputDescriptor(
+                id = request.docType,
+                format = FormatHolder(msoMdoc = FormatContainerJwt()),
+                constraints = Constraint(
+                    fields = request.namespaces.flatMap { (namespace, elements) ->
+                        elements.map { (element, intentToRetain) ->
+                            ConstraintField(
+                                path = listOf(
+                                    NormalizedJsonPath(
+                                        NameSegment(namespace),
+                                        NameSegment(element),
+                                    ).toString()
+                                ),
+                                intentToRetain = intentToRetain
+                            )
+                        }
+                    }.toSet()
+                )
+            )
+        }
 
     private fun normalizedDocumentRequests(): List<NormalizedDocumentRequest> =
         documentRequests.map { it.normalize() }.sorted()

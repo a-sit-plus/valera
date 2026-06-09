@@ -86,6 +86,7 @@ kotlin {
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.back.handler)
+            implementation(libs.navigation.event.compose)
             implementation(libs.compose.material3)
             implementation(libs.compose.material.icons.core)
             api(libs.vck.openid.ktor)

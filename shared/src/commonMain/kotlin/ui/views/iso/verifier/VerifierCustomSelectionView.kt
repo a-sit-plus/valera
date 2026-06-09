@@ -51,6 +51,7 @@ import ui.views.iso.common.SingleChoiceButton
 fun VerifierCustomSelectionView(
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
+    navigateUp: () -> Unit,
     vm: VerifierViewModel
 ) {
     val listSpacingModifier = Modifier.padding(top = 8.dp)
@@ -82,7 +83,7 @@ fun VerifierCustomSelectionView(
                     }
                     Spacer(Modifier.width(15.dp))
                 },
-                navigationIcon = { NavigateUpButton({ vm.onResume() }) }
+                navigationIcon = { NavigateUpButton(navigateUp) }
             )
         },
         bottomBar = {

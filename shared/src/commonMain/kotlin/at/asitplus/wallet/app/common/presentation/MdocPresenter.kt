@@ -5,8 +5,15 @@ import at.asitplus.iso.SessionTranscript
 import at.asitplus.signum.indispensable.cosef.CoseKey
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import org.multipaz.cbor.Cbor
@@ -19,9 +26,11 @@ import org.multipaz.mdoc.sessionencryption.SessionEncryption
 import org.multipaz.mdoc.transport.MdocTransport
 import org.multipaz.mdoc.transport.MdocTransport.State
 import org.multipaz.mdoc.transport.MdocTransportClosedException
+import org.multipaz.mdoc.transport.NfcTransportMdoc
 import org.multipaz.util.Constants
 import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.authentication.PresentationViewModel
+import kotlin.coroutines.coroutineContext
 
 
 // Based on the identity-credential sample code
@@ -46,6 +55,15 @@ class MdocPresenter(
             return
         }
 
+        // Monitor transport failure in parallel. If the transport drops while runProcess is
+        // suspended waiting for user input (e.g. NFC disconnected during the consent dialog),
+        // setCompleted signals the credential-selection continuation so the dialog closes.
+        val transportMonitorJob = CoroutineScope(currentCoroutineContext()).launch {
+            transport.state.first { it == State.FAILED || it == State.CLOSED }
+            if (stateModel.state.value != PresentationStateModel.State.COMPLETED) {
+                stateModel.setCompleted(Error("Connection was lost"))
+            }
+        }
         try {
             runProcess(dismissible, numRequestsServed, credentialSelected, transport)
         } catch (_: MdocTransportClosedException) {
@@ -53,9 +71,19 @@ class MdocPresenter(
             // is, the X in the top-right
             Napier.i("Ending holderJob due to MdocTransportClosedException")
             stateModel.setCompleted()
+        } catch (error: CancellationException) {
+            if (stateModel.state.value == PresentationStateModel.State.COMPLETED
+                || stateModel.state.value == PresentationStateModel.State.IDLE
+            ) {
+                Napier.i("Ending holderJob after presentment teardown")
+            } else {
+                throw error
+            }
         } catch (error: Throwable) {
-            Napier.e("Caught exception", error)
+            Napier.e("MdocPresenter: Caught exception", error)
             stateModel.setCompleted(error)
+        } finally {
+            transportMonitorJob.cancel()
         }
         transport.close()
     }
@@ -84,6 +112,10 @@ class MdocPresenter(
                 val eReaderKey = SessionEncryption.getEReaderKey(sessionData)
                 sessionTranscript = calcSessionTranscript(eReaderKey.publicKey)
                 encodedSessionTranscript = coseCompliantSerializer.encodeToByteArray(sessionTranscript)
+                Napier.i(
+                    "Holder initialized session encryption; handover=${mechanism.handover::class.simpleName}, " +
+                            "sessionTranscriptBytes=${encodedSessionTranscript.size}",
+                )
                 sessionEncryption = SessionEncryption(
                     MdocRole.MDOC,
                     mechanism.ephemeralDeviceKey,
@@ -92,6 +124,9 @@ class MdocPresenter(
                 )
             }
             val (encodedDeviceRequest, status) = sessionEncryption.decryptMessage(sessionData)
+            Napier.i(
+                "Holder received reader message; requestBytes=${encodedDeviceRequest?.size}, status=$status"
+            )
 
             if (status == Constants.SESSION_DATA_STATUS_SESSION_TERMINATION) {
                 Napier.i("mdocPresentment: Received session termination message from reader")
@@ -108,18 +143,74 @@ class MdocPresenter(
                 finishFunction = credentialSelected,
                 sessionTranscript = sessionTranscript
             )
-            val response = stateModel.requestCredentialSelection()
-
-            mechanism.transport.sendMessage(response.encrypt(sessionEncryption))
+            Napier.d("Waiting for credential selection from UI")
+            // While the consent dialog is open the main loop is not calling waitForMessage(),
+            // so a reader-sent SESSION_TERMINATION would sit unread in the transport queue.
+            // This side job consumes that message and surfaces it immediately.
+            val readerClosedJob = CoroutineScope(currentCoroutineContext()).launch {
+                try {
+                    val data = transport.waitForMessage()
+                    if (stateModel.state.value != PresentationStateModel.State.COMPLETED) {
+                        if (data.isEmpty()) {
+                            stateModel.setCompleted(Error("Reader closed the connection"))
+                        } else {
+                            val (_, status) = sessionEncryption.decryptMessage(data)
+                            if (status == Constants.SESSION_DATA_STATUS_SESSION_TERMINATION) {
+                                stateModel.setCompleted(Error("Reader closed the connection"))
+                            }
+                        }
+                    }
+                } catch (_: CancellationException) {
+                    // Normal cancellation when the user selects a credential.
+                } catch (_: MdocTransportClosedException) {
+                    if (stateModel.state.value != PresentationStateModel.State.COMPLETED) {
+                        stateModel.setCompleted(Error("Reader closed the connection"))
+                    }
+                } catch (e: Throwable) {
+                    if (stateModel.state.value != PresentationStateModel.State.COMPLETED) {
+                        stateModel.setCompleted(e)
+                    }
+                }
+            }
+            val response = try {
+                stateModel.requestCredentialSelection()
+            } catch (error: PresentmentCanceled) {
+                Napier.i("Holder presentation canceled by user; sending encrypted session termination to reader")
+                withContext(NonCancellable) {
+                    mechanism.transport.sendMessage(
+                        sessionEncryption.encryptMessage(
+                            messagePlaintext = null,
+                            statusCode = Constants.SESSION_DATA_STATUS_SESSION_TERMINATION
+                        )
+                    )
+                    if (mechanism.transport is NfcTransportMdoc) {
+                        delay(NFC_TRANSPORT_DRAIN_DELAY_MS)
+                    }
+                }
+                stateModel.setCompleted(error)
+                break
+            } finally {
+                readerClosedJob.cancel()
+            }
+            withContext(NonCancellable) {
+                Napier.d("Credential selected, sending ${response.size} bytes to reader")
+                mechanism.transport.sendMessage(response.encrypt(sessionEncryption))
+                Napier.i("Holder DeviceResponse sent to reader; bytes=${response.size}")
+            }
 
             numRequestsServed.value += 1
             if (!mechanism.allowMultipleRequests) {
-                // Wait for transport to be closed as sendMessage does not block as advertised in its description
-                transport.state.first {
-                    it in listOf(State.CLOSED, State.FAILED)
+                withContext(NonCancellable) {
+                    // For the single-request local presentation flow we already send a session
+                    // termination status together with the response. Completing immediately avoids
+                    // hanging the UI on delayed or failed BLE close notifications.
+                    if (mechanism.transport is NfcTransportMdoc) {
+                        Napier.i("NFC response sent; allowing reader APDU exchange to drain before closing holder transport")
+                        delay(NFC_TRANSPORT_DRAIN_DELAY_MS)
+                    }
+                    Napier.i("Response sent, completing single-request presentment")
+                    stateModel.setCompleted()
                 }
-                Napier.i("Response sent, closing connection")
-                stateModel.setCompleted()
                 break
             } else {
                 Napier.i("Response sent, keeping connection open")
@@ -157,4 +248,8 @@ class MdocPresenter(
                 Cbor.encode(toCoseKey().toDataItem())
             )
         )
+
+    private companion object {
+        private const val NFC_TRANSPORT_DRAIN_DELAY_MS = 1_500L
+    }
 }

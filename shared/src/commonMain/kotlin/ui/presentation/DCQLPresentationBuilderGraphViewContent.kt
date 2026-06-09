@@ -5,7 +5,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import at.asitplus.data.NonEmptyList.Companion.toNonEmptyList
 import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
@@ -20,7 +19,6 @@ import at.asitplus.wallet.app.common.toCredentialQueryUiModel
  * The secondary goal is to properly deal with the case where a credential query is present in two credential sets.
  *  -> We can only select one credential per credential query, so we probably shouldn't ask the user a second time.
  */
-@ExperimentalComposeUiApi
 @ExperimentalMaterial3Api
 @Composable
 fun DCQLPresentationBuilderGraphViewContent(

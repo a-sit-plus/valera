@@ -13,7 +13,7 @@ fun EuPidCredentialSummaryCardContent(
     decodeToBitmap: (ByteArray) -> Result<ImageBitmap>,
     modifier: Modifier = Modifier,
 ) {
-    val credentialAdapter = remember {
+    val credentialAdapter = remember(credential) {
         EuPidCredentialAdapter.createFromStoreEntry(credential, decodeToBitmap)
     }
 

@@ -104,6 +104,16 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
+			<string>issuance.eudiopenid4ci</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>eudi-openid4ci</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
 			<string>issuance.offer</string>
 			<key>CFBundleURLSchemes</key>
 			<array>

@@ -32,7 +32,7 @@ class QrCodeScannerViewModel(
         link: String,
         onSuccess: (Route) -> Unit,
         onFailure: (Throwable) -> Unit,
-    ) = viewModelScope.launch {
+    ) = walletMain.scope.launch {
         Napier.d("onQrScanned: $link")
         listOf(mode).plus(QrCodeScannerMode.entries.filter { it != mode }).firstNotNullOfOrNull {
             try {

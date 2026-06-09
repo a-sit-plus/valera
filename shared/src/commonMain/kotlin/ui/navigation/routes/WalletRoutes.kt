@@ -5,7 +5,6 @@ import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.openid.SignatureRequestParameters
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
-import at.asitplus.wallet.app.common.presentation.PresentationRequest
 import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import data.storage.StoreEntryId
@@ -82,7 +81,7 @@ data class AddCredentialDcApiRoute(
 }
 
 @Serializable
-object AddCredentialDcApiSuccessRoute : Route()
+data class TransientFlowIssuingResultRoute(val storeEntryId: StoreEntryId? = null) : Route()
 
 @Serializable
 data class AddCredentialWithLinkRoute(val uri: String) : Route()
@@ -145,23 +144,12 @@ data class AuthenticationViewRoute(
 }
 
 @Serializable
-data class DCAPIAuthenticationConsentRoute(
-    val apiRequestSerialized: String
-) : Route()
-
-@Serializable
 data class DCAPIPresentationViewRoute(
     val apiRequestSerialized: String
 ) : Route()
 
 @Serializable
-data class LocalPresentationAuthenticationConsentRoute(
-    val presentationRequestSerialized: String
-) : Route() {
-    constructor(presentationRequest: PresentationRequest) : this(
-        vckJsonSerializer.encodeToString(presentationRequest)
-    )
-}
+object LocalPresentationAuthenticationConsentRoute : Route()
 
 @Serializable
 data class AuthenticationSuccessRoute(
@@ -179,6 +167,9 @@ object ProximityVerifierRoute : Route()
 data class ProvisioningStartIntentRoute(val uri: String) : Route()
 
 @Serializable
+data class ProvisioningAuthRequestIntentRoute(val uri: String) : Route()
+
+@Serializable
 data class ProvisioningResumeIntentRoute(val uri: String) : Route()
 
 @Serializable
@@ -186,6 +177,9 @@ data class AuthorizationIntentRoute(val uri: String) : Route()
 
 @Serializable
 data class DCAPIAuthorizationIntentRoute(val uri: String) : Route()
+
+@Serializable
+object IosDcApiPreRequestRoute : Route()
 
 @Serializable
 data class DCAPIIssuingIntentRoute(val uri: String) : Route()
@@ -204,6 +198,9 @@ data class SigningCredentialIntentRoute(val uri: String) : Route()
 
 @Serializable
 data class SigningIntentRoute(val uri: String) : Route()
+
+@Serializable
+data class SigningResumeIntentRoute(val uri: String) : Route()
 
 @Serializable
 data class ErrorIntentRoute(val uri: String) : Route()
