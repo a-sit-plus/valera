@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 class TrustListService(
@@ -46,7 +47,7 @@ class TrustListService(
      * Starts the periodic background loop.
      * Default interval is 1 hour as configured.
      */
-    fun startChecking(interval: Duration = 1.hours) {
+    fun startChecking(interval: Duration = 1.minutes) {
         job?.cancel()
 
         job = scope.launch {

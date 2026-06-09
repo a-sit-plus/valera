@@ -68,6 +68,7 @@ class WalletMain(
     val credentialValidityService: CredentialValidityService,
     val attestationService: AttestationService,
     sessionCoroutineScope: CoroutineScope,
+    val trustListService: TrustListService
 ) {
     val appReady = MutableStateFlow<Boolean?>(null)
 
@@ -86,6 +87,7 @@ class WalletMain(
     init {
         resolveUnknownCredentialSchemes()
         credentialValidityService.startChecking()
+        trustListService.startChecking()
         if (keyMaterial.keyMaterial is FallBackKeyMaterial) {
             Napier.e("FallBackKeyMaterial: ${keyMaterial.keyMaterial.reason}")
         }

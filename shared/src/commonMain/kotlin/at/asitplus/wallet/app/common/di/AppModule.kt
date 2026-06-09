@@ -6,6 +6,7 @@ import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.LoadingStatusService
 import at.asitplus.wallet.app.common.RealCapabilitiesService
 import at.asitplus.wallet.app.common.SESSION_NAME
+import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.di.dataModule
 import at.asitplus.wallet.app.common.domain.di.domainModule
@@ -47,11 +48,13 @@ fun appModule(): Module = module {
                 credentialValidityService = get(),
                 attestationService = get(),
                 sessionCoroutineScope = get(),
+                trustListService = get()
             )
         }
         scopedOf(::ErrorService)
         scopedOf(::LoadingStatusService)
         scopedOf(::CredentialValidityService)
+        scopedOf(::TrustListService)
         scopedOf(::RealCapabilitiesService) binds arrayOf(CapabilitiesService::class)
         scopedOf(::IntentService)
     }
