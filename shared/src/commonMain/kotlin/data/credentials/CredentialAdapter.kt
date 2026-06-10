@@ -25,20 +25,20 @@ abstract class CredentialAdapter {
     abstract fun getAttribute(path: NormalizedJsonPath): Attribute?
 
     protected fun Any?.toLocalDateOrNull() =
-        (this as? LocalDate?) ?: toString().let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        (this as? LocalDate?) ?: toString().let { catchingUnwrapped { LocalDate.parse(it) }.getOrNull() }
 
     protected fun Any?.toInstantOrNull() =
-        (this as? Instant?) ?: toString().let { runCatching { Instant.parse(it) }.getOrNull() }
+        (this as? Instant?) ?: toString().let { catchingUnwrapped { Instant.parse(it) }.getOrNull() }
 
     protected fun Any?.toLocalDateOrInstantOrNull() = (this as? LocalDateOrInstant?)
         ?: (this as? LocalDateOrInstant.LocalDate?)
         ?: (this as? LocalDateOrInstant.Instant?)
         ?: toString().let {
-            runCatching { Instant.parse(it) }.getOrNull()
+            catchingUnwrapped { Instant.parse(it) }.getOrNull()
                 ?.let { LocalDateOrInstant.Instant(it) }
         }
         ?: toString().let {
-            runCatching { LocalDate.parse(it) }.getOrNull()
+            catchingUnwrapped { LocalDate.parse(it) }.getOrNull()
                 ?.let { LocalDateOrInstant.LocalDate(it) }
         }
 
@@ -50,7 +50,7 @@ abstract class CredentialAdapter {
 
     protected fun Any?.toLocalDateTimeOrNull() =
         (this as? LocalDateTime?)
-            ?: toString().let { runCatching { LocalDateTime.parse(it) }.getOrNull() }
+            ?: toString().let { catchingUnwrapped { LocalDateTime.parse(it) }.getOrNull() }
 
     protected fun String.decodeFromPortraitString() = catchingUnwrapped {
         decodeToByteArray(Base16) // e.g. from demo.wallet-gw.namirial.com

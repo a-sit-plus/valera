@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.catchingUnwrapped
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_no_refresh_token
 import at.asitplus.valera.resources.error_reissue_failed
@@ -153,7 +154,7 @@ class CredentialValidityService(
         dataStoreService.getPreference(Configuration.DATASTORE_KEY_REFRESH_SUPPRESSED_CREDENTIALS)
             .first()
             ?.let {
-                runCatching { vckJsonSerializer.decodeFromString<List<StoreEntryId>>(it).toSet() }
+                catchingUnwrapped { vckJsonSerializer.decodeFromString<List<StoreEntryId>>(it).toSet() }
                     .getOrDefault(emptySet())
             }
             ?: emptySet()

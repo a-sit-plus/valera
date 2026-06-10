@@ -156,7 +156,7 @@ class WalletMain(
 
     fun updateCheck() {
         scope.launch(Dispatchers.IO) {
-            runCatching {
+            catchingUnwrapped {
                 val httpClient = httpService.buildHttpClient()
                 val host = "https://wallet.a-sit.at/"
                 val url = "${host}check.json"

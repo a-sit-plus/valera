@@ -1,5 +1,5 @@
 [versions]
-vck="5.12.0"
+vck="5.13.0"
 
 agp = "8.12.3"
 kotlin = "2.3.0"
@@ -25,7 +25,7 @@ navigationevent-compose = "1.0.1"
 semver = "2.1.0"
 
 mdl = "1.4.0"
-eupid = "3.4.0"
+eupid = "3.5.0"
 eupid-sdjwt = "1.4.0"
 powerofrepresentation = "1.4.0"
 certificateofresidence = "2.3.0"

@@ -47,11 +47,11 @@ interface SettingsRepository {
             NFC_DATA_TRANSFER
         )
 
-    fun setPresentmentBleEnabled(enabled: Boolean): KmmResult<Unit>
+    fun setPresentmentBleEnabled(enabled: Boolean): Result<Unit>
 
-    fun setPresentmentBleCentralClientModeEnabled(enabled: Boolean): KmmResult<Unit>
+    fun setPresentmentBleCentralClientModeEnabled(enabled: Boolean): Result<Unit>
 
-    fun setPresentmentBlePeripheralServerModeEnabled(enabled: Boolean): KmmResult<Unit>
+    fun setPresentmentBlePeripheralServerModeEnabled(enabled: Boolean): Result<Unit>
 
     fun set(
         host: String? = null,
@@ -68,7 +68,7 @@ interface SettingsRepository {
         readerAutomaticallySelectTransport: Boolean? = null,
         connectionTimeout: Duration? = null,
         completionHandler: CompletionHandler = {},
-    ): KmmResult<Unit>
+    ): Result<Unit>
 
     suspend fun isConnectionMethodEnabled(prefix: String): Boolean =
         if (prefix.startsWith(BLE_CENTRAL_CLIENT_MODE)) {

@@ -1,4 +1,5 @@
 # Release 5.7.7 (unreleased)
+ * Update to VC-K 5.13.0
  * Credentials: Show credential titles in refresh prompts and allow suppressing a prompt for a single credential
  * Raise iOS target from 16.0 to 18.6 (iOS 18 is the oldest version to still receive security updates)
  * DC API:

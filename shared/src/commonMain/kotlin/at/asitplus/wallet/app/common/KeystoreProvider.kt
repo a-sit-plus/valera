@@ -75,7 +75,7 @@ open class KeystoreService(
     private suspend fun initSigner(): KeyWithSelfSignedCert = initSigner(Configuration.KS_ALIAS)
 
     open suspend fun testSigner(): Boolean = withContext(dispatcher) {
-        runCatching {
+        catchingUnwrapped {
             PlatformSigningProvider.let { provider ->
                 provider.deleteSigningKey(Configuration.KS_CAPABILITY_ALIAS)
                 provider.createSigningKey(Configuration.KS_CAPABILITY_ALIAS)
@@ -84,7 +84,7 @@ open class KeystoreService(
     }
 
     suspend fun testAttestation() = withContext(dispatcher) {
-        runCatching {
+        catchingUnwrapped {
             PlatformSigningProvider.deleteSigningKey(Configuration.KS_CAPABILITY_ALIAS)
             PlatformSigningProvider.createSigningKey(Configuration.KS_CAPABILITY_ALIAS) {
                 ec {}

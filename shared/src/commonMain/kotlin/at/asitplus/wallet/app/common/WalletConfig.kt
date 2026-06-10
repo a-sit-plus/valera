@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.catchingUnwrapped
 import at.asitplus.KmmResult
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
@@ -49,7 +50,7 @@ class WalletConfig(
     override val readerAutomaticallySelectTransport: Flow<Boolean> = config.map { it.readerAutomaticallySelectTransport }
     override val connectionTimeout: Flow<Duration> = config.map { it.connectionTimeout }
 
-    override fun setPresentmentBleEnabled(enabled: Boolean): KmmResult<Unit> =
+    override fun setPresentmentBleEnabled(enabled: Boolean): Result<Unit> =
         updateConfig { current ->
             if (!enabled) {
                 current.copy(
@@ -78,7 +79,7 @@ class WalletConfig(
             }
         }
 
-    override fun setPresentmentBleCentralClientModeEnabled(enabled: Boolean): KmmResult<Unit> =
+    override fun setPresentmentBleCentralClientModeEnabled(enabled: Boolean): Result<Unit> =
         updateConfig { current ->
             current.copy(
                 presentmentBleCentralClientModeEnabled = enabled,
@@ -87,7 +88,7 @@ class WalletConfig(
             )
         }
 
-    override fun setPresentmentBlePeripheralServerModeEnabled(enabled: Boolean): KmmResult<Unit> =
+    override fun setPresentmentBlePeripheralServerModeEnabled(enabled: Boolean): Result<Unit> =
         updateConfig { current ->
             current.copy(
                 presentmentBlePeripheralServerModeEnabled = enabled,
@@ -111,15 +112,16 @@ class WalletConfig(
         readerAutomaticallySelectTransport: Boolean?,
         connectionTimeout: Duration?,
         completionHandler: CompletionHandler
-    ): KmmResult<Unit> = updateConfig { current ->
-        val bleModesProvided = presentmentBleCentralClientModeEnabled != null ||
-                presentmentBlePeripheralServerModeEnabled != null
-        val centralEnabled = presentmentBleCentralClientModeEnabled
-            ?: current.presentmentBleCentralClientModeEnabled
-        val peripheralEnabled = presentmentBlePeripheralServerModeEnabled
-            ?: current.presentmentBlePeripheralServerModeEnabled
+    ): Result<Unit> =
+        updateConfig { current ->
+            val bleModesProvided = presentmentBleCentralClientModeEnabled != null ||
+                    presentmentBlePeripheralServerModeEnabled != null
+            val centralEnabled = presentmentBleCentralClientModeEnabled
+                ?: current.presentmentBleCentralClientModeEnabled
+            val peripheralEnabled = presentmentBlePeripheralServerModeEnabled
+                ?: current.presentmentBlePeripheralServerModeEnabled
 
-        current.copy(
+            current.copy(
                 host = host ?: current.host,
                 clientId = clientId ?: current.clientId,
                 isConditionsAccepted = isConditionsAccepted ?: current.isConditionsAccepted,
@@ -150,7 +152,8 @@ class WalletConfig(
                     ?: current.readerAutomaticallySelectTransport,
                 connectionTimeout = connectionTimeout ?: current.connectionTimeout,
             )
-    }
+        }
+
 
     override val presentmentNegotiatedHandoverPreferredOrder: List<String> = listOf(
         BLE_CENTRAL_CLIENT_MODE,
@@ -174,23 +177,20 @@ class WalletConfig(
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_CONFIG)
     }
 
-    private fun updateConfig(transform: (ConfigData) -> ConfigData): KmmResult<Unit> =
-        try {
-            runBlocking {
-                configMutex.withLock {
-                    val current = readConfigData()
-                    val updated = transform(current)
-                    dataStoreService.setPreference(
-                        joseCompliantSerializer.encodeToString(updated),
-                        Configuration.DATASTORE_KEY_CONFIG
-                    )
-                }
+    private fun updateConfig(transform: (ConfigData) -> ConfigData) = catchingUnwrapped {
+        runBlocking {
+            configMutex.withLock {
+                val current = readConfigData()
+                val updated = transform(current)
+                dataStoreService.setPreference(
+                    joseCompliantSerializer.encodeToString(updated),
+                    Configuration.DATASTORE_KEY_CONFIG
+                )
             }
-            KmmResult.success(Unit)
-        } catch (error: Throwable) {
-            errorService.emit(error)
-            KmmResult.failure(error)
         }
+    }.onFailure {
+        errorService.emit(it)
+    }
 
     private suspend fun readConfigData(): ConfigData =
         dataStoreService.getPreference(Configuration.DATASTORE_KEY_CONFIG).first()
