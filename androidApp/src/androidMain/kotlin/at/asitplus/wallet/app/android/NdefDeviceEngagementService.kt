@@ -57,6 +57,7 @@ import ui.navigation.IntentService.Companion.PRESENTATION_REQUESTED_INTENT
 import ui.viewmodels.authentication.PresentationStateModel
 import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 // Based on the identity-credential sample code
 // https://github.com/openwallet-foundation-labs/identity-credential/tree/main/samples/testapp
@@ -163,8 +164,8 @@ class NdefDeviceEngagementService : HostApduService() {
                         "Delaying NFC data-transfer cleanup after $reason so reader can finish APDU exchange",
                         tag = TAG
                     )
-                    delay(NFC_TRANSPORT_CLEANUP_DELAY_MS)
-                    runCatching { NfcTransportMdoc.onDeactivated() }
+                    delay(NFC_TRANSPORT_CLEANUP_DELAY_MS.milliseconds)
+                    catchingUnwrapped { NfcTransportMdoc.onDeactivated() }
                         .onFailure { Napier.w("NFC transport cleanup failed", it, tag = TAG) }
                     NfcTransferState.holderNfcDataTransferActive.value = false
                     NfcTransferState.nfcDataTransferActive.value = false
@@ -172,7 +173,7 @@ class NdefDeviceEngagementService : HostApduService() {
                     Napier.i("NFC data-transfer cleanup finished after $reason", tag = TAG)
                 }
             } else {
-                runCatching { NfcTransportMdoc.onDeactivated() }
+                catchingUnwrapped { NfcTransportMdoc.onDeactivated() }
                     .onFailure { Napier.w("NFC transport cleanup failed", it, tag = TAG) }
                 NfcTransferState.holderNfcDataTransferActive.value = false
                 NfcTransferState.nfcDataTransferActive.value = false
@@ -317,7 +318,7 @@ class NdefDeviceEngagementService : HostApduService() {
         activeNfcTransportCleanupJob = null
         activeBleHandoverPending = false
         activePresentationUiLaunched = false
-        runCatching { NfcTransportMdoc.onDeactivated() }
+        catchingUnwrapped { NfcTransportMdoc.onDeactivated() }
             .onFailure { Napier.w("Pre-engagement NFC transport cleanup failed", it, tag = TAG) }
         Napier.i("Resetting NFC data-transfer active flag before starting NDEF engagement", tag = TAG)
         NfcTransferState.holderNfcDataTransferActive.value = false

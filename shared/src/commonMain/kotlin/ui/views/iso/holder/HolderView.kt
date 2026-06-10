@@ -22,6 +22,7 @@ import at.asitplus.wallet.app.common.presentation.LocalPresentmentBusyException
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
+import at.asitplus.catchingUnwrapped
 import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -141,7 +142,7 @@ fun HolderView(
             LaunchedEffect(holderState) {
                 if (vm.hasBeenCalledHack) return@LaunchedEffect
                 vm.hasBeenCalledHack = true
-                runCatching {
+                catchingUnwrapped {
                     vm.setupPresentmentModel(
                         bluetoothPermissionState,
                         transferSettingsState.ble.required

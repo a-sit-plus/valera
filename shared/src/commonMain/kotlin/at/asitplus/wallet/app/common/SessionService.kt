@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.catchingUnwrapped
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.koin.core.scope.Scope
@@ -39,7 +40,7 @@ class SessionService(
         // onReset() cleans up caller-owned state (pending links, intentState, etc.).
         // Run it in a runCatching so a failure there does not abort scope recreation and
         // leave the session stuck with a closed or stale Koin scope.
-        runCatching { onReset() }.onFailure { Napier.e("onReset threw during session reset", it) }
+        catchingUnwrapped { onReset() }.onFailure { Napier.e("onReset threw during session reset", it) }
         val previousSessionHandle = currentSessionHandle
         currentSessionHandle = scopeFactory()
         scope.value = currentSessionHandle.scope

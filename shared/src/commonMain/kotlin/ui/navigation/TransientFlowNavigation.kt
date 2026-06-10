@@ -219,7 +219,7 @@ private fun LoadCredentialFromUrlContent(
 ) {
     var vm by remember { mutableStateOf<LoadCredentialViewModel?>(null) }
     LaunchedEffect(Unit) {
-        runCatching {
+        catchingUnwrapped {
             LoadCredentialViewModel.init(
                 walletMain = walletMain,
                 navigateUp = navigator::navigateBack,
@@ -477,7 +477,7 @@ private fun TransientFlowNavHost(
             val offer = backStackEntry.toRoute<AddCredentialPreAuthnRoute>().credentialOffer
             var vm by remember { mutableStateOf<LoadCredentialViewModel?>(null) }
             LaunchedEffect(Unit) {
-                runCatching {
+                catchingUnwrapped {
                     LoadCredentialViewModel.init(
                         walletMain = walletMain,
                         navigateUp = navigator::navigateBack,
@@ -513,7 +513,7 @@ private fun TransientFlowNavHost(
             val offer = backStackEntry.toRoute<AddCredentialDcApiRoute>().credentialOffer
             var vm by remember { mutableStateOf<LoadCredentialViewModel?>(null) }
             LaunchedEffect(Unit) {
-                runCatching {
+                catchingUnwrapped {
                     lateinit var dcapiVm: LoadCredentialViewModel
                     val onSubmit: CredentialSelection = { credentialIdentifierInfo, transactionCode, _ ->
                         navigator.navigate(LoadingRoute)
@@ -571,7 +571,7 @@ private fun TransientFlowNavHost(
             var vm by remember { mutableStateOf<LoadCredentialViewModel?>(null) }
             val route = backStackEntry.toRoute<ProvisioningAuthRequestIntentRoute>()
             LaunchedEffect(Unit) {
-                runCatching {
+                catchingUnwrapped {
                     val credentialIssuer = URLBuilder(route.uri).parameters["credential_issuer"]
                         ?: throw IllegalArgumentException("Missing credential_issuer in issuing authorization request")
                     LoadCredentialViewModel.init(

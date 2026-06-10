@@ -3,6 +3,7 @@ package at.asitplus.wallet.app.common.iso.transfer
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import at.asitplus.KmmResult
+import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.iso.transfer.state.TransferTransport
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_nfc_engagement_verifier
@@ -107,7 +108,7 @@ class TransferManager(
                 } catch (e: Throwable) {
                     Napier.d("Could not send session termination during cancel: ${e.message}", tag = TAG)
                 } finally {
-                    runCatching { transport.close() }
+                    catchingUnwrapped { transport.close() }
                 }
             }
         }
@@ -659,7 +660,7 @@ class TransferManager(
                 handleRecoverableNfcTagLoss(error)
             } finally {
                 NfcTransferState.verifierNfcReaderModeActive.value = false
-                runCatching { transport.close() }
+                catchingUnwrapped { transport.close() }
             }
         }
     }

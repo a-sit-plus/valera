@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common.presentation
 
+import at.asitplus.catchingUnwrapped
 import io.github.aakira.napier.Napier
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import ui.viewmodels.authentication.PresentationStateModel
 import org.multipaz.util.UUID
+import kotlin.time.Duration.Companion.milliseconds
 
 enum class LocalPresentmentSource {
     IN_APP_QR,
@@ -177,11 +179,11 @@ class LocalPresentmentSessionCoordinator {
         if (state != PresentationStateModel.State.COMPLETED &&
             state != PresentationStateModel.State.IDLE
         ) {
-            runCatching { model.reset() }
+            catchingUnwrapped { model.reset() }
                 .onFailure { Napier.w("Failed to reset sessionId=$sessionId during finish", it, tag = TAG) }
         }
         managed.cleanupCallbacks.forEach { cleanup ->
-            runCatching(cleanup)
+            catchingUnwrapped(cleanup)
                 .onFailure { Napier.w("Cleanup callback failed for sessionId=$sessionId", it, tag = TAG) }
         }
         Napier.d("Finished local presentment sessionId=$sessionId reason=$reason state=$state", tag = TAG)
@@ -191,13 +193,13 @@ class LocalPresentmentSessionCoordinator {
         val session = synchronized(stateLock) {
             activeSession?.snapshot?.takeIf { it.sessionId == sessionId }
         } ?: return
-        runCatching {
+        catchingUnwrapped {
             session.presentationStateModel.dismiss(PresentationStateModel.DismissType.CLICK)
         }.onFailure { error ->
             Napier.w("Failed to dismiss local presentment sessionId=$sessionId", error, tag = TAG)
         }
         coordinatorScope.launch {
-            delay(250)
+            delay(250.milliseconds)
             finishSession(sessionId, reason)
         }
     }

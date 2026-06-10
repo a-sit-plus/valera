@@ -98,8 +98,8 @@ open class TransferOptionsViewModel(
     )
 
     private fun update(
-        block: suspend SettingsRepository.() -> KmmResult<Unit>,
-        onComplete: (KmmResult<Unit>) -> Unit = {},
+        block: suspend SettingsRepository.() -> Result<Unit>,
+        onComplete: (Result<Unit>) -> Unit = {},
     ) = walletMain.scope.launch {
         onComplete(settingsRepository.block())
     }

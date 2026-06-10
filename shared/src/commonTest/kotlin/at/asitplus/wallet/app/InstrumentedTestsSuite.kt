@@ -172,7 +172,7 @@ fun ComposeUiTest.endToEndTest() {
                     statusListBaseUrl = "http://127.0.0.1/credentials/status",
                     identifier = "https://issuer.example.com/".toUri(),
                 )
-                runCatching {
+                catchingUnwrapped {
                     holderAgent.storeCredential(
                         issuer.issueCredential(
                             CredentialToBeIssued.VcSd(

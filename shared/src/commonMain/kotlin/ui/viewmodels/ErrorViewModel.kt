@@ -2,6 +2,7 @@ package ui.viewmodels
 
 import AppResetRequiredException
 import ErrorHandlingOverrideException
+import at.asitplus.catchingUnwrapped
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_error_action_reset_app
 import at.asitplus.valera.resources.info_text_error_action_start_screen
@@ -34,7 +35,7 @@ class ErrorViewModel(
             exceptionOverride?.hasUiOverride == true -> {
                 onClickButton = {
                     clearError()
-                    onAcknowledge?.runCatching { invoke() }
+                    onAcknowledge?.catchingUnwrapped { invoke() }
                     exceptionOverride.resetStackOverride!!.invoke()
                 }
                 actionDescription = exceptionOverride.actionDescriptionOverride!!
@@ -44,7 +45,7 @@ class ErrorViewModel(
                 onClickButton = {
                     clearError()
                     resetApp()
-                    onAcknowledge?.runCatching { invoke() }
+                    onAcknowledge?.catchingUnwrapped { invoke() }
                 }
                 actionDescription = Res.string.info_text_error_action_reset_app
                 textCause = runBlocking { getString(Res.string.info_text_error_cause_reset_app) }
@@ -53,7 +54,7 @@ class ErrorViewModel(
                 onClickButton = {
                     clearError()
                     resetStack()
-                    onAcknowledge?.runCatching { invoke() }
+                    onAcknowledge?.catchingUnwrapped { invoke() }
                 }
                 actionDescription = Res.string.info_text_error_action_start_screen
                 textCause = cause

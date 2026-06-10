@@ -2,6 +2,7 @@ package at.asitplus.wallet.app.android
 
 import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
+import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import org.multipaz.mdoc.transport.NfcTransportMdoc
 import io.github.aakira.napier.Napier
@@ -22,7 +23,7 @@ class NfcDataRetrievalService: HostApduService() {
     )
 
     override fun processCommandApdu(commandApdu: ByteArray, extras: Bundle?): ByteArray? {
-        runCatching { CommandApdu.decode(commandApdu) }
+        catchingUnwrapped { CommandApdu.decode(commandApdu) }
             .onSuccess { command ->
                 Napier.i(
                     "NfcDataRetrievalService: APDU cla=${command.cla}, ins=${command.ins}, " +

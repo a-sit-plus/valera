@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.catchingUnwrapped
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -14,9 +15,9 @@ fun createErrorReportingScope(
     errorServiceProvider: () -> ErrorService?,
 ): CoroutineScope {
     val exceptionHandler = CoroutineExceptionHandler { _, error ->
-        val errorService = runCatching(errorServiceProvider).getOrNull()
+        val errorService = catchingUnwrapped(errorServiceProvider).getOrNull()
         if (errorService != null) {
-            runCatching {
+            catchingUnwrapped {
                 errorService.emit(error)
             }.onFailure {
                 Napier.e("Failed to report uncaught coroutine exception from $name", it)

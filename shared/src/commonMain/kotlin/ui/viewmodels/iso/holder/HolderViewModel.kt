@@ -1,5 +1,6 @@
 package ui.viewmodels.iso.holder
 
+import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.iso.transfer.MdocConstants
@@ -262,7 +263,7 @@ class HolderViewModel(
                     NfcTransferState.nfcDataTransferActive.value = false
                     NfcTransferState.holderNfcDataTransferActive.value = false
                     advertisedTransports.forEach { transport ->
-                        runCatching { transport.close() }
+                        catchingUnwrapped { transport.close() }
                             .onFailure { Napier.w("Failed to close advertised holder transport", it, tag = TAG) }
                     }
                 }
