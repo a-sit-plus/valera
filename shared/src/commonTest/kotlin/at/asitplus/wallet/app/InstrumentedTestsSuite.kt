@@ -99,6 +99,7 @@ fun ComposeUiTest.endToEndTest() {
     val openUrlText = runBlocking { getString(Res.string.button_label_open_url) }
     val authenticationSuccessText = runBlocking { getString(Res.string.heading_label_authentication_success) }
     val redirectUrl = CompletableDeferred<String>()
+    val credentialIssued = CompletableDeferred<Unit>()
     val intentState = IntentState()
 
     setContent {
@@ -188,13 +189,18 @@ fun ComposeUiTest.endToEndTest() {
                     )
                 }.onSuccess {
                     println("InstrumentedTests: credential issuance setup completed")
+                    credentialIssued.complete(Unit)
                 }.onFailure {
                     println("InstrumentedTests: credential issuance setup failed: ${it::class.simpleName}: ${it.message}")
+                    credentialIssued.completeExceptionally(it)
                     throw it
                 }
             }
         }
     }
+
+    waitUntil(timeoutMillis = 10000) { credentialIssued.isCompleted }
+    runBlocking { credentialIssued.await() }
 
     waitUntilExactlyOneExists(hasText(startText))
     onNodeWithText(startText).performClick()
@@ -284,7 +290,7 @@ private fun getAttributes(): List<ClaimToBeIssued> = listOf(
     ClaimToBeIssued(EuPidSdJwtScheme.SdJwtAttributes.BIRTH_DATE, "1965-10-11"),
     ClaimToBeIssued(
         EuPidSdJwtScheme.SdJwtAttributes.PORTRAIT,
-        "iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAIAAACRXR/mAAAAdklEQVR4nOzQMQ2AQBQEUSAowQcy0IADSnqEoQbKu/40TLLFL2YEbF523Y53CnXeV2pqSQ1lk0WSRZJFkkWSRZJFkkWSRZJFkkWSRSrKmv+npba+vqemir4liySLJIskiySLJIskiySLJIskiySLJQ1AgAA//81XweDWRWyzwAAAABJRU5ErkJggg=="
+        "iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAIAAACRXR/mAAAAdklEQVR4nOzQMQ2AQBQEUSAowQcy0IADSnqEoQbKu/40TLLFL2YEbF523Y53CnXeV2pqSQ1lk0WSRZJFkkWSRZJFkkWSRZJFkkWSRSrKmv+npba+vqemir4liySLJIskiySLJIskiySLJIskiySLJQ1AgAA//81XweDWRWyzwAAAABJRU5ErkJgg"
     ),
 )
 
