@@ -133,7 +133,7 @@ class WalletConfig(
 private data class ConfigData(
     val clientId: String = SettingsRepository.DEFAULT_CLIENT_ID,
     val host: String = "https://wallet.a-sit.at/m7",
-    val walletProviderHost: String = "https://wallet.a-sit.at/provider", // TODO: change to correct host
+    val walletProviderHost: String = "https://wallet-provider.a-sit.plus",
     val isConditionsAccepted: Boolean = false,
     val presentmentUseNegotiatedHandover: Boolean = true,
     val presentmentBleCentralClientModeEnabled: Boolean = true,
