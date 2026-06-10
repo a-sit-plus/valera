@@ -39,7 +39,9 @@ class CredentialValidityService(
     private val _refreshItems = MutableStateFlow<List<RefreshItem>>(emptyList())
     val refreshItems: StateFlow<List<RefreshItem>> = _refreshItems.asStateFlow()
 
-    fun clearAllRefreshRequests() { _refreshItems.value = emptyList() }
+    fun clearAllRefreshRequests() {
+        _refreshItems.value = emptyList()
+    }
 
     fun removeRefreshRequest(item: RefreshItem) {
         _refreshItems.update { list -> list.filterNot { it.storeEntryId == item.storeEntryId } }
@@ -54,7 +56,7 @@ class CredentialValidityService(
         }
     }
 
-    fun suppressRefreshRequest(item: RefreshItem): Job = scope.launch {
+    fun suppressRefreshRequest(item: RefreshItem): Job = sessionCoroutineScope.launch {
         val suppressedIds = getSuppressedRefreshCredentialIds() + item.storeEntryId
         dataStoreService.setPreference(
             key = Configuration.DATASTORE_KEY_REFRESH_SUPPRESSED_CREDENTIALS,
