@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common.attestation
 
+import at.asitplus.catching
 import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.ClientNonceResponse
 import at.asitplus.signum.indispensable.josef.JsonWebToken
@@ -80,19 +81,18 @@ class AttestationService(
         Napier.e("AttestationService: Error preloading key attestation. $it")
     }
 
-    suspend fun loadInstanceAttestation(input: LoadInstanceAttestationInput) = catchingUnwrapped {
+    suspend fun loadInstanceAttestation(input: LoadInstanceAttestationInput) = catching {
         requestInstanceAttestation(
             input.preferredClientStatusPeriod ?: PREFERRED_DEFAULT_TTL
         )
     }
 
-    suspend fun loadKeyAttestation(input: KeyAttestationInput): Result<JwsCompactTyped<KeyAttestationJwt>> =
-        catchingUnwrapped {
-            if (!input.allowBuffer()) bufferedKeyAttestation.emit(null)
-            requestKeyAttestation(input).also { keyAttestation ->
-                bufferedKeyAttestation.emit(keyAttestation)
-            }
+    suspend fun loadKeyAttestation(input: KeyAttestationInput) = catching {
+        if (!input.allowBuffer()) bufferedKeyAttestation.emit(null)
+        requestKeyAttestation(input).also { keyAttestation ->
+            bufferedKeyAttestation.emit(keyAttestation)
         }
+    }
 
     fun getWalletProviderHost() = config.walletProviderHost
     fun setWalletProviderHost(host: String) = scope.launch {
@@ -135,8 +135,7 @@ class AttestationService(
         val instanceAttestation = requestInstanceAttestation()
 
         val pop = instanceAttestationHelper.buildProofOfPossession(
-            audience = config.walletProviderHost.first(),
-            nonce = getChallenge()
+            audience = config.walletProviderHost.first(), nonce = getChallenge()
         )
 
         return keyAttestationHelper.requestKeyAttestation(
@@ -150,19 +149,16 @@ class AttestationService(
 
     private fun JwsCompactTyped<KeyAttestationJwt>.hasRemainingKeyStorageStatusPeriod(ttl: Duration): Boolean {
         val now = Clock.System.now()
-        return payload.expiration?.let { it > now + 10.seconds } == true &&
-                payload.keyStorageStatus?.expiration?.let { it > now + ttl } == true
+        return payload.expiration?.let { it > now + 10.seconds } == true && payload.keyStorageStatus?.expiration?.let { it > now + ttl } == true
     }
 
     private fun JwsCompactTyped<JsonWebToken>.hasRemainingClientStatusPeriod(ttl: Duration): Boolean {
         val now = Clock.System.now()
-        return payload.expiration?.let { it > now + 10.seconds } == true &&
-                payload.clientStatus?.expiration?.let { it > now + ttl } == true
+        return payload.expiration?.let { it > now + 10.seconds } == true && payload.clientStatus?.expiration?.let { it > now + ttl } == true
     }
 
     private suspend fun getChallenge() = catchingUnwrapped {
-        httpClient.get(challengeEndpoint.first().build()) {
-        }.body<ClientNonceResponse>().clientNonce
+        httpClient.get(challengeEndpoint.first().build()) {}.body<ClientNonceResponse>().clientNonce
     }.onFailure {
         Napier.e("AttestationService: Error receiving challenge. $it")
     }.getOrNull()
