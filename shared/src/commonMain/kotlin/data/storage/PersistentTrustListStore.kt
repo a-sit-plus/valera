@@ -2,7 +2,8 @@ package data.storage
 
 import at.asitplus.etsi.ListOfTrustedEntities
 import at.asitplus.etsi.TrustListPayload
-import at.asitplus.signum.indispensable.josef.JwsCompact
+import at.asitplus.signum.indispensable.josef.JwsSigned
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 
@@ -56,8 +57,12 @@ class PersistentTrustListStore(
     private fun parseLoTE(rawJws: String?): ListOfTrustedEntities? {
         if (rawJws.isNullOrBlank()) return null
         return runCatching {
-            val (_, payload) = JwsCompact.parse<TrustListPayload>(rawJws).getOrThrow()
-            payload.loTe
+            val jws = JwsSigned.deserialize<TrustListPayload>(
+                TrustListPayload.serializer(),
+                rawJws,
+                joseCompliantSerializer
+            ).getOrThrow()
+            jws.payload.loTe
         }.getOrNull()
     }
 }

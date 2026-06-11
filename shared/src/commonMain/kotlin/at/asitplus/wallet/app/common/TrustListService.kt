@@ -4,7 +4,8 @@ import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.etsi.ListOfTrustedEntities
 import at.asitplus.etsi.TrustListPayload
-import at.asitplus.signum.indispensable.josef.JwsCompact
+import at.asitplus.signum.indispensable.josef.JwsSigned
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.lib.jws.VerifyJwsObject
 import at.asitplus.wallet.lib.jws.VerifyJwsObjectFun
 import data.storage.PersistentTrustListStore
@@ -22,14 +23,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 class TrustListService(
     private val persistentTrustListStore: PersistentTrustListStore,
     private val httpService: HttpService,
-    private val verifyJwsObject: VerifyJwsObjectFun = VerifyJwsObject(),
+//    private val verifyJwsObject: VerifyJwsObjectFun = VerifyJwsObject(),
 ) {
     private var job: Job? = null
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -88,15 +88,19 @@ class TrustListService(
 
         val responseBody = response.bodyAsText()
 
-        val (jwsCompact, payload) = JwsCompact.parse<TrustListPayload>(responseBody).getOrThrow()
+        val jws = JwsSigned.deserialize<TrustListPayload>(
+            TrustListPayload.serializer(),
+            responseBody,
+            joseCompliantSerializer
+        ).getOrThrow()
 
-        verifyJwsObject(jwsCompact).getOrThrow()
+//        verifyJwsObject(jws).getOrThrow()
 
         Napier.i("Successfully validated Trust List signature from $url")
 
         TrustListResult(
             rawJwsText = responseBody,
-            loTe = payload.loTe
+            loTe = jws.payload.loTe
         )
     }
 }

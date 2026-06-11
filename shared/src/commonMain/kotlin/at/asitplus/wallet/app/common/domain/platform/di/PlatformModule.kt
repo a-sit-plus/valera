@@ -14,6 +14,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import data.storage.DataStoreService
 import data.storage.HotWalletSubjectCredentialStore
 import data.storage.PersistentSubjectCredentialStore
+import data.storage.PersistentTrustListStore
 import data.storage.WalletSubjectCredentialStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
