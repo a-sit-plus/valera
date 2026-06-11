@@ -8,14 +8,11 @@ import at.asitplus.io.multibaseDecode
 import at.asitplus.io.multibaseEncode
 import at.asitplus.signum.indispensable.CryptoPrivateKey
 import at.asitplus.signum.indispensable.CryptoPublicKey
-import at.asitplus.signum.indispensable.ECCurve
 import at.asitplus.signum.indispensable.SecretExposure
 import at.asitplus.signum.indispensable.SignatureAlgorithm
 import at.asitplus.signum.indispensable.equalsCryptographically
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.supreme.SignatureResult
-import at.asitplus.signum.supreme.dsl.PREFERRED
-import at.asitplus.signum.supreme.os.PlatformSigningProvider
 import at.asitplus.signum.supreme.sign.SignatureInput
 import at.asitplus.signum.supreme.sign.Signer
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
@@ -46,29 +43,10 @@ open class KeystoreService(
 
     @Throws(Throwable::class)
     private suspend fun initSigner(alias: String): KeyWithSelfSignedCert = withContext(dispatcher) {
-        PlatformSigningProvider.let { provider ->
-            val forKey = provider.getSignerForKey(alias).getOrElse {
-                provider.createSigningKey(alias = alias) {
-                    ec {
-                        curve = ECCurve.SECP_256_R_1
-                        purposes {
-                            keyAgreement = true
-                            signing = true
-                        }
-                    }
-                    hardware {
-                        backing = PREFERRED
-                        protection {
-                            factors {
-                                biometry = true
-                            }
-                            timeout = Configuration.BIOMETRIC_TIMEOUT
-                        }
-                    }
-                }.getOrThrow()
-            }
-            KeyWithPersistentSelfSignedCert(forKey, forKey.publicKey.didEncoded, 30)
+        val forKey = WalletPlatformKeyStore.getSignerForKey(alias).getOrElse {
+            WalletPlatformKeyStore.createBindingKey(alias).getOrThrow()
         }
+        KeyWithPersistentSelfSignedCert(forKey, forKey.publicKey.didEncoded, 30)
     }
 
     @Throws(Throwable::class)
@@ -76,24 +54,18 @@ open class KeystoreService(
 
     open suspend fun testSigner(): Boolean = withContext(dispatcher) {
         catchingUnwrapped {
-            PlatformSigningProvider.let { provider ->
-                provider.deleteSigningKey(Configuration.KS_CAPABILITY_ALIAS)
-                provider.createSigningKey(Configuration.KS_CAPABILITY_ALIAS)
-            }
+            WalletPlatformKeyStore.deleteSigningKey(Configuration.KS_CAPABILITY_ALIAS)
+            WalletPlatformKeyStore.createCapabilityKey(Configuration.KS_CAPABILITY_ALIAS)
         }.isSuccess
     }
 
     suspend fun testAttestation() = withContext(dispatcher) {
         catchingUnwrapped {
-            PlatformSigningProvider.deleteSigningKey(Configuration.KS_CAPABILITY_ALIAS)
-            PlatformSigningProvider.createSigningKey(Configuration.KS_CAPABILITY_ALIAS) {
-                ec {}
-                hardware {
-                    attestation {
-                        this.challenge = "CHALLENGE".encodeToByteArray()
-                    }
-                }
-            }.getOrThrow()
+            WalletPlatformKeyStore.deleteSigningKey(Configuration.KS_CAPABILITY_ALIAS)
+            WalletPlatformKeyStore.createAttestationKey(
+                alias = Configuration.KS_CAPABILITY_ALIAS,
+                challenge = "CHALLENGE".encodeToByteArray()
+            ).getOrThrow()
         }.isSuccess
     }
 
@@ -148,27 +120,23 @@ open class KeystoreService(
     companion object {
         @Throws(AppResetRequiredException::class)
         fun checkKeyMaterialValid() {
-            PlatformSigningProvider.let { provider ->
-                runBlocking {
-                    provider.getSignerForKey(Configuration.KS_ALIAS_OLD).onSuccess {
-                        provider.deleteSigningKey(Configuration.KS_ALIAS_OLD)
-                            .getOrThrow() //well if we can't delete we're boned
-                        throw AppResetRequiredException
-                    }
+            runBlocking {
+                WalletPlatformKeyStore.getSignerForKey(Configuration.KS_ALIAS_OLD).onSuccess {
+                    WalletPlatformKeyStore.deleteSigningKey(Configuration.KS_ALIAS_OLD)
+                        .getOrThrow() //well if we can't delete we're boned
+                    throw AppResetRequiredException
                 }
             }
 
         }
 
         fun clearKeyMaterial() {
-            PlatformSigningProvider.let { provider ->
-                runBlocking {
-                    provider.getSignerForKey(Configuration.KS_ALIAS_OLD).onSuccess {
-                        provider.deleteSigningKey(Configuration.KS_ALIAS_OLD)
-                    }
-                    provider.getSignerForKey(Configuration.KS_ALIAS).onSuccess {
-                        provider.deleteSigningKey(Configuration.KS_ALIAS)
-                    }
+            runBlocking {
+                WalletPlatformKeyStore.getSignerForKey(Configuration.KS_ALIAS_OLD).onSuccess {
+                    WalletPlatformKeyStore.deleteSigningKey(Configuration.KS_ALIAS_OLD)
+                }
+                WalletPlatformKeyStore.getSignerForKey(Configuration.KS_ALIAS).onSuccess {
+                    WalletPlatformKeyStore.deleteSigningKey(Configuration.KS_ALIAS)
                 }
             }
         }
