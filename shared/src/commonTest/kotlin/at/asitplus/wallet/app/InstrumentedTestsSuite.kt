@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHeightIsAtLeast
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -23,6 +24,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.OidcUserInfo
 import at.asitplus.openid.OidcUserInfoExtended
+import at.asitplus.signum.indispensable.io.Base64Strict
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.button_label_open_url
@@ -61,6 +63,7 @@ import at.asitplus.wallet.lib.openid.OpenId4VpRequestOptions
 import at.asitplus.wallet.lib.openid.OpenId4VpVerifier
 import data.storage.AntilogAdapter
 import data.storage.DummyDataStoreService
+import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -207,6 +210,7 @@ fun ComposeUiTest.endToEndTest() {
     onNodeWithText(continueText).performClick()
     waitUntilDoesNotExist(hasText(continueText), 10000)
 
+    waitUntilExactlyOneExists(hasContentDescription(portraitText), 10000)
     onNodeWithContentDescription(portraitText).assertHeightIsAtLeast(1.dp)
     onNodeWithText("XXXÉliás XXXTörőcsik").assertExists()
     onNodeWithText("11.10.1965").assertExists()
@@ -290,9 +294,12 @@ private fun getAttributes(): List<ClaimToBeIssued> = listOf(
     ClaimToBeIssued(EuPidSdJwtScheme.SdJwtAttributes.BIRTH_DATE, "1965-10-11"),
     ClaimToBeIssued(
         EuPidSdJwtScheme.SdJwtAttributes.PORTRAIT,
-        "iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAIAAACRXR/mAAAAdklEQVR4nOzQMQ2AQBQEUSAowQcy0IADSnqEoQbKu/40TLLFL2YEbF523Y53CnXeV2pqSQ1lk0WSRZJFkkWSRZJFkkWSRZJFkkWSRSrKmv+npba+vqemir4liySLJIskiySLJIskiySLJIskiySLJQ1AgAA//81XweDWRWyzwAAAABJRU5ErkJgg"
+        TEST_PORTRAIT_PNG.decodeToByteArray(Base64Strict)
     ),
 )
+
+private const val TEST_PORTRAIT_PNG =
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADUlEQVR42mP8z8BQDwAFgwJ/lK3Q6wAAAABJRU5ErkJggg=="
 
 private fun createWalletDependencyProvider(platformAdapter: PlatformAdapter): WalletDependencyProvider {
     val dummyDataStoreService = DummyDataStoreService()
