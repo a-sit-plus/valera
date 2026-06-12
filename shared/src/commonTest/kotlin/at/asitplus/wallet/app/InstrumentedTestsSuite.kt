@@ -298,8 +298,12 @@ private fun getAttributes(): List<ClaimToBeIssued> = listOf(
     ),
 )
 
+/**
+ * A valid 16x16 RGB PNG: the chunk CRCs must be correct, since skia on Android verifies them when
+ * decoding, and the image must be large enough to render at a height of at least 1.dp on the device
+ */
 private const val TEST_PORTRAIT_PNG =
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADUlEQVR42mP8z8BQDwAFgwJ/lK3Q6wAAAABJRU5ErkJggg=="
+    "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAF0lEQVR4nGM4w8BAEiJN9aiGUQ1DSgMAQWfMAdovJBMAAAAASUVORK5CYII="
 
 private fun createWalletDependencyProvider(platformAdapter: PlatformAdapter): WalletDependencyProvider {
     val dummyDataStoreService = DummyDataStoreService()

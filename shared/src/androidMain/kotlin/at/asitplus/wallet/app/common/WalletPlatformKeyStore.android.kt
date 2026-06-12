@@ -50,4 +50,7 @@ internal actual object WalletPlatformKeyStore {
 
     actual suspend fun deleteSigningKey(alias: String): KmmResult<Unit> =
         PlatformSigningProvider.deleteSigningKey(alias)
+
+    actual suspend fun deleteLegacySigningKeyIfPresent(alias: String): KmmResult<Boolean> =
+        KmmResult.success(false)
 }

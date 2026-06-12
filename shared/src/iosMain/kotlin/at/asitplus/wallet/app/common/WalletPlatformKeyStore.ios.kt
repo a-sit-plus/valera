@@ -100,4 +100,12 @@ internal actual object WalletPlatformKeyStore {
         IosKeychainProvider.deleteSigningKey(alias) {
             useWalletKeychain()
         }
+
+    actual suspend fun deleteLegacySigningKeyIfPresent(alias: String): KmmResult<Boolean> = catching {
+        val legacySignerExists = IosKeychainProvider.getSignerForKey(alias).isSuccess
+        if (legacySignerExists) {
+            IosKeychainProvider.deleteSigningKey(alias).getOrThrow()
+        }
+        legacySignerExists
+    }
 }

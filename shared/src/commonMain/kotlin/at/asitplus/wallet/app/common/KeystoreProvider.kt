@@ -126,6 +126,13 @@ open class KeystoreService(
                         .getOrThrow() //well if we can't delete we're boned
                     throw AppResetRequiredException
                 }
+                if (WalletPlatformKeyStore.deleteLegacySigningKeyIfPresent(Configuration.KS_ALIAS_OLD).getOrThrow()) {
+                    throw AppResetRequiredException
+                }
+                if (WalletPlatformKeyStore.deleteLegacySigningKeyIfPresent(Configuration.KS_ALIAS).getOrThrow()) {
+                    throw AppResetRequiredException
+                }
+
             }
 
         }
@@ -138,6 +145,8 @@ open class KeystoreService(
                 WalletPlatformKeyStore.getSignerForKey(Configuration.KS_ALIAS).onSuccess {
                     WalletPlatformKeyStore.deleteSigningKey(Configuration.KS_ALIAS)
                 }
+                WalletPlatformKeyStore.deleteLegacySigningKeyIfPresent(Configuration.KS_ALIAS_OLD)
+                WalletPlatformKeyStore.deleteLegacySigningKeyIfPresent(Configuration.KS_ALIAS)
             }
         }
     }

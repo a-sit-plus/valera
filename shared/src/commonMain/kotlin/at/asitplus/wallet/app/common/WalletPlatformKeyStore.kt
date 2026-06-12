@@ -9,4 +9,5 @@ internal expect object WalletPlatformKeyStore {
     suspend fun createCapabilityKey(alias: String): KmmResult<Signer>
     suspend fun createAttestationKey(alias: String, challenge: ByteArray): KmmResult<Signer>
     suspend fun deleteSigningKey(alias: String): KmmResult<Unit>
+    suspend fun deleteLegacySigningKeyIfPresent(alias: String): KmmResult<Boolean>
 }
