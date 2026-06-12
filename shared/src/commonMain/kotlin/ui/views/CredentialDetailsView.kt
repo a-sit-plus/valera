@@ -1,5 +1,7 @@
 package ui.views
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,17 +12,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
@@ -55,6 +66,8 @@ fun CredentialDetailsView(
     val credentialTimelinessesStates by vm.credentialTimelinessesStates.collectAsState()
     val credentialFreshnessSummary = credentialTimelinessesStates[vm.storeEntryId]
 
+    val trustState by vm.trustState.collectAsState()
+
     CredentialDetailsScaffold(
         isStoreEntryAvailable = storeEntry != null,
         navigateUp = vm.navigateUp,
@@ -73,6 +86,7 @@ fun CredentialDetailsView(
     ) {
         storeEntry?.let {
             CredentialDetailsSummaryView(
+                trustState = trustState,
                 credential = it,
                 imageDecoder = vm.imageDecoder,
             )
@@ -140,6 +154,7 @@ fun CredentialDetailsScaffold(
 @Composable
 fun CredentialDetailsSummaryView(
     credential: ResolvedCredential,
+    trustState: TrustState,
     imageDecoder: (ByteArray) -> Result<ImageBitmap>,
 ) {
     Column(modifier = Modifier.padding(horizontal = 8.dp)) {
@@ -162,5 +177,54 @@ fun CredentialDetailsSummaryView(
         // No extra horizontal padding here: the enclosing Column already applies it, otherwise the cards
         // (technical data, status, contents, cnf) would be indented twice.
         GenericCredentialSummaryCardContent(credential = credential)
+    }
+}
+
+
+
+enum class TrustState {
+    TRUSTED, UNTRUSTED, UNKNOWN, EVALUATING
+}
+
+@Composable
+fun TrustStatusBanner(trustState: TrustState, modifier: Modifier = Modifier) {
+    val (backgroundColor, contentColor, icon, text) = when (trustState) {
+        TrustState.TRUSTED -> listOf(
+            Color(0xFFE8F5E9), Color(0xFF2E7D32), // Green hues
+            Icons.Filled.CheckCircle, "Trusted Issuer"
+        )
+        TrustState.UNTRUSTED -> listOf(
+            Color(0xFFFFEBEE), Color(0xFFC62828), // Red hues
+            Icons.Filled.Error, "Untrusted or Invalid Signature"
+        )
+        TrustState.UNKNOWN -> listOf(
+            Color(0xFFFFF8E1), Color(0xFFF57F17), // Amber hues
+            Icons.Filled.Warning, "Trust Status Unknown"
+        )
+        TrustState.EVALUATING -> listOf(
+            MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant,
+            Icons.Filled.Warning, "Evaluating Trust..." // Or use a CircularProgressIndicator here
+        )
+    }
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(backgroundColor as Color)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon as androidx.compose.ui.graphics.vector.ImageVector,
+            contentDescription = null,
+            tint = contentColor as Color
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = text as String,
+            color = contentColor,
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
 }
