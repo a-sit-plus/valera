@@ -34,20 +34,25 @@ class QrCodeScannerViewModel(
         onFailure: (Throwable) -> Unit,
     ) = viewModelScope.launch {
         Napier.d("onQrScanned: $link")
-        listOf(mode).plus(QrCodeScannerMode.entries.filter { it != mode }).firstNotNullOfOrNull {
-            try {
-                startModeProcess(it, link)
-            } catch (_: Throwable) {
-                null
-            }
-        }?.let(onSuccess) ?: onFailure(Throwable("Unable to parse: $link"))
+        val orderedModes = listOf(mode).plus(QrCodeScannerMode.entries.filter { it != mode })
+        val failures = mutableListOf<Throwable>()
+        for (currentMode in orderedModes) {
+            startModeProcess(currentMode, link).fold(
+                onSuccess = { onSuccess(it); return@launch },
+                onFailure = { failures += it },
+            )
+        }
+        // No mode could handle the link. Surface the real cause from the selected mode (tried
+        // first) instead of a generic message, so e.g. an HTTP error while dereferencing
+        // `request_uri` reaches the user. Fall back to the generic message only if no cause exists.
+        onFailure(failures.firstOrNull() ?: Throwable("Unable to parse: $link"))
     }
 
     suspend fun prepareCredential(link: String) = catchingUnwrapped {
         AddCredentialPreAuthnRoute(walletMain.provisioningService.decodeCredentialOffer(link))
     }.onFailure {
         Napier.w("Error parsing credential offer", it)
-    }.getOrThrow()
+    }
 
 
     suspend fun prepareAuthentication(link: String) = catchingUnwrapped {
@@ -63,12 +68,12 @@ class QrCodeScannerViewModel(
             recipientLocation = page.recipientLocation,
             isCrossDeviceFlow = true
         )
-    }.getOrThrow()
+    }
 
 
     suspend fun prepareSigning(link: String) = catchingUnwrapped {
         SigningQtspSelectionRoute(walletMain.signingService.parseSignatureRequestParameter(link))
-    }.getOrThrow()
+    }
 }
 
 @Serializable
