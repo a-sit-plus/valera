@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -146,7 +147,12 @@ fun WalletNavigation(
 
     Scaffold(
         snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
+            // Keep the snackbar clear of the system navigation bar so it does not sit at the very
+            // bottom edge on top of in-screen bottom action bars.
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.navigationBarsPadding(),
+            )
         }, modifier = Modifier.testTag(AppTestTags.rootScaffold)
     ) { _ ->
         WalletNavHost(
@@ -247,6 +253,19 @@ private fun WalletNavHost(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val isOnRefreshCenter = backStackEntry?.destination?.hasRoute<RefreshCenterRoute>() == true
 
+    // Suppress credential-refresh snackbars while the user is in an authentication/presentation
+    // flow. Those screens place primary action buttons (Continue, Open URL, …) at the bottom of
+    // the screen, exactly where the snackbar floats — so the snackbar would overlay them and
+    // intercept taps meant for the action button (regression introduced with #452).
+    val isInAuthenticationFlow = backStackEntry?.destination?.let { destination ->
+        destination.hasRoute<AuthenticationViewRoute>() ||
+            destination.hasRoute<DCAPIPresentationViewRoute>() ||
+            destination.hasRoute<LocalPresentationAuthenticationConsentRoute>() ||
+            destination.hasRoute<AuthenticationSuccessRoute>() ||
+            destination.hasRoute<PresentDataRoute>()
+    } == true
+    val suppressRefreshSnackbar = isOnRefreshCenter || isInAuthenticationFlow
+
     var processedItemIds by remember { mutableStateOf(setOf<Long>()) }
     var hasNavigatedToCenter by remember { mutableStateOf(false) }
 
@@ -257,7 +276,7 @@ private fun WalletNavHost(
         }
     }
 
-    val singleRefreshItem = if (!isOnRefreshCenter && items.size == 1) items.first() else null
+    val singleRefreshItem = if (!suppressRefreshSnackbar && items.size == 1) items.first() else null
     LaunchedEffect(singleRefreshItem?.storeEntryId) {
         val item = singleRefreshItem ?: return@LaunchedEffect
         if (processedItemIds.contains(item.storeEntryId)) return@LaunchedEffect
@@ -277,7 +296,7 @@ private fun WalletNavHost(
         }
     }
 
-    val shouldShowMultipleSnackbar = !isOnRefreshCenter && items.size > 1 && !hasNavigatedToCenter
+    val shouldShowMultipleSnackbar = !suppressRefreshSnackbar && items.size > 1 && !hasNavigatedToCenter
     LaunchedEffect(shouldShowMultipleSnackbar) {
         if (!shouldShowMultipleSnackbar) return@LaunchedEffect
         val result = snackbarHostState.showSnackbar(
