@@ -139,6 +139,10 @@
 	<true/>
 	<key>WalletAppGroupIdentifier</key>
 	<string>$(APP_GROUP_IDENTIFIER)</string>
+	<key>WalletKeychainAccessGroupIdentifier</key>
+	<string>$(KEYCHAIN_ACCESS_GROUP_IDENTIFIER)</string>
+	<key>WalletKeychainTagOverride</key>
+	<string>$(APP_BUNDLE_IDENTIFIER)</string>
 	<key>NFCReaderUsageDescription</key>
 	<string>This app uses NFC to engage local credential presentations</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
