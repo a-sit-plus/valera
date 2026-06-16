@@ -38,27 +38,33 @@ class AttestationService(
     private val scope = CoroutineScope(Dispatchers.IO)
     private val httpClient = httpService.buildHttpClient()
 
-    private val challengeEndpoint = config.walletProviderHost.map {
+    private fun challengeEndpoint() = config.walletProviderHost.map {
         URLBuilder(it).apply {
             appendEncodedPathSegments(PATH_NONCE)
         }
     }
 
     private val instanceAttestationHelper = InstanceAttestationHelper(
-        config.walletProviderHost,
+        config,
         httpClient,
         buildContext,
     )
 
-    private val keyAttestationHelper = KeyAttestationHelper(config.walletProviderHost, httpClient, holderKey)
+    private val keyAttestationHelper = KeyAttestationHelper(config, httpClient, holderKey)
     val bufferedInstanceAttestation = MutableStateFlow<JwsCompactTyped<JsonWebToken>?>(null)
     val bufferedKeyAttestation = MutableStateFlow<JwsCompactTyped<KeyAttestationJwt>?>(null)
+
+    suspend fun reset() {
+        bufferedKeyAttestation.emit(null)
+        bufferedInstanceAttestation.emit(null)
+        instanceAttestationHelper.reset()
+    }
 
     suspend fun getInstanceAttestationKeyMaterial() = instanceAttestationHelper.keyMaterial()
 
     suspend fun preloadInstanceAttestation() = catchingUnwrapped {
         Napier.d("AttestationService: Preload instance attestation")
-        requestInstanceAttestation().let {
+        requestInstanceAttestation(preloadInstanceAttestationInput).let {
             bufferedInstanceAttestation.emit(it)
         }
     }.onFailure {
@@ -67,14 +73,7 @@ class AttestationService(
 
     suspend fun preloadKeyAttestation() = catchingUnwrapped {
         Napier.d("AttestationService: Preload key attestation")
-        requestKeyAttestation(
-            KeyAttestationInput(
-                clientNonce = null,
-                credentialIssuer = null,
-                supportedAlgorithms = null,
-                preferredKeyStorageStatusPeriod = PREFERRED_DEFAULT_TTL,
-            )
-        ).let {
+        requestKeyAttestation(preloadKeyAttestationInput).let {
             bufferedKeyAttestation.emit(it)
         }
     }.onFailure {
@@ -82,57 +81,57 @@ class AttestationService(
     }
 
     suspend fun loadInstanceAttestation(input: LoadInstanceAttestationInput) = catching {
-        requestInstanceAttestation(
-            input.preferredClientStatusPeriod ?: PREFERRED_DEFAULT_TTL
-        )
+        requestInstanceAttestation(input)
     }
 
     suspend fun loadKeyAttestation(input: KeyAttestationInput) = catching {
-        if (!input.allowBuffer()) bufferedKeyAttestation.emit(null)
-        requestKeyAttestation(input).also { keyAttestation ->
-            bufferedKeyAttestation.emit(keyAttestation)
-        }
+        requestKeyAttestation(input)
     }
 
     fun getWalletProviderHost() = config.walletProviderHost
     fun setWalletProviderHost(host: String) = scope.launch {
         config.set(walletProviderHost = host)
-        bufferedKeyAttestation.emit(null)
-        bufferedInstanceAttestation.emit(null)
+        reset()
     }
 
     private suspend fun requestInstanceAttestation(
-        preferredClientStatusPeriod: Duration = PREFERRED_DEFAULT_TTL
+        input: LoadInstanceAttestationInput,
     ): JwsCompactTyped<JsonWebToken> {
-        bufferedInstanceAttestation.firstOrNull()?.let { buffer ->
-            if (buffer.hasRemainingClientStatusPeriod(preferredClientStatusPeriod)) {
-                Napier.d("AttestationService: Use buffered instance attestation")
-                return buffer
+        if (input.allowBuffer()) {
+            bufferedInstanceAttestation.firstOrNull()?.let { buffer ->
+                if (buffer.hasRemainingClientStatusPeriod(input.preferredClientStatusPeriod ?: PREFERRED_DEFAULT_TTL)) {
+                    Napier.d("AttestationService: Use buffered instance attestation")
+                    return buffer
+                }
             }
         }
 
+
         Napier.d("AttestationService: Request new instance attestation")
-        val instanceAttestation = instanceAttestationHelper.instanceAttestation(preferredClientStatusPeriod)
-        bufferedInstanceAttestation.emit(instanceAttestation)
-        return instanceAttestation
+        return instanceAttestationHelper.instanceAttestation(input.preferredClientStatusPeriod ?: PREFERRED_DEFAULT_TTL)
+            .also {
+                if (input.allowBuffer()) {
+                    bufferedInstanceAttestation.emit(it)
+                }
+            }
     }
 
     private suspend fun requestKeyAttestation(
         input: KeyAttestationInput,
     ): JwsCompactTyped<KeyAttestationJwt> {
-        val preferredKeyStorageStatusPeriod = input.preferredKeyStorageStatusPeriod ?: PREFERRED_DEFAULT_TTL
-
-        bufferedKeyAttestation.firstOrNull()?.let { buffer ->
-            if (buffer.hasRemainingKeyStorageStatusPeriod(preferredKeyStorageStatusPeriod)) {
-                Napier.d("AttestationService: Use buffered key attestation")
-                bufferedKeyAttestation.emit(null)
-                return buffer
+        if (input.allowBuffer()) {
+            bufferedKeyAttestation.firstOrNull()?.let { buffer ->
+                if (buffer.hasRemainingKeyStorageStatusPeriod(input.preferredKeyStorageStatusPeriod ?: PREFERRED_DEFAULT_TTL)) {
+                    Napier.d("AttestationService: Use buffered key attestation")
+                    bufferedKeyAttestation.emit(null)
+                    return buffer
+                }
             }
         }
 
         Napier.d("AttestationService: Request new key attestation")
 
-        val instanceAttestation = requestInstanceAttestation()
+        val instanceAttestation = requestInstanceAttestation(preloadInstanceAttestationInput)
 
         val pop = instanceAttestationHelper.buildProofOfPossession(
             audience = config.walletProviderHost.first(), nonce = getChallenge()
@@ -144,7 +143,11 @@ class AttestationService(
             nonce = input.clientNonce,
             preferredKeyStorageStatusPeriod = input.preferredKeyStorageStatusPeriod,
             supportedAlgorithms = input.supportedAlgorithms
-        )
+        ).also {
+            if (input.allowBuffer()) {
+                bufferedKeyAttestation.emit(it)
+            }
+        }
     }
 
     private fun JwsCompactTyped<KeyAttestationJwt>.hasRemainingKeyStorageStatusPeriod(ttl: Duration): Boolean {
@@ -158,7 +161,7 @@ class AttestationService(
     }
 
     private suspend fun getChallenge() = catchingUnwrapped {
-        httpClient.get(challengeEndpoint.first().build()) {}.body<ClientNonceResponse>().clientNonce
+        httpClient.get(challengeEndpoint().first().build()) {}.body<ClientNonceResponse>().clientNonce
     }.onFailure {
         Napier.e("AttestationService: Error receiving challenge. $it")
     }.getOrNull()
@@ -166,3 +169,7 @@ class AttestationService(
 }
 
 fun KeyAttestationInput.allowBuffer() = (this.credentialIssuer == null && this.clientNonce == null)
+fun LoadInstanceAttestationInput.allowBuffer() = false
+
+val preloadInstanceAttestationInput = LoadInstanceAttestationInput("", PREFERRED_DEFAULT_TTL)
+val preloadKeyAttestationInput = KeyAttestationInput(null, null, null, PREFERRED_DEFAULT_TTL)

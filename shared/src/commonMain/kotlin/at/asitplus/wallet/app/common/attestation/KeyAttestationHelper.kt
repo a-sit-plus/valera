@@ -8,6 +8,7 @@ import at.asitplus.signum.indispensable.josef.JwsCompactTyped
 import at.asitplus.signum.indispensable.josef.KeyAttestationJwt
 import at.asitplus.signum.indispensable.josef.toJsonWebKey
 import at.asitplus.wallet.app.common.WalletKeyMaterial
+import at.asitplus.wallet.app.common.data.SettingsRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -25,12 +26,12 @@ import kotlinx.serialization.Serializable
 import kotlin.time.Duration
 
 class KeyAttestationHelper(
-    private val host: Flow<String>,
+    private val config: SettingsRepository,
     private val httpClient: HttpClient,
     private val keyMaterial: WalletKeyMaterial,
 ) {
-    private val keyAttestationEndpoint = host.map {
-        URLBuilder(host.first()).apply {
+    private fun keyAttestationEndpoint() = config.walletProviderHost.map {
+        URLBuilder(it).apply {
             appendEncodedPathSegments(PATH_UNIT)
         }
     }
@@ -45,7 +46,7 @@ class KeyAttestationHelper(
     ): JwsCompactTyped<KeyAttestationJwt> {
         val holderKey = keyMaterial.getUnderLyingSigner()
 
-        val response = httpClient.post(Url(keyAttestationEndpoint.first())) {
+        val response = httpClient.post(Url(keyAttestationEndpoint().first())) {
             contentType(ContentType.Application.Json)
             setBody(
                 KeyAttestationRequest(

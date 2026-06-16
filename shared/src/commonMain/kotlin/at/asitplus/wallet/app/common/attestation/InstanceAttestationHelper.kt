@@ -12,6 +12,7 @@ import at.asitplus.signum.indispensable.pki.Pkcs10CertificationRequestAttribute
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.supreme.os.PlatformSigningProvider
 import at.asitplus.wallet.app.common.BuildContext
+import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.SignerBasedKeyMaterial
 import at.asitplus.wallet.lib.jws.JwsHeaderNone
@@ -34,19 +35,24 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
 class InstanceAttestationHelper(
-    private val host: Flow<String>,
+    private val config: SettingsRepository,
     private val httpClient: HttpClient,
     private val buildContext: BuildContext,
 ) {
-    private val challengeEndpoint = host.map {
-        URLBuilder(host.first()).apply {
+    private fun challengeEndpoint() = config.walletProviderHost.map {
+        URLBuilder(it).apply {
             appendEncodedPathSegments(PATH_CHALLENGE)
         }
     }
-    private val instanceEndpoint = host.map {
-        URLBuilder(host.first()).apply {
+    private fun instanceEndpoint() = config.walletProviderHost.map {
+        URLBuilder(it).apply {
             appendEncodedPathSegments(PATH_INSTANCE)
         }
+    }
+
+    suspend fun reset() {
+        instanceAttestationCache = null
+        keyMaterialCache = null
     }
 
     private val client = AttestationClient(httpClient)
@@ -66,7 +72,7 @@ class InstanceAttestationHelper(
         }
     }
 
-    private suspend fun getAttestationChallenge() = client.getChallenge(Url(challengeEndpoint.first()))
+    private suspend fun getAttestationChallenge() = client.getChallenge(Url(challengeEndpoint().first()))
 
     private suspend fun getAttestationProof(preferredClientStatusPeriod: Duration) =
         getAttestationChallenge().getOrThrow().let { challenge ->
@@ -89,7 +95,7 @@ class InstanceAttestationHelper(
     private suspend fun getInstanceAttestation(
         preferredClientStatusPeriod: Duration
     ) = getAttestationProof(preferredClientStatusPeriod).let { proof ->
-        val response = httpClient.post(Url(instanceEndpoint.first())) {
+        val response = httpClient.post(Url(instanceEndpoint().first())) {
             contentType(ContentType.Application.OctetStream)
             setBody(proof.encodeToDer())
         }

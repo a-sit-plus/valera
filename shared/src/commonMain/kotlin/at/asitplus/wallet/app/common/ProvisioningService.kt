@@ -55,10 +55,15 @@ class ProvisioningService(
         val clientId = config.clientId.first()
         if (clientId != cachedClientId) {
             cachedClientId = clientId
-            openId4VciClientCached = null
-            walletServiceCached = null
+            clearCaches()
         }
         return clientId
+    }
+
+    private suspend fun clearCaches() {
+        attestationService.reset()
+        openId4VciClientCached = null
+        walletServiceCached = null
     }
 
     private suspend fun walletService(): WalletService = walletServiceCached ?: run {
@@ -108,6 +113,7 @@ class ProvisioningService(
         credentialIdentifierInfo: CredentialIdentifierInfo,
         reissuingStoreEntryId: StoreEntryId? = null
     ) {
+        clearCaches()
         config.set(host = credentialIssuer)
         cookieStorage.reset()
         openId4VciClient().startProvisioningWithAuthRequestReturningResult(
@@ -168,6 +174,7 @@ class ProvisioningService(
         oldCredentialId: StoreEntryId,
         statusUpdater: ((Long, RefreshStatus) -> Unit)
     ) {
+        clearCaches()
         Napier.d("refreshCredential with identifier ${renewalInfo.credentialIdentifier}")
         openId4VciClient().refreshCredentialReturningResult(renewalInfo).getOrThrow().also { result ->
             val storageResults = result.credentials.map { credentialInput ->
@@ -193,6 +200,7 @@ class ProvisioningService(
     suspend fun decodeCredentialOffer(
         qrCodeContent: String
     ): CredentialOffer {
+        clearCaches()
         return walletService().parseCredentialOffer(qrCodeContent).getOrThrow()
     }
 
