@@ -27,11 +27,21 @@ class ErrorViewModel(
     private val displayThrowable = (throwable as? ErrorHandlingOverrideException)?.cause ?: throwable
     val message = displayThrowable.enrichMessage()
     val cause = displayThrowable.cause?.toString()
+    private val isAppResetRequired = message == AppResetRequiredException.toString()
 
     init {
         val exceptionOverride = throwable as? ErrorHandlingOverrideException
         val onAcknowledge = exceptionOverride?.onAcknowledge
         when {
+            isAppResetRequired -> {
+                onClickButton = {
+                    clearError()
+                    resetApp()
+                    onAcknowledge?.catchingUnwrapped { invoke() }
+                }
+                actionDescription = Res.string.info_text_error_action_reset_app
+                textCause = runBlocking { getString(Res.string.info_text_error_cause_reset_app) }
+            }
             exceptionOverride?.hasUiOverride == true -> {
                 onClickButton = {
                     clearError()
@@ -40,15 +50,6 @@ class ErrorViewModel(
                 }
                 actionDescription = exceptionOverride.actionDescriptionOverride!!
                 textCause = cause
-            }
-            message == AppResetRequiredException.toString() -> {
-                onClickButton = {
-                    clearError()
-                    resetApp()
-                    onAcknowledge?.catchingUnwrapped { invoke() }
-                }
-                actionDescription = Res.string.info_text_error_action_reset_app
-                textCause = runBlocking { getString(Res.string.info_text_error_cause_reset_app) }
             }
             else -> {
                 onClickButton = {

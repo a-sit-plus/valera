@@ -249,6 +249,7 @@ private fun WalletNavHost(
     intentState: IntentState,
 ) {
 
+    val resetNavigationScope = rememberCoroutineScope()
     val items by walletMain.credentialValidityService.refreshItems.collectAsState()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val isOnRefreshCenter = backStackEntry?.destination?.hasRoute<RefreshCenterRoute>() == true
@@ -930,12 +931,12 @@ private fun WalletNavHost(
                         clearError = { walletMain.errorService.clear() },
                         resetStack = { navigator.popToInvoker() },
                         resetApp = {
-                            walletMain.scope.launch {
+                            resetNavigationScope.launch {
                                 walletMain.resetApp()
+                                navigator.navigateNewGraph(InitializationRoute)
                                 val resetMessage =
                                     getString(Res.string.snackbar_reset_app_successfully)
                                 walletMain.snackbarService.showSnackbar(resetMessage)
-                                navigator.navigateNewGraph(InitializationRoute)
                             }
                         },
                         throwable = throwable,
