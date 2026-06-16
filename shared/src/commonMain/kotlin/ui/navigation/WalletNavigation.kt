@@ -935,7 +935,7 @@ private fun WalletNavHost(
                                 val resetMessage =
                                     getString(Res.string.snackbar_reset_app_successfully)
                                 walletMain.snackbarService.showSnackbar(resetMessage)
-                                navigator.popBackStack(InitializationRoute)
+                                navigator.navigateNewGraph(InitializationRoute)
                             }
                         },
                         throwable = throwable,
