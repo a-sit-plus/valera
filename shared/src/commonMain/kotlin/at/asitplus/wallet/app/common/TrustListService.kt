@@ -31,6 +31,7 @@ import kotlinx.coroutines.launch
 import ui.views.TrustState
 import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -53,11 +54,13 @@ val asitRootPem = "-----BEGIN CERTIFICATE-----\n" +
 class TrustListService(
     private val persistentTrustListStore: PersistentTrustListStore,
     private val httpService: HttpService,
-//    private val verifyJwsObject: VerifyJwsObjectFun = VerifyJwsObject(),
+//    TODO: will be included after alignment with vck
+//    private val verifyJwsObject: VerifyJwsObjectFun = VerifyJwsObjectJades(),
 ) {
     private var job: Job? = null
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val client = httpService.buildHttpClient()
+    // A-SIT trust list
     val aistIssuerCert = X509Certificate.decodeFromPem(asitRootPem).getOrThrow()
     private val loTeFilterService: LoTEFilterService = LoTEFilterService()
 
@@ -75,7 +78,7 @@ class TrustListService(
     ): Flow<TrustState> {
         return combine(
             storeEntryFlow,
-            persistentTrustListStore.observeTrustContainer() // using the injected store directly
+            persistentTrustListStore.observeTrustContainer()
         ) { entry, trustContainerMap ->
             if (entry == null) return@combine TrustState.EVALUATING
 
@@ -98,7 +101,6 @@ class TrustListService(
         return try {
             val certificate = X509Certificate.decodeFromDer(issuerBytes)
 
-            // We can now use this.aistIssuerCert directly
             if (certificate.isTrustedBy(listOf(aistIssuerCert)).isSuccess) {
                 return TrustState.TRUSTED
             }
@@ -124,7 +126,7 @@ class TrustListService(
      * Starts the periodic background loop.
      * Default interval is 1 hour as configured.
      */
-    fun startChecking(interval: Duration = 1.minutes) {
+    fun startChecking(interval: Duration = 1.hours) {
         job?.cancel()
 
         job = scope.launch {
