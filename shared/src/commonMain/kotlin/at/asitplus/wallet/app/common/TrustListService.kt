@@ -7,6 +7,10 @@ import at.asitplus.etsi.TrustListPayload
 import at.asitplus.signum.indispensable.josef.JwsSigned
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.signum.indispensable.pki.X509Certificate
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.etsi.LoTEFilterCriteria
+import at.asitplus.wallet.lib.etsi.LoTEFilterService
+import at.asitplus.wallet.lib.etsi.isTrustedBy
 import at.asitplus.wallet.lib.jws.VerifyJwsObject
 import at.asitplus.wallet.lib.jws.VerifyJwsObjectFun
 import data.storage.PersistentTrustListStore
@@ -21,7 +25,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable.isActive
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import ui.views.TrustState
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -52,6 +59,8 @@ class TrustListService(
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val client = httpService.buildHttpClient()
     val aistIssuerCert = X509Certificate.decodeFromPem(asitRootPem).getOrThrow()
+    private val loTeFilterService: LoTEFilterService = LoTEFilterService()
+
 
     private val defaultUrls = listOf(
         "https://acceptance.trust.tech.ec.europa.eu/lists/eudiw/pid-providers.json",
@@ -60,6 +69,56 @@ class TrustListService(
         "https://acceptance.trust.tech.ec.europa.eu/lists/eudiw/mdl-providers.json",
         "https://trust.tech.ec.europa.eu/lists/eudiw/pub-eaa-providers.json"
     )
+
+    fun observeTrustStateForEntry(
+        storeEntryFlow: Flow<SubjectCredentialStore.StoreEntry?>
+    ): Flow<TrustState> {
+        return combine(
+            storeEntryFlow,
+            persistentTrustListStore.observeTrustContainer() // using the injected store directly
+        ) { entry, trustContainerMap ->
+            if (entry == null) return@combine TrustState.EVALUATING
+
+            val issuerBytes = entry.issuer ?: return@combine TrustState.UNKNOWN
+            val allLoTes = trustContainerMap.values.map { it.loTe }
+            val serviceType = entry.schemaUri
+
+            evaluateIssuer(issuerBytes, allLoTes, serviceType)
+        }
+    }
+
+    /**
+     * Evaluates if a given issuer is trusted based on the internal root cert and LoTEs.
+     */
+    fun evaluateIssuer(
+        issuerBytes: ByteArray,
+        trustLists: List<ListOfTrustedEntities>,
+        serviceType: String
+    ): TrustState {
+        return try {
+            val certificate = X509Certificate.decodeFromDer(issuerBytes)
+
+            // We can now use this.aistIssuerCert directly
+            if (certificate.isTrustedBy(listOf(aistIssuerCert)).isSuccess) {
+                return TrustState.TRUSTED
+            }
+
+            val criteria = LoTEFilterCriteria(expectedServiceType = serviceType)
+            val certificateList: List<X509Certificate> = trustLists
+                .flatMap { lote -> loTeFilterService.extractTrustedCertificates(lote, criteria) }
+                .mapNotNull { it.certificate }
+
+            if (certificateList.isEmpty()) {
+                return TrustState.UNTRUSTED
+            }
+
+            val validationResult = certificate.isTrustedBy(certificateList)
+
+            if (validationResult.isSuccess) TrustState.TRUSTED else TrustState.UNTRUSTED
+        } catch (_: Exception) {
+            TrustState.UNTRUSTED
+        }
+    }
 
     /**
      * Starts the periodic background loop.

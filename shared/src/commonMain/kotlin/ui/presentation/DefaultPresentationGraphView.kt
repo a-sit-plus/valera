@@ -75,7 +75,8 @@ fun DefaultPresentationGraphView(
                 onError(throwable)
             }
             null
-        }
+        },
+        trustListService = viewModel.trustListService
     )
 }
 

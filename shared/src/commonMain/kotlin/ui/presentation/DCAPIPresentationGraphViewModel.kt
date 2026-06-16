@@ -33,6 +33,7 @@ class DCAPIPresentationGraphViewModel(
 ) : ViewModel() {
     val route = savedStateHandle.toRoute<DCAPIPresentationViewRoute>()
 
+    val trustListService = walletMain.trustListService
     val apiRequestSerialized = route.apiRequestSerialized
 
     val dcApiWalletRequest = catching {

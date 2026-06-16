@@ -10,6 +10,7 @@ import at.asitplus.openid.dcql.DCQLCredentialSubmissionOption
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.unexpected_screen_text
 import at.asitplus.wallet.app.common.LoadingMessageKey
+import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.openid.DCQLMatchingResult
 import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
@@ -36,6 +37,7 @@ fun PresentationBuilderGraphView(
     onNavigateUp: () -> Unit,
     onNavigateToPresentationStart: () -> Unit,
     onSubmit: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>) -> Unit,
+    trustListService: TrustListService
 ) {
     when (selectionProvider) {
         is UiStateError -> CommonPresentationPageScaffold(
@@ -95,6 +97,7 @@ fun PresentationBuilderGraphView(
                                                 credential = credential,
                                                 matchingResult = matchingResult,
                                                 freshnessState = freshnessState,
+                                                trustListService = trustListService
                                             )
                                         }
 

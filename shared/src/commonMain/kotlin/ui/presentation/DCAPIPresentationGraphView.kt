@@ -60,5 +60,6 @@ fun DCAPIPresentationGraphView(
         presentationRequest = (matchingResult as? UiStateSuccess)?.value?.second
             ?.queryMatchingResult?.presentationRequest,
         showStartRoute = showStartRoute,
+        trustListService = viewModel.trustListService
     )
 }

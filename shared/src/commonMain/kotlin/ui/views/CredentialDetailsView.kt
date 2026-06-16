@@ -190,20 +190,20 @@ enum class TrustState {
 fun TrustStatusBanner(trustState: TrustState, modifier: Modifier = Modifier) {
     val (backgroundColor, contentColor, icon, text) = when (trustState) {
         TrustState.TRUSTED -> listOf(
-            Color(0xFFE8F5E9), Color(0xFF2E7D32), // Green hues
+            Color(0xFFE8F5E9), Color(0xFF2E7D32),
             Icons.Filled.CheckCircle, "Trusted Issuer"
         )
         TrustState.UNTRUSTED -> listOf(
-            Color(0xFFFFEBEE), Color(0xFFC62828), // Red hues
-            Icons.Filled.Error, "Untrusted or Invalid Signature"
+            Color(0xFFFFEBEE), Color(0xFFC62828),
+            Icons.Filled.Error, "Untrusted Issuer"
         )
         TrustState.UNKNOWN -> listOf(
-            Color(0xFFFFF8E1), Color(0xFFF57F17), // Amber hues
+            Color(0xFFFFF8E1), Color(0xFFF57F17),
             Icons.Filled.Warning, "Trust Status Unknown"
         )
         TrustState.EVALUATING -> listOf(
             MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant,
-            Icons.Filled.Warning, "Evaluating Trust..." // Or use a CircularProgressIndicator here
+            Icons.Filled.Warning, "Evaluating Trust..."
         )
     }
 

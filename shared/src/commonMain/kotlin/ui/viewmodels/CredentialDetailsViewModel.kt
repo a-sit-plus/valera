@@ -49,6 +49,15 @@ class CredentialDetailsViewModel(
         }
     }
 
+    val trustState: StateFlow<TrustState> = walletMain.trustListService
+        .observeTrustStateForEntry(storeEntry)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = TrustState.EVALUATING
+        )
+
+
     val credentialTimelinessesStates = channelFlow {
         val knownStates = mutableMapOf<Long, CredentialFreshnessSummaryUiModel>()
         walletMain.subjectCredentialStore.observeStoreContainer().collectLatest {
@@ -74,47 +83,47 @@ class CredentialDetailsViewModel(
         }
     }
 
-    val trustState: StateFlow<TrustState> = combine(
-        storeEntry,
-        walletMain.trustListStore.observeTrustContainer()
-    ) { entry, trustContainerMap ->
-        if (entry == null) return@combine TrustState.EVALUATING
-
-        val issuerBytes = entry.issuer ?: return@combine TrustState.UNKNOWN
-
-        val allLoTes = trustContainerMap.values.map { it.loTe }
-
-        evaluateIssuer(issuerBytes, allLoTes, entry.schemaUri)
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = TrustState.EVALUATING
-    )
-
-    private fun evaluateIssuer(
-        issuerBytes: ByteArray,
-        trustLists: List<ListOfTrustedEntities>,
-        serviceType: String
-    ): TrustState {
-        return try {
-            val certificate = X509Certificate.decodeFromDer(issuerBytes)
-
-            if (certificate.isTrustedBy(listOf(walletMain.trustListService.aistIssuerCert)).isSuccess) return TrustState.TRUSTED
-
-            val criteria = LoTEFilterCriteria(expectedServiceType = serviceType)
-            val certificateList: List<X509Certificate> = trustLists
-                .flatMap { lote -> loTeFilterService.extractTrustedCertificates(lote, criteria) }
-                .mapNotNull { it.certificate }
-
-            if (certificateList.isEmpty()) {
-                return TrustState.UNTRUSTED
-            }
-
-            val validationResult = certificate.isTrustedBy(certificateList)
-
-            if (validationResult.isSuccess) TrustState.TRUSTED else TrustState.UNTRUSTED
-        } catch (_: Exception) {
-            TrustState.UNTRUSTED
-        }
-    }
+//    val trustState: StateFlow<TrustState> = combine(
+//        storeEntry,
+//        walletMain.trustListStore.observeTrustContainer()
+//    ) { entry, trustContainerMap ->
+//        if (entry == null) return@combine TrustState.EVALUATING
+//
+//        val issuerBytes = entry.issuer ?: return@combine TrustState.UNKNOWN
+//
+//        val allLoTes = trustContainerMap.values.map { it.loTe }
+//
+//        evaluateIssuer(issuerBytes, allLoTes, entry.schemaUri)
+//    }.stateIn(
+//        scope = viewModelScope,
+//        started = SharingStarted.WhileSubscribed(5000),
+//        initialValue = TrustState.EVALUATING
+//    )
+//
+//    private fun evaluateIssuer(
+//        issuerBytes: ByteArray,
+//        trustLists: List<ListOfTrustedEntities>,
+//        serviceType: String
+//    ): TrustState {
+//        return try {
+//            val certificate = X509Certificate.decodeFromDer(issuerBytes)
+//
+//            if (certificate.isTrustedBy(listOf(walletMain.trustListService.aistIssuerCert)).isSuccess) return TrustState.TRUSTED
+//
+//            val criteria = LoTEFilterCriteria(expectedServiceType = serviceType)
+//            val certificateList: List<X509Certificate> = trustLists
+//                .flatMap { lote -> loTeFilterService.extractTrustedCertificates(lote, criteria) }
+//                .mapNotNull { it.certificate }
+//
+//            if (certificateList.isEmpty()) {
+//                return TrustState.UNTRUSTED
+//            }
+//
+//            val validationResult = certificate.isTrustedBy(certificateList)
+//
+//            if (validationResult.isSuccess) TrustState.TRUSTED else TrustState.UNTRUSTED
+//        } catch (_: Exception) {
+//            TrustState.UNTRUSTED
+//        }
+//    }
 }
