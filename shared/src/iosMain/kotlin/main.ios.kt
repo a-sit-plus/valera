@@ -7,9 +7,10 @@ import androidx.compose.ui.window.ComposeUIViewController
 import at.asitplus.catching
 import at.asitplus.KmmResult
 import at.asitplus.dcapi.EncryptedResponse
-import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.dcapi.request.IsoMdocRequest
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.PlatformAdapter
@@ -281,7 +282,7 @@ class IosPlatformAdapter(
         }
     }
 
-    override fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIWalletRequest> {
+    override fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest> {
         Napier.d("getCurrentDCAPIVerificationData called")
         return (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let {
             try {
@@ -298,8 +299,9 @@ class IosPlatformAdapter(
                 require(parsedRequestSummary.isConsistentWith(isoMdocRequest)) {
                     "Parsed ISO18013 mobile document pre-request is inconsistent with rawRequest"
                 }
-                val walletRequest = DCAPIWalletRequest.IsoMdoc(
-                    isoMdocRequest = isoMdocRequest,
+                val walletRequest = RequestParametersFrom.IsoMdocDcApi(
+                    parameters = RequestParametersFrom.IsoMdocDcApi.IsoMdocRequestWrapper(isoMdocRequest),
+                    jsonString = joseCompliantSerializer.encodeToString(isoMdocRequest),
                     callingOrigin = it.origin ?: throw IllegalStateException("No origin received"),
                     credentialIds = null
                 )

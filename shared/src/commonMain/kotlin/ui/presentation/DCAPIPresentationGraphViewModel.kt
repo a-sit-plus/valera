@@ -5,8 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import at.asitplus.catching
-import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.dif.PresentationDefinition
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.supreme.UserInitiatedCancellationReason
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
@@ -36,16 +36,17 @@ class DCAPIPresentationGraphViewModel(
     val apiRequestSerialized = route.apiRequestSerialized
 
     val dcApiWalletRequest = catching {
-        joseCompliantSerializer.decodeFromString<DCAPIWalletRequest.IsoMdoc>(apiRequestSerialized)
+        joseCompliantSerializer.decodeFromString<RequestParametersFrom.IsoMdocDcApi>(apiRequestSerialized)
     }
 
-    val selectionProvider = MutableStateFlow<UiState<Pair<DCAPIWalletRequest.IsoMdoc, CredentialSelectionProvider<SubjectCredentialStore.StoreEntry>>>>(
+    val selectionProvider = MutableStateFlow<UiState<Pair<RequestParametersFrom.IsoMdocDcApi, CredentialSelectionProvider<SubjectCredentialStore.StoreEntry>>>>(
         UiStateLoading
     ).apply {
         viewModelScope.launch {
             value = try {
                 val unwrappedDcApiWalletRequest = dcApiWalletRequest.getOrThrow()
-                val descriptors = unwrappedDcApiWalletRequest.isoMdocRequest.deviceRequest.docRequests.toDifInputDescriptorList()
+                val descriptors =
+                    unwrappedDcApiWalletRequest.parameters.isoMdocRequest.deviceRequest.docRequests.toDifInputDescriptorList()
                 val presentationRequest = CredentialPresentationRequest.PresentationExchangeRequest(
                     presentationDefinition = PresentationDefinition(
                         inputDescriptors = descriptors
@@ -114,7 +115,7 @@ class DCAPIPresentationGraphViewModel(
 
     private suspend fun finalizeAuthorization(
         credentialPresentation: CredentialPresentation,
-        request: DCAPIWalletRequest.IsoMdoc
+        request: RequestParametersFrom.IsoMdocDcApi
     ): OpenId4VpWallet.AuthenticationSuccess {
         walletMain.keyMaterial.promptText =
             getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
@@ -126,7 +127,7 @@ class DCAPIPresentationGraphViewModel(
 
     private suspend fun finalizationMethod(
         credentialPresentation: CredentialPresentation,
-        request: DCAPIWalletRequest.IsoMdoc
+        request: RequestParametersFrom.IsoMdocDcApi
     ): OpenId4VpWallet.AuthenticationSuccess = walletMain.presentationService.finalizeIsoMdocDCAPIPresentation(
         credentialPresentation = when (credentialPresentation) {
             is CredentialPresentation.PresentationExchangePresentation -> credentialPresentation

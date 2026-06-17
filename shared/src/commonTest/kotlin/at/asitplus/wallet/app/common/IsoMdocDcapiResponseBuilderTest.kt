@@ -3,7 +3,6 @@ package at.asitplus.wallet.app.common
 import at.asitplus.dcapi.DCAPIHandover.Companion.TYPE_DCAPI
 import at.asitplus.dcapi.DCAPIInfo
 import at.asitplus.dcapi.DCAPIResponse
-import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.iso.DeviceAuthentication
 import at.asitplus.iso.DeviceNameSpaces
 import at.asitplus.iso.DeviceSignedItem
@@ -12,12 +11,14 @@ import at.asitplus.iso.IssuerSignedItem
 import at.asitplus.iso.serializeOrigin
 import at.asitplus.iso.sha256
 import at.asitplus.iso.wrapInCborTag
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.CryptoPrivateKey
 import at.asitplus.signum.indispensable.ECCurve
 import at.asitplus.signum.indispensable.SecretExposure
 import at.asitplus.signum.indispensable.cosef.CoseKeyParams
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.lib.RequestOptionsCredential
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
@@ -60,7 +61,7 @@ class IsoMdocDcapiResponseBuilderTest {
                 type = TYPE_DCAPI,
                 hash = coseCompliantSerializer.encodeToByteArray(
                     DCAPIInfo(
-                        encryptionInfo = fixture.walletRequest.isoMdocRequest.encryptionInfo,
+                        encryptionInfo = fixture.walletRequest.parameters.isoMdocRequest.encryptionInfo,
                         serializedOrigin = ORIGIN.serializeOrigin() ?: error("Invalid origin")
                     )
                 ).sha256()
@@ -83,7 +84,7 @@ class IsoMdocDcapiResponseBuilderTest {
 
         val encrypter = Hpke.getEncrypter(
             cipherSuite = Hpke.CipherSuite.DHKEM_P256_HKDF_SHA256_HKDF_SHA256_AES_128_GCM,
-            receiverPublicKey = fixture.walletRequest.isoMdocRequest.encryptionInfo.encryptionParameters.recipientMultipazPublicKey(),
+            receiverPublicKey = fixture.walletRequest.parameters.isoMdocRequest.encryptionInfo.encryptionParameters.recipientMultipazPublicKey(),
             info = encodedTranscript
         )
         val ciphertext = encrypter.encrypt(plaintext, aad = ByteArray(0))
@@ -193,8 +194,9 @@ class IsoMdocDcapiResponseBuilderTest {
             verifier = verifier,
             verifierKey = verifierKey,
             presentationRequestBuilder = presentationRequestBuilder,
-            walletRequest = DCAPIWalletRequest.IsoMdoc(
-                isoMdocRequest = isoRequest,
+            walletRequest = RequestParametersFrom.IsoMdocDcApi(
+                parameters = RequestParametersFrom.IsoMdocDcApi.IsoMdocRequestWrapper(isoRequest),
+                jsonString = joseCompliantSerializer.encodeToString(isoRequest),
                 callingOrigin = ORIGIN,
                 credentialIds = null,
             )
@@ -223,7 +225,7 @@ class IsoMdocDcapiResponseBuilderTest {
         val verifier: Iso180137AnnexCVerifier,
         val verifierKey: EphemeralKeyWithoutCert,
         val presentationRequestBuilder: CredentialPresentationRequestBuilder,
-        val walletRequest: DCAPIWalletRequest.IsoMdoc,
+        val walletRequest: RequestParametersFrom.IsoMdocDcApi,
     )
 
     companion object {

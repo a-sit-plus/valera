@@ -31,12 +31,13 @@ import at.asitplus.dcapi.DCAPIResponse
 import at.asitplus.dcapi.DigitalCredentialInterface
 import at.asitplus.dcapi.EncryptedResponse
 import at.asitplus.dcapi.IsoMdocResponse
-import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.dcapi.request.ExchangeProtocolIdentifier
 import at.asitplus.dcapi.request.verifier.DigitalCredentialGetRequest
 import at.asitplus.dcapi.request.verifier.DigitalCredentialRequestOptions
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import at.asitplus.signum.indispensable.josef.typed
 import at.asitplus.wallet.app.android.dcapi.AndroidDCAPIInvocationData
 import at.asitplus.wallet.app.android.dcapi.CustomRegistry
 import at.asitplus.wallet.app.common.BuildContext
@@ -302,7 +303,7 @@ public class AndroidPlatformAdapter(
     }
 
     @OptIn(ExperimentalDigitalCredentialApi::class, ExperimentalEncodingApi::class)
-    override fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIWalletRequest> = catching {
+    override fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest> = catching {
         (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (intent, _) ->
             // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
             val credentialRequest = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
@@ -329,17 +330,21 @@ public class AndroidPlatformAdapter(
             when (digitalCredentialGetRequest) {
                 is DigitalCredentialGetRequest.OpenId4VpSigned -> {
                     Napier.d("Using OpenID4VP Signed, got request $digitalCredentialGetRequest for credential IDs $credentialIds")
-                    DCAPIWalletRequest.OpenId4VpSigned(
-                        request = digitalCredentialGetRequest.request,
+                    RequestParametersFrom.OpenId4VpDcApiSigned(
+                        jwsTyped = digitalCredentialGetRequest.data.request.typed(),
                         credentialIds = credentialIds,
                         callingPackageName = callingPackageName,
                         callingOrigin = callingOrigin
                     )
                 }
+                is DigitalCredentialGetRequest.OpenId4VpMultiSigned -> {
+                    TODO("OpenID4VP multisigned DC API requests are not supported yet")
+                }
                 is DigitalCredentialGetRequest.OpenId4VpUnsigned -> {
                     Napier.d("Using OpenID4VP Unsigned, got request $digitalCredentialGetRequest for credential IDs $credentialIds")
-                    DCAPIWalletRequest.OpenId4VpUnsigned(
-                        request = digitalCredentialGetRequest.request,
+                    RequestParametersFrom.OpenId4VpDcApiUnsigned(
+                        parameters = digitalCredentialGetRequest.data,
+                        jsonString = joseCompliantSerializer.encodeToString(digitalCredentialGetRequest.data),
                         credentialIds = credentialIds,
                         callingPackageName = callingPackageName,
                         callingOrigin = callingOrigin
@@ -347,8 +352,11 @@ public class AndroidPlatformAdapter(
                 }
                 is DigitalCredentialGetRequest.IsoMdoc -> {
                     Napier.d("Using Iso 18013-7 Annex C, got request $digitalCredentialGetRequest for credential IDs $credentialIds")
-                    DCAPIWalletRequest.IsoMdoc(
-                        isoMdocRequest = digitalCredentialGetRequest.request,
+                    RequestParametersFrom.IsoMdocDcApi(
+                        parameters = RequestParametersFrom.IsoMdocDcApi.IsoMdocRequestWrapper(
+                            digitalCredentialGetRequest.data
+                        ),
+                        jsonString = joseCompliantSerializer.encodeToString(digitalCredentialGetRequest.data),
                         credentialIds = credentialIds,
                         callingPackageName = callingPackageName,
                         callingOrigin = callingOrigin

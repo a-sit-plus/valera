@@ -3,7 +3,7 @@ package at.asitplus.wallet.app.common
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
 import at.asitplus.dcapi.EncryptedResponse
-import at.asitplus.dcapi.request.DCAPIWalletRequest
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
@@ -242,7 +242,7 @@ interface PlatformAdapter {
     /**
      * Retrieves request from the digital credentials browser API
      */
-    fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIWalletRequest>
+    fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest>
 
     /**
      * Retrieves creation request from the digital credentials browser API
@@ -312,7 +312,7 @@ class DummyPlatformAdapter : PlatformAdapter {
     override fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope) {
     }
 
-    override fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIWalletRequest> {
+    override fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest> {
         return KmmResult.failure(IllegalStateException("Using dummy platform adapter"))
     }
 

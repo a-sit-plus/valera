@@ -1,10 +1,11 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.signum.supreme.UserInitiatedCancellationReason
-import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.iso.DeviceAuthentication
 import at.asitplus.iso.SessionTranscript
 import at.asitplus.iso.wrapInCborTag
+import at.asitplus.openid.AuthenticationRequestParameters
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.lib.agent.CreatePresentationResult
@@ -38,7 +39,7 @@ class PresentationService(
     suspend fun startAuthorizationResponsePreparation(input: String) =
         presentationService.startAuthorizationResponsePreparation(input)
 
-    suspend fun startAuthorizationResponsePreparation(input: DCAPIWalletRequest.OpenId4Vp) =
+    suspend fun startAuthorizationResponsePreparation(input: RequestParametersFrom<AuthenticationRequestParameters>) =
         presentationService.startAuthorizationResponsePreparation(input)
 
     suspend fun getMatchingCredentials(
@@ -56,7 +57,7 @@ class PresentationService(
     @OptIn(ExperimentalStdlibApi::class)
     suspend fun finalizeIsoMdocDCAPIPresentation(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
-        isoMdocWalletRequest: DCAPIWalletRequest.IsoMdoc
+        isoMdocWalletRequest: RequestParametersFrom.IsoMdocDcApi
     ): OpenId4VpWallet.AuthenticationSuccess {
         Napier.d("Finalizing DCAPI response")
         val encryptedResponse = IsoMdocDcapiResponseBuilder.buildEncryptedResponse(

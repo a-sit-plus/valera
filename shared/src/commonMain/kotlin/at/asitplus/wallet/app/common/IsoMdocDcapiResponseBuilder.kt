@@ -5,12 +5,12 @@ import at.asitplus.dcapi.DCAPIHandover.Companion.TYPE_DCAPI
 import at.asitplus.dcapi.DCAPIInfo
 import at.asitplus.dcapi.EncryptedResponse
 import at.asitplus.dcapi.EncryptedResponseData
-import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.iso.DeviceAuthentication
 import at.asitplus.iso.SessionTranscript
 import at.asitplus.iso.serializeOrigin
 import at.asitplus.iso.sha256
 import at.asitplus.iso.wrapInCborTag
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.CoseKeyParams
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
@@ -33,11 +33,12 @@ import org.multipaz.crypto.Hpke
 
 internal object IsoMdocDcapiResponseBuilder {
 
-    fun sessionTranscriptFor(isoMdocWalletRequest: DCAPIWalletRequest.IsoMdoc): SessionTranscript {
+    fun sessionTranscriptFor(isoMdocWalletRequest: RequestParametersFrom.IsoMdocDcApi): SessionTranscript {
+        val isoMdocRequest = isoMdocWalletRequest.parameters.isoMdocRequest
         val callingOrigin = isoMdocWalletRequest.callingOrigin.serializeOrigin()
             ?: throw IllegalArgumentException("Invalid calling origin")
         val hash = coseCompliantSerializer.encodeToByteArray(
-            DCAPIInfo(isoMdocWalletRequest.isoMdocRequest.encryptionInfo, callingOrigin)
+            DCAPIInfo(isoMdocRequest.encryptionInfo, callingOrigin)
         ).sha256()
         val handover = DCAPIHandover(type = TYPE_DCAPI, hash = hash)
         return SessionTranscript.forDcApi(handover)
@@ -46,17 +47,18 @@ internal object IsoMdocDcapiResponseBuilder {
     @OptIn(ExperimentalStdlibApi::class)
     suspend fun buildEncryptedResponse(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
-        isoMdocWalletRequest: DCAPIWalletRequest.IsoMdoc,
+        isoMdocWalletRequest: RequestParametersFrom.IsoMdocDcApi,
         keyMaterial: WalletKeyMaterial,
         holderAgent: HolderAgent,
     ): EncryptedResponse {
         val sessionTranscript = sessionTranscriptFor(isoMdocWalletRequest)
+        val isoMdocRequest = isoMdocWalletRequest.parameters.isoMdocRequest
         val callingOrigin = isoMdocWalletRequest.callingOrigin.serializeOrigin()
             ?: throw IllegalArgumentException("Invalid calling origin")
 
         val presentationResult = holderAgent.createPresentation(
             request = PresentationRequestParameters(
-                nonce = isoMdocWalletRequest.isoMdocRequest.encryptionInfo.encryptionParameters.nonce
+                nonce = isoMdocRequest.encryptionInfo.encryptionParameters.nonce
                     ?.encodeToString(Base64UrlStrict) ?: throw IllegalArgumentException("no nonce"),
                 audience = callingOrigin,
                 calcIsoDeviceSignaturePlain = { input ->
@@ -92,7 +94,7 @@ internal object IsoMdocDcapiResponseBuilder {
         }
         val deviceResponseSerialized = coseCompliantSerializer.encodeToByteArray(deviceResponse)
 
-        val encryptionParameters = isoMdocWalletRequest.isoMdocRequest.encryptionInfo.encryptionParameters
+        val encryptionParameters = isoMdocRequest.encryptionInfo.encryptionParameters
 
         val publicKey = try {
             val keyParams = encryptionParameters.recipientPublicKey.keyParams as CoseKeyParams.EcKeyParams<*>

@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import at.asitplus.catching
-import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
@@ -36,11 +35,7 @@ class DefaultPresentationGraphViewModel(
     }
 
     val dcApiRequest = preparationState.map {
-        when (val request = it.request) {
-            is RequestParametersFrom.DcApiSigned -> request.dcApiRequest
-            is RequestParametersFrom.DcApiUnsigned -> request.dcApiRequest
-            else -> null
-        } as? DCAPIWalletRequest
+        it.request as? RequestParametersFrom.DcApiRequest
     }
 
     val selectionProvider = MutableStateFlow<UiState<CredentialSelectionProvider<SubjectCredentialStore.StoreEntry>>>(
@@ -130,4 +125,3 @@ class DefaultPresentationGraphViewModel(
 internal fun serializeDcApiPresentationResponse(
     authenticationResponseResult: AuthenticationResponseResult.DcApi,
 ) = joseCompliantSerializer.encodeToString(authenticationResponseResult.params.data)
-

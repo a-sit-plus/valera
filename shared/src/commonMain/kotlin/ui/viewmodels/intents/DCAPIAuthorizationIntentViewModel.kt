@@ -1,10 +1,9 @@
 package ui.viewmodels.intents
 
 import ErrorHandlingOverrideException
-import at.asitplus.dcapi.request.DCAPIWalletRequest
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
-import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.lib.oidvci.OAuth2Exception
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequest
 import io.github.aakira.napier.Napier
@@ -47,8 +46,10 @@ class DCAPIAuthorizationIntentViewModel(
         val dcApiRequest = walletMain.platformAdapter.getCurrentDCAPIVerificationData().getOrThrow()
 
         val successRoute = when (dcApiRequest) {
-            is DCAPIWalletRequest.OpenId4Vp -> buildConsentPageFromRequest(dcApiRequest)
-            is DCAPIWalletRequest.IsoMdoc -> buildConsentPageFromDcApiRequest(dcApiRequest)
+            is RequestParametersFrom.OpenId4VpDcApiMultiSigned -> TODO()
+            is RequestParametersFrom.OpenId4VpDcApiSigned -> buildConsentPageFromRequest(dcApiRequest)
+            is RequestParametersFrom.OpenId4VpDcApiUnsigned -> buildConsentPageFromRequest(dcApiRequest)
+            is RequestParametersFrom.IsoMdocDcApi -> buildConsentPageFromDcApiRequest(dcApiRequest)
         }.getOrThrow()
 
         onSuccess(successRoute)
