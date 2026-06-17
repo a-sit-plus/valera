@@ -11,17 +11,14 @@ import at.asitplus.signum.supreme.sign.Signer
 import platform.Foundation.NSBundle
 
 private const val keychainAccessGroupInfoPlistKey = "WalletKeychainAccessGroupIdentifier"
-private const val keychainTagOverrideInfoPlistKey = "WalletKeychainTagOverride"
 
 private data class WalletIosKeychainConfig(
-    val accessGroup: String,
-    val tagOverride: String
+    val accessGroup: String
 )
 
 private val walletIosKeychainConfig by lazy {
     WalletIosKeychainConfig(
-        accessGroup = resolvedInfoPlistString(keychainAccessGroupInfoPlistKey),
-        tagOverride = resolvedInfoPlistString(keychainTagOverrideInfoPlistKey)
+        accessGroup = resolvedInfoPlistString(keychainAccessGroupInfoPlistKey)
     )
 }
 
@@ -29,21 +26,17 @@ private fun resolvedInfoPlistString(key: String): String {
     val value = NSBundle.mainBundle.objectForInfoDictionaryKey(key) as? String
     require(!value.isNullOrBlank() && "\$(" !in value) {
         "Could not resolve $key from Info.plist. Configure KEYCHAIN_ACCESS_GROUP_IDENTIFIER " +
-            "and APP_BUNDLE_IDENTIFIER in iosApp/Configuration/Config.xcconfig or Signing.local.xcconfig."
+            "in iosApp/Configuration/Config.xcconfig or Signing.local.xcconfig."
     }
     return value
 }
 
 private fun IosSignerConfiguration.useWalletKeychain() {
-    val config = walletIosKeychainConfig
-    accessGroup = config.accessGroup
-    tagOverride = config.tagOverride
+    accessGroup = walletIosKeychainConfig.accessGroup
 }
 
 private fun IosSigningKeyConfiguration.useWalletKeychain() {
-    val config = walletIosKeychainConfig
-    accessGroup = config.accessGroup
-    tagOverride = config.tagOverride
+    accessGroup = walletIosKeychainConfig.accessGroup
     signer {
         useWalletKeychain()
     }
@@ -97,9 +90,7 @@ internal actual object WalletPlatformKeyStore {
     }
 
     actual suspend fun deleteSigningKey(alias: String): KmmResult<Unit> =
-        IosKeychainProvider.deleteSigningKey(alias) {
-            useWalletKeychain()
-        }
+        IosKeychainProvider.deleteSigningKey(alias)
 
     actual suspend fun deleteLegacySigningKeyIfPresent(alias: String): KmmResult<Boolean> = catching {
         val legacySignerExists = IosKeychainProvider.getSignerForKey(alias).isSuccess
