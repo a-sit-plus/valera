@@ -17,6 +17,8 @@
    * Use VC-K data classes to (de-)serialize received/emitted data
    * Add support for iOS using ISO/IEC 18013-7 Annex C protocol
    * Add support for issuance via the DC API based on the preliminary spec defined in https://github.com/openid/OpenID4VCI/pull/476
+ * Add `TrustListService` for loading LoTE regularly in the background
+ * Display trust evaluation in Consent Screen and in `CredentialsDetailsView`
 
 # Release 5.7.6
  * Update to VC-K 5.12.0
