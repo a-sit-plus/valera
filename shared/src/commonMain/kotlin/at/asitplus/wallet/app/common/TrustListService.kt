@@ -4,6 +4,7 @@ import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.etsi.ListOfTrustedEntities
 import at.asitplus.etsi.TrustListPayload
+import at.asitplus.signum.indispensable.josef.JwsCompact
 import at.asitplus.signum.indispensable.josef.JwsSigned
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.signum.indispensable.pki.X509Certificate
@@ -11,8 +12,8 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.etsi.LoTEFilterCriteria
 import at.asitplus.wallet.lib.etsi.LoTEFilterService
 import at.asitplus.wallet.lib.etsi.isTrustedBy
-import at.asitplus.wallet.lib.jws.VerifyJwsObject
 import at.asitplus.wallet.lib.jws.VerifyJwsObjectFun
+import at.asitplus.wallet.lib.jws.VerifyJwsObjectJades
 import data.storage.PersistentTrustListStore
 import io.github.aakira.napier.Napier
 import io.ktor.client.request.accept
@@ -32,7 +33,6 @@ import ui.views.TrustState
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -55,7 +55,7 @@ class TrustListService(
     private val persistentTrustListStore: PersistentTrustListStore,
     private val httpService: HttpService,
 //    TODO: will be included after alignment with vck
-//    private val verifyJwsObject: VerifyJwsObjectFun = VerifyJwsObjectJades(),
+    private val verifyJwsObject: VerifyJwsObjectFun = VerifyJwsObjectJades(),
 ) {
     private var job: Job? = null
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -167,19 +167,15 @@ class TrustListService(
 
         val responseBody = response.bodyAsText()
 
-        val jws = JwsSigned.deserialize<TrustListPayload>(
-            TrustListPayload.serializer(),
-            responseBody,
-            joseCompliantSerializer
-        ).getOrThrow()
+        val jws = JwsCompact.parse<TrustListPayload>(responseBody).getOrThrow()
 
-//        verifyJwsObject(jws).getOrThrow()
+        verifyJwsObject(jws.first).getOrThrow()
 
         Napier.i("Successfully validated Trust List signature from $url")
 
         TrustListResult(
             rawJwsText = responseBody,
-            loTe = jws.payload.loTe
+            loTe = jws.second.loTe
         )
     }
 }
