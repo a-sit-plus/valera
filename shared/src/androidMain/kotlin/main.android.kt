@@ -22,28 +22,19 @@ import androidx.credentials.registry.provider.RegistryManager
 import androidx.credentials.registry.provider.selectedEntryId
 import at.asitplus.KmmResult
 import at.asitplus.catching
-import at.asitplus.dcapi.DCAPIResponse
-import at.asitplus.dcapi.DigitalCredentialInterface
-import at.asitplus.dcapi.EncryptedResponse
-import at.asitplus.dcapi.EncryptedResponseData
-import at.asitplus.dcapi.IsoMdocResponse
-import at.asitplus.dcapi.request.DCAPIWalletRequest
+import at.asitplus.dcapi.*
 import at.asitplus.dcapi.request.ExchangeProtocolIdentifier
 import at.asitplus.dcapi.request.verifier.DigitalCredentialGetRequest
 import at.asitplus.dcapi.request.verifier.DigitalCredentialRequestOptions
 import at.asitplus.iso.EncryptionParameters
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.CoseKeyParams.EcKeyParams
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import at.asitplus.signum.indispensable.josef.typed
 import at.asitplus.wallet.app.android.dcapi.CustomRegistry
 import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
-import at.asitplus.wallet.app.common.BuildContext
-import at.asitplus.wallet.app.common.CapabilitiesService
-import at.asitplus.wallet.app.common.KeystoreService
-import at.asitplus.wallet.app.common.PlatformAdapter
-import at.asitplus.wallet.app.common.RealCapabilitiesService
-import at.asitplus.wallet.app.common.SESSION_NAME
-import at.asitplus.wallet.app.common.WalletDependencyProvider
+import at.asitplus.wallet.app.common.*
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.common.di.appModule
 import data.storage.RealDataStoreService
@@ -240,7 +231,7 @@ public class AndroidPlatformAdapter(
     }
 
     @OptIn(ExperimentalDigitalCredentialApi::class, ExperimentalEncodingApi::class)
-    override fun getCurrentDCAPIData(): KmmResult<DCAPIWalletRequest> = catching {
+    override fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest> = catching {
         (Globals.dcapiInvocationData.value as DCAPIInvocationData?)?.let { (intent, _) ->
             // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
             val credentialRequest = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
@@ -272,32 +263,39 @@ public class AndroidPlatformAdapter(
 
             Napier.d("DC API: Got request ${option.requestJson} for selection $selectionInfo")
 
-            val credentialId = selectionInfo.documentIds[0]
+            val credentialIds = selectionInfo.documentIds
 
             when (digitalCredentialGetRequest) {
                 is DigitalCredentialGetRequest.OpenId4VpSigned -> {
-                    Napier.d("Using OpenID4VP Signed, got request $digitalCredentialGetRequest for credential ID $credentialId")
-                    DCAPIWalletRequest.OpenId4VpSigned(
-                        request = digitalCredentialGetRequest.request,
-                        credentialIds = setOf(credentialId),
+                    Napier.d("Using OpenID4VP Signed, got request $digitalCredentialGetRequest for credential IDs $credentialIds")
+                    RequestParametersFrom.OpenId4VpDcApiSigned(
+                        jwsTyped = digitalCredentialGetRequest.data.request.typed(),
+                        credentialIds = credentialIds,
                         callingPackageName = callingPackageName,
                         callingOrigin = callingOrigin
                     )
                 }
+                is DigitalCredentialGetRequest.OpenId4VpMultiSigned -> {
+                    TODO("OpenID4VP multisigned DC API requests are not supported yet")
+                }
                 is DigitalCredentialGetRequest.OpenId4VpUnsigned -> {
-                    Napier.d("Using OpenID4VP Unsigned, got request $digitalCredentialGetRequest for credential ID $credentialId")
-                    DCAPIWalletRequest.OpenId4VpUnsigned(
-                        request = digitalCredentialGetRequest.request,
-                        credentialIds = setOf(credentialId),
+                    Napier.d("Using OpenID4VP Unsigned, got request $digitalCredentialGetRequest for credential IDs $credentialIds")
+                    RequestParametersFrom.OpenId4VpDcApiUnsigned(
+                        parameters = digitalCredentialGetRequest.data,
+                        jsonString = joseCompliantSerializer.encodeToString(digitalCredentialGetRequest.data),
+                        credentialIds = credentialIds,
                         callingPackageName = callingPackageName,
                         callingOrigin = callingOrigin
                     )
                 }
                 is DigitalCredentialGetRequest.IsoMdoc -> {
-                    Napier.d("Using Iso 18013-7 Annex C, got request $digitalCredentialGetRequest for credential ID $credentialId")
-                    DCAPIWalletRequest.IsoMdoc(
-                        isoMdocRequest = digitalCredentialGetRequest.request,
-                        credentialIds = setOf(credentialId),
+                    Napier.d("Using Iso 18013-7 Annex C, got request $digitalCredentialGetRequest for credential IDs $credentialIds")
+                    RequestParametersFrom.IsoMdocDcApi(
+                        parameters = RequestParametersFrom.IsoMdocDcApi.IsoMdocRequestWrapper(
+                            digitalCredentialGetRequest.data
+                        ),
+                        jsonString = joseCompliantSerializer.encodeToString(digitalCredentialGetRequest.data),
+                        credentialIds = credentialIds,
                         callingPackageName = callingPackageName,
                         callingOrigin = callingOrigin
                     )

@@ -4,29 +4,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.window.ComposeUIViewController
 import at.asitplus.KmmResult
-import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.iso.EncryptionParameters
-import at.asitplus.wallet.app.common.BuildContext
-import at.asitplus.wallet.app.common.CapabilitiesService
-import at.asitplus.wallet.app.common.KeystoreService
-import at.asitplus.wallet.app.common.PlatformAdapter
-import at.asitplus.wallet.app.common.RealCapabilitiesService
-import at.asitplus.wallet.app.common.SESSION_NAME
-import at.asitplus.wallet.app.common.WalletDependencyProvider
+import at.asitplus.openid.RequestParametersFrom
+import at.asitplus.wallet.app.common.*
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.common.di.appModule
 import data.storage.RealDataStoreService
 import data.storage.createDataStore
 import io.github.aakira.napier.Napier
-import kotlinx.cinterop.BetaInteropApi
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.ObjCObjectVar
-import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.alloc
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.ptr
-import kotlinx.cinterop.usePinned
-import kotlinx.cinterop.value
+import kotlinx.cinterop.*
 import kotlinx.coroutines.CoroutineScope
 import org.koin.core.module.dsl.scopedOf
 import org.koin.core.qualifier.named
@@ -34,36 +20,9 @@ import org.koin.dsl.binds
 import org.koin.dsl.module
 import org.multipaz.compose.prompt.PromptDialogs
 import org.multipaz.prompt.IosPromptModel
-import platform.AVFoundation.AVAuthorizationStatusAuthorized
-import platform.AVFoundation.AVAuthorizationStatusDenied
-import platform.AVFoundation.AVAuthorizationStatusNotDetermined
-import platform.AVFoundation.AVAuthorizationStatusRestricted
-import platform.AVFoundation.AVCaptureDevice
-import platform.AVFoundation.AVMediaTypeVideo
-import platform.AVFoundation.authorizationStatusForMediaType
-import platform.Foundation.NSData
-import platform.Foundation.NSDocumentDirectory
-import platform.Foundation.NSError
-import platform.Foundation.NSFileHandle
-import platform.Foundation.NSFileManager
-import platform.Foundation.NSSet
-import platform.Foundation.NSString
-import platform.Foundation.NSURL
-import platform.Foundation.NSUTF8StringEncoding
-import platform.Foundation.NSUserDomainMask
-import platform.Foundation.anyObject
-import platform.Foundation.closeFile
-import platform.Foundation.create
-import platform.Foundation.fileHandleForWritingAtPath
-import platform.Foundation.seekToEndOfFile
-import platform.Foundation.stringWithContentsOfFile
-import platform.Foundation.writeData
-import platform.UIKit.UIActivityViewController
-import platform.UIKit.UIApplication
-import platform.UIKit.UIApplicationOpenSettingsURLString
-import platform.UIKit.UIViewController
-import platform.UIKit.UIWindow
-import platform.UIKit.UIWindowScene
+import platform.AVFoundation.*
+import platform.Foundation.*
+import platform.UIKit.*
 import platform.darwin.dispatch_async
 import platform.darwin.dispatch_get_main_queue
 import ui.theme.darkScheme
@@ -255,8 +214,8 @@ class IosPlatformAdapter(
         //TODO("Not yet implemented")
     }
 
-    override fun getCurrentDCAPIData(): KmmResult<DCAPIWalletRequest> {
-        return KmmResult.failure(Throwable("Using Swift platform adapter"))
+    override fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest> {
+        TODO("Not yet implemented")
     }
 
     override fun prepareDCAPIIsoMdocCredentialResponse(
@@ -268,7 +227,7 @@ class IosPlatformAdapter(
     }
 
     override fun prepareDCAPIOid4vpCredentialResponse(responseJson: String, success: Boolean) {
-        //TODO("Not yet implemented")
+        // TODO("Not yet implemented")
     }
 
     override fun openDeviceSettings() {

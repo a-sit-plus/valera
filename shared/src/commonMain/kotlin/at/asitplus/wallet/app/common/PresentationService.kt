@@ -3,27 +3,20 @@ package at.asitplus.wallet.app.common
 import at.asitplus.dcapi.DCAPIHandover
 import at.asitplus.dcapi.DCAPIHandover.Companion.TYPE_DCAPI
 import at.asitplus.dcapi.DCAPIInfo
-import at.asitplus.dcapi.request.DCAPIWalletRequest
-import at.asitplus.iso.DeviceAuthentication
-import at.asitplus.iso.SessionTranscript
-import at.asitplus.iso.serializeOrigin
-import at.asitplus.iso.sha256
-import at.asitplus.iso.wrapInCborTag
+import at.asitplus.iso.*
+import at.asitplus.openid.AuthenticationRequestParameters
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.signum.indispensable.io.Base64UrlStrict
-import at.asitplus.wallet.lib.agent.CreatePresentationResult
-import at.asitplus.wallet.lib.agent.HolderAgent
-import at.asitplus.wallet.lib.agent.PresentationException
-import at.asitplus.wallet.lib.agent.PresentationRequestParameters
-import at.asitplus.wallet.lib.agent.PresentationResponseParameters
+import at.asitplus.wallet.lib.agent.*
 import at.asitplus.wallet.lib.cbor.CoseHeaderNone
 import at.asitplus.wallet.lib.cbor.SignCoseDetached
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
-import io.ktor.client.HttpClient
+import io.ktor.client.*
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.encodeToByteArray
@@ -45,7 +38,7 @@ class PresentationService(
     suspend fun startAuthorizationResponsePreparation(input: String) =
         presentationService.startAuthorizationResponsePreparation(input)
 
-    suspend fun startAuthorizationResponsePreparation(input: DCAPIWalletRequest.OpenId4Vp) =
+    suspend fun startAuthorizationResponsePreparation(input: RequestParametersFrom<AuthenticationRequestParameters>) =
         presentationService.startAuthorizationResponsePreparation(input)
 
     suspend fun getMatchingCredentials(
@@ -63,13 +56,13 @@ class PresentationService(
     @OptIn(ExperimentalEncodingApi::class, ExperimentalStdlibApi::class)
     suspend fun finalizeDCAPIIsoMdocPresentation(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
-        isoMdocWalletRequest: DCAPIWalletRequest.IsoMdoc
+        isoMdocWalletRequest: RequestParametersFrom.IsoMdocDcApi
     ): OpenId4VpWallet.AuthenticationSuccess {
         Napier.d("Finalizing DCAPI response")
 
         // TODO this code is probably duplicated in the Verifier
         val hash = coseCompliantSerializer.encodeToByteArray(
-            DCAPIInfo(isoMdocWalletRequest.isoMdocRequest.encryptionInfo, isoMdocWalletRequest.callingOrigin)
+            DCAPIInfo(isoMdocWalletRequest.parameters.isoMdocRequest.encryptionInfo, isoMdocWalletRequest.callingOrigin)
         ).sha256()
         val handover = DCAPIHandover(type = TYPE_DCAPI, hash = hash)
         val sessionTranscript = SessionTranscript.forDcApi(handover)
@@ -78,7 +71,7 @@ class PresentationService(
 
         val presentationResult = holderAgent.createPresentation(
             request = PresentationRequestParameters(
-                nonce = isoMdocWalletRequest.isoMdocRequest.encryptionInfo.encryptionParameters.nonce
+                nonce = isoMdocWalletRequest.parameters.isoMdocRequest.encryptionInfo.encryptionParameters.nonce
                     ?.encodeToString(Base64UrlStrict) ?: throw IllegalArgumentException("no nonce"),
                 audience = callingOrigin,
                 calcIsoDeviceSignaturePlain = { input ->
@@ -118,7 +111,7 @@ class PresentationService(
         platformAdapter.prepareDCAPIIsoMdocCredentialResponse(
             deviceResponseSerialized,
             coseCompliantSerializer.encodeToByteArray(sessionTranscript),
-            isoMdocWalletRequest.isoMdocRequest.encryptionInfo.encryptionParameters
+            isoMdocWalletRequest.parameters.isoMdocRequest.encryptionInfo.encryptionParameters
         )
         return OpenId4VpWallet.AuthenticationSuccess()
     }

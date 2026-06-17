@@ -2,8 +2,8 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
-import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.iso.EncryptionParameters
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
@@ -18,17 +18,12 @@ import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import data.storage.DataStoreService
 import data.storage.WalletSubjectCredentialStore
 import io.github.aakira.napier.Napier
-import io.ktor.client.call.body
-import io.ktor.client.request.get
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -235,7 +230,7 @@ interface PlatformAdapter {
     /**
      * Retrieves request from the digital credentials browser API
      */
-    fun getCurrentDCAPIData(): KmmResult<DCAPIWalletRequest>
+    fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest>
 
     fun prepareDCAPIIsoMdocCredentialResponse(
         responseJson: ByteArray,
@@ -271,7 +266,7 @@ class DummyPlatformAdapter : PlatformAdapter {
     override fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope) {
     }
 
-    override fun getCurrentDCAPIData(): KmmResult<DCAPIWalletRequest> {
+    override fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest> {
         return KmmResult.failure(IllegalStateException("Using dummy platform adapter"))
     }
 
