@@ -18,6 +18,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.content_description_hide_attributes
 import at.asitplus.valera.resources.content_description_show_attributes
 import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.lib.data.CredentialScheme
 import data.PersonalDataCategory
 import data.credentials.CredentialAttributeTranslator
 import org.jetbrains.compose.resources.stringResource
@@ -29,7 +30,7 @@ fun CategorySelectionRow(
     attributeCategory: Map.Entry<PersonalDataCategory, List<NormalizedJsonPath>>,
     isExpanded: Boolean,
     onToggleExpanded: (Boolean) -> Unit,
-    requestedCredentialScheme: ConstantIndex.CredentialScheme?,
+    requestedCredentialScheme: CredentialScheme?,
     requestedAttributes: Set<NormalizedJsonPath>,
     onChangeRequestedAttributes: ((Set<NormalizedJsonPath>) -> Unit)?,
     isEditSelectionEnabled: Boolean = true,

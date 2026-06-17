@@ -9,6 +9,7 @@ import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
@@ -21,7 +22,7 @@ interface CredentialAttributeTranslator {
     fun translate(attributeName: NormalizedJsonPath): StringResource?
 
     companion object {
-        operator fun get(scheme: ConstantIndex.CredentialScheme?) = when(scheme) {
+        operator fun get(scheme: CredentialScheme?) = when(scheme) {
             is EuPidScheme,
             is EuPidSdJwtScheme -> EuPidCredentialAttributeTranslator()
             is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAttributeTranslator()

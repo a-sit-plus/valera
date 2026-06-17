@@ -4,6 +4,7 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
+import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.ADMINISTRATIVE_NUMBER
 import at.asitplus.wallet.taxid.TaxIdScheme.Attributes.AFFILIATION_COUNTRY
@@ -98,7 +99,7 @@ sealed class TaxIdCredentialAdapter : CredentialAdapter() {
 
 private class TaxIdCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
-    override val scheme: ConstantIndex.CredentialScheme
+    override val scheme: CredentialScheme
 ) : TaxIdCredentialAdapter() {
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.SD_JWT
@@ -157,7 +158,7 @@ private class TaxIdCredentialSdJwtAdapter(
 
 private class TaxIdComplexCredentialSdJwtAdapter(
     private val attributes: JsonObject,
-    override val scheme: ConstantIndex.CredentialScheme
+    override val scheme: CredentialScheme
 ) : TaxIdCredentialAdapter() {
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.SD_JWT
@@ -216,7 +217,7 @@ private class TaxIdComplexCredentialSdJwtAdapter(
 
 private class TaxIdIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
-    override val scheme: ConstantIndex.CredentialScheme
+    override val scheme: CredentialScheme
 ) : TaxIdCredentialAdapter() {
     private val namespace = namespaces?.get(scheme.isoNamespace)
 

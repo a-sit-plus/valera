@@ -19,6 +19,7 @@ import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest.DCQLRequest
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest.PresentationExchangeRequest
+import at.asitplus.wallet.lib.data.CredentialScheme
 import data.credentials.MdocClaimReference
 import org.jetbrains.compose.resources.stringResource
 import data.credentials.JsonClaimReference
@@ -114,7 +115,7 @@ fun DcqlRequestPreview(
 
 @Composable
 fun RequestedCredentialPreview(
-    scheme: ConstantIndex.CredentialScheme,
+    scheme: CredentialScheme,
     representation: ConstantIndex.CredentialRepresentation,
     attributes: Map<NormalizedJsonPath?, Boolean>?,
 ) {

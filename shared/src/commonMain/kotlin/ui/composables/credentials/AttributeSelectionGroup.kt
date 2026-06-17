@@ -23,6 +23,7 @@ import at.asitplus.valera.resources.text_label_check_all
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.lib.data.CredentialScheme
 import kotlinx.serialization.json.JsonPrimitive
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.LabeledCheckbox
@@ -32,7 +33,7 @@ import ui.composables.LabeledTextCheckbox
 fun AttributeSelectionGroup(
     credential: Map.Entry<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>,
     selection: SnapshotStateMap<String, Boolean>,
-    format: ConstantIndex.CredentialScheme?
+    format: CredentialScheme?
 ) {
     val storeEntry = credential.key
     val attributeSelectionList: List<AttributeSelectionElement> =

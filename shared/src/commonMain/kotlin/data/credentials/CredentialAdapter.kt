@@ -7,6 +7,7 @@ import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.wallet.lib.agent.SdJwtDecoded
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.data.LocalDateOrInstant
 import at.asitplus.wallet.lib.jws.SdJwtSigned
 import data.Attribute
@@ -63,7 +64,7 @@ abstract class CredentialAdapter {
 
     abstract val representation: ConstantIndex.CredentialRepresentation
 
-    abstract val scheme: ConstantIndex.CredentialScheme
+    abstract val scheme: CredentialScheme
 
     companion object {
         fun SubjectCredentialStore.StoreEntry.SdJwt.toAttributeMap() =

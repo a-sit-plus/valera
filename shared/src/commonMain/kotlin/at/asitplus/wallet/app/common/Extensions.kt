@@ -29,6 +29,7 @@ import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.*
+import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme
 import at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme
 import at.asitplus.wallet.lib.data.VcDataModelConstants.VERIFIABLE_CREDENTIAL
@@ -47,7 +48,7 @@ import org.jetbrains.compose.resources.stringResource
 import ui.presentation.DCQLCredentialQueryUiModel
 import ui.presentation.DCQLCredentialQueryUiModelAttributeLabels
 
-fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, ConstantIndex.CredentialScheme, Map<NormalizedJsonPath, Boolean>> {
+fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, CredentialScheme, Map<NormalizedJsonPath, Boolean>> {
     @Suppress("DEPRECATION")
     val credentialRepresentation = when {
         this.format == null -> throw IllegalStateException("Format of input descriptor must be set")
@@ -101,7 +102,7 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Const
     return Triple(credentialRepresentation, scheme, attributes)
 }
 
-private fun ConstantIndex.CredentialScheme.matchAgainstIdentifier(
+private fun CredentialScheme.matchAgainstIdentifier(
     representation: CredentialRepresentation,
     identifiers: Collection<String>
 ) = when (representation) {
@@ -120,7 +121,7 @@ private fun ConstraintFilter.referenceValues() =
  * assumes json claim path pointers don't contain `null`, otherwise only the prefix is shown
  */
 @Throws(Throwable::class)
-fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, ConstantIndex.CredentialScheme, Collection<SingleClaimReference?>?> {
+fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimReference?>?> {
     val representation = when (format) {
         CredentialFormatEnum.DC_SD_JWT -> SD_JWT
         CredentialFormatEnum.MSO_MDOC -> ISO_MDOC
@@ -170,7 +171,7 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
     return Triple(representation, scheme, singleReferenceClaimsQueries?.values)
 }
 
-fun ConstantIndex.CredentialScheme.toJsonElement(
+fun CredentialScheme.toJsonElement(
     representation: CredentialRepresentation,
     requestedElements: Collection<String>? = null
 ): JsonElement {
@@ -362,7 +363,7 @@ fun Array<DocRequest>.toDifInputDescriptorList() = this.map {
 }
 
 @Composable
-fun Triple<CredentialRepresentation, ConstantIndex.CredentialScheme, Collection<SingleClaimReference?>?>.toCredentialQueryUiModel(): DCQLCredentialQueryUiModel {
+fun Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimReference?>?>.toCredentialQueryUiModel(): DCQLCredentialQueryUiModel {
     val (representation, scheme, attributePaths) = this
     return DCQLCredentialQueryUiModel(
         credentialRepresentationLocalized = representation.uiLabel(),

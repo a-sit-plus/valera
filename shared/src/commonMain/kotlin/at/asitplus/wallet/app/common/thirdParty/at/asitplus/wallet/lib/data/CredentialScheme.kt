@@ -30,6 +30,7 @@ import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
@@ -49,7 +50,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Suppress("DEPRECATION")
 @Composable
-fun ConstantIndex.CredentialScheme?.uiLabel(): String = when (this) {
+fun CredentialScheme?.uiLabel(): String = when (this) {
     is EuPidScheme -> stringResource(Res.string.credential_scheme_label_eu_pid)
     is EuPidSdJwtScheme -> stringResource(Res.string.credential_scheme_label_eu_pid_sdjwt)
     is MobileDrivingLicenceScheme -> stringResource(Res.string.credential_scheme_label_mdl)
@@ -64,7 +65,7 @@ fun ConstantIndex.CredentialScheme?.uiLabel(): String = when (this) {
 }
 
 @Suppress("DEPRECATION")
-suspend fun ConstantIndex.CredentialScheme?.uiLabelNonCompose(): String = when (this) {
+suspend fun CredentialScheme?.uiLabelNonCompose(): String = when (this) {
     is EuPidScheme -> getString(Res.string.credential_scheme_label_eu_pid)
     is EuPidSdJwtScheme -> getString(Res.string.credential_scheme_label_eu_pid_sdjwt)
     is MobileDrivingLicenceScheme -> getString(Res.string.credential_scheme_label_mdl)
@@ -80,7 +81,7 @@ suspend fun ConstantIndex.CredentialScheme?.uiLabelNonCompose(): String = when (
 
 @Suppress("DEPRECATION")
 @Composable
-fun ConstantIndex.CredentialScheme?.iconLabel(): String = when (this) {
+fun CredentialScheme?.iconLabel(): String = when (this) {
     is EuPidScheme -> stringResource(Res.string.credential_scheme_icon_label_eu_pid)
     is EuPidSdJwtScheme -> stringResource(Res.string.credential_scheme_icon_label_eu_pid)
     is MobileDrivingLicenceScheme -> stringResource(Res.string.credential_scheme_icon_label_mdl)
@@ -95,7 +96,7 @@ fun ConstantIndex.CredentialScheme?.iconLabel(): String = when (this) {
 }
 
 @Suppress("DEPRECATION")
-fun ConstantIndex.CredentialScheme.getLocalization(path: NormalizedJsonPath): StringResource? = when (this) {
+fun CredentialScheme.getLocalization(path: NormalizedJsonPath): StringResource? = when (this) {
     is EuPidScheme -> { EuPidCredentialAttributeTranslator().translate(path) }
     is EuPidSdJwtScheme -> { EuPidCredentialAttributeTranslator().translate(path) }
     is MobileDrivingLicenceScheme -> { MobileDrivingLicenceCredentialAttributeTranslator().translate(path) }
@@ -111,7 +112,7 @@ fun ConstantIndex.CredentialScheme.getLocalization(path: NormalizedJsonPath): St
 
 
 @Suppress("DEPRECATION")
-fun ConstantIndex.CredentialScheme.getLocalization(claimReference: SingleClaimReference): StringResource? = when (this) {
+fun CredentialScheme.getLocalization(claimReference: SingleClaimReference): StringResource? = when (this) {
     is EuPidScheme -> { EuPidCredentialAttributeTranslator().translateSingleClaimReference(claimReference) }
     is EuPidSdJwtScheme -> { EuPidCredentialAttributeTranslator().translateSingleClaimReference(claimReference) }
     is MobileDrivingLicenceScheme -> { MobileDrivingLicenceCredentialAttributeTranslator().translateSingleClaimReference(claimReference) }

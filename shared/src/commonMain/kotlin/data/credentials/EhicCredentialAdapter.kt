@@ -26,6 +26,7 @@ import at.asitplus.wallet.ehic.EhicScheme.Attributes.STARTING_DATE
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
+import at.asitplus.wallet.lib.data.CredentialScheme
 import data.Attribute
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.JsonObject
@@ -93,7 +94,7 @@ sealed class EhicCredentialAdapter : CredentialAdapter() {
 private class EhicCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
 ) : EhicCredentialAdapter() {
-    override val scheme: ConstantIndex.CredentialScheme
+    override val scheme: CredentialScheme
         get() = EhicScheme
 
     override val representation: CredentialRepresentation
@@ -152,7 +153,7 @@ private class EhicCredentialSdJwtAdapter(
 private class EhicComplexCredentialSdJwtAdapter(
     private val attributes: JsonObject,
 ) : EhicCredentialAdapter() {
-    override val scheme: ConstantIndex.CredentialScheme
+    override val scheme: CredentialScheme
         get() = EhicScheme
 
     override val representation: CredentialRepresentation
@@ -204,7 +205,7 @@ private class EhicComplexCredentialSdJwtAdapter(
 
     override val dateOfExpiry: LocalDate?
         get() = (attributes[DATE_OF_EXPIRY] as? JsonPrimitive?)?.contentOrNull?.toLocalDateOrNull()
-    
+
     override val startingDate: LocalDate?
         get() = (attributes[STARTING_DATE] as? JsonPrimitive?)?.contentOrNull?.toLocalDateOrNull()
 

@@ -31,6 +31,7 @@ import at.asitplus.wallet.eupid.IsoIec5218Gender
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
+import at.asitplus.wallet.lib.data.CredentialScheme
 import data.Attribute
 import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
@@ -144,7 +145,7 @@ sealed class CertificateOfResidenceCredentialAdapter : CredentialAdapter() {
 private class CertificateOfResidenceCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
 ) : CertificateOfResidenceCredentialAdapter() {
-    override val scheme: ConstantIndex.CredentialScheme
+    override val scheme: CredentialScheme
         get() = CertificateOfResidenceScheme
 
     override val representation: CredentialRepresentation
@@ -230,7 +231,7 @@ private class CertificateOfResidenceCredentialSdJwtAdapter(
 private class CertificateOfResidenceComplexCredentialSdJwtAdapter(
     private val attributes: JsonObject,
 ) : CertificateOfResidenceCredentialAdapter() {
-    override val scheme: ConstantIndex.CredentialScheme
+    override val scheme: CredentialScheme
         get() = CertificateOfResidenceScheme
 
     override val representation: CredentialRepresentation

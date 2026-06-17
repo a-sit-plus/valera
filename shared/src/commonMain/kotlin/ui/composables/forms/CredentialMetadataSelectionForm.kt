@@ -7,16 +7,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.issuing_label_host
-import at.asitplus.valera.resources.issuing_label_information
-import at.asitplus.valera.resources.issuing_label_representation
-import at.asitplus.valera.resources.issuing_label_scheme
-import at.asitplus.wallet.app.common.credentialScheme
+import at.asitplus.valera.resources.*
+import at.asitplus.wallet.app.common.resolveCredentialScheme
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
+import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import at.asitplus.wallet.lib.oidvci.toRepresentation
 import org.jetbrains.compose.resources.stringResource
@@ -35,6 +34,9 @@ fun CredentialMetadataSelectionForm(
     availableIdentifiers: Collection<CredentialIdentifierInfo>,
     showTransactionCode: Boolean,
 ) {
+    val scheme by produceState<CredentialScheme?>(null, credentialIdentifierInfo) {
+        value = credentialIdentifierInfo.supportedCredentialFormat.resolveCredentialScheme()
+    }
     Column(
         modifier = modifier,
     ) {
@@ -63,7 +65,7 @@ fun CredentialMetadataSelectionForm(
             )
             Text(": ")
             Text(
-                text = credentialIdentifierInfo.credentialScheme.uiLabel(),
+                text = scheme.uiLabel(),
                 style = MaterialTheme.typography.bodyLarge,
             )
         }

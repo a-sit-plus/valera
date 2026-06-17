@@ -1,25 +1,15 @@
 package ui.composables.inputFields
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.text_label_id_identifier
-import at.asitplus.wallet.app.common.credentialScheme
+import at.asitplus.wallet.app.common.resolveCredentialScheme
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
+import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
-import at.asitplus.wallet.lib.oidvci.toRepresentation
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -77,6 +67,16 @@ fun CredentialIdentifierInputField(
     modifier: Modifier = Modifier,
     availableIdentifiers: Collection<CredentialIdentifierInfo>,
 ) {
+    // ponytail: produceState bridges the suspend resolveCredentialScheme() into Compose state
+    val schemes by produceState<Map<CredentialIdentifierInfo, CredentialScheme?>>(
+        initialValue = emptyMap(),
+        availableIdentifiers,
+        value,
+    ) {
+        this.value = (availableIdentifiers + value)
+            .associateWith { it.supportedCredentialFormat.resolveCredentialScheme() }
+    }
+
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = onExpandedChange,
@@ -84,7 +84,7 @@ fun CredentialIdentifierInputField(
     ) {
         OutlinedTextField(
             readOnly = true,
-            value = value.uiLabel(),
+            value = schemes[value].uiLabel(),
             onValueChange = {},
             label = { Text(stringResource(Res.string.text_label_id_identifier)) },
             enabled = enabled,
@@ -96,10 +96,10 @@ fun CredentialIdentifierInputField(
             onDismissRequest = { onExpandedChange(false) },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            availableIdentifiers.associateBy { it.uiLabel() }.map {
+            availableIdentifiers.map { identifier ->
                 DropdownMenuItem(
-                    text = { Text(it.key) },
-                    onClick = { onValueChange(it.value) },
+                    text = { Text(schemes[identifier].uiLabel()) },
+                    onClick = { onValueChange(identifier) },
                     enabled = enabled,
                 )
             }
@@ -107,6 +107,3 @@ fun CredentialIdentifierInputField(
     }
 }
 
-@Composable
-private fun CredentialIdentifierInfo.uiLabel() =
-    "${credentialScheme.uiLabel()} (${supportedCredentialFormat.format.toRepresentation().uiLabel()})"

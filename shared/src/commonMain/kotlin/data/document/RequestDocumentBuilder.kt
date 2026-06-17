@@ -4,7 +4,6 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.ageverification.AgeVerificationScheme
 import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
-import at.asitplus.wallet.lib.data.ConstantIndex.CredentialScheme
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.credentials.AgeVerificationCredentialAttributeTranslator
@@ -14,14 +13,14 @@ import data.credentials.MobileDrivingLicenceCredentialAttributeTranslator
 import org.jetbrains.compose.resources.StringResource
 
 object RequestDocumentBuilder {
-    val schemes: List<CredentialScheme> = listOf(
+    val schemes: List<at.asitplus.wallet.lib.data.CredentialScheme> = listOf(
         MobileDrivingLicenceScheme,
         EuPidScheme,
         HealthIdScheme,
         AgeVerificationScheme
     )
 
-    val requestTypeToScheme: Map<SelectableRequestType, CredentialScheme> = mapOf(
+    val requestTypeToScheme: Map<SelectableRequestType, at.asitplus.wallet.lib.data.CredentialScheme> = mapOf(
         SelectableRequestType.MDL_MANDATORY to MobileDrivingLicenceScheme,
         SelectableRequestType.MDL_FULL to MobileDrivingLicenceScheme,
         SelectableRequestType.MDL_AGE_VERIFICATION to MobileDrivingLicenceScheme,
@@ -61,7 +60,7 @@ object RequestDocumentBuilder {
         docTypeConfigs[docType]?.preselection?.invoke() ?: emptySet()
 
     fun buildRequestDocument(
-        scheme: CredentialScheme,
+        scheme: at.asitplus.wallet.lib.data.CredentialScheme,
         subSet: Collection<String>? = null
     ): RequestDocument {
         val attributes = subSet ?: scheme.claimNames
@@ -101,7 +100,7 @@ object SelectableDocTypes {
 }
 
 data class DocTypeConfig(
-    val scheme: CredentialScheme,
+    val scheme: at.asitplus.wallet.lib.data.CredentialScheme,
     val preselection: () -> Set<String>,
     val translator: (NormalizedJsonPath) -> StringResource?
 )

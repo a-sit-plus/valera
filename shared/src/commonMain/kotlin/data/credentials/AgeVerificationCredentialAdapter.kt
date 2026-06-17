@@ -7,6 +7,7 @@ import at.asitplus.wallet.app.common.minus
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
+import at.asitplus.wallet.lib.data.CredentialScheme
 import data.Attribute
 
 sealed class AgeVerificationCredentialAdapter(
@@ -65,7 +66,7 @@ sealed class AgeVerificationCredentialAdapter(
 class AgeVerificationCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
 ) : AgeVerificationCredentialAdapter() {
-    override val scheme: ConstantIndex.CredentialScheme
+    override val scheme: CredentialScheme
         get() = AgeVerificationScheme
 
     private val namespace = namespaces?.get(AgeVerificationScheme.isoNamespace)

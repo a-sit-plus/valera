@@ -22,6 +22,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore.StoreEntry
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import at.asitplus.wallet.lib.data.CredentialScheme
 import data.Attribute
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.JsonObject
@@ -82,7 +83,7 @@ sealed class CompanyRegistrationCredentialAdapter : CredentialAdapter() {
 private class CompanyRegistrationCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
 ) : CompanyRegistrationCredentialAdapter() {
-    override val scheme: ConstantIndex.CredentialScheme
+    override val scheme: CredentialScheme
         get() = CompanyRegistrationScheme
 
     override val representation: CredentialRepresentation
@@ -128,7 +129,7 @@ private class CompanyRegistrationCredentialSdJwtAdapter(
 private class CompanyRegistrationCredentialComplexSdJwtAdapter(
     private val attributes: JsonObject,
 ) : CompanyRegistrationCredentialAdapter() {
-    override val scheme: ConstantIndex.CredentialScheme
+    override val scheme: CredentialScheme
         get() = CompanyRegistrationScheme
 
     override val representation: CredentialRepresentation

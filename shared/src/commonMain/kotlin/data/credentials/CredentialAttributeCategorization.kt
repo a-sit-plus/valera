@@ -9,6 +9,7 @@ import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
@@ -26,7 +27,7 @@ typealias AttributeUnpackingInformation = Pair<NormalizedJsonPath, List<Normaliz
 interface CredentialAttributeCategorization {
     companion object {
         fun load(
-            scheme: ConstantIndex.CredentialScheme?,
+            scheme: CredentialScheme?,
             representation: ConstantIndex.CredentialRepresentation
         ): Template = when (scheme) {
             is EuPidScheme -> EuPidCredentialAttributeCategorization

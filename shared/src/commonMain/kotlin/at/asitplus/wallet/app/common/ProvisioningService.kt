@@ -3,6 +3,7 @@ package at.asitplus.wallet.app.common
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.IssuerMetadata
 import at.asitplus.openid.OAuth2AuthorizationServerMetadata
+import at.asitplus.openid.SupportedCredentialFormat
 import at.asitplus.openid.SupportedCredentialFormatIsoMdoc
 import at.asitplus.openid.SupportedCredentialFormatSdJwt
 import at.asitplus.openid.SupportedCredentialFormatW3cVcJsonLd
@@ -19,7 +20,9 @@ import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.data.AttributeIndex
-import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.ISO_MDOC
+import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.SD_JWT
+import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult
 import at.asitplus.wallet.lib.ktor.openid.OAuth2KtorClient
@@ -503,13 +506,11 @@ class ProofKeyMismatchException(expected: String?, actual: String?) : IllegalSta
             "The key material must be re-derived before issuing credentials."
 )
 
-val CredentialIdentifierInfo.credentialScheme: ConstantIndex.CredentialScheme?
-    get() =  with(supportedCredentialFormat) {
-        when (this) {
-            is SupportedCredentialFormatIsoMdoc -> AttributeIndex.resolveIsoDoctype(docType)
-            is SupportedCredentialFormatSdJwt -> AttributeIndex.resolveSdJwtAttributeType(sdJwtVcType)
-            is SupportedCredentialFormatW3cVcJsonLd -> this.credentialDefinition.type.firstNotNullOfOrNull { AttributeIndex.resolveAttributeType(it) }
-            is SupportedCredentialFormatW3cVcJwt -> this.credentialDefinition.types.firstNotNullOfOrNull { AttributeIndex.resolveAttributeType(it) }
-            is SupportedCredentialFormatW3cVcJwtJsonLd -> this.credentialDefinition.type.firstNotNullOfOrNull { AttributeIndex.resolveAttributeType(it) }
-        }
-    }
+suspend fun SupportedCredentialFormat.resolveCredentialScheme(): CredentialScheme? = when (this) {
+    is SupportedCredentialFormatIsoMdoc -> AttributeIndex.resolveIdentifier(docType, ISO_MDOC)
+    is SupportedCredentialFormatSdJwt -> AttributeIndex.resolveIdentifier(sdJwtVcType, SD_JWT)
+    is SupportedCredentialFormatW3cVcJwt -> AttributeIndex.resolveIdentifierPlainJwt(credentialDefinition.types)
+    is SupportedCredentialFormatW3cVcJsonLd -> AttributeIndex.resolveIdentifierPlainJwt(credentialDefinition.type)
+    is SupportedCredentialFormatW3cVcJwtJsonLd -> AttributeIndex.resolveIdentifierPlainJwt(credentialDefinition.type)
+}
+

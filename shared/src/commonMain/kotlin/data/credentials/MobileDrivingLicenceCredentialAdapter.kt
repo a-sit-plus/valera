@@ -7,6 +7,7 @@ import at.asitplus.wallet.app.common.minus
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
+import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import at.asitplus.wallet.mdl.IsoSexEnum
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
@@ -175,7 +176,7 @@ private class MobileDrivingLicenceCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
     decodePortrait: (ByteArray) -> Result<ImageBitmap>,
 ) : MobileDrivingLicenceCredentialAdapter(decodePortrait) {
-    override val scheme: ConstantIndex.CredentialScheme
+    override val scheme: CredentialScheme
         get() = MobileDrivingLicenceScheme
 
     override val representation: CredentialRepresentation
@@ -332,7 +333,7 @@ class MobileDrivingLicenceCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
     decodePortrait: (ByteArray) -> Result<ImageBitmap>,
 ) : MobileDrivingLicenceCredentialAdapter(decodePortrait) {
-    override val scheme: ConstantIndex.CredentialScheme
+    override val scheme: CredentialScheme
         get() = MobileDrivingLicenceScheme
 
     private val namespace = namespaces?.get(MobileDrivingLicenceScheme.isoNamespace)

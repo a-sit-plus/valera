@@ -12,12 +12,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.lib.data.CredentialScheme
 import data.PersonalDataCategory
 import data.credentials.CredentialAdapter
 
 @Composable
 fun CredentialDetailCard(
-    credentialScheme: ConstantIndex.CredentialScheme,
+    credentialScheme: CredentialScheme,
     personalDataCategory: PersonalDataCategory,
     credentialAdapter: CredentialAdapter,
     modifier: Modifier = Modifier,

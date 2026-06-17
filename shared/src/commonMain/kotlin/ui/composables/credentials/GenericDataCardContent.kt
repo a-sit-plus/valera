@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.lib.data.CredentialScheme
 import data.PersonalDataCategory
 import data.credentials.CredentialAdapter
 import data.credentials.CredentialAttributeCategorization
@@ -18,7 +19,7 @@ import ui.composables.LabeledContent
 
 @Composable
 fun GenericDataCardContent(
-    credentialScheme: ConstantIndex.CredentialScheme,
+    credentialScheme: CredentialScheme,
     attributes: List<Pair<NormalizedJsonPath, @Composable () -> Unit>>,
     modifier: Modifier = Modifier,
 ) {
@@ -41,7 +42,7 @@ fun GenericDataCardContent(
 }
 
 fun getGenericAttributeRepresentations(
-    credentialScheme: ConstantIndex.CredentialScheme,
+    credentialScheme: CredentialScheme,
     personalDataCategory: PersonalDataCategory,
     credentialAdapter: CredentialAdapter,
 ): List<Pair<NormalizedJsonPath, @Composable () -> Unit>> {

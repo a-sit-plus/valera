@@ -17,6 +17,7 @@ import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme.SdJwtAttributes
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
+import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.data.LocalDateOrInstant
 import data.Attribute
 import io.ktor.util.decodeBase64Bytes
@@ -257,7 +258,7 @@ private data class EuPidCredentialVcPayload(
 private class EuPidCredentialVcAdapter(
     val credentialSubject: EuPidCredentialVcPayload,
     decodePortrait: (ByteArray) -> Result<ImageBitmap>,
-    override val scheme: ConstantIndex.CredentialScheme
+    override val scheme: CredentialScheme
 ) : EuPidCredentialAdapter(decodePortrait) {
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.PLAIN_JWT
@@ -416,7 +417,7 @@ private class EuPidCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
     private val complexJson: JsonObject?,
     decodePortrait: (ByteArray) -> Result<ImageBitmap>,
-    override val scheme: ConstantIndex.CredentialScheme
+    override val scheme: CredentialScheme
 ) : EuPidCredentialAdapter(decodePortrait) {
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.SD_JWT
@@ -639,7 +640,7 @@ private class EuPidCredentialSdJwtAdapter(
 class EuPidCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
     decodePortrait: (ByteArray) -> Result<ImageBitmap>,
-    override val scheme: ConstantIndex.CredentialScheme
+    override val scheme: CredentialScheme
 ) : EuPidCredentialAdapter(decodePortrait) {
     private val euPidNamespace = namespaces?.get(EuPidScheme.isoNamespace)
 
