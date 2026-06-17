@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common.domain.communications.di
 
+import at.asitplus.wallet.app.common.attestation.AttestationService
 import at.asitplus.wallet.app.common.HttpService
 import at.asitplus.wallet.app.common.PresentationService
 import at.asitplus.wallet.app.common.ProvisioningService
@@ -16,6 +17,7 @@ fun communicationsModule() = module {
     scope(named(SESSION_NAME)) {
         scopedOf(::ProvisioningService)
         scopedOf(::PresentationService)
+        scopedOf(::AttestationService)
     }
     singleOf(::SigningService)
     singleOf(::DCAPIExportService)

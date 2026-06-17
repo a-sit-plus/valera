@@ -1,6 +1,6 @@
 package at.asitplus.wallet.app.common.domain.vck.tokenStatusList.di
 
-import at.asitplus.signum.indispensable.josef.JwsSigned
+import at.asitplus.catching
 import at.asitplus.wallet.app.common.HttpService
 import at.asitplus.wallet.app.common.data.primitives.CacheStoreEntry
 import at.asitplus.wallet.app.common.data.primitives.CachingStatusListTokenResolver
@@ -20,6 +20,7 @@ import io.ktor.http.HttpHeaders
 import kotlin.time.Clock
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.seconds
+import at.asitplus.signum.indispensable.josef.JwsCompactTyped
 
 
 fun tokenStatusListModule() = module {
@@ -49,10 +50,7 @@ fun tokenStatusListModule() = module {
                     headers[HttpHeaders.Accept] = MediaTypes.Application.STATUSLIST_JWT
                 }
                 StatusListJwt(
-                    JwsSigned.deserialize<StatusListTokenPayload>(
-                        StatusListTokenPayload.serializer(),
-                        httpResponse.bodyAsText()
-                    ).getOrThrow(),
+                    catching { JwsCompactTyped<StatusListTokenPayload>(httpResponse.bodyAsText()) }.getOrThrow(),
                     resolvedAt = Clock.System.now(),
                 )
             }
