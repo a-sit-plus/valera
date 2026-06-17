@@ -121,31 +121,26 @@ open class KeystoreService(
         @Throws(AppResetRequiredException::class)
         fun checkKeyMaterialValid() {
             runBlocking {
-                WalletPlatformKeyStore.getSignerForKey(Configuration.KS_ALIAS_OLD).onSuccess {
-                    WalletPlatformKeyStore.deleteSigningKey(Configuration.KS_ALIAS_OLD)
-                        .getOrThrow() //well if we can't delete we're boned
-                    throw AppResetRequiredException
+                Configuration.KS_ALIAS_OLD.forEach { alias ->
+                    WalletPlatformKeyStore.getSignerForKey(alias).onSuccess {
+                        throw AppResetRequiredException
+                    }
                 }
-                if (WalletPlatformKeyStore.deleteLegacySigningKeyIfPresent(Configuration.KS_ALIAS_OLD).getOrThrow()) {
-                    throw AppResetRequiredException
-                }
-                if (WalletPlatformKeyStore.deleteLegacySigningKeyIfPresent(Configuration.KS_ALIAS).getOrThrow()) {
-                    throw AppResetRequiredException
-                }
-
             }
 
         }
 
         fun clearKeyMaterial() {
             runBlocking {
-                WalletPlatformKeyStore.getSignerForKey(Configuration.KS_ALIAS_OLD).onSuccess {
-                    WalletPlatformKeyStore.deleteSigningKey(Configuration.KS_ALIAS_OLD)
+                Configuration.KS_ALIAS_OLD.forEach { alias ->
+                    WalletPlatformKeyStore.getSignerForKey(alias).onSuccess {
+                        WalletPlatformKeyStore.deleteSigningKey(alias)
+                    }
+                    WalletPlatformKeyStore.deleteLegacySigningKeyIfPresent(alias)
                 }
                 WalletPlatformKeyStore.getSignerForKey(Configuration.KS_ALIAS).onSuccess {
                     WalletPlatformKeyStore.deleteSigningKey(Configuration.KS_ALIAS)
                 }
-                WalletPlatformKeyStore.deleteLegacySigningKeyIfPresent(Configuration.KS_ALIAS_OLD)
                 WalletPlatformKeyStore.deleteLegacySigningKeyIfPresent(Configuration.KS_ALIAS)
             }
         }
