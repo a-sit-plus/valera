@@ -1,11 +1,48 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.wallet.lib.LibraryInitializer
 import at.asitplus.wallet.lib.agent.Validator
+import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.ISO_MDOC
+import at.asitplus.wallet.lib.data.CredentialMetadataLookup
+import at.asitplus.wallet.lib.ktor.openid.RemoteCredentialMetadataRegistry
+import at.asitplus.wallet.sdjwt.SdJwtVcType
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
 import io.github.aakira.napier.Antilog
 import io.github.aakira.napier.Napier
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 import org.multipaz.prompt.PromptModel
+
+/** Raw type-metadata documents for credentials not bundled in vck core (credentials-collection, main branch). */
+private const val CREDENTIALS_COLLECTION_BASE =
+    "https://raw.githubusercontent.com/a-sit-plus/credentials-collection/main/"
+
+/** vct -> hosted document URL for the remotely-resolved credentials. */
+private val remoteCredentialDocumentUrls: Map<SdJwtVcType, String> = mapOf(
+    SdJwtVcType("urn:eudi:ehic:1") to "${CREDENTIALS_COLLECTION_BASE}ehic.json",
+    SdJwtVcType("urn:eu.europa.ec.eudi:tax:1") to "${CREDENTIALS_COLLECTION_BASE}tax-id-credential.json",
+    SdJwtVcType("eu.europa.ec.eudi.cor.1") to "${CREDENTIALS_COLLECTION_BASE}certificate-of-residence.json",
+    SdJwtVcType("urn:eu.europa.ec.eudi:cr:1") to "${CREDENTIALS_COLLECTION_BASE}company-registration.json",
+    SdJwtVcType("urn:eu.europa.ec.eudi:por:1") to "${CREDENTIALS_COLLECTION_BASE}power-of-representation.json",
+    SdJwtVcType("urn:eu.europa.ec.eudi:hiid:1") to "${CREDENTIALS_COLLECTION_BASE}healthid.json",
+    SdJwtVcType("eu.europa.ec.av.1") to "${CREDENTIALS_COLLECTION_BASE}age-verification.json",
+)
+
+@OptIn(ExperimentalTime::class)
+private fun registerRemoteCredentialMetadata(buildContext: BuildContext) {
+    LibraryInitializer.registerCredentialMetadataRegistry(
+        RemoteCredentialMetadataRegistry(
+            httpClient = HttpService(buildContext).buildHttpClient(),
+            clock = Clock.System,
+            documentUrls = remoteCredentialDocumentUrls.toMutableMap(),
+            // age-verification is ISO mdoc: its docType (== vct) must be aliased to the document's vct.
+            aliases = mapOf(
+                CredentialMetadataLookup(ISO_MDOC, "eu.europa.ec.av.1") to SdJwtVcType("eu.europa.ec.av.1"),
+            ),
+        )
+    )
+}
 
 data class WalletDependencyProvider(
     val keystoreService: KeystoreService,
@@ -28,6 +65,8 @@ data class WalletDependencyProvider(
         at.asitplus.wallet.taxid.Initializer.initWithVCK()
         at.asitplus.wallet.ehic.Initializer.initWithVCK()
         at.asitplus.wallet.ageverification.Initializer.initWithVCK()
+
+        registerRemoteCredentialMetadata(buildContext)
 
         Napier.takeLogarithm()
         Napier.base(antilog)
