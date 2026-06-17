@@ -1,6 +1,11 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.openid.CredentialOffer
+import at.asitplus.openid.SupportedCredentialFormatIsoMdoc
+import at.asitplus.openid.SupportedCredentialFormatSdJwt
+import at.asitplus.openid.SupportedCredentialFormatW3cVcJsonLd
+import at.asitplus.openid.SupportedCredentialFormatW3cVcJwt
+import at.asitplus.openid.SupportedCredentialFormatW3cVcJwtJsonLd
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.attestation.AttestationService
 import at.asitplus.wallet.app.common.data.SettingsRepository
@@ -236,8 +241,12 @@ class ProvisioningService(
 }
 
 val CredentialIdentifierInfo.credentialScheme: ConstantIndex.CredentialScheme?
-    get() = with(supportedCredentialFormat) {
-        (credentialDefinition?.types?.firstNotNullOfOrNull { AttributeIndex.resolveAttributeType(it) }
-            ?: sdJwtVcType?.let { AttributeIndex.resolveSdJwtAttributeType(it) }
-            ?: docType?.let { AttributeIndex.resolveIsoDoctype(it) })
+    get() =  with(supportedCredentialFormat) {
+        when (this) {
+            is SupportedCredentialFormatIsoMdoc -> AttributeIndex.resolveIsoDoctype(docType)
+            is SupportedCredentialFormatSdJwt -> AttributeIndex.resolveSdJwtAttributeType(sdJwtVcType)
+            is SupportedCredentialFormatW3cVcJsonLd -> this.credentialDefinition.type.firstNotNullOfOrNull { AttributeIndex.resolveAttributeType(it) }
+            is SupportedCredentialFormatW3cVcJwt -> this.credentialDefinition.types.firstNotNullOfOrNull { AttributeIndex.resolveAttributeType(it) }
+            is SupportedCredentialFormatW3cVcJwtJsonLd -> this.credentialDefinition.type.firstNotNullOfOrNull { AttributeIndex.resolveAttributeType(it) }
+        }
     }
