@@ -1,7 +1,6 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.catchingUnwrapped
-import at.asitplus.KmmResult
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import data.storage.DataStoreService
@@ -28,8 +27,9 @@ class WalletConfig(
 
     private val config: Flow<ConfigData> =
         dataStoreService.getPreference(Configuration.DATASTORE_KEY_CONFIG).map {
-            it?.let { joseCompliantSerializer.decodeFromString<ConfigData>(it) }
-                ?: ConfigDataDefaults
+            it?.let {
+                joseCompliantSerializer.decodeFromString<ConfigData>(it)
+            } ?: ConfigData()
         }
 
     override val host: Flow<String> = config.map {
@@ -38,6 +38,7 @@ class WalletConfig(
     }
     override val clientId: Flow<String> = config.map { it.clientId }
 
+    override val walletProviderHost = config.map { it.walletProviderHost }
     override val isConditionsAccepted: Flow<Boolean> = config.map { it.isConditionsAccepted }
     override val presentmentUseNegotiatedHandover: Flow<Boolean> = config.map { it.presentmentUseNegotiatedHandover }
     override val presentmentBleCentralClientModeEnabled: Flow<Boolean> = config.map { it.presentmentBleCentralClientModeEnabled }
@@ -61,12 +62,12 @@ class WalletConfig(
                 val restoreDefault = !current.presentmentBleCentralClientModeRemembered &&
                         !current.presentmentBlePeripheralServerModeRemembered
                 val centralEnabled = if (restoreDefault) {
-                    ConfigDataDefaults.presentmentBleCentralClientModeEnabled
+                    ConfigData().presentmentBleCentralClientModeEnabled
                 } else {
                     current.presentmentBleCentralClientModeRemembered
                 }
                 val peripheralEnabled = if (restoreDefault) {
-                    ConfigDataDefaults.presentmentBlePeripheralServerModeEnabled
+                    ConfigData().presentmentBlePeripheralServerModeEnabled
                 } else {
                     current.presentmentBlePeripheralServerModeRemembered
                 }
@@ -100,6 +101,7 @@ class WalletConfig(
     override fun set(
         host: String?,
         clientId: String?,
+        walletProviderHost: String?,
         isConditionsAccepted: Boolean?,
         presentmentUseNegotiatedHandover: Boolean?,
         presentmentBleCentralClientModeEnabled: Boolean?,
@@ -124,6 +126,7 @@ class WalletConfig(
             current.copy(
                 host = host ?: current.host,
                 clientId = clientId ?: current.clientId,
+                walletProviderHost = walletProviderHost ?: current.walletProviderHost,
                 isConditionsAccepted = isConditionsAccepted ?: current.isConditionsAccepted,
                 presentmentUseNegotiatedHandover = presentmentUseNegotiatedHandover
                     ?: current.presentmentUseNegotiatedHandover,
@@ -195,7 +198,7 @@ class WalletConfig(
     private suspend fun readConfigData(): ConfigData =
         dataStoreService.getPreference(Configuration.DATASTORE_KEY_CONFIG).first()
             ?.let { joseCompliantSerializer.decodeFromString<ConfigData>(it) }
-            ?: ConfigDataDefaults
+            ?: ConfigData()
 
     companion object {
         private const val BLE_CENTRAL_CLIENT_MODE = "ble:central_client_mode:"
@@ -209,8 +212,9 @@ class WalletConfig(
  */
 @Serializable
 private data class ConfigData(
-    val host: String,
     val clientId: String = SettingsRepository.DEFAULT_CLIENT_ID,
+    val host: String = "https://wallet.a-sit.at/m7",
+    val walletProviderHost: String = "https://wallet-provider.a-sit.plus",
     val isConditionsAccepted: Boolean = false,
     val presentmentUseNegotiatedHandover: Boolean = true,
     val presentmentBleCentralClientModeEnabled: Boolean = true,
@@ -224,10 +228,4 @@ private data class ConfigData(
     val presentmentAllowMultipleRequests: Boolean = false,
     val readerAutomaticallySelectTransport: Boolean = true,
     val connectionTimeout: Duration = 30.seconds, // ISO 18013-5 9.4: "the time-out should be no less than 30 seconds"
-)
-
-private val ConfigDataDefaults = ConfigData(
-    host = "https://wallet.a-sit.at/m7",
-    clientId = SettingsRepository.DEFAULT_CLIENT_ID,
-    isConditionsAccepted = false,
 )

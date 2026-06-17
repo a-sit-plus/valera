@@ -4,7 +4,10 @@ import at.asitplus.openid.JwtVcIssuerMetadata
 import at.asitplus.openid.OAuth2AuthorizationServerMetadata
 import at.asitplus.openid.OpenIdConstants.WellKnownPaths
 import at.asitplus.signum.indispensable.josef.JsonWebKey
+import at.asitplus.signum.indispensable.josef.JwsCompact
+import at.asitplus.signum.indispensable.josef.JwsCompactTyped
 import at.asitplus.signum.indispensable.josef.JwsSigned
+import at.asitplus.signum.indispensable.josef.toJwsFlattened
 import at.asitplus.wallet.app.common.HttpService
 import at.asitplus.wallet.lib.oauth2.OAuth2Utils.insertWellKnownPath
 import io.ktor.client.call.body
@@ -17,10 +20,10 @@ class PublicKeyResolver(
     val jsonWebKeySetResolver: JsonWebKeySetResolver,
     val httpService: HttpService
 ) {
-    suspend operator fun invoke(jws: JwsSigned<*>): Set<JsonWebKey>? =
-        if (jws.payloadIssuer() == "https://dss.aegean.gr/rfc-issuer" && jws.header.keyId != null) {
+    suspend operator fun invoke(jws: JwsCompact): Set<JsonWebKey>? =
+        if (jws.payloadIssuer() == "https://dss.aegean.gr/rfc-issuer" && jws.jwsHeader.keyId != null) {
             jsonWebKeySetResolver("https://dss.aegean.gr/.well-known/")
-                ?.keys?.firstOrNull { it.keyId == jws.header.keyId }?.let { setOf(it) }
+                ?.keys?.firstOrNull { it.keyId == jws.jwsHeader.keyId }?.let { setOf(it) }
         } else if (jws.payloadIssuer() != null) {
             httpService.buildHttpClient()
                 .get(insertWellKnownPath(jws.payloadIssuer()!!, WellKnownPaths.JwtVcIssuer))
@@ -30,6 +33,6 @@ class PublicKeyResolver(
                 }
         } else setOf()
 
-    private fun JwsSigned<*>.payloadIssuer() =
-        ((payload as? JsonObject?)?.get("iss") as? JsonPrimitive?)?.content
+    private fun JwsCompact.payloadIssuer() =
+        ((this.getPayload<JsonObject>().getOrNull()?.get("iss") as? JsonPrimitive?)?.content)
 }

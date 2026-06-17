@@ -1,25 +1,26 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.dcapi.DCAPIHandover
+import at.asitplus.dcapi.DCAPIHandover.Companion.TYPE_DCAPI
+import at.asitplus.dcapi.DCAPIInfo
+import at.asitplus.iso.*
+import at.asitplus.openid.AuthenticationRequestParameters
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.supreme.UserInitiatedCancellationReason
 import at.asitplus.iso.DeviceAuthentication
 import at.asitplus.iso.SessionTranscript
 import at.asitplus.iso.wrapInCborTag
-import at.asitplus.openid.AuthenticationRequestParameters
-import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
-import at.asitplus.wallet.lib.agent.CreatePresentationResult
-import at.asitplus.wallet.lib.agent.HolderAgent
-import at.asitplus.wallet.lib.agent.PresentationException
-import at.asitplus.wallet.lib.agent.PresentationRequestParameters
-import at.asitplus.wallet.lib.agent.PresentationResponseParameters
+import at.asitplus.wallet.lib.agent.*
 import at.asitplus.wallet.lib.cbor.CoseHeaderNone
 import at.asitplus.wallet.lib.cbor.SignCoseDetached
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import io.github.aakira.napier.Napier
-import io.ktor.client.HttpClient
+import io.ktor.client.*
+import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.encodeToByteArray
 

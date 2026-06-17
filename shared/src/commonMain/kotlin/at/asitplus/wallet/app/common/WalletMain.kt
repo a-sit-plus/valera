@@ -2,12 +2,14 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
+import at.asitplus.iso.EncryptionParameters
 import at.asitplus.dcapi.EncryptedResponse
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
+import at.asitplus.wallet.app.common.attestation.AttestationService
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.dcapi.DCAPIExportService
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
@@ -19,18 +21,12 @@ import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import data.storage.DataStoreService
 import data.storage.WalletSubjectCredentialStore
 import io.github.aakira.napier.Napier
-import io.ktor.client.call.body
-import io.ktor.client.request.get
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.Job
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -63,6 +59,7 @@ class WalletMain(
     val sessionService: SessionService,
     val capabilitiesService: CapabilitiesService,
     val credentialValidityService: CredentialValidityService,
+    val attestationService: AttestationService,
     sessionCoroutineScope: CoroutineScope,
 ) {
     val appReady = MutableStateFlow<Boolean?>(null)

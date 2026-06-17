@@ -260,10 +260,10 @@ private fun WalletNavHost(
     // intercept taps meant for the action button (regression introduced with #452).
     val isInAuthenticationFlow = backStackEntry?.destination?.let { destination ->
         destination.hasRoute<AuthenticationViewRoute>() ||
-            destination.hasRoute<DCAPIPresentationViewRoute>() ||
-            destination.hasRoute<LocalPresentationAuthenticationConsentRoute>() ||
-            destination.hasRoute<AuthenticationSuccessRoute>() ||
-            destination.hasRoute<PresentDataRoute>()
+                destination.hasRoute<DCAPIPresentationViewRoute>() ||
+                destination.hasRoute<LocalPresentationAuthenticationConsentRoute>() ||
+                destination.hasRoute<AuthenticationSuccessRoute>() ||
+                destination.hasRoute<PresentDataRoute>()
     } == true
     val suppressRefreshSnackbar = isOnRefreshCenter || isInAuthenticationFlow
 
@@ -293,6 +293,7 @@ private fun WalletNavHost(
                 walletMain.credentialValidityService.refreshSingleWithStatus(item)
                 navController.navigate(RefreshCenterRoute) { launchSingleTop = true }
             }
+
             SnackbarResult.Dismissed -> walletMain.credentialValidityService.removeRefreshRequest(item)
         }
     }
@@ -311,6 +312,7 @@ private fun WalletNavHost(
                 hasNavigatedToCenter = true
                 navController.navigate(RefreshCenterRoute) { launchSingleTop = true }
             }
+
             SnackbarResult.Dismissed -> walletMain.credentialValidityService.clearAllRefreshRequests()
         }
     }
@@ -452,31 +454,6 @@ private fun WalletNavHost(
             )
         }
 
-        composable<AuthenticationViewRoute> {
-            DefaultPresentationGraphView(
-                onError = onError,
-                onClickLogo = onClickLogo,
-                onClickSettings = {
-                    navigator.navigate(SettingsRoute)
-                },
-                koinScope = koinScope,
-                onNavigateUp = navigator::invocationAwareBack,
-                navigateUpIsClose = true,
-            )
-        }
-
-        composable<DCAPIPresentationViewRoute> {
-            DCAPIPresentationGraphView(
-                onError = onError,
-                onClickLogo = onClickLogo,
-                onClickSettings = {
-                    navigator.navigate(SettingsRoute)
-                },
-                koinScope = koinScope,
-                onNavigateUp = navigator::invocationAwareBack,
-            )
-        }
-
         composable<LocalPresentationAuthenticationConsentRoute> { backStackEntry ->
             val activeSession = remember {
                 localPresentmentSessionCoordinator.activeSession()?.also { session ->
@@ -518,7 +495,10 @@ private fun WalletNavHost(
                     vm,
                     onPresentmentComplete = {
                         activeSession?.let { session ->
-                            localPresentmentSessionCoordinator.finishSession(session.sessionId, "wallet-presentment-complete")
+                            localPresentmentSessionCoordinator.finishSession(
+                                session.sessionId,
+                                "wallet-presentment-complete"
+                            )
                         }
                         intentState.presentationStateModel.value = null
                         intentState.presentationStateModelProvider = null
@@ -542,16 +522,6 @@ private fun WalletNavHost(
                     }
                 )
             }
-        }
-
-        composable<AuthenticationSuccessRoute> { backStackEntry ->
-            AuthenticationSuccessView(
-                koinScope = koinScope,
-                navigateUp = navigator::invocationAwareBack,
-                onClickLogo = onClickLogo,
-                onClickSettings = { navigator.navigate(SettingsRoute) },
-                navigateUpIsClose = true,
-            )
         }
 
         composable<AddCredentialRoute> {
@@ -586,217 +556,6 @@ private fun WalletNavHost(
                         onClickLogo = onClickLogo,
                         onClickSettings = { navigator.navigate(SettingsRoute) })
                 }.onSuccess { vm = it }
-                 .onFailure {
-                    navigator.popToInvoker()
-                    walletMain.errorService.emit(it)
-                }
-            }
-            vm?.let { LoadCredentialView(it) } ?: LoadingView()
-        }
-
-        composable<AddCredentialWithLinkRoute> { backStackEntry ->
-            var vm by remember { mutableStateOf<LoadCredentialViewModel?>(null) }
-            LaunchedEffect(Unit) {
-                catchingUnwrapped {
-                    LoadCredentialViewModel.init(
-                        walletMain = walletMain,
-                        navigateUp = navigator::navigateBack,
-                        url = backStackEntry.toRoute<AddCredentialWithLinkRoute>().uri,
-                        onSubmit = { credentialIdentifierInfo, transactionCode, offer ->
-                            navigator.navigate(LoadingRoute)
-                            walletMain.scope.launch {
-                                try {
-                                    val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
-                                        credentialOffer = offer!!,
-                                        credentialIdentifierInfo = credentialIdentifierInfo,
-                                        transactionCode = transactionCode?.ifEmpty { null }
-                                            ?.ifBlank { null },
-                                    )
-                                    if (issuanceResult.credentialIssuanceResult is at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult.Success) {
-                                        navigator.navigateNewGraph(
-                                            TransientFlowIssuingResultRoute(issuanceResult.storedEntryIds.firstOrNull())
-                                        )
-                                    }
-                                } catch (e: Throwable) {
-                                    navigator.popToInvoker()
-                                    walletMain.errorService.emit(e)
-                                }
-                            }
-                        },
-                        onClickLogo = onClickLogo,
-                        onClickSettings = { navigator.navigate(SettingsRoute) }
-                    )
-                }.onSuccess { vm = it }
-                 .onFailure {
-                    navigator.popToInvoker()
-                    walletMain.errorService.emit(it)
-                }
-            }
-            vm?.let { LoadCredentialView(it) } ?: LoadingView()
-        }
-
-        composable<ProvisioningStartIntentRoute> { backStackEntry ->
-            var vm by remember { mutableStateOf<LoadCredentialViewModel?>(null) }
-            LaunchedEffect(Unit) {
-                catchingUnwrapped {
-                    LoadCredentialViewModel.init(
-                        walletMain = walletMain,
-                        navigateUp = navigator::navigateBack,
-                        url = backStackEntry.toRoute<ProvisioningStartIntentRoute>().uri,
-                        onSubmit = { credentialIdentifierInfo, transactionCode, offer ->
-                            navigator.navigate(LoadingRoute)
-                            walletMain.scope.launch {
-                                try {
-                                    val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
-                                        credentialOffer = offer!!,
-                                        credentialIdentifierInfo = credentialIdentifierInfo,
-                                        transactionCode = transactionCode?.ifEmpty { null }
-                                            ?.ifBlank { null },
-                                    )
-                                    if (issuanceResult.credentialIssuanceResult is at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult.Success) {
-                                        navigator.navigateNewGraph(
-                                            TransientFlowIssuingResultRoute(issuanceResult.storedEntryIds.firstOrNull())
-                                        )
-                                    }
-                                } catch (e: Throwable) {
-                                    navigator.popToInvoker()
-                                    walletMain.errorService.emit(e)
-                                }
-                            }
-                        },
-                        onClickLogo = onClickLogo,
-                        onClickSettings = { navigator.navigate(SettingsRoute) }
-                    )
-                }.onSuccess { vm = it }
-                 .onFailure {
-                    navigator.popToInvoker()
-                    walletMain.errorService.emit(it)
-                }
-            }
-            vm?.let { LoadCredentialView(it) } ?: LoadingView()
-        }
-
-        composable<AddCredentialPreAuthnRoute> { backStackEntry ->
-            val offer = backStackEntry.toRoute<AddCredentialPreAuthnRoute>().credentialOffer
-            var vm by remember { mutableStateOf<LoadCredentialViewModel?>(null) }
-            LaunchedEffect(Unit) {
-                catchingUnwrapped {
-                    LoadCredentialViewModel.init(
-                        walletMain = walletMain,
-                        navigateUp = navigator::navigateBack,
-                        offer = offer,
-                        onSubmit = { credentialIdentifierInfo, transactionCode, _ ->
-                            navigator.popToInvoker()
-                            navigator.navigate(LoadingRoute)
-                            walletMain.scope.launch {
-                                try {
-                                    walletMain.provisioningService.loadCredentialWithOffer(
-                                        credentialOffer = offer,
-                                        credentialIdentifierInfo = credentialIdentifierInfo,
-                                        transactionCode = transactionCode?.ifEmpty { null }
-                                            ?.ifBlank { null },
-                                    )
-                                    navigator.popToInvoker()
-                                } catch (e: Throwable) {
-                                    navigator.popToInvoker()
-                                    walletMain.errorService.emit(e)
-                                }
-                            }
-                        },
-                        onClickLogo = onClickLogo,
-                        onClickSettings = { navigator.navigate(SettingsRoute) }
-                    )
-                }.onSuccess { vm = it }
-                 .onFailure {
-                    navigator.popToInvoker()
-                    walletMain.errorService.emit(it)
-                }
-            }
-            vm?.let { LoadCredentialView(it) } ?: LoadingView()
-        }
-
-        composable<AddCredentialDcApiRoute> { backStackEntry ->
-            val offer = backStackEntry.toRoute<AddCredentialDcApiRoute>().credentialOffer
-            var vm by remember { mutableStateOf<LoadCredentialViewModel?>(null) }
-            LaunchedEffect(Unit) {
-                catchingUnwrapped {
-                    lateinit var dcapiVm: LoadCredentialViewModel
-                    val onSubmit: CredentialSelection = { credentialIdentifierInfo, transactionCode, _ ->
-                        navigator.navigate(LoadingRoute)
-                        walletMain.scope.launch {
-                            try {
-                                val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
-                                    credentialOffer = offer,
-                                    credentialIdentifierInfo = credentialIdentifierInfo,
-                                    transactionCode = transactionCode?.ifEmpty { null }
-                                        ?.ifBlank { null },
-                                    authorizationServerMetadata = offer.authorizationServerMetadata
-                                )
-                                if (issuanceResult.credentialIssuanceResult is at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult.Success) {
-                                    navigator.navigate(
-                                        TransientFlowIssuingResultRoute(issuanceResult.storedEntryIds.firstOrNull())
-                                    )
-                                } else {
-                                    dcapiVm.handleDCAPIIssuingResult(false, null)
-                                }
-                            } catch (e: Throwable) {
-                                dcapiVm.handleDCAPIIssuingResult(false, e)
-                            }
-                        }
-                    }
-                    LoadCredentialViewModel.initFromDcApi(
-                        walletMain = walletMain,
-                        navigateUp = navigator::invocationAwareBack,
-                        offer = offer,
-                        onSubmit = onSubmit,
-                        onClickLogo = onClickLogo,
-                        onClickSettings = { navigator.navigate(SettingsRoute) }
-                    ).also { dcapiVm = it }
-                }.onSuccess { vm = it }
-                 .onFailure {
-                    val wrapped = ErrorHandlingOverrideException(
-                        resetStackOverride = navigator::invocationAwareBack,
-                        actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
-                        onAcknowledge = {
-                            if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
-                                val response = joseCompliantSerializer.encodeToString(
-                                    DigitalCredentialOfferReturn.error(status = "offer_declined")
-                                )
-                                walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, false)
-                            }
-                            navigator.invocationAwareBack()
-                        },
-                        cause = it
-                    )
-                    walletMain.errorService.emit(wrapped)
-                }
-            }
-            vm?.let { LoadCredentialView(it) } ?: LoadingView()
-        }
-
-        composable<ProvisioningAuthRequestIntentRoute> { backStackEntry ->
-            var vm by remember { mutableStateOf<LoadCredentialViewModel?>(null) }
-            val route = backStackEntry.toRoute<ProvisioningAuthRequestIntentRoute>()
-            LaunchedEffect(Unit) {
-                catchingUnwrapped {
-                    val credentialIssuer = URLBuilder(route.uri).parameters["credential_issuer"]
-                        ?: throw IllegalArgumentException("Missing credential_issuer in issuing authorization request")
-                    LoadCredentialViewModel.init(
-                        walletMain = walletMain,
-                        navigateUp = navigator::navigateBack,
-                        hostString = credentialIssuer,
-                        onSubmit = { credentialIdentifierInfo, _, _ ->
-                            walletMain.scope.launch {
-                                walletMain.startProvisioning(
-                                    host = credentialIssuer,
-                                    credentialIdentifierInfo = credentialIdentifierInfo,
-                                ) {}
-                            }
-                        },
-                        onClickLogo = onClickLogo,
-                        onClickSettings = { navigator.navigate(SettingsRoute) }
-                    )
-                }.onSuccess { vm = it }
                     .onFailure {
                         navigator.popToInvoker()
                         walletMain.errorService.emit(it)
@@ -805,71 +564,16 @@ private fun WalletNavHost(
             vm?.let { LoadCredentialView(it) } ?: LoadingView()
         }
 
-        composable<TransientFlowIssuingResultRoute> { backStackEntry ->
-            val route = backStackEntry.toRoute<TransientFlowIssuingResultRoute>()
-            var isAutoDismissEnabled by rememberSaveable(route.storeEntryId) { mutableStateOf(true) }
-            val detailsStoreEntryId = route.storeEntryId
-            val storeEntry = route.storeEntryId?.let { storeEntryId ->
-                walletMain.subjectCredentialStore.observeStoreContainer().map { container ->
-                    container.credentials.find { it.first == storeEntryId }?.second
-                }.collectAsState(null).value
-            }
-            LaunchedEffect(route.storeEntryId, storeEntry) {
-                Napier.d(
-                    "Wallet TransientFlowIssuingResultRoute render storeEntryId=${route.storeEntryId} " +
-                        "resolved=${storeEntry != null} scheme=${storeEntry?.scheme?.schemaUri}"
-                )
-            }
-            val onAcknowledge = {
-                if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
-                    val response = joseCompliantSerializer.encodeToString(DigitalCredentialOfferReturn.success())
-                    walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, true)
-                }
-                navigator.popToInvoker()
-            }
-
-            val backState = rememberNavigationEventState(NavigationEventInfo.None)
-            NavigationBackHandler(state = backState, onBackCompleted = onAcknowledge)
-
-            CredentialAddedView(
-                onAutoDismiss = onAcknowledge,
-                onClickButton = onAcknowledge,
-                onClickLogo = onClickLogo,
-                onClickSettings = { navigator.navigate(SettingsRoute) },
-                isAutoDismissEnabled = isAutoDismissEnabled,
-                credentialContent = storeEntry?.let { credential ->
-                    {
-                        CredentialCard(
-                            credential = credential,
-                            isTokenStatusEvaluated = true,
-                            credentialFreshnessSummaryModel = null,
-                            imageDecoder = { image -> walletMain.platformAdapter.decodeImage(image) },
-                            onDelete = {},
-                            onRefresh = {},
-                            onOpenDetails = detailsStoreEntryId?.let { storeEntryId ->
-                                {
-                                    isAutoDismissEnabled = false
-                                    navigator.navigate(CredentialDetailsRoute(storeEntryId))
-                                }
-                            },
-                            showActionMenu = false,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                }
-            )
-        }
-
-        composable<CredentialDetailsRoute> { backStackEntry ->
-            CredentialDetailsView(vm = remember {
-                CredentialDetailsViewModel(
-                    storeEntryId = backStackEntry.toRoute<CredentialDetailsRoute>().storeEntryId,
-                    navigateUp = navigator::navigateBack,
-                    walletMain = walletMain,
-                    onClickLogo = onClickLogo,
-                    onClickSettings = { navigator.navigate(SettingsRoute) })
-            })
-        }
+        sharedFlowDestinations(
+            flow = SharedDestinationFlow.Wallet,
+            navigator = navigator,
+            onClickLogo = onClickLogo,
+            onError = onError,
+            koinScope = koinScope,
+            walletMain = walletMain,
+            localPresentmentSessionCoordinator = localPresentmentSessionCoordinator,
+            intentState = intentState,
+        )
 
         composable<SettingsRoute> { backStackEntry ->
             SettingsView(
@@ -884,19 +588,10 @@ private fun WalletNavHost(
                 onClickFAQs = null,
                 onClickDataProtectionPolicy = null,
                 onClickLicenses = null,
+                onClickAttestation = { navigator.navigate(AttestationSettingsRoute) },
                 onReset = { navigator.navigateNewGraph(InitializationRoute) },
                 koinScope = koinScope
             )
-        }
-
-        composable<LogRoute> { backStackEntry ->
-            LogView(vm = remember {
-                LogViewModel(
-                    navigateUp = navigator::navigateBack,
-                    walletMain = walletMain,
-                    onClickLogo = onClickLogo,
-                    onClickSettings = { navigator.navigate(SettingsRoute) })
-            })
         }
 
         composable<ErrorRoute> { backStackEntry ->
@@ -950,138 +645,6 @@ private fun WalletNavHost(
             }
         }
 
-        composable<LoadingRoute> { backStackEntry ->
-            LoadingView()
-        }
-
-        composable<SigningQtspSelectionRoute> { backStackEntry ->
-            SigningQtspSelectionView(vm = remember {
-                SigningQtspSelectionViewModel(
-                    navigateUp = navigator::navigateBack,
-                    onContinue = { signatureRequestParameters ->
-                        walletMain.scope.launch {
-                            try {
-                                walletMain.signingService.start(signatureRequestParameters)
-                            } catch (e: Throwable) {
-                                walletMain.errorService.emit(e)
-                            }
-                        }
-                    },
-                    walletMain = walletMain,
-                    onClickLogo = onClickLogo,
-                    onClickSettings = { navigator.navigate(SettingsRoute) },
-                    signatureRequestParameters = backStackEntry.toRoute<SigningQtspSelectionRoute>().signatureRequestParameters
-                )
-            })
-        }
-
-        composable<ProvisioningResumeIntentRoute> { backStackEntry ->
-            ProvisioningIntentView(remember {
-                ProvisioningIntentViewModel(
-                    walletMain = walletMain,
-                    uri = backStackEntry.toRoute<ProvisioningResumeIntentRoute>().uri,
-                    onSuccess = { route ->
-                        navigator.navigateNewGraph(route ?: TransientFlowIssuingResultRoute())
-                    },
-                    onFailure = { error ->
-                        walletMain.errorService.emit(error)
-                    })
-            })
-        }
-
-        composable<SigningResumeIntentRoute> { backStackEntry ->
-            SigningResumeIntentView(remember {
-                SigningResumeIntentViewModel(
-                    walletMain = walletMain,
-                    uri = backStackEntry.toRoute<SigningResumeIntentRoute>().uri,
-                    onReturnToSigning = { navigator.navigateBack() },
-                    onFinish = { navigator.popToInvoker() },
-                    onFailure = { error ->
-                        walletMain.errorService.emit(error)
-                    })
-            })
-        }
-
-        composable<AuthorizationIntentRoute> { backStackEntry ->
-            AuthorizationIntentView(remember {
-                AuthorizationIntentViewModel(
-                    walletMain = walletMain,
-                    uri = backStackEntry.toRoute<AuthorizationIntentRoute>().uri,
-                    onSuccess = { route ->
-                        navigator.navigateBack()
-                        navigator.navigate(route)
-                    },
-                    onFailure = {
-                        walletMain.errorService.emit(Exception("Invalid Authentication Request"))
-                    })
-            })
-        }
-
-        composable<DCAPIAuthorizationIntentRoute> { backStackEntry ->
-            DCAPIAuthorizationIntentView(remember {
-                DCAPIAuthorizationIntentViewModel(
-                    walletMain = walletMain,
-                    uri = backStackEntry.toRoute<DCAPIAuthorizationIntentRoute>().uri,
-                    onSuccess = { route ->
-                        Napier.d("valid authentication request")
-                        navigator.navigateBack()
-                        navigator.navigate(route)
-                    },
-                    onFailure = { e ->
-                        val wrapped = ErrorHandlingOverrideException(
-                            resetStackOverride = navigator::invocationAwareBack,
-                            actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
-                            onAcknowledge = (e as? ErrorHandlingOverrideException)?.onAcknowledge,
-                            cause = (e as? ErrorHandlingOverrideException)?.cause ?: e
-                        )
-                        walletMain.errorService.emit(wrapped)
-                    })
-            })
-        }
-
-        composable<DCAPIIssuingIntentRoute> { backStackEntry ->
-            DCAPIIssuingIntentView(remember {
-                DCAPIIssuingIntentViewModel(
-                    walletMain = walletMain,
-                    uri = backStackEntry.toRoute<DCAPIIssuingIntentRoute>().uri,
-                    onSuccess = { route ->
-                        Napier.d("valid creation request")
-                        navigator.navigateNewGraph(route)
-                    },
-                    onFailure = { e ->
-                        val overrideException = ErrorHandlingOverrideException(
-                            resetStackOverride = navigator::invocationAwareBack,
-                            actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
-                            onAcknowledge = {
-                                walletMain.platformAdapter.prepareDCAPIIssuingResponse(
-                                    e.message ?: "invalid request", false
-                                )
-                            },
-                            cause = e
-                        )
-                        walletMain.errorService.emit(overrideException)
-                    })
-            })
-        }
-
-        composable<PresentationIntentRoute> { backStackEntry ->
-            PresentationIntentView(remember {
-                PresentationIntentViewModel(
-                    walletMain = walletMain,
-                    localPresentmentSessionCoordinator = localPresentmentSessionCoordinator,
-                    intentState = intentState,
-                    uri = backStackEntry.toRoute<PresentationIntentRoute>().uri,
-                    onSuccess = { route ->
-                        Napier.d("valid presentation request")
-                        navigator.navigateBack()
-                        navigator.navigate(route)
-                    },
-                    onFailure = { error ->
-                        walletMain.errorService.emit(error)
-                    })
-            })
-        }
-
         composable<SigningServiceIntentRoute> { backStackEntry ->
             SigningServiceIntentView(remember {
                 SigningServiceIntentViewModel(
@@ -1125,39 +688,6 @@ private fun WalletNavHost(
             })
         }
 
-        composable<SigningIntentRoute> { backStackEntry ->
-            SigningIntentView(remember {
-                SigningIntentViewModel(
-                    walletMain = walletMain,
-                    uri = backStackEntry.toRoute<SigningIntentRoute>().uri,
-                    onSuccess = {
-                        walletMain.scope.launch {
-                            navigator.navigateNewGraph(
-                                SigningQtspSelectionRoute(
-                                    walletMain.signingService.parseSignatureRequestParameter(
-                                        backStackEntry.toRoute<SigningIntentRoute>().uri
-                                    )
-                                )
-                            )
-                        }
-                    },
-                    onFailure = { error ->
-                        walletMain.errorService.emit(error)
-                    })
-            })
-        }
-
-        composable<ErrorIntentRoute> { backStackEntry ->
-            ErrorIntentView(
-                remember {
-                    ErrorIntentViewModel(
-                        walletMain = walletMain,
-                        uri = backStackEntry.toRoute<ErrorIntentRoute>().uri,
-                        onFailure = { error ->
-                            walletMain.errorService.emit(error)
-                        })
-                })
-        }
         composable<QrCodeScannerRoute> { backStackEntry ->
             QrCodeScannerView(
                 koinScope = koinScope,
@@ -1172,30 +702,6 @@ private fun WalletNavHost(
                     walletMain.errorService.emit(it)
                 },
             )
-        }
-        composable<CapabilitiesRoute> { backStackEntry ->
-            backStackEntry.toRoute<CapabilitiesRoute>().prerequisites.let { prerequisites ->
-                // Always call NavigationBackHandler unconditionally; use the callback to skip when CRYPTO.
-                // CRYPTO prerequisite must not be dismissible via back — user must complete setup.
-                val backState = rememberNavigationEventState(NavigationEventInfo.None)
-                NavigationBackHandler(state = backState, isBackEnabled = true) {
-                    if (!prerequisites.contains(CRYPTO)) {
-                        navigator.navigateBack()
-                    }
-                }
-                CapabilityView(
-                    koinScope = koinScope,
-                    onClickLogo = onClickLogo,
-                    onClickSettings = { navigator.navigate(SettingsRoute) },
-                    onContinue = {
-                        navigator.navigatePending()
-                    },
-                    onNavigateUp = {
-                        navigator.navigateBack()
-                    },
-                    prerequisites = prerequisites,
-                )
-            }
         }
     }
 }

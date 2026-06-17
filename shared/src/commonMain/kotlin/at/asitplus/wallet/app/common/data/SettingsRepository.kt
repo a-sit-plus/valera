@@ -28,6 +28,7 @@ import kotlin.time.Duration
 interface SettingsRepository {
     val host: Flow<String>
     val clientId: Flow<String>
+    val walletProviderHost: Flow<String>
     val isConditionsAccepted: Flow<Boolean>
     val presentmentUseNegotiatedHandover: Flow<Boolean>
     val presentmentBleCentralClientModeEnabled: Flow<Boolean>
@@ -56,6 +57,7 @@ interface SettingsRepository {
     fun set(
         host: String? = null,
         clientId: String? = null,
+        walletProviderHost: String? = null,
         isConditionsAccepted: Boolean? = null,
         presentmentUseNegotiatedHandover: Boolean? = null,
         presentmentBleCentralClientModeEnabled: Boolean? = null,

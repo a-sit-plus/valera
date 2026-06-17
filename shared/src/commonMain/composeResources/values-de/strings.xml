@@ -59,6 +59,7 @@
     <string name="button_label_hide_technical_details">Technische Details ausblenden</string>
     <string name="button_label_sign">Signieren</string>
     <string name="button_label_back">Zurück</string>
+    <string name="button_label_attestation_config">Attestierungs-Konfiguration</string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Vorname</string>
@@ -250,6 +251,7 @@
     <string name="text_label_vcType">VcType</string>
     <string name="text_label_docType">DocType</string>
     <string name="text_label_select_no_optional_credential_set_query_option">Nichts senden</string>
+    <string name="text_label_wallet_provider">Wallet-Provider</string>
 
     <string name="heading_label_credential_selection">Welche Daten sollen präsentiert werden?</string>
     <string name="heading_label_authenticate_at_device_title">Anmelden</string>
@@ -281,6 +283,7 @@
     <string name="heading_label_result">Ergebnis</string>
     <string name="heading_label_device_engagement">Verbindungsaufbau</string>
     <string name="heading_label_capabilities">Gerätefunktionen</string>
+    <string name="heading_label_attestation">Attestierung</string>
     <string name="heading_label_select_data">Daten wählen</string>
 
     <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Daten vorzeigen</string>
@@ -551,4 +554,17 @@
     <string name="info_text_qr_nfc_data_transfer_tap">Halten Sie beide Geräte zusammen, um die NFC-Datenübertragung zu starten.</string>
     <string name="info_text_nfc_data_transfer">Bitte halten Sie beide Geräte im NFC-Feld, bis die Übertragung abgeschlossen ist.</string>
     <string name="info_text_ble_data_transfer">Warte auf Daten via Bluetooth…</string>
+
+    <!-- AttestationSettings -->
+    <string name="text_label_instance_attestation">Instance-Attestation</string>
+    <string name="text_label_unit_attestation">Unit-Attestation</string>
+    <string name="button_label_load_attestation">Attestation laden</string>
+    <string name="button_label_attestation_apply">Anwenden</string>
+    <string name="section_heading_attestation_certificates">Zertifikate</string>
+    <string name="text_label_attestation_issued">Token gültig von</string>
+    <string name="text_label_attestation_expiration">Token gültig bis</string>
+    <string name="text_label_attestation_status_expiration">Status gültig bis</string>
+    <string name="text_label_attestation_storage_type">Schlüsselspeicher</string>
+    <string name="text_label_attestation_user_authentication">Authentifizierung</string>
+
 </resources>

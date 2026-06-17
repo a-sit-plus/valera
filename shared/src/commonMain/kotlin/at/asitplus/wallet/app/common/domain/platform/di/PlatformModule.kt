@@ -6,6 +6,7 @@ import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.WalletSessionBindings
 import at.asitplus.wallet.app.common.WalletKeyMaterial
+import at.asitplus.wallet.app.common.attestation.AttestationService
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
