@@ -32,6 +32,13 @@ enum class RoutePrerequisites {
     CAMERA
 }
 
+private val addCredentialPrerequisites = setOf(
+    RoutePrerequisites.INTERNET,
+    RoutePrerequisites.CRYPTO
+)
+
+private val qrCodeScannerPrerequisites = setOf(RoutePrerequisites.CAMERA)
+
 @Serializable
 object InitializationRoute : Route()
 
@@ -39,12 +46,7 @@ object InitializationRoute : Route()
 object HomeScreenRoute : Route()
 
 @Serializable
-object AddCredentialRoute : PrerequisiteRoute(
-    setOf(
-        RoutePrerequisites.INTERNET,
-        RoutePrerequisites.CRYPTO
-    )
-)
+object AddCredentialRoute : PrerequisiteRoute(addCredentialPrerequisites)
 
 @Serializable
 class LoadCredentialRoute(val host: String) : Route()
@@ -52,8 +54,7 @@ class LoadCredentialRoute(val host: String) : Route()
 @Serializable
 data class AddCredentialPreAuthnRoute(
     val credentialOfferSerialized: String
-) : Route(
-) {
+) : PrerequisiteRoute(addCredentialPrerequisites) {
     constructor(
         credentialOffer: CredentialOffer
     ) : this(
@@ -67,8 +68,7 @@ data class AddCredentialPreAuthnRoute(
 @Serializable
 data class AddCredentialDcApiRoute(
     val credentialOfferSerialized: String
-) : Route(
-) {
+) : PrerequisiteRoute(addCredentialPrerequisites) {
     constructor(
         credentialOffer: CredentialOffer
     ) : this(
@@ -206,9 +206,7 @@ data class ErrorIntentRoute(val uri: String) : Route()
 
 @Serializable
 data class QrCodeScannerRoute(val modeSerialized: String) : PrerequisiteRoute(
-    setOf(
-        RoutePrerequisites.CAMERA
-    )
+    addCredentialPrerequisites + qrCodeScannerPrerequisites
 ) {
     constructor(
         mode: QrCodeScannerMode

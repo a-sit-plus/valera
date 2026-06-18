@@ -36,7 +36,6 @@ import kotlinx.coroutines.launch
 import org.koin.core.scope.Scope
 import ui.composables.credentials.CredentialCard
 import ui.navigation.routes.*
-import ui.navigation.routes.RoutePrerequisites.CRYPTO
 import ui.presentation.DCAPIPresentationGraphView
 import ui.presentation.DefaultPresentationGraphView
 import ui.viewmodels.AttestationSettingsViewModel
@@ -514,9 +513,7 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
         backStackEntry.toRoute<CapabilitiesRoute>().prerequisites.let { prerequisites ->
             val backState = rememberNavigationEventState(NavigationEventInfo.None)
             NavigationBackHandler(state = backState, isBackEnabled = true) {
-                if (!prerequisites.contains(CRYPTO)) {
-                    navigator.navigateBack()
-                }
+                navigator.navigateBack()
             }
             CapabilityView(
                 koinScope = koinScope,
