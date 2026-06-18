@@ -85,6 +85,16 @@ internal open class WalletNavigationControllerImpl(
 
     override fun navigateNewGraph(route: Route) {
         scope.launch {
+            if (route is PrerequisiteRoute &&
+                !capabilitiesService.evaluatePrerequisites(route.prerequisites).first()
+            ) {
+                pendingRoute = route
+                navController.navigateOnMain(CapabilitiesRoute(route.prerequisites)) {
+                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                    launchSingleTop = true
+                }
+                return@launch
+            }
             Napier.d("navigateNewGraph: $route")
             navController.navigateOnMain(route) {
                 popUpTo(navController.graph.startDestinationId) { inclusive = true }
