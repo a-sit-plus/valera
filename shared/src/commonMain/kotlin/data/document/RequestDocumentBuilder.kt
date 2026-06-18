@@ -105,20 +105,15 @@ object RequestDocumentBuilder {
     fun getPreselection(docType: String): Set<String> =
         docTypeConfigs[docType]?.preselection?.invoke() ?: emptySet()
 
-    private fun buildRequestDocument(
-        scheme: CredentialScheme,
-        attributes: Collection<String>,
-    ): RequestDocument = RequestDocument(
-        docType = scheme.isoDocType!!,
-        itemsToRequest = mapOf(scheme.isoNamespace!! to attributes.associateWith { false }),
-    )
-
     fun buildRequestDocument(
         scheme: CredentialScheme,
         subSet: Collection<String>? = null,
     ): RequestDocument {
         val attributes = subSet ?: allElementsByDocType[scheme.isoDocType] ?: emptyList()
-        return buildRequestDocument(scheme, attributes)
+        return RequestDocument(
+            docType = scheme.isoDocType!!,
+            itemsToRequest = mapOf(scheme.isoNamespace!! to attributes.associateWith { false }),
+        )
     }
 
     fun buildRequestDocument(selectableRequest: SelectableRequest) = when (selectableRequest.type) {
