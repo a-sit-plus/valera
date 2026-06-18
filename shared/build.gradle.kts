@@ -91,14 +91,7 @@ kotlin {
             implementation(libs.compose.material.icons.core)
             api(libs.vck.openid.ktor)
             api(libs.atomicfu)
-            // EU PID, EU PID SD-JWT and mDL data classes are bundled in vck core now.
-            api(libs.credential.av)
-            api(libs.credential.powerofrepresentation)
-            api(libs.credential.certificateofresidence)
-            api(libs.credential.companyregistration)
-            api(libs.credential.healthid)
-            api(libs.credential.taxid)
-            api(libs.credential.ehic)
+            // All credential data classes are bundled in vck core or resolved from remote type metadata now.
             api(napier())
             api(kmmresult())
             implementation(serialization("json"))
@@ -176,13 +169,6 @@ exportXCFramework(
         libs.vck,
         libs.vck.openid,
         libs.vck.openid.ktor,
-        libs.credential.av,
-        libs.credential.powerofrepresentation,
-        libs.credential.certificateofresidence,
-        libs.credential.companyregistration,
-        libs.credential.healthid,
-        libs.credential.ehic,
-        libs.credential.taxid,
         kmmresult(),
         napier()
     )

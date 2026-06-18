@@ -2,11 +2,6 @@ package data
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.catchingUnwrapped
-import at.asitplus.wallet.companyregistration.Address
-import at.asitplus.wallet.companyregistration.Branch
-import at.asitplus.wallet.companyregistration.CompanyActivity
-import at.asitplus.wallet.companyregistration.ContactData
-import at.asitplus.wallet.ehic.IssuingAuthority
 import at.asitplus.wallet.eupid.IsoIec5218Gender
 import at.asitplus.wallet.eupid.PlaceOfBirth
 import at.asitplus.wallet.lib.data.LocalDateOrInstant
@@ -44,11 +39,6 @@ sealed interface Attribute {
             is LocalDateOrInstant.Instant -> InstantAttribute(it.value)
             is ImageBitmap -> ImageAttribute(it)
             is Long -> LongAttribute(it)
-            is CompanyActivity -> CompanyActivityAttribute(it)
-            is ContactData -> ContactDataAttribute(it)
-            is Address -> AddressAttribute(it)
-            is Branch -> BranchAttribute(it)
-            is IssuingAuthority -> IssuingAuthorityAttribute(it)
             is PlaceOfBirth -> PlaceOfBirthAttribute(it)
             // Generic metadata-driven rendering: a nested object claim is shown as-is; raw bytes are skipped.
             is JsonObject -> StringAttribute(it.toString())
@@ -78,10 +68,5 @@ sealed interface Attribute {
     data class InstantAttribute(val value: Instant) : Attribute
     data class ImageAttribute(val value: ImageBitmap) : Attribute
     data class DrivingPrivilegeAttribute(val value: Array<DrivingPrivilege>) : Attribute
-    data class CompanyActivityAttribute(val value: CompanyActivity) : Attribute
-    data class ContactDataAttribute(val value: ContactData) : Attribute
-    data class AddressAttribute(val value: Address) : Attribute
-    data class BranchAttribute(val value: Branch) : Attribute
-    data class IssuingAuthorityAttribute(val value: IssuingAuthority) : Attribute
     data class PlaceOfBirthAttribute(val value: PlaceOfBirth) : Attribute
 }

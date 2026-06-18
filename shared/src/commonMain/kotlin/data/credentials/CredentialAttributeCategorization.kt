@@ -1,20 +1,12 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.ageverification.AgeVerificationScheme
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPidIso
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPidSdJwt
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
-import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
-import at.asitplus.wallet.cor.CertificateOfResidenceScheme
-import at.asitplus.wallet.ehic.EhicScheme
-import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.CredentialScheme
-import at.asitplus.wallet.por.PowerOfRepresentationScheme
-import at.asitplus.wallet.taxid.TaxIdScheme
 import data.PersonalDataCategory
-import data.credentialsdatacard.CompanyRegistrationCredentialAttributeCategorization
 
 /**
  * The type, `List<AttributeUnpackingInformation>`, is there to
@@ -33,13 +25,6 @@ interface CredentialAttributeCategorization {
             scheme.isEuPidSdJwt -> EuPidSdJwtCredentialAttributeCategorization
             scheme.isEuPidIso -> EuPidCredentialAttributeCategorization
             scheme.isMdl -> MobileDrivingLicenceCredentialAttributeCategorization
-            scheme is AgeVerificationScheme -> AgeVerificationCredentialAttributeCategorization
-            scheme is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialAttributeCategorization
-            scheme is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAttributeCategorization
-            scheme is CompanyRegistrationScheme -> CompanyRegistrationCredentialAttributeCategorization
-            scheme is HealthIdScheme -> HealthIdCredentialAttributeCategorization
-            scheme is EhicScheme -> EhicCredentialAttributeCategorization
-            scheme is TaxIdScheme -> TaxIdCredentialAttributeCategorization
             else -> EmptyCredentialAttributeCategorization
         }
     }

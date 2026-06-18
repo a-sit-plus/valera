@@ -9,10 +9,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.dictionary_no
 import at.asitplus.valera.resources.dictionary_yes
-import at.asitplus.wallet.companyregistration.Address
-import at.asitplus.wallet.companyregistration.Branch
-import at.asitplus.wallet.companyregistration.CompanyActivity
-import at.asitplus.wallet.companyregistration.ContactData
 import at.asitplus.wallet.eupid.PlaceOfBirth
 import at.asitplus.wallet.lib.data.LocalDateOrInstant
 import at.asitplus.wallet.mdl.DrivingPrivilege
@@ -42,13 +38,8 @@ fun AttributeRepresentation(attribute: Attribute) {
         is Attribute.IntegerAttribute -> AttributeRepresentation(attribute.value.toString())
         is Attribute.LongAttribute -> AttributeRepresentation(attribute.value.toString())
         is Attribute.UnsignedIntegerAttribute -> AttributeRepresentation(attribute.value.toString())
-        is Attribute.IssuingAuthorityAttribute -> AttributeRepresentation(attribute.value.toString())
         is Attribute.PlaceOfBirthAttribute -> AttributeRepresentation(attribute.value)
         is Attribute.DrivingPrivilegeAttribute -> AttributeRepresentation(attribute.value)
-        is Attribute.AddressAttribute -> AttributeRepresentation(attribute.value)
-        is Attribute.BranchAttribute -> AttributeRepresentation(attribute.value)
-        is Attribute.CompanyActivityAttribute -> AttributeRepresentation(attribute.value)
-        is Attribute.ContactDataAttribute -> AttributeRepresentation(attribute.value)
     }
 }
 
@@ -111,74 +102,11 @@ fun AttributeRepresentation(
 
 @Composable
 fun AttributeRepresentation(
-    value: CompanyActivity,
-    modifier: Modifier = Modifier,
-) {
-    Text(
-        text = "${value.naceCode} (${value.description})",
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        modifier = modifier,
-    )
-}
-
-@Composable
-fun AttributeRepresentation(
-    value: ContactData,
-    modifier: Modifier = Modifier,
-) {
-    Text(
-        text = listOfNotNull(value.email, value.telephone).joinToString(", "),
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        modifier = modifier,
-    )
-}
-
-@Composable
-fun AttributeRepresentation(
     value: PlaceOfBirth,
     modifier: Modifier = Modifier,
 ) {
     Text(
         text = listOfNotNull(value.country, value.region, value.locality).joinToString(", "),
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        modifier = modifier,
-    )
-}
-
-@Composable
-fun AttributeRepresentation(
-    value: Address,
-    modifier: Modifier = Modifier,
-) {
-    Text(
-        text = listOfNotNull(
-            value.thoroughfare,
-            value.locatorDesignator,
-            value.poBox,
-            value.postCode,
-            value.postName,
-            value.adminUnitLevel2,
-            value.adminUnitLevel1
-        ).joinToString(", "),
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        modifier = modifier,
-    )
-}
-
-@Composable
-fun AttributeRepresentation(
-    value: Branch,
-    modifier: Modifier = Modifier,
-) {
-    Text(
-        text = listOfNotNull(
-            value.name,
-            value.euid,
-        ).joinToString(", "),
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         modifier = modifier,

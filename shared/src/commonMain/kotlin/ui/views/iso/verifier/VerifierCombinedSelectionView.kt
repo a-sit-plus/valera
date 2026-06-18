@@ -38,14 +38,11 @@ import at.asitplus.valera.resources.heading_label_select_combined_data_retrieval
 import at.asitplus.valera.resources.info_text_no_requests
 import at.asitplus.valera.resources.section_heading_select_document_type
 import at.asitplus.valera.resources.text_label_requests
-import at.asitplus.wallet.ageverification.AgeVerificationScheme
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.iconLabel
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPid
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
-import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
 import data.document.RequestDocumentBuilder
+import data.document.SelectableRequestType
 import data.document.SelectableRequest
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.LabeledText
@@ -81,13 +78,14 @@ fun VerifierCombinedSelectionView(
 
     val handleRequest: (SelectableRequest) -> Unit = { request ->
         selectedRequests.add(request)
-        RequestDocumentBuilder.requestTypeToScheme[request.type].let { s ->
-            when {
-                s.isMdl -> isMdlSelectable = false
-                s.isEuPid -> isPidSelectable = false
-                s is HealthIdScheme -> isHiidSelectable = false
-                s is AgeVerificationScheme -> isAvSelectable = false
-            }
+        when (request.type) {
+            SelectableRequestType.MDL_MANDATORY,
+            SelectableRequestType.MDL_FULL,
+            SelectableRequestType.MDL_AGE_VERIFICATION -> isMdlSelectable = false
+            SelectableRequestType.PID_MANDATORY,
+            SelectableRequestType.PID_FULL -> isPidSelectable = false
+            SelectableRequestType.HIID -> isHiidSelectable = false
+            SelectableRequestType.AGE_VERIFICATION -> isAvSelectable = false
         }
         showRequestTypes = false
         if (isMdlSelectable || isPidSelectable || isHiidSelectable || isAvSelectable) {

@@ -94,14 +94,6 @@ data class WalletDependencyProvider(
 ) {
     init {
         registerBundledCredentialMetadata()
-        at.asitplus.wallet.cor.Initializer.initWithVCK()
-        at.asitplus.wallet.por.Initializer.initWithVCK()
-        at.asitplus.wallet.companyregistration.Initializer.initWithVCK()
-        at.asitplus.wallet.healthid.Initializer.initWithVCK()
-        at.asitplus.wallet.taxid.Initializer.initWithVCK()
-        at.asitplus.wallet.ehic.Initializer.initWithVCK()
-        at.asitplus.wallet.ageverification.Initializer.initWithVCK()
-
         registerRemoteCredentialMetadata(buildContext)
 
         Napier.takeLogarithm()

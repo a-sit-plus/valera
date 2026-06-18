@@ -19,12 +19,7 @@ import at.asitplus.openid.dcql.*
 import at.asitplus.openid.dcql.DCQLJwtVcCredentialQuery
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
-import at.asitplus.wallet.companyregistration.CompanyRegistrationDataElements
-import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
-import at.asitplus.wallet.cor.CertificateOfResidenceDataElements
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPidSdJwt
-import at.asitplus.wallet.cor.CertificateOfResidenceScheme
-import at.asitplus.wallet.ehic.EhicScheme
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
@@ -199,75 +194,6 @@ fun CredentialScheme.toJsonElement(
                 }
             })
             put(EuPidSdJwtDataElements.NATIONALITIES, buildJsonArray { })
-        }
-
-        this is EhicScheme -> buildJsonObject {
-            put(EhicScheme.Attributes.PREFIX_ISSUING_AUTHORITY, buildJsonObject {
-                with(EhicScheme.Attributes.IssuingAuthority) {
-                    put(ID, JsonPrimitive(""))
-                    put(NAME, JsonPrimitive(""))
-                }
-            })
-            put(EhicScheme.Attributes.PREFIX_AUTHENTIC_SOURCE, buildJsonObject {
-                with(EhicScheme.Attributes.AuthenticSource) {
-                    put(ID, JsonPrimitive(""))
-                    put(NAME, JsonPrimitive(""))
-                }
-            })
-        }
-
-        this is CertificateOfResidenceScheme -> buildJsonObject {
-            put(CertificateOfResidenceDataElements.RESIDENCE_ADDRESS, buildJsonObject {
-                CertificateOfResidenceDataElements.Address.ALL_ELEMENTS.forEach {
-                    put(it, JsonPrimitive(""))
-                }
-            })
-        }
-
-        this is CompanyRegistrationScheme -> buildJsonObject {
-            with(CompanyRegistrationDataElements) {
-                put(REGISTERED_ADDRESS, buildJsonObject {
-                    CompanyRegistrationDataElements.Address.ALL_ELEMENTS.forEach {
-                        put(it, JsonPrimitive(""))
-                    }
-                })
-                put(POSTAL_ADDRESS, buildJsonObject {
-                    CompanyRegistrationDataElements.Address.ALL_ELEMENTS.forEach {
-                        put(it, JsonPrimitive(""))
-                    }
-                })
-                put(COMPANY_ACTIVITY, buildJsonObject {
-                    CompanyRegistrationDataElements.CompanyActivity.ALL_ELEMENTS.forEach {
-                        put(it, JsonPrimitive(""))
-                    }
-                })
-                put(COMPANY_CONTACT_DATA, buildJsonObject {
-                    CompanyRegistrationDataElements.ContactData.ALL_ELEMENTS.forEach {
-                        put(it, JsonPrimitive(""))
-                    }
-                })
-                put(BRANCH, buildJsonObject {
-                    with(CompanyRegistrationDataElements.Branch) {
-                        put(NAME, JsonPrimitive(""))
-                        put(EUID, JsonPrimitive(""))
-                        put(ACTIVITY, buildJsonObject {
-                            CompanyRegistrationDataElements.CompanyActivity.ALL_ELEMENTS.forEach {
-                                put(it, JsonPrimitive(""))
-                            }
-                        })
-                        put(POSTAL_ADDRESS, buildJsonObject {
-                            CompanyRegistrationDataElements.Address.ALL_ELEMENTS.forEach {
-                                put(it, JsonPrimitive(""))
-                            }
-                        })
-                        put(REGISTERED_ADDRESS, buildJsonObject {
-                            CompanyRegistrationDataElements.Address.ALL_ELEMENTS.forEach {
-                                put(it, JsonPrimitive(""))
-                            }
-                        })
-                    }
-                })
-            }
         }
 
         else -> buildJsonObject {

@@ -23,21 +23,17 @@ import at.asitplus.valera.resources.error_mdl_driving_privilege_category_expired
 import at.asitplus.valera.resources.error_mdl_driving_privilege_category_not_yet_valid
 import at.asitplus.valera.resources.heading_label_received_data
 import at.asitplus.valera.resources.info_text_credential_status_valid
-import at.asitplus.wallet.ageverification.AgeVerificationScheme
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.iconLabel
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPid
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
-import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.IsoDocumentParsed
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import at.asitplus.wallet.mdl.MDL_NAMESPACE
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
-import data.credentials.AgeVerificationCredentialIsoMdocAdapter
 import data.credentials.EuPidCredentialIsoMdocAdapter
-import data.credentials.HealthIdCredentialIsoMdocAdapter
 import data.credentials.MobileDrivingLicenceCredentialIsoMdocAdapter
 import data.document.DrivingPrivilegeValidator
 import data.document.DrivingPrivilegeValidator.getDrivingPrivilegeStatus
@@ -51,10 +47,8 @@ import ui.composables.Logo
 import ui.composables.PersonAttributeDetailCardHeading
 import ui.composables.PersonAttributeDetailCardHeadingIcon
 import ui.composables.buttons.NavigateUpButton
-import ui.composables.credentials.AgeVerificationCredentialViewFromAdapter
 import ui.composables.credentials.CredentialCardLayout
 import ui.composables.credentials.EuPidCredentialViewFromAdapter
-import ui.composables.credentials.HealthIdViewFromAdapter
 import ui.composables.credentials.MainCredentialIssue
 import ui.composables.credentials.MobileDrivingLicenceCredentialViewFromAdapter
 import ui.models.toCredentialFreshnessSummaryModel
@@ -164,13 +158,12 @@ fun IsoMdocCredentialView(
                 scheme.isEuPid -> EuPidCredentialViewFromAdapter(
                     EuPidCredentialIsoMdocAdapter(namespaces, decodeImage, scheme!!)
                 )
-                scheme is HealthIdScheme -> HealthIdViewFromAdapter(
-                    HealthIdCredentialIsoMdocAdapter(namespaces)
-                )
-                scheme is AgeVerificationScheme -> AgeVerificationCredentialViewFromAdapter(
-                    AgeVerificationCredentialIsoMdocAdapter(namespaces)
-                )
-                else -> throw IllegalArgumentException("Unsupported scheme: $scheme")
+                // Credentials without a bespoke verifier view (resolved from remote type metadata) are listed generically.
+                else -> namespaces.values.forEach { entries ->
+                    entries.forEach { (elementId, elementValue) ->
+                        LabeledText(label = elementId, text = elementValue.toString())
+                    }
+                }
             }
         }
 

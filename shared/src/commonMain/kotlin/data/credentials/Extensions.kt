@@ -3,17 +3,10 @@ package data.credentials
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.ageverification.AgeVerificationScheme
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.agent.representation
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPid
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
-import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
-import at.asitplus.wallet.cor.CertificateOfResidenceScheme
-import at.asitplus.wallet.ehic.EhicScheme
-import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.por.PowerOfRepresentationScheme
-import at.asitplus.wallet.taxid.TaxIdScheme
 import data.Attribute
 import data.credentials.CredentialAdapter.Companion.toComplexJson
 import data.credentials.CredentialAdapter.Companion.toNamespaceAttributeMap
@@ -28,13 +21,6 @@ fun SubjectCredentialStore.StoreEntry.toCredentialAdapter(
     when {
         s.isEuPid -> EuPidCredentialAdapter.createFromStoreEntry(this, decodePortrait = decodeImage)
         s.isMdl -> MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(this, decodePortrait = decodeImage)
-        s is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAdapter.createFromStoreEntry(this)
-        s is CompanyRegistrationScheme -> CompanyRegistrationCredentialAdapter.createFromStoreEntry(this)
-        s is EhicScheme -> EhicCredentialAdapter.createFromStoreEntry(this)
-        s is HealthIdScheme -> HealthIdCredentialAdapter.createFromStoreEntry(this)
-        s is AgeVerificationScheme -> AgeVerificationCredentialAdapter.createFromStoreEntry(this)
-        s is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialAdapter.createFromStoreEntry(this)
-        s is TaxIdScheme -> TaxIdCredentialAdapter.createFromStoreEntry(this)
         // No bespoke renderer (e.g. a scheme resolved from remote type metadata): render generically.
         else -> FallbackCredentialAdapter(toGenericAttributeList(), this)
     }

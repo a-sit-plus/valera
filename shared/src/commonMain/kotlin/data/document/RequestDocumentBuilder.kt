@@ -1,21 +1,30 @@
 package data.document
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.ageverification.AgeVerificationScheme
 import at.asitplus.wallet.eupid.EU_PID_DOCTYPE
 import at.asitplus.wallet.eupid.EuPidDataElements
-import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme
 import at.asitplus.wallet.mdl.MDL_DOCTYPE
-import at.asitplus.wallet.mdl.MDL_NAMESPACE
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
-import data.credentials.AgeVerificationCredentialAttributeTranslator
 import data.credentials.EuPidCredentialAttributeTranslator
-import data.credentials.HealthIdCredentialAttributeTranslator
 import data.credentials.MobileDrivingLicenceCredentialAttributeTranslator
 import org.jetbrains.compose.resources.StringResource
+
+// Age Verification (ISO mdoc) and Health ID (SD-JWT) are resolved from remote type metadata; their docTypes and
+// claim names are kept here as constants for the verifier request presets, instead of compiled-in scheme objects.
+private const val AV_DOCTYPE = "eu.europa.ec.av.1"
+private const val HEALTH_ID_DOCTYPE = "urn:eu.europa.ec.eudi:hiid:1"
+private val ageVerificationElements = listOf(
+    "age_over_12", "age_over_13", "age_over_14", "age_over_16", "age_over_18",
+    "age_over_21", "age_over_25", "age_over_60", "age_over_62", "age_over_65", "age_over_68",
+)
+private val healthIdElements = listOf(
+    "issue_date", "expiry_date", "issuing_authority", "issuing_country", "health_insurance_id",
+    "patient_id", "tax_number", "one_time_token", "wallet_e_prescription_code", "affiliation_country",
+    "document_number", "administrative_number", "issuing_jurisdiction",
+)
 
 object RequestDocumentBuilder {
 
@@ -38,20 +47,15 @@ object RequestDocumentBuilder {
         )
     }
 
-    @Suppress("DEPRECATION")
-    private val ageVerificationScheme: CredentialScheme = AgeVerificationScheme
-
-    @Suppress("DEPRECATION")
-    private val healthIdScheme: CredentialScheme = HealthIdScheme
-
-    /** Resolve a metadata-backed scheme by ISO docType, falling back to an unknown scheme. */
+    /** Resolve a metadata-backed scheme by ISO docType, falling back to an unknown scheme (namespace == docType). */
     private fun schemeFor(docType: String): CredentialScheme =
         AttributeIndex.resolveIsoDoctype(docType) ?: IsoMdocFallbackCredentialScheme(isoDocType = docType)
 
     private val mdlScheme: CredentialScheme get() = schemeFor(MDL_DOCTYPE)
     private val euPidScheme: CredentialScheme get() = schemeFor(EU_PID_DOCTYPE)
+    private val ageVerificationScheme: CredentialScheme get() = schemeFor(AV_DOCTYPE)
+    private val healthIdScheme: CredentialScheme get() = schemeFor(HEALTH_ID_DOCTYPE)
 
-    @Suppress("DEPRECATION")
     val schemes: List<CredentialScheme>
         get() = listOf(mdlScheme, euPidScheme, healthIdScheme, ageVerificationScheme)
 
@@ -66,27 +70,24 @@ object RequestDocumentBuilder {
             SelectableRequestType.HIID to healthIdScheme,
         )
 
+    // EU PID / mDL keep their bespoke translators; AV / Health ID are labelled generically (path name) for now.
     private val translatorByDocType: Map<String, (NormalizedJsonPath) -> StringResource?> = mapOf(
         MDL_DOCTYPE to MobileDrivingLicenceCredentialAttributeTranslator()::translate,
         EU_PID_DOCTYPE to EuPidCredentialAttributeTranslator()::translate,
-        ageVerificationScheme.isoDocType!! to AgeVerificationCredentialAttributeTranslator()::translate,
-        healthIdScheme.isoDocType!! to HealthIdCredentialAttributeTranslator()::translate,
     )
 
-    @Suppress("DEPRECATION")
     private val preselectionByDocType: Map<String, () -> Set<String>> = mapOf(
         MDL_DOCTYPE to { MobileDrivingLicenceDataElements.MANDATORY_ELEMENTS.toSet() },
         EU_PID_DOCTYPE to { euPidMandatoryElements.toSet() },
-        healthIdScheme.isoDocType!! to { HealthIdSchemeRequiredClaimNames.attributes.toSet() },
-        ageVerificationScheme.isoDocType!! to { AgeVerificationScheme.requiredClaimNames.toSet() },
+        HEALTH_ID_DOCTYPE to { healthIdRequiredElements.toSet() },
+        AV_DOCTYPE to { setOf("age_over_18") },
     )
 
-    @Suppress("DEPRECATION")
     private val allElementsByDocType: Map<String, List<String>> = mapOf(
         MDL_DOCTYPE to MobileDrivingLicenceDataElements.ALL_ELEMENTS,
         EU_PID_DOCTYPE to euPidAllElements,
-        healthIdScheme.isoDocType!! to HealthIdScheme.claimNames.toList(),
-        ageVerificationScheme.isoDocType!! to AgeVerificationScheme.claimNames.toList(),
+        HEALTH_ID_DOCTYPE to healthIdElements,
+        AV_DOCTYPE to ageVerificationElements,
     )
 
     private val docTypeConfigs: Map<String, DocTypeConfig>
@@ -134,7 +135,7 @@ object RequestDocumentBuilder {
             ageVerificationScheme, listOf(SelectableAge.fromValue(selectableRequest.age!!)!!.avElement!!)
         )
         SelectableRequestType.HIID -> buildRequestDocument(
-            healthIdScheme, HealthIdSchemeRequiredClaimNames.attributes
+            healthIdScheme, healthIdRequiredElements
         )
     }
 }
@@ -149,19 +150,18 @@ data class DocTypeConfig(
     val translator: (NormalizedJsonPath) -> StringResource?
 )
 
-@Suppress("DEPRECATION")
 enum class SelectableAge(val value: Int, val mdlElement: String?, val avElement: String?) {
-    OVER_12(12, MobileDrivingLicenceDataElements.AGE_OVER_12, AgeVerificationScheme.Attributes.AGE_OVER_12),
-    OVER_13(13, MobileDrivingLicenceDataElements.AGE_OVER_13, AgeVerificationScheme.Attributes.AGE_OVER_13),
-    OVER_14(14, MobileDrivingLicenceDataElements.AGE_OVER_14, AgeVerificationScheme.Attributes.AGE_OVER_14),
-    OVER_16(16, MobileDrivingLicenceDataElements.AGE_OVER_16, AgeVerificationScheme.Attributes.AGE_OVER_16),
-    OVER_18(18, MobileDrivingLicenceDataElements.AGE_OVER_18, AgeVerificationScheme.Attributes.AGE_OVER_18),
-    OVER_21(21, MobileDrivingLicenceDataElements.AGE_OVER_21, AgeVerificationScheme.Attributes.AGE_OVER_21),
-    OVER_25(25, MobileDrivingLicenceDataElements.AGE_OVER_25, AgeVerificationScheme.Attributes.AGE_OVER_25),
-    OVER_60(60, MobileDrivingLicenceDataElements.AGE_OVER_60, AgeVerificationScheme.Attributes.AGE_OVER_60),
-    OVER_62(62, MobileDrivingLicenceDataElements.AGE_OVER_62, AgeVerificationScheme.Attributes.AGE_OVER_62),
-    OVER_65(65, MobileDrivingLicenceDataElements.AGE_OVER_65, AgeVerificationScheme.Attributes.AGE_OVER_65),
-    OVER_68(68, MobileDrivingLicenceDataElements.AGE_OVER_68, AgeVerificationScheme.Attributes.AGE_OVER_68);
+    OVER_12(12, MobileDrivingLicenceDataElements.AGE_OVER_12, "age_over_12"),
+    OVER_13(13, MobileDrivingLicenceDataElements.AGE_OVER_13, "age_over_13"),
+    OVER_14(14, MobileDrivingLicenceDataElements.AGE_OVER_14, "age_over_14"),
+    OVER_16(16, MobileDrivingLicenceDataElements.AGE_OVER_16, "age_over_16"),
+    OVER_18(18, MobileDrivingLicenceDataElements.AGE_OVER_18, "age_over_18"),
+    OVER_21(21, MobileDrivingLicenceDataElements.AGE_OVER_21, "age_over_21"),
+    OVER_25(25, MobileDrivingLicenceDataElements.AGE_OVER_25, "age_over_25"),
+    OVER_60(60, MobileDrivingLicenceDataElements.AGE_OVER_60, "age_over_60"),
+    OVER_62(62, MobileDrivingLicenceDataElements.AGE_OVER_62, "age_over_62"),
+    OVER_65(65, MobileDrivingLicenceDataElements.AGE_OVER_65, "age_over_65"),
+    OVER_68(68, MobileDrivingLicenceDataElements.AGE_OVER_68, "age_over_68");
 
     companion object {
         val valuesList = entries.map { it.value }
@@ -169,17 +169,10 @@ enum class SelectableAge(val value: Int, val mdlElement: String?, val avElement:
     }
 }
 
-@Suppress("DEPRECATION")
-object HealthIdSchemeRequiredClaimNames {
-    val attributes: List<String> = listOf(
-        HealthIdScheme.Attributes.ONE_TIME_TOKEN,
-        HealthIdScheme.Attributes.AFFILIATION_COUNTRY,
-        HealthIdScheme.Attributes.ISSUE_DATE,
-        HealthIdScheme.Attributes.EXPIRY_DATE,
-        HealthIdScheme.Attributes.ISSUING_AUTHORITY,
-        HealthIdScheme.Attributes.ISSUING_COUNTRY
-    )
-}
+/** Required Health ID claims for the verifier preset (Health ID is resolved from remote type metadata). */
+private val healthIdRequiredElements: List<String> = listOf(
+    "one_time_token", "affiliation_country", "issue_date", "expiry_date", "issuing_authority", "issuing_country",
+)
 
 enum class SelectableRequestType {
     MDL_MANDATORY,

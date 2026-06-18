@@ -317,22 +317,18 @@ private sealed interface ExportableStoreEntry {
 enum class ExportableCredentialScheme {
     AtomicAttribute2023, MobileDrivingLicence2023, EuPidScheme, EuPidSdJwtScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme, CompanyRegistrationScheme, HealthIdScheme, EhicScheme, TaxIdScheme, VcFallbackCredentialScheme, SdJwtFallbackCredentialScheme, IsoMdocFallbackCredentialScheme, AgeVerificationScheme;
 
-    @Suppress("DEPRECATION")
     fun toScheme() = when (this) {
         AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
-        MobileDrivingLicence2023 -> AttributeIndex.resolveIsoDoctype(MDL_DOCTYPE)
-            ?: at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme(isoDocType = MDL_DOCTYPE)
-        AgeVerificationScheme -> at.asitplus.wallet.ageverification.AgeVerificationScheme
-        EuPidScheme -> AttributeIndex.resolveIsoDoctype(EU_PID_DOCTYPE)
-            ?: at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme(isoDocType = EU_PID_DOCTYPE)
-        EuPidSdJwtScheme -> AttributeIndex.resolveSdJwtAttributeType(EU_PID_SD_JWT_VCT)
-            ?: at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme(sdJwtType = EU_PID_SD_JWT_VCT)
-        PowerOfRepresentationScheme -> at.asitplus.wallet.por.PowerOfRepresentationScheme
-        CertificateOfResidenceScheme -> at.asitplus.wallet.cor.CertificateOfResidenceScheme
-        CompanyRegistrationScheme -> at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
-        HealthIdScheme -> at.asitplus.wallet.healthid.HealthIdScheme
-        EhicScheme -> at.asitplus.wallet.ehic.EhicScheme
-        TaxIdScheme -> at.asitplus.wallet.taxid.TaxIdScheme
+        MobileDrivingLicence2023 -> resolveIsoScheme(MDL_DOCTYPE)
+        EuPidScheme -> resolveIsoScheme(EU_PID_DOCTYPE)
+        EuPidSdJwtScheme -> resolveSdJwtScheme(EU_PID_SD_JWT_VCT)
+        AgeVerificationScheme -> resolveIsoScheme(EXPORTABLE_AV_DOCTYPE)
+        PowerOfRepresentationScheme -> resolveSdJwtScheme(EXPORTABLE_POR_VCT)
+        CertificateOfResidenceScheme -> resolveSdJwtScheme(EXPORTABLE_COR_VCT)
+        CompanyRegistrationScheme -> resolveSdJwtScheme(EXPORTABLE_CR_VCT)
+        HealthIdScheme -> resolveSdJwtScheme(EXPORTABLE_HIID_VCT)
+        EhicScheme -> resolveSdJwtScheme(EXPORTABLE_EHIC_VCT)
+        TaxIdScheme -> resolveSdJwtScheme(EXPORTABLE_TAX_VCT)
         VcFallbackCredentialScheme -> at.asitplus.wallet.lib.data.VcFallbackCredentialScheme
         SdJwtFallbackCredentialScheme -> at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme
         IsoMdocFallbackCredentialScheme -> at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme
@@ -345,13 +341,13 @@ enum class ExportableCredentialScheme {
             isMdl -> MobileDrivingLicence2023
             isEuPidIso -> EuPidScheme
             isEuPidSdJwt -> EuPidSdJwtScheme
-            this == at.asitplus.wallet.ageverification.AgeVerificationScheme -> AgeVerificationScheme
-            this == at.asitplus.wallet.por.PowerOfRepresentationScheme -> PowerOfRepresentationScheme
-            this == at.asitplus.wallet.cor.CertificateOfResidenceScheme -> CertificateOfResidenceScheme
-            this == at.asitplus.wallet.companyregistration.CompanyRegistrationScheme -> CompanyRegistrationScheme
-            this == at.asitplus.wallet.healthid.HealthIdScheme -> HealthIdScheme
-            this == at.asitplus.wallet.ehic.EhicScheme -> EhicScheme
-            this == at.asitplus.wallet.taxid.TaxIdScheme -> TaxIdScheme
+            isoDocType == EXPORTABLE_AV_DOCTYPE -> AgeVerificationScheme
+            sdJwtType == EXPORTABLE_POR_VCT -> PowerOfRepresentationScheme
+            sdJwtType == EXPORTABLE_COR_VCT -> CertificateOfResidenceScheme
+            sdJwtType == EXPORTABLE_CR_VCT -> CompanyRegistrationScheme
+            sdJwtType == EXPORTABLE_HIID_VCT -> HealthIdScheme
+            sdJwtType == EXPORTABLE_EHIC_VCT -> EhicScheme
+            sdJwtType == EXPORTABLE_TAX_VCT -> TaxIdScheme
             this is at.asitplus.wallet.lib.data.VcFallbackCredentialScheme -> VcFallbackCredentialScheme
             this is at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme -> SdJwtFallbackCredentialScheme
             this is at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme -> IsoMdocFallbackCredentialScheme
@@ -359,3 +355,21 @@ enum class ExportableCredentialScheme {
         }
     }
 }
+
+// vct / docType identifiers for credentials resolved from remote type metadata (no compiled-in scheme objects),
+// used to map stored ExportableCredentialScheme entries back to a CredentialScheme.
+private const val EXPORTABLE_AV_DOCTYPE = "eu.europa.ec.av.1"
+private const val EXPORTABLE_POR_VCT = "urn:eu.europa.ec.eudi:por:1"
+private const val EXPORTABLE_COR_VCT = "eu.europa.ec.eudi.cor.1"
+private const val EXPORTABLE_CR_VCT = "urn:eu.europa.ec.eudi:cr:1"
+private const val EXPORTABLE_HIID_VCT = "urn:eu.europa.ec.eudi:hiid:1"
+private const val EXPORTABLE_EHIC_VCT = "urn:eudi:ehic:1"
+private const val EXPORTABLE_TAX_VCT = "urn:eu.europa.ec.eudi:tax:1"
+
+private fun resolveIsoScheme(docType: String): CredentialScheme =
+    AttributeIndex.resolveIsoDoctype(docType)
+        ?: at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme(isoDocType = docType)
+
+private fun resolveSdJwtScheme(vct: String): CredentialScheme =
+    AttributeIndex.resolveSdJwtAttributeType(vct)
+        ?: at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme(sdJwtType = vct)
