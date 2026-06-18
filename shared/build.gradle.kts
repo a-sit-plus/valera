@@ -132,6 +132,7 @@ kotlin {
             implementation(libs.compose.ui.test)
             implementation(libs.koin.test)
             implementation(libs.testballoon)
+            implementation(libs.testballoon.framework.core)
         }
 
         androidMain.dependencies {
