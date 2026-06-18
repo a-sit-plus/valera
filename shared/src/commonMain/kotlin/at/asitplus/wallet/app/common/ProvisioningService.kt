@@ -69,6 +69,7 @@ class ProvisioningService(
 
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback/provisioning"
     private var cachedClientId: String? = null
+    private var cachedWalletProviderAttestationEnabled: Boolean? = null
 
     private var openId4VciClientCached = null as OpenId4VciClient?
     private var walletServiceCached = null as WalletService?
@@ -82,6 +83,15 @@ class ProvisioningService(
         return clientId
     }
 
+    private suspend fun currentWalletProviderAttestationEnabled(): Boolean {
+        val enabled = config.walletProviderAttestationEnabled.first()
+        if (enabled != cachedWalletProviderAttestationEnabled) {
+            cachedWalletProviderAttestationEnabled = enabled
+            clearCaches()
+        }
+        return enabled
+    }
+
     private suspend fun clearCaches() {
         attestationService.reset()
         openId4VciClientCached = null
@@ -90,6 +100,7 @@ class ProvisioningService(
 
     private suspend fun walletService(): WalletService = walletServiceCached ?: run {
         val clientId = currentClientId()
+        currentWalletProviderAttestationEnabled()
         WalletService(
             clientId = clientId,
             loadKeyAttestation = attestationService::loadKeyAttestation,
@@ -103,22 +114,35 @@ class ProvisioningService(
     }.also { walletServiceCached = it }
 
     private suspend fun openId4VciClient(): OpenId4VciClient = openId4VciClientCached ?: run {
+        val clientId = currentClientId()
+        val walletProviderAttestationEnabled = currentWalletProviderAttestationEnabled()
+        val oAuth2Client = OAuth2Client(
+            clientId = clientId,
+            redirectUrl = redirectUrl,
+            stateToCodeStore = stateToCodeStore
+        )
+        val oAuth2KtorClient = if (walletProviderAttestationEnabled) {
+            OAuth2KtorClient(
+                engine = client.engine,
+                cookiesStorage = cookieStorage,
+                oAuth2Client = oAuth2Client,
+                httpClientConfig = httpService.loggingConfig,
+                loadInstanceAttestation = attestationService::loadInstanceAttestation,
+                keyMaterial = attestationService.getInstanceAttestationKeyMaterial()
+            )
+        } else {
+            OAuth2KtorClient(
+                engine = client.engine,
+                cookiesStorage = cookieStorage,
+                oAuth2Client = oAuth2Client,
+                httpClientConfig = httpService.loggingConfig,
+            )
+        }
         OpenId4VciClient(
             engine = client.engine,
             cookiesStorage = cookieStorage,
             httpClientConfig = httpService.loggingConfig,
-            oauth2Client = OAuth2KtorClient(
-                engine = client.engine,
-                cookiesStorage = cookieStorage,
-                oAuth2Client = OAuth2Client(
-                    clientId = currentClientId(),
-                    redirectUrl = redirectUrl,
-                    stateToCodeStore = stateToCodeStore
-                ),
-                httpClientConfig = httpService.loggingConfig,
-                loadInstanceAttestation = attestationService::loadInstanceAttestation,
-                keyMaterial = attestationService.getInstanceAttestationKeyMaterial()
-            ),
+            oauth2Client = oAuth2KtorClient,
             oid4vciService = walletService()
         ).also { openId4VciClientCached = it }
     }

@@ -222,6 +222,7 @@
 
     <string name="text_label_issuing_service">Ausstellservice</string>
     <string name="text_label_client_identifier">Client-ID</string>
+    <string name="text_label_wallet_provider_attestation">Wallet Attestierung verwenden</string>
     <string name="text_label_id_identifier">Bezeichnung</string>
     <string name="text_label_id_format">Datenrepräsentation</string>
     <string name="text_label_id_scheme">Credential Typ</string>
@@ -513,6 +514,7 @@
     <string name="capabilities_heading_biometry">Biometrie</string>
     <string name="capabilities_heading_signing">Signatur</string>
     <string name="capabilities_heading_attestation">Attestierung</string>
+
     <string name="capabilities_heading_internet">Internet</string>
     <string name="capabilities_heading_camera">Kamera</string>
 
@@ -527,7 +529,7 @@
     <string name="info_text_capabilities_no_camera">Der Zugriff auf die Kamera wurde verweigert. Bitte passen Sie die Einstellungen an.</string>
     <string name="button_label_capabilities_settings">Geräteeinstellungen</string>
     <string name="additional_text_other_untranslated_claims">weitere Attribute</string>
-  
+
     <!--  Refresh views  -->
     <string name="refresh_center_title">Ausweise aktualisieren</string>
     <string name="button_clear_and_close">Leeren &amp; Schließen</string>

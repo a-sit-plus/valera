@@ -81,10 +81,12 @@ class AttestationService(
     }
 
     suspend fun loadInstanceAttestation(input: LoadInstanceAttestationInput) = catching {
+        ensureWalletProviderAttestationEnabled()
         requestInstanceAttestation(input)
     }
 
     suspend fun loadKeyAttestation(input: KeyAttestationInput) = catching {
+        ensureWalletProviderAttestationEnabled()
         requestKeyAttestation(input)
     }
 
@@ -97,6 +99,7 @@ class AttestationService(
     private suspend fun requestInstanceAttestation(
         input: LoadInstanceAttestationInput,
     ): JwsCompactTyped<JsonWebToken> {
+        ensureWalletProviderAttestationEnabled()
         if (input.allowBuffer()) {
             bufferedInstanceAttestation.firstOrNull()?.let { buffer ->
                 if (buffer.hasRemainingClientStatusPeriod(input.preferredClientStatusPeriod ?: PREFERRED_DEFAULT_TTL)) {
@@ -119,6 +122,7 @@ class AttestationService(
     private suspend fun requestKeyAttestation(
         input: KeyAttestationInput,
     ): JwsCompactTyped<KeyAttestationJwt> {
+        ensureWalletProviderAttestationEnabled()
         if (input.allowBuffer()) {
             bufferedKeyAttestation.firstOrNull()?.let { buffer ->
                 if (buffer.hasRemainingKeyStorageStatusPeriod(input.preferredKeyStorageStatusPeriod ?: PREFERRED_DEFAULT_TTL)) {
@@ -166,7 +170,17 @@ class AttestationService(
         Napier.e("AttestationService: Error receiving challenge. $it")
     }.getOrNull()
 
+    private suspend fun ensureWalletProviderAttestationEnabled() {
+        if (!config.walletProviderAttestationEnabled.first()) {
+            throw WalletProviderAttestationDisabledException()
+        }
+    }
+
 }
+
+class WalletProviderAttestationDisabledException : IllegalStateException(
+    "The issuing service requires wallet provider attestation, but wallet provider attestation is disabled in settings."
+)
 
 fun KeyAttestationInput.allowBuffer() = (this.credentialIssuer == null && this.clientNonce == null)
 fun LoadInstanceAttestationInput.allowBuffer() = false

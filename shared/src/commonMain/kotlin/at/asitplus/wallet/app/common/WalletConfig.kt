@@ -39,6 +39,7 @@ class WalletConfig(
     override val clientId: Flow<String> = config.map { it.clientId }
 
     override val walletProviderHost = config.map { it.walletProviderHost }
+    override val walletProviderAttestationEnabled = config.map { it.walletProviderAttestationEnabled }
     override val isConditionsAccepted: Flow<Boolean> = config.map { it.isConditionsAccepted }
     override val presentmentUseNegotiatedHandover: Flow<Boolean> = config.map { it.presentmentUseNegotiatedHandover }
     override val presentmentBleCentralClientModeEnabled: Flow<Boolean> = config.map { it.presentmentBleCentralClientModeEnabled }
@@ -102,6 +103,7 @@ class WalletConfig(
         host: String?,
         clientId: String?,
         walletProviderHost: String?,
+        walletProviderAttestationEnabled: Boolean?,
         isConditionsAccepted: Boolean?,
         presentmentUseNegotiatedHandover: Boolean?,
         presentmentBleCentralClientModeEnabled: Boolean?,
@@ -127,6 +129,8 @@ class WalletConfig(
                 host = host ?: current.host,
                 clientId = clientId ?: current.clientId,
                 walletProviderHost = walletProviderHost ?: current.walletProviderHost,
+                walletProviderAttestationEnabled = walletProviderAttestationEnabled
+                    ?: current.walletProviderAttestationEnabled,
                 isConditionsAccepted = isConditionsAccepted ?: current.isConditionsAccepted,
                 presentmentUseNegotiatedHandover = presentmentUseNegotiatedHandover
                     ?: current.presentmentUseNegotiatedHandover,
@@ -215,6 +219,7 @@ private data class ConfigData(
     val clientId: String = SettingsRepository.DEFAULT_CLIENT_ID,
     val host: String = "https://wallet.a-sit.at/m7",
     val walletProviderHost: String = "https://wallet-provider.a-sit.plus",
+    val walletProviderAttestationEnabled: Boolean = true,
     val isConditionsAccepted: Boolean = false,
     val presentmentUseNegotiatedHandover: Boolean = true,
     val presentmentBleCentralClientModeEnabled: Boolean = true,
