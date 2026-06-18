@@ -22,9 +22,10 @@ import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLa
 import at.asitplus.wallet.companyregistration.CompanyRegistrationDataElements
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceDataElements
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPidSdJwt
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.ehic.EhicScheme
-import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
@@ -177,10 +178,10 @@ fun CredentialScheme.toJsonElement(
 ): JsonElement {
     val dataElements = this.claimNames
     // TODO move this to credentials libraries
-    val complexElements = when (this) {
-        EuPidSdJwtScheme -> buildJsonObject {
-            put(EuPidSdJwtScheme.SdJwtAttributes.PREFIX_ADDRESS, buildJsonObject {
-                with(EuPidSdJwtScheme.SdJwtAttributes.Address) {
+    val complexElements = when {
+        isEuPidSdJwt -> buildJsonObject {
+            put(EuPidSdJwtDataElements.PREFIX_ADDRESS, buildJsonObject {
+                with(EuPidSdJwtDataElements.Address) {
                     put(FORMATTED, JsonPrimitive(""))
                     put(COUNTRY, JsonPrimitive(""))
                     put(REGION, JsonPrimitive(""))
@@ -190,17 +191,17 @@ fun CredentialScheme.toJsonElement(
                     put(HOUSE_NUMBER, JsonPrimitive(""))
                 }
             })
-            put(EuPidSdJwtScheme.SdJwtAttributes.PREFIX_PLACE_OF_BIRTH, buildJsonObject {
-                with(EuPidSdJwtScheme.SdJwtAttributes.PlaceOfBirth) {
+            put(EuPidSdJwtDataElements.PREFIX_PLACE_OF_BIRTH, buildJsonObject {
+                with(EuPidSdJwtDataElements.PlaceOfBirth) {
                     put(COUNTRY, JsonPrimitive(""))
                     put(REGION, JsonPrimitive(""))
                     put(LOCALITY, JsonPrimitive(""))
                 }
             })
-            put(EuPidSdJwtScheme.SdJwtAttributes.NATIONALITIES, buildJsonArray { })
+            put(EuPidSdJwtDataElements.NATIONALITIES, buildJsonArray { })
         }
 
-        is EhicScheme -> buildJsonObject {
+        this is EhicScheme -> buildJsonObject {
             put(EhicScheme.Attributes.PREFIX_ISSUING_AUTHORITY, buildJsonObject {
                 with(EhicScheme.Attributes.IssuingAuthority) {
                     put(ID, JsonPrimitive(""))
@@ -215,7 +216,7 @@ fun CredentialScheme.toJsonElement(
             })
         }
 
-        is CertificateOfResidenceScheme -> buildJsonObject {
+        this is CertificateOfResidenceScheme -> buildJsonObject {
             put(CertificateOfResidenceDataElements.RESIDENCE_ADDRESS, buildJsonObject {
                 CertificateOfResidenceDataElements.Address.ALL_ELEMENTS.forEach {
                     put(it, JsonPrimitive(""))
@@ -223,7 +224,7 @@ fun CredentialScheme.toJsonElement(
             })
         }
 
-        is CompanyRegistrationScheme -> buildJsonObject {
+        this is CompanyRegistrationScheme -> buildJsonObject {
             with(CompanyRegistrationDataElements) {
                 put(REGISTERED_ADDRESS, buildJsonObject {
                     CompanyRegistrationDataElements.Address.ALL_ELEMENTS.forEach {

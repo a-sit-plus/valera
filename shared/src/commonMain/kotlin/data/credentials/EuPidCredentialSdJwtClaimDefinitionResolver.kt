@@ -2,13 +2,12 @@ package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
-import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme.SdJwtAttributes.Address
-import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme.SdJwtAttributes.AgeEqualOrOver
-import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme.SdJwtAttributes.PlaceOfBirth
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements.Address
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements.PlaceOfBirth
 
 class EuPidCredentialSdJwtClaimDefinitionResolver {
-    fun resolveOrNull(path: NormalizedJsonPath) = with(EuPidSdJwtScheme.SdJwtAttributes) {
+    fun resolveOrNull(path: NormalizedJsonPath) = with(EuPidSdJwtDataElements) {
         when (val first = path.segments.firstOrNull()) {
             is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
                 FAMILY_NAME -> EuPidCredentialClaimDefinition.FAMILY_NAME

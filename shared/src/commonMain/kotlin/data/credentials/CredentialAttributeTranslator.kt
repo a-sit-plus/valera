@@ -2,15 +2,13 @@ package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.ageverification.AgeVerificationScheme
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPid
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.ehic.EhicScheme
-import at.asitplus.wallet.eupid.EuPidScheme
-import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
-import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.CredentialScheme
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 import org.jetbrains.compose.resources.StringResource
@@ -22,17 +20,16 @@ interface CredentialAttributeTranslator {
     fun translate(attributeName: NormalizedJsonPath): StringResource?
 
     companion object {
-        operator fun get(scheme: CredentialScheme?) = when(scheme) {
-            is EuPidScheme,
-            is EuPidSdJwtScheme -> EuPidCredentialAttributeTranslator()
-            is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAttributeTranslator()
-            is AgeVerificationScheme -> AgeVerificationCredentialAttributeTranslator()
-            is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialAttributeTranslator()
-            is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAttributeTranslator()
-            is CompanyRegistrationScheme -> CompanyRegistrationCredentialAttributeTranslator()
-            is HealthIdScheme -> HealthIdCredentialAttributeTranslator()
-            is EhicScheme -> EhicCredentialAttributeTranslator()
-            is TaxIdScheme -> TaxIdCredentialAttributeTranslator()
+        operator fun get(scheme: CredentialScheme?) = when {
+            scheme.isEuPid -> EuPidCredentialAttributeTranslator()
+            scheme.isMdl -> MobileDrivingLicenceCredentialAttributeTranslator()
+            scheme is AgeVerificationScheme -> AgeVerificationCredentialAttributeTranslator()
+            scheme is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialAttributeTranslator()
+            scheme is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAttributeTranslator()
+            scheme is CompanyRegistrationScheme -> CompanyRegistrationCredentialAttributeTranslator()
+            scheme is HealthIdScheme -> HealthIdCredentialAttributeTranslator()
+            scheme is EhicScheme -> EhicCredentialAttributeTranslator()
+            scheme is TaxIdScheme -> TaxIdCredentialAttributeTranslator()
             else -> null
         }
     }

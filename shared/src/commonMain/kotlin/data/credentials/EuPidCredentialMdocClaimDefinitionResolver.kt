@@ -1,15 +1,16 @@
 package data.credentials
 
-import at.asitplus.wallet.eupid.EuPidScheme
+import at.asitplus.wallet.eupid.EU_PID_DOCTYPE
+import at.asitplus.wallet.eupid.EuPidDataElements as Attributes
 
 class EuPidCredentialMdocClaimDefinitionResolver {
     @Suppress("DEPRECATION")
     fun resolveOrNull(
         namespace: String,
         claimName: String,
-    ): EuPidCredentialClaimDefinition? = with(EuPidScheme.Attributes) {
+    ): EuPidCredentialClaimDefinition? = with(Attributes) {
         when (namespace) {
-            EuPidScheme.isoNamespace -> when (claimName) {
+            EU_PID_DOCTYPE -> when (claimName) {
                 FAMILY_NAME -> EuPidCredentialClaimDefinition.FAMILY_NAME
                 GIVEN_NAME -> EuPidCredentialClaimDefinition.GIVEN_NAME
                 BIRTH_DATE -> EuPidCredentialClaimDefinition.BIRTH_DATE

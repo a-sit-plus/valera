@@ -16,7 +16,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.PersonalDataCategory
 import data.credentials.MobileDrivingLicenceCredentialAdapter
 import ui.composables.AttributeRepresentation
@@ -27,7 +26,7 @@ fun MobileDrivingLicenceCredentialMetadataCard(
     modifier: Modifier = Modifier,
 ) {
     CredentialDetailCard(
-        credentialScheme = MobileDrivingLicenceScheme,
+        credentialScheme = credentialAdapter.scheme,
         personalDataCategory = PersonalDataCategory.Metadata,
         credentialAdapter = credentialAdapter,
         modifier = modifier,

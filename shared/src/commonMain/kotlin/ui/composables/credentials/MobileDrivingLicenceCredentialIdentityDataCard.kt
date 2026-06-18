@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.content_description_portrait
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.PersonalDataCategory
 import data.credentials.MobileDrivingLicenceCredentialAdapter
 import org.jetbrains.compose.resources.stringResource
@@ -38,7 +37,7 @@ fun MobileDrivingLicenceCredentialIdentityDataCard(
     modifier: Modifier = Modifier,
 ) {
     CredentialDetailCard(
-        credentialScheme = MobileDrivingLicenceScheme,
+        credentialScheme = credentialAdapter.scheme,
         personalDataCategory = PersonalDataCategory.IdentityData,
         credentialAdapter = credentialAdapter,
         modifier = modifier,

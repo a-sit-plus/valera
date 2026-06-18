@@ -1,13 +1,13 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.eupid.EuPidScheme
+import at.asitplus.wallet.eupid.EuPidDataElements as Attributes
 import data.PersonalDataCategory
 
 @Suppress("DEPRECATION")
 object EuPidCredentialAttributeCategorization : CredentialAttributeCategorization.Template(
     mapOf(
-        PersonalDataCategory.IdentityData to with(EuPidScheme.Attributes) {
+        PersonalDataCategory.IdentityData to with(Attributes) {
             listOf(
                 GIVEN_NAME,
                 FAMILY_NAME,
@@ -20,7 +20,7 @@ object EuPidCredentialAttributeCategorization : CredentialAttributeCategorizatio
             ).map { NormalizedJsonPath() + it to null }
         },
 
-        PersonalDataCategory.AgeData to with(EuPidScheme.Attributes) {
+        PersonalDataCategory.AgeData to with(Attributes) {
             listOf(
                 EuPidLegacyAttributes.AGE_OVER_12,
                 EuPidLegacyAttributes.AGE_OVER_13,
@@ -37,7 +37,7 @@ object EuPidCredentialAttributeCategorization : CredentialAttributeCategorizatio
                 EuPidLegacyAttributes.AGE_IN_YEARS,
             ).map { NormalizedJsonPath() + it to null }
         },
-        PersonalDataCategory.BirthData to with(EuPidScheme.Attributes) {
+        PersonalDataCategory.BirthData to with(Attributes) {
             listOf(
                 GIVEN_NAME_BIRTH,
                 FAMILY_NAME_BIRTH,
@@ -49,7 +49,7 @@ object EuPidCredentialAttributeCategorization : CredentialAttributeCategorizatio
             ).map { NormalizedJsonPath() + it to null }
         },
 
-        PersonalDataCategory.ResidenceData to with(EuPidScheme.Attributes) {
+        PersonalDataCategory.ResidenceData to with(Attributes) {
             listOf(
                 RESIDENT_STREET,
                 RESIDENT_HOUSE_NUMBER,
@@ -61,7 +61,7 @@ object EuPidCredentialAttributeCategorization : CredentialAttributeCategorizatio
             ).map { NormalizedJsonPath() + it to null }
         },
 
-        PersonalDataCategory.Metadata to with(EuPidScheme.Attributes) {
+        PersonalDataCategory.Metadata to with(Attributes) {
             listOf(
                 DOCUMENT_NUMBER,
                 ISSUANCE_DATE,
@@ -75,7 +75,16 @@ object EuPidCredentialAttributeCategorization : CredentialAttributeCategorizatio
         },
     ),
 
-    allAttributes = EuPidScheme.claimNames.map {
+    allAttributes = with(Attributes) {
+        listOf(
+            FAMILY_NAME, GIVEN_NAME, BIRTH_DATE, FAMILY_NAME_BIRTH, GIVEN_NAME_BIRTH, PLACE_OF_BIRTH,
+            RESIDENT_ADDRESS, RESIDENT_COUNTRY, RESIDENT_STATE, RESIDENT_CITY, RESIDENT_POSTAL_CODE,
+            RESIDENT_STREET, RESIDENT_HOUSE_NUMBER, SEX, NATIONALITY, ISSUANCE_DATE, EXPIRY_DATE,
+            ISSUING_AUTHORITY, DOCUMENT_NUMBER, ISSUING_COUNTRY, ISSUING_JURISDICTION,
+            PERSONAL_ADMINISTRATIVE_NUMBER, PORTRAIT, EMAIL_ADDRESS, MOBILE_PHONE_NUMBER, TRUST_ANCHOR,
+            LOCATION_STATUS,
+        )
+    }.map {
         NormalizedJsonPath() + it
     },
 )

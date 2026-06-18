@@ -50,7 +50,7 @@ import at.asitplus.valera.resources.attribute_friendly_name_sex
 import at.asitplus.valera.resources.attribute_friendly_name_trust_anchor
 import at.asitplus.wallet.app.common.memberName
 import at.asitplus.wallet.app.common.minus
-import at.asitplus.wallet.eupid.EuPidScheme
+import at.asitplus.wallet.eupid.EU_PID_DOCTYPE
 import org.jetbrains.compose.resources.StringResource
 
 
@@ -67,9 +67,9 @@ class EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
     }
 
     override fun translate(attributeName: NormalizedJsonPath): StringResource? =
-        attributeName.minus(EuPidScheme.isoNamespace).let {
+        attributeName.minus(EU_PID_DOCTYPE).let {
             it.memberName(0)?.let { claim ->
-                EuPidCredentialMdocClaimDefinitionResolver().resolveOrNull(EuPidScheme.isoNamespace, claim)
+                EuPidCredentialMdocClaimDefinitionResolver().resolveOrNull(EU_PID_DOCTYPE, claim)
                     ?.stringResourceOrNull()
                     ?: EuPidCredentialSdJwtClaimDefinitionResolver().resolveOrNull(it)?.stringResourceOrNull()
             } ?: EuPidCredentialSdJwtClaimDefinitionResolver().resolveOrNull(it)?.stringResourceOrNull()

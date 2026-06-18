@@ -50,7 +50,7 @@ import at.asitplus.valera.resources.attribute_friendly_name_signature_usual_mark
 import at.asitplus.valera.resources.attribute_friendly_name_weight
 import at.asitplus.wallet.app.common.memberName
 import at.asitplus.wallet.app.common.minus
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
+import at.asitplus.wallet.mdl.MDL_NAMESPACE
 import org.jetbrains.compose.resources.StringResource
 
 
@@ -64,9 +64,9 @@ class MobileDrivingLicenceCredentialAttributeTranslator : CredentialAttributeTra
     }
 
     override fun translate(attributeName: NormalizedJsonPath): StringResource? =
-        attributeName.minus(MobileDrivingLicenceScheme.isoNamespace).let {
+        attributeName.minus(MDL_NAMESPACE).let {
             it.memberName(0)?.let { claim ->
-                MobileDrivingLicenceCredentialMdocClaimDefinitionResolver().resolveOrNull(MobileDrivingLicenceScheme.isoNamespace, claim)
+                MobileDrivingLicenceCredentialMdocClaimDefinitionResolver().resolveOrNull(MDL_NAMESPACE, claim)
                     ?.stringResourceOrNull()
             }
         }

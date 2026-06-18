@@ -3,40 +3,39 @@ package data.credentials
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.ageverification.AgeVerificationScheme
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPid
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
-import at.asitplus.wallet.eupid.EuPidScheme
-import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 
 fun SubjectCredentialStore.StoreEntry.displayTitle(schemeLabel: String): String {
     val detail = catchingUnwrapped {
-        when (scheme) {
-            is EuPidScheme,
-            is EuPidSdJwtScheme -> EuPidCredentialAdapter.createFromStoreEntry(this, failingImageDecoder)
-                .personName()
+        scheme.let { s ->
+            when {
+                s.isEuPid -> EuPidCredentialAdapter.createFromStoreEntry(this, failingImageDecoder)
+                    .personName()
 
-            is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAdapter
-                .createFromStoreEntry(this, failingImageDecoder)
-                .personName()
+                s.isMdl -> MobileDrivingLicenceCredentialAdapter
+                    .createFromStoreEntry(this, failingImageDecoder)
+                    .personName()
 
-            is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAdapter.createFromStoreEntry(this)
-                .personName()
+                s is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAdapter.createFromStoreEntry(this)
+                    .personName()
 
-            is CompanyRegistrationScheme -> CompanyRegistrationCredentialAdapter.createFromStoreEntry(this)
-                .companyName
+                s is CompanyRegistrationScheme -> CompanyRegistrationCredentialAdapter.createFromStoreEntry(this)
+                    .companyName
 
-            is HealthIdScheme -> HealthIdCredentialAdapter.createFromStoreEntry(this)
-                .healthInsuranceId
+                s is HealthIdScheme -> HealthIdCredentialAdapter.createFromStoreEntry(this)
+                    .healthInsuranceId
 
-            is TaxIdScheme -> TaxIdCredentialAdapter.createFromStoreEntry(this)
-                .personName()
+                s is TaxIdScheme -> TaxIdCredentialAdapter.createFromStoreEntry(this)
+                    .personName()
 
-            is AgeVerificationScheme -> null
-            else -> null
+                else -> null
+            }
         }
     }.getOrNull()?.takeIf { it.isNotBlank() }
 

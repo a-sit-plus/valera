@@ -27,13 +27,14 @@ import at.asitplus.wallet.ageverification.AgeVerificationScheme
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.iconLabel
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
-import at.asitplus.wallet.eupid.EuPidScheme
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPid
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
 import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.IsoDocumentParsed
 import at.asitplus.wallet.mdl.DrivingPrivilege
+import at.asitplus.wallet.mdl.MDL_NAMESPACE
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.credentials.AgeVerificationCredentialIsoMdocAdapter
 import data.credentials.EuPidCredentialIsoMdocAdapter
 import data.credentials.HealthIdCredentialIsoMdocAdapter
@@ -141,12 +142,12 @@ fun IsoMdocCredentialView(
                 }
             )
 
-            when (scheme) {
-                is MobileDrivingLicenceScheme -> {
+            when {
+                scheme.isMdl -> {
                     MobileDrivingLicenceCredentialViewFromAdapter(
-                        MobileDrivingLicenceCredentialIsoMdocAdapter(namespaces, decodeImage)
+                        MobileDrivingLicenceCredentialIsoMdocAdapter(namespaces, decodeImage, scheme!!)
                     )
-                    val namespace = namespaces[MobileDrivingLicenceScheme.isoNamespace]
+                    val namespace = namespaces[MDL_NAMESPACE]
                     @Suppress("UNCHECKED_CAST")
                     val drivingPrivileges = namespace?.get(MobileDrivingLicenceDataElements.DRIVING_PRIVILEGES)
                         ?.let { it as? Array<DrivingPrivilege> }
@@ -160,13 +161,13 @@ fun IsoMdocCredentialView(
                         }
                     }
                 }
-                is EuPidScheme -> EuPidCredentialViewFromAdapter(
-                    EuPidCredentialIsoMdocAdapter(namespaces, decodeImage, scheme)
+                scheme.isEuPid -> EuPidCredentialViewFromAdapter(
+                    EuPidCredentialIsoMdocAdapter(namespaces, decodeImage, scheme!!)
                 )
-                is HealthIdScheme -> HealthIdViewFromAdapter(
+                scheme is HealthIdScheme -> HealthIdViewFromAdapter(
                     HealthIdCredentialIsoMdocAdapter(namespaces)
                 )
-                is AgeVerificationScheme -> AgeVerificationCredentialViewFromAdapter(
+                scheme is AgeVerificationScheme -> AgeVerificationCredentialViewFromAdapter(
                     AgeVerificationCredentialIsoMdocAdapter(namespaces)
                 )
                 else -> throw IllegalArgumentException("Unsupported scheme: $scheme")

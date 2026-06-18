@@ -18,7 +18,13 @@ import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.data.IsoMdocCredentialScheme
 import at.asitplus.wallet.lib.data.SdJwtCredentialScheme
 import at.asitplus.wallet.lib.data.VcJwtCredentialScheme
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPidIso
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPidSdJwt
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
+import at.asitplus.wallet.eupid.EU_PID_DOCTYPE
+import at.asitplus.wallet.eupidsdjwt.EU_PID_SD_JWT_VCT
+import at.asitplus.wallet.lib.data.AttributeIndex
+import at.asitplus.wallet.mdl.MDL_DOCTYPE
 import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.async
@@ -314,10 +320,13 @@ enum class ExportableCredentialScheme {
     @Suppress("DEPRECATION")
     fun toScheme() = when (this) {
         AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
-        MobileDrivingLicence2023 -> MobileDrivingLicenceScheme
+        MobileDrivingLicence2023 -> AttributeIndex.resolveIsoDoctype(MDL_DOCTYPE)
+            ?: at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme(isoDocType = MDL_DOCTYPE)
         AgeVerificationScheme -> at.asitplus.wallet.ageverification.AgeVerificationScheme
-        EuPidScheme -> at.asitplus.wallet.eupid.EuPidScheme
-        EuPidSdJwtScheme -> at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
+        EuPidScheme -> AttributeIndex.resolveIsoDoctype(EU_PID_DOCTYPE)
+            ?: at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme(isoDocType = EU_PID_DOCTYPE)
+        EuPidSdJwtScheme -> AttributeIndex.resolveSdJwtAttributeType(EU_PID_SD_JWT_VCT)
+            ?: at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme(sdJwtType = EU_PID_SD_JWT_VCT)
         PowerOfRepresentationScheme -> at.asitplus.wallet.por.PowerOfRepresentationScheme
         CertificateOfResidenceScheme -> at.asitplus.wallet.cor.CertificateOfResidenceScheme
         CompanyRegistrationScheme -> at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
@@ -331,21 +340,21 @@ enum class ExportableCredentialScheme {
 
     companion object {
         @Suppress("DEPRECATION")
-        fun CredentialScheme.toExportableCredentialScheme() = when (this) {
-            ConstantIndex.AtomicAttribute2023 -> AtomicAttribute2023
-            MobileDrivingLicenceScheme -> MobileDrivingLicence2023
-            at.asitplus.wallet.ageverification.AgeVerificationScheme -> AgeVerificationScheme
-            at.asitplus.wallet.eupid.EuPidScheme -> EuPidScheme
-            at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme -> EuPidSdJwtScheme
-            at.asitplus.wallet.por.PowerOfRepresentationScheme -> PowerOfRepresentationScheme
-            at.asitplus.wallet.cor.CertificateOfResidenceScheme -> CertificateOfResidenceScheme
-            at.asitplus.wallet.companyregistration.CompanyRegistrationScheme -> CompanyRegistrationScheme
-            at.asitplus.wallet.healthid.HealthIdScheme -> HealthIdScheme
-            at.asitplus.wallet.ehic.EhicScheme -> EhicScheme
-            at.asitplus.wallet.taxid.TaxIdScheme -> TaxIdScheme
-            is at.asitplus.wallet.lib.data.VcFallbackCredentialScheme -> VcFallbackCredentialScheme
-            is at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme -> SdJwtFallbackCredentialScheme
-            is at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme -> IsoMdocFallbackCredentialScheme
+        fun CredentialScheme.toExportableCredentialScheme() = when {
+            this == ConstantIndex.AtomicAttribute2023 -> AtomicAttribute2023
+            isMdl -> MobileDrivingLicence2023
+            isEuPidIso -> EuPidScheme
+            isEuPidSdJwt -> EuPidSdJwtScheme
+            this == at.asitplus.wallet.ageverification.AgeVerificationScheme -> AgeVerificationScheme
+            this == at.asitplus.wallet.por.PowerOfRepresentationScheme -> PowerOfRepresentationScheme
+            this == at.asitplus.wallet.cor.CertificateOfResidenceScheme -> CertificateOfResidenceScheme
+            this == at.asitplus.wallet.companyregistration.CompanyRegistrationScheme -> CompanyRegistrationScheme
+            this == at.asitplus.wallet.healthid.HealthIdScheme -> HealthIdScheme
+            this == at.asitplus.wallet.ehic.EhicScheme -> EhicScheme
+            this == at.asitplus.wallet.taxid.TaxIdScheme -> TaxIdScheme
+            this is at.asitplus.wallet.lib.data.VcFallbackCredentialScheme -> VcFallbackCredentialScheme
+            this is at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme -> SdJwtFallbackCredentialScheme
+            this is at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme -> IsoMdocFallbackCredentialScheme
             else -> throw Exception("Unknown CredentialScheme")
         }
     }

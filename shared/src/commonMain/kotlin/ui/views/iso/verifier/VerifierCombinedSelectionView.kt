@@ -40,11 +40,11 @@ import at.asitplus.valera.resources.section_heading_select_document_type
 import at.asitplus.valera.resources.text_label_requests
 import at.asitplus.wallet.ageverification.AgeVerificationScheme
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.iconLabel
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPid
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
-import at.asitplus.wallet.eupid.EuPidScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.lib.data.ConstantIndex
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.document.RequestDocumentBuilder
 import data.document.SelectableRequest
 import org.jetbrains.compose.resources.stringResource
@@ -81,11 +81,13 @@ fun VerifierCombinedSelectionView(
 
     val handleRequest: (SelectableRequest) -> Unit = { request ->
         selectedRequests.add(request)
-        when (RequestDocumentBuilder.requestTypeToScheme[request.type]) {
-            MobileDrivingLicenceScheme -> isMdlSelectable = false
-            EuPidScheme -> isPidSelectable = false
-            HealthIdScheme -> isHiidSelectable = false
-            AgeVerificationScheme -> isAvSelectable = false
+        RequestDocumentBuilder.requestTypeToScheme[request.type].let { s ->
+            when {
+                s.isMdl -> isMdlSelectable = false
+                s.isEuPid -> isPidSelectable = false
+                s is HealthIdScheme -> isHiidSelectable = false
+                s is AgeVerificationScheme -> isAvSelectable = false
+            }
         }
         showRequestTypes = false
         if (isMdlSelectable || isPidSelectable || isHiidSelectable || isAvSelectable) {

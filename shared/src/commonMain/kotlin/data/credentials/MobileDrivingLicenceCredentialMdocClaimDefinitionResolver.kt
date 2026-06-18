@@ -1,7 +1,7 @@
 package data.credentials
 
+import at.asitplus.wallet.mdl.MDL_NAMESPACE
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 
 class MobileDrivingLicenceCredentialMdocClaimDefinitionResolver {
     fun resolveOrNull(
@@ -9,7 +9,7 @@ class MobileDrivingLicenceCredentialMdocClaimDefinitionResolver {
         claimName: String,
     ): MobileDrivingLicenceCredentialClaimDefinition? = with(MobileDrivingLicenceDataElements) {
         when (namespace) {
-            MobileDrivingLicenceScheme.isoNamespace -> when (claimName) {
+            MDL_NAMESPACE -> when (claimName) {
                 FAMILY_NAME -> MobileDrivingLicenceCredentialClaimDefinition.FAMILY_NAME
                 GIVEN_NAME -> MobileDrivingLicenceCredentialClaimDefinition.GIVEN_NAME
                 BIRTH_DATE -> MobileDrivingLicenceCredentialClaimDefinition.BIRTH_DATE

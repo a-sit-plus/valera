@@ -26,14 +26,13 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_credential_details_screen
 import at.asitplus.wallet.ageverification.AgeVerificationScheme
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPid
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
 import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
 import at.asitplus.wallet.cor.CertificateOfResidenceScheme
 import at.asitplus.wallet.ehic.EhicScheme
-import at.asitplus.wallet.eupid.EuPidScheme
-import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import at.asitplus.wallet.por.PowerOfRepresentationScheme
 import at.asitplus.wallet.taxid.TaxIdScheme
 import org.jetbrains.compose.resources.stringResource
@@ -142,18 +141,19 @@ fun CredentialDetailsSummaryView(
 ) {
     Column(modifier = Modifier.padding(horizontal = 8.dp)) {
         @Suppress("DEPRECATION")
-        when (storeEntry.scheme) {
-            is EuPidScheme -> EuPidCredentialView(storeEntry, imageDecoder)
-            is EuPidSdJwtScheme -> EuPidCredentialView(storeEntry, imageDecoder)
-            is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialView(storeEntry, imageDecoder)
-            is AgeVerificationScheme -> AgeVerificationCredentialView(storeEntry)
-            is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialView(storeEntry)
-            is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialView(storeEntry)
-            is CompanyRegistrationScheme -> CompanyRegistrationCredentialView(storeEntry)
-            is HealthIdScheme -> HealthIdView(storeEntry)
-            is EhicScheme -> EhicView(storeEntry)
-            is TaxIdScheme -> TaxIdCredentialView(storeEntry)
-            else -> {}
+        storeEntry.scheme.let { s ->
+            when {
+                s.isEuPid -> EuPidCredentialView(storeEntry, imageDecoder)
+                s.isMdl -> MobileDrivingLicenceCredentialView(storeEntry, imageDecoder)
+                s is AgeVerificationScheme -> AgeVerificationCredentialView(storeEntry)
+                s is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialView(storeEntry)
+                s is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialView(storeEntry)
+                s is CompanyRegistrationScheme -> CompanyRegistrationCredentialView(storeEntry)
+                s is HealthIdScheme -> HealthIdView(storeEntry)
+                s is EhicScheme -> EhicView(storeEntry)
+                s is TaxIdScheme -> TaxIdCredentialView(storeEntry)
+                else -> {}
+            }
         }
         GenericCredentialSummaryCardContent(
             credential = storeEntry,

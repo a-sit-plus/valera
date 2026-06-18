@@ -10,11 +10,10 @@ import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.common.dcapi.data.export.IsoMdocEntry
 import at.asitplus.wallet.app.common.dcapi.data.export.SdJwtEntry
 import at.asitplus.wallet.app.common.decodeImage
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPid
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
-import at.asitplus.wallet.eupid.EuPidScheme
-import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.credentials.CredentialAdapter.Companion.toAttributeMap
 import data.credentials.CredentialAdapter.Companion.toNamespaceAttributeMap
 import data.credentials.CredentialAttributeTranslator
@@ -74,13 +73,14 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
     private fun SubjectCredentialStore.StoreEntry.getTranslator(): CredentialAttributeTranslator = CredentialAttributeTranslator[scheme]
         ?: throw IllegalStateException("Attribute translator not implemented")
 
-    private fun SubjectCredentialStore.StoreEntry.extractPicture() = when (scheme) {
-        is MobileDrivingLicenceScheme ->
-            MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(this, imageDecoder).portraitRaw
-        is EuPidSdJwtScheme,
-        is EuPidScheme ->
-            EuPidCredentialAdapter.createFromStoreEntry(this, imageDecoder).portraitRaw
-
-        else -> null
+    @Suppress("DEPRECATION")
+    private fun SubjectCredentialStore.StoreEntry.extractPicture() = scheme.let { s ->
+        when {
+            s.isMdl ->
+                MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(this, imageDecoder).portraitRaw
+            s.isEuPid ->
+                EuPidCredentialAdapter.createFromStoreEntry(this, imageDecoder).portraitRaw
+            else -> null
+        }
     }
 }

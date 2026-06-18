@@ -1,10 +1,22 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.wallet.eupid.EU_PID_METADATA_URL
+import at.asitplus.wallet.eupid.EuPidItemValueSerializerMap
+import at.asitplus.wallet.eupid.EuPidJsonValueEncoder
+import at.asitplus.wallet.eupid.EuPidMetadataDocument
+import at.asitplus.wallet.eupidsdjwt.EU_PID_SD_JWT_METADATA_URL
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtMetadataDocument
 import at.asitplus.wallet.lib.LibraryInitializer
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.ISO_MDOC
 import at.asitplus.wallet.lib.data.CredentialMetadataLookup
+import at.asitplus.wallet.lib.data.StaticCredentialMetadataRegistry
 import at.asitplus.wallet.lib.ktor.openid.RemoteCredentialMetadataRegistry
+import at.asitplus.wallet.mdl.MDL_METADATA_URL
+import at.asitplus.wallet.mdl.MobileDrivingLicenceItemValueSerializerMap
+import at.asitplus.wallet.mdl.MobileDrivingLicenceJsonValueEncoder
+import at.asitplus.wallet.mdl.MobileDrivingLicenceMetadataDocument
+import at.asitplus.wallet.sdjwt.SdJwtTypeMetadataDocumentRegistry
 import at.asitplus.wallet.sdjwt.SdJwtVcType
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
@@ -44,6 +56,32 @@ private fun registerRemoteCredentialMetadata(buildContext: BuildContext) {
     )
 }
 
+/** EU PID, EU PID SD-JWT and mDL ship bundled in vck core; register their metadata + serializers. */
+private fun registerBundledCredentialMetadata() {
+    LibraryInitializer.registerCredentialMetadataRegistry(
+        StaticCredentialMetadataRegistry(
+            documentRegistry = SdJwtTypeMetadataDocumentRegistry(
+                EuPidSdJwtMetadataDocument,
+                EuPidMetadataDocument,
+                MobileDrivingLicenceMetadataDocument,
+            ),
+            documentUrls = mapOf(
+                EuPidSdJwtMetadataDocument.first to EU_PID_SD_JWT_METADATA_URL,
+                EuPidMetadataDocument.first to EU_PID_METADATA_URL,
+                MobileDrivingLicenceMetadataDocument.first to MDL_METADATA_URL,
+            ),
+        )
+    )
+    LibraryInitializer.registerCredentialSerializers(
+        jsonValueEncoder = MobileDrivingLicenceJsonValueEncoder,
+        itemValueSerializerMap = MobileDrivingLicenceItemValueSerializerMap,
+    )
+    LibraryInitializer.registerCredentialSerializers(
+        jsonValueEncoder = EuPidJsonValueEncoder,
+        itemValueSerializerMap = EuPidItemValueSerializerMap,
+    )
+}
+
 data class WalletDependencyProvider(
     val keystoreService: KeystoreService,
     val dataStoreService: DataStoreService,
@@ -55,9 +93,7 @@ data class WalletDependencyProvider(
     val antilog: Antilog,
 ) {
     init {
-        at.asitplus.wallet.mdl.Initializer.initWithVCK()
-        at.asitplus.wallet.eupid.Initializer.initWithVCK()
-        at.asitplus.wallet.eupidsdjwt.Initializer.initWithVCK()
+        registerBundledCredentialMetadata()
         at.asitplus.wallet.cor.Initializer.initWithVCK()
         at.asitplus.wallet.por.Initializer.initWithVCK()
         at.asitplus.wallet.companyregistration.Initializer.initWithVCK()

@@ -1,31 +1,32 @@
 package data.credentials
 
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.catchingUnwrapped
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.memberName
 import at.asitplus.wallet.app.common.minus
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import at.asitplus.wallet.mdl.IsoSexEnum
+import at.asitplus.wallet.mdl.MDL_NAMESPACE
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.Attribute
-import io.ktor.util.decodeBase64Bytes
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
+import kotlin.io.encoding.Base64
 
 sealed class MobileDrivingLicenceCredentialAdapter(
     private val decodePortrait: (ByteArray) -> Result<ImageBitmap>,
 ) : CredentialAdapter() {
     override fun getAttribute(path: NormalizedJsonPath) =
-        path.minus(MobileDrivingLicenceScheme.isoNamespace).let {
+        path.minus(MDL_NAMESPACE).let {
             it.memberName(0)?.let { claim ->
-                MobileDrivingLicenceCredentialMdocClaimDefinitionResolver().resolveOrNull(MobileDrivingLicenceScheme.isoNamespace, claim)
+                MobileDrivingLicenceCredentialMdocClaimDefinitionResolver().resolveOrNull(MDL_NAMESPACE, claim)
                     ?.toAttribute()
             }
         }
@@ -90,17 +91,18 @@ sealed class MobileDrivingLicenceCredentialAdapter(
             storeEntry: SubjectCredentialStore.StoreEntry,
             decodePortrait: (ByteArray) -> Result<ImageBitmap>,
         ): MobileDrivingLicenceCredentialAdapter {
-            if (storeEntry.scheme !is MobileDrivingLicenceScheme) {
+            if (!storeEntry.scheme.isMdl) {
                 throw IllegalArgumentException("credential")
             }
+            val scheme = storeEntry.scheme!!
             return when (storeEntry) {
                 is SubjectCredentialStore.StoreEntry.Vc -> TODO("Operation not yet supported")
 
                 is SubjectCredentialStore.StoreEntry.SdJwt ->
-                    MobileDrivingLicenceCredentialSdJwtAdapter(storeEntry.toAttributeMap(), decodePortrait)
+                    MobileDrivingLicenceCredentialSdJwtAdapter(storeEntry.toAttributeMap(), decodePortrait, scheme)
 
                 is SubjectCredentialStore.StoreEntry.Iso ->
-                    MobileDrivingLicenceCredentialIsoMdocAdapter(storeEntry.toNamespaceAttributeMap(), decodePortrait)
+                    MobileDrivingLicenceCredentialIsoMdocAdapter(storeEntry.toNamespaceAttributeMap(), decodePortrait, scheme)
             }
         }
     }
@@ -175,10 +177,8 @@ sealed class MobileDrivingLicenceCredentialAdapter(
 private class MobileDrivingLicenceCredentialSdJwtAdapter(
     private val attributes: Map<String, JsonPrimitive>,
     decodePortrait: (ByteArray) -> Result<ImageBitmap>,
+    override val scheme: CredentialScheme,
 ) : MobileDrivingLicenceCredentialAdapter(decodePortrait) {
-    override val scheme: CredentialScheme
-        get() = MobileDrivingLicenceScheme
-
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.SD_JWT
 
@@ -332,23 +332,21 @@ private class MobileDrivingLicenceCredentialSdJwtAdapter(
 class MobileDrivingLicenceCredentialIsoMdocAdapter(
     namespaces: Map<String, Map<String, Any>>?,
     decodePortrait: (ByteArray) -> Result<ImageBitmap>,
+    override val scheme: CredentialScheme,
 ) : MobileDrivingLicenceCredentialAdapter(decodePortrait) {
-    override val scheme: CredentialScheme
-        get() = MobileDrivingLicenceScheme
-
-    private val namespace = namespaces?.get(MobileDrivingLicenceScheme.isoNamespace)
+    private val namespace = namespaces?.get(MDL_NAMESPACE)
 
     override val representation: CredentialRepresentation
         get() = CredentialRepresentation.ISO_MDOC
 
     override val givenName: String?
-        get() = namespace?.get(MobileDrivingLicenceDataElements.GIVEN_NAME) as String?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.GIVEN_NAME) as? String?
 
     override val givenNameNational: String?
         get() = namespace?.get(MobileDrivingLicenceDataElements.GIVEN_NAME_NATIONAL_CHARACTER) as String?
 
     override val familyName: String?
-        get() = namespace?.get(MobileDrivingLicenceDataElements.FAMILY_NAME) as String?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.FAMILY_NAME) as? String?
 
     override val familyNameNational: String?
         get() = namespace?.get(MobileDrivingLicenceDataElements.FAMILY_NAME_NATIONAL_CHARACTER) as String?
@@ -390,31 +388,31 @@ class MobileDrivingLicenceCredentialIsoMdocAdapter(
         get() = namespace?.get(MobileDrivingLicenceDataElements.AGE_OVER_68)?.toString()?.toBooleanStrictOrNull()
 
     override val nationality: String?
-        get() = namespace?.get(MobileDrivingLicenceDataElements.NATIONALITY) as String?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.NATIONALITY) as? String?
 
     override val residentAddress: String?
-        get() = namespace?.get(MobileDrivingLicenceDataElements.RESIDENT_ADDRESS) as String?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.RESIDENT_ADDRESS) as? String?
 
     override val residentCity: String?
-        get() = namespace?.get(MobileDrivingLicenceDataElements.RESIDENT_CITY) as String?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.RESIDENT_CITY) as? String?
 
     override val residentPostalCode: String?
-        get() = namespace?.get(MobileDrivingLicenceDataElements.RESIDENT_POSTAL_CODE) as String?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.RESIDENT_POSTAL_CODE) as? String?
 
     override val residentCountry: String?
-        get() = namespace?.get(MobileDrivingLicenceDataElements.RESIDENT_COUNTRY) as String?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.RESIDENT_COUNTRY) as? String?
 
     override val residentState: String?
-        get() = namespace?.get(MobileDrivingLicenceDataElements.RESIDENT_STATE) as String?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.RESIDENT_STATE) as? String?
 
     override val ageInYears: UInt?
-        get() = namespace?.get(MobileDrivingLicenceDataElements.AGE_IN_YEARS) as UInt?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.AGE_IN_YEARS) as? UInt?
 
     override val ageBirthYear: UInt?
-        get() = namespace?.get(MobileDrivingLicenceDataElements.AGE_BIRTH_YEAR) as UInt?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.AGE_BIRTH_YEAR) as? UInt?
 
     override val birthPlace: String?
-        get() = namespace?.get(MobileDrivingLicenceDataElements.BIRTH_PLACE) as String?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.BIRTH_PLACE) as? String?
 
     override val portraitRaw: ByteArray?
         get() = namespace?.get(MobileDrivingLicenceDataElements.PORTRAIT)?.toByteArrayDecoding()
@@ -437,7 +435,7 @@ class MobileDrivingLicenceCredentialIsoMdocAdapter(
 
     private fun Any.toByteArrayDecoding(): ByteArray? = when (this) {
         is ByteArray -> this
-        is String -> this.decodeBase64Bytes()
+        is String -> catchingUnwrapped { Base64.decode(this) }.getOrNull()
         else -> null
     }
 
@@ -453,25 +451,25 @@ class MobileDrivingLicenceCredentialIsoMdocAdapter(
                 ?.let { code -> IsoSexEnum.entries.firstOrNull { it.code == code } }
 
     override val height: UInt?
-        get() = namespace?.get(MobileDrivingLicenceDataElements.HEIGHT) as UInt?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.HEIGHT) as? UInt?
 
     override val weight: UInt?
-        get() = namespace?.get(MobileDrivingLicenceDataElements.WEIGHT) as UInt?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.WEIGHT) as? UInt?
 
     override val eyeColour: String?
-        get() = namespace?.get(MobileDrivingLicenceDataElements.EYE_COLOUR) as String?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.EYE_COLOUR) as? String?
 
     override val hairColour: String?
-        get() = namespace?.get(MobileDrivingLicenceDataElements.HAIR_COLOUR) as String?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.HAIR_COLOUR) as? String?
 
     override val portraitCaptureDate: LocalDate?
         get() = namespace?.get(MobileDrivingLicenceDataElements.PORTRAIT_CAPTURE_DATE)?.toLocalDateOrNull()
 
     override val issuingAuthority: String?
-        get() = namespace?.get(MobileDrivingLicenceDataElements.ISSUING_AUTHORITY) as String?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.ISSUING_AUTHORITY) as? String?
 
     override val issuingJurisdiction: String?
-        get() = namespace?.get(MobileDrivingLicenceDataElements.ISSUING_JURISDICTION) as String?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.ISSUING_JURISDICTION) as? String?
 
     override val issueDate: LocalDate?
         get() = namespace?.get(MobileDrivingLicenceDataElements.ISSUE_DATE)?.toLocalDateOrNull()
@@ -480,7 +478,7 @@ class MobileDrivingLicenceCredentialIsoMdocAdapter(
         get() = namespace?.get(MobileDrivingLicenceDataElements.EXPIRY_DATE)?.toLocalDateOrNull()
 
     override val issuingCountry: String?
-        get() = namespace?.get(MobileDrivingLicenceDataElements.ISSUING_COUNTRY) as String?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.ISSUING_COUNTRY) as? String?
 
     @Suppress("UNCHECKED_CAST")
     override val drivingPrivileges: Array<DrivingPrivilege>?
@@ -488,5 +486,5 @@ class MobileDrivingLicenceCredentialIsoMdocAdapter(
             ?.let { it as? Array<DrivingPrivilege>? }
 
     override val undistinguishingSign: String?
-        get() = namespace?.get(MobileDrivingLicenceDataElements.UN_DISTINGUISHING_SIGN) as String?
+        get() = namespace?.get(MobileDrivingLicenceDataElements.UN_DISTINGUISHING_SIGN) as? String?
 }
