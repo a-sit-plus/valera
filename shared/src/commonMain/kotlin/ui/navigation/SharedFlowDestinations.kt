@@ -391,7 +391,7 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
                         imageDecoder = { image -> walletMain.platformAdapter.decodeImage(image) },
                         onDelete = {},
                         onRefresh = {},
-                        onOpenDetails = detailsStoreEntryId?.let { storeEntryId ->
+                        onOpenDetails = detailsStoreEntryId.let { storeEntryId ->
                             {
                                 isAutoDismissEnabled = false
                                 navigator.navigate(CredentialDetailsRoute(storeEntryId))
