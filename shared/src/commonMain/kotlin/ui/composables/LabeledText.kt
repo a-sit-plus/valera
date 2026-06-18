@@ -12,6 +12,7 @@ fun LabeledText(
     text: String,
     label: String,
     modifier: Modifier = Modifier,
+    fontWeight: FontWeight = FontWeight.Bold,
 ) = LabeledContent(
     label = label,
     modifier = modifier,
@@ -19,7 +20,7 @@ fun LabeledText(
     Text(
         text = text,
         style = MaterialTheme.typography.bodyLarge,
-        fontWeight = FontWeight.Bold,
+        fontWeight = fontWeight,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
     )

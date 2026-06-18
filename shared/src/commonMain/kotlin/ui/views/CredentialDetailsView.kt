@@ -157,9 +157,8 @@ fun CredentialDetailsSummaryView(
                 else -> GenericMetadataCredentialView(storeEntry)
             }
         }
-        GenericCredentialSummaryCardContent(
-            credential = storeEntry,
-            modifier = Modifier.padding(horizontal = 8.dp)
-        )
+        // No extra horizontal padding here: the enclosing Column already applies it, otherwise the cards
+        // (technical data, status, contents, cnf) would be indented twice.
+        GenericCredentialSummaryCardContent(credential = storeEntry)
     }
 }

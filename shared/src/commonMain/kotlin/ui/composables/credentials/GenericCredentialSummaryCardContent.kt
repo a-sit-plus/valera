@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import at.asitplus.iso.IssuerSignedList
@@ -182,6 +183,7 @@ private fun SingleSdJwtCredentialCardContent(
                     label = it.first,
                     text = it.second.run { slice(0..min(lastIndex, 100)) },
                     modifier = modifier,
+                    fontWeight = FontWeight.Normal,
                 )
             }
         }
@@ -230,6 +232,7 @@ private fun SingleIsoCredentialCardContent(
                         label = it.first,
                         text = it.second.run { slice(0..min(lastIndex, 100)) },
                         modifier = modifier,
+                        fontWeight = FontWeight.Normal,
                     )
                 }
             }
