@@ -426,6 +426,11 @@
     <string name="section_heading_transaction_data">Transaction</string>
     <string name="section_heading_technical_data">Technical data</string>
     <string name="section_heading_technical_data_icon_text">T</string>
+    <string name="section_heading_status">Status</string>
+    <string name="section_heading_status_icon_text">S</string>
+    <string name="section_heading_cnf">Confirmation (cnf)</string>
+    <string name="section_heading_cnf_icon_text">C</string>
+    <string name="text_label_issued_at">Issued at</string>
 
     <string name="onboarding_section_load_data_icon_text">2</string>
     <string name="onboarding_section_load_data_title">Load data into the app</string>

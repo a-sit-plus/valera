@@ -421,6 +421,11 @@
     <string name="section_heading_transaction_data">Transaktion</string>
     <string name="section_heading_technical_data">Technische Daten</string>
     <string name="section_heading_technical_data_icon_text">T</string>
+    <string name="section_heading_status">Status</string>
+    <string name="section_heading_status_icon_text">S</string>
+    <string name="section_heading_cnf">Bestätigung (cnf)</string>
+    <string name="section_heading_cnf_icon_text">C</string>
+    <string name="text_label_issued_at">Ausgestellt am</string>
 
     <string name="onboarding_section_load_data_icon_text">2</string>
     <string name="onboarding_section_load_data_title">Daten in die App laden</string>
