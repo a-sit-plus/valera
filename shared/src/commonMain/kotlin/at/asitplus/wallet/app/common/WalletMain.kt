@@ -25,6 +25,7 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.serialization.json.JsonObject
@@ -78,9 +79,25 @@ class WalletMain(
     private var dcApiRegistrationJob: Job? = null
 
     init {
+        resolveUnknownCredentialSchemes()
         credentialValidityService.startChecking()
         if (keyMaterial.keyMaterial is FallBackKeyMaterial) {
             Napier.e("FallBackKeyMaterial: ${keyMaterial.keyMaterial.reason}")
+        }
+    }
+
+    /**
+     * Resolves the scheme of every stored credential on startup, triggering remote type-metadata retrieval for
+     * those whose scheme is not known locally. Resolved schemes are cached in VC-K, so later (synchronous) reads of
+     * [SubjectCredentialStore.StoreEntry.scheme] return the proper scheme instead of a fallback.
+     */
+    private fun resolveUnknownCredentialSchemes() {
+        scope.launch(Dispatchers.IO) {
+            catchingUnwrapped {
+                subjectCredentialStore.observeStoreContainer().first().credentials.forEach { (_, entry) ->
+                    catchingUnwrapped { entry.resolveScheme() }
+                }
+            }
         }
     }
 
