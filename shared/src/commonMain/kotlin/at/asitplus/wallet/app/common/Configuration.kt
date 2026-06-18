@@ -16,9 +16,11 @@ object Configuration {
     const val DATASTORE_CAPABILITIES_ATTESTATION = "capabilitiesAttestation"
     const val DEBUG_DATASTORE_KEY = "DBGKEY"
     const val DEBUG_DATASTORE_VALUE = "DBGVALUE"
-    val KS_ALIAS_OLD = arrayOf("wallet-supreme-binding-key", )
-        //"wallet-binding-sig-enc-key")
-    const val KS_ALIAS = "wallet-binding-sig-enc-key"
+    val KS_ALIASES_OLDER_THAN_THE_HILLS = platformKsAliasOld
+    val KS_ALIAS = platformKsAlias
     const val KS_CAPABILITY_ALIAS = "wallet-capabilities-key"
     val BIOMETRIC_TIMEOUT = 15.seconds
 }
+
+internal expect val platformKsAliasOld: Array<String>
+internal expect val platformKsAlias: String
