@@ -28,7 +28,7 @@ import org.multipaz.prompt.PromptModel
 
 /** Raw type-metadata documents for credentials not bundled in vck core (credentials-collection, main branch). */
 private const val CREDENTIALS_COLLECTION_BASE =
-    "https://raw.githubusercontent.com/a-sit-plus/credentials-collection/main/"
+    "https://raw.githubusercontent.com/a-sit-plus/credentials-collection/main"
 
 /** vct -> hosted document URL for the remotely-resolved credentials. */
 private val remoteCredentialDocumentUrls: Map<SdJwtVcType, String> = mapOf(
@@ -42,17 +42,19 @@ private val remoteCredentialDocumentUrls: Map<SdJwtVcType, String> = mapOf(
 )
 
 @OptIn(ExperimentalTime::class)
-private fun registerRemoteCredentialMetadata(buildContext: BuildContext) {
+private fun registerRemoteCredentialMetadata(buildContext: BuildContext, dataStoreService: DataStoreService) {
+    val remote = RemoteCredentialMetadataRegistry(
+        httpClient = HttpService(buildContext).buildHttpClient(),
+        clock = Clock.System,
+        documentUrls = remoteCredentialDocumentUrls.toMutableMap(),
+        // age-verification is ISO mdoc: its docType (== vct) must be aliased to the document's vct.
+        aliases = mapOf(
+            CredentialMetadataLookup(ISO_MDOC, "eu.europa.ec.av.1") to SdJwtVcType("eu.europa.ec.av.1"),
+        ),
+    )
+    // Persist resolved metadata so each scheme is fetched from the network only once (also across restarts).
     LibraryInitializer.registerCredentialMetadataRegistry(
-        RemoteCredentialMetadataRegistry(
-            httpClient = HttpService(buildContext).buildHttpClient(),
-            clock = Clock.System,
-            documentUrls = remoteCredentialDocumentUrls.toMutableMap(),
-            // age-verification is ISO mdoc: its docType (== vct) must be aliased to the document's vct.
-            aliases = mapOf(
-                CredentialMetadataLookup(ISO_MDOC, "eu.europa.ec.av.1") to SdJwtVcType("eu.europa.ec.av.1"),
-            ),
-        )
+        PersistentCachingCredentialMetadataRegistry(delegate = remote, dataStore = dataStoreService)
     )
 }
 
@@ -94,7 +96,7 @@ data class WalletDependencyProvider(
 ) {
     init {
         registerBundledCredentialMetadata()
-        registerRemoteCredentialMetadata(buildContext)
+        registerRemoteCredentialMetadata(buildContext, dataStoreService)
 
         Napier.takeLogarithm()
         Napier.base(antilog)

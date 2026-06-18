@@ -8,6 +8,7 @@ object Configuration {
 
     const val DATASTORE_KEY_CONFIG = "config"
     const val DATASTORE_KEY_VCS = "VCs"
+    const val DATASTORE_KEY_CREDENTIAL_METADATA_CACHE = "credential_metadata_cache"
     const val DATASTORE_KEY_REFRESH_SUPPRESSED_CREDENTIALS = "refresh_suppressed_credentials"
     const val DATASTORE_KEY_PROVISIONING_CONTEXT_BY_STATE = "provisioning_context_by_state"
     const val DATASTORE_KEY_PROVISIONING_INSTANCE_ATTESTATION_BY_STATE = "provisioning_instance_attestation_by_state"
