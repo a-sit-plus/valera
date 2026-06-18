@@ -425,6 +425,8 @@
     <string name="section_heading_status_icon_text">S</string>
     <string name="section_heading_cnf">Bestätigung (cnf)</string>
     <string name="section_heading_cnf_icon_text">C</string>
+    <string name="section_heading_credential_contents">Inhalt</string>
+    <string name="section_heading_credential_contents_icon_text">{}</string>
     <string name="text_label_issued_at">Ausgestellt am</string>
 
     <string name="onboarding_section_load_data_icon_text">2</string>

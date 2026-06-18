@@ -10,6 +10,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -36,6 +37,8 @@ import at.asitplus.valera.resources.button_label_hide_technical_details
 import at.asitplus.valera.resources.button_label_show_technical_details
 import at.asitplus.valera.resources.section_heading_cnf
 import at.asitplus.valera.resources.section_heading_cnf_icon_text
+import at.asitplus.valera.resources.section_heading_credential_contents
+import at.asitplus.valera.resources.section_heading_credential_contents_icon_text
 import at.asitplus.valera.resources.section_heading_status
 import at.asitplus.valera.resources.section_heading_status_icon_text
 import at.asitplus.valera.resources.section_heading_technical_data
@@ -140,10 +143,13 @@ private fun SingleVcCredentialCardContent(
         }
     }
     (credential.vc.vc.credentialStatus as? StatusListInfo)?.let { StatusCard(it, modifier) }
-    Text(
-        credential.vc.vc.credentialSubject.toString().replace("""\[.+]""".toRegex(), "[...]")
-            .replace(", ", "\n")
-    )
+    CredentialContentsCard {
+        Text(
+            credential.vc.vc.credentialSubject.toString().replace("""\[.+]""".toRegex(), "[...]")
+                .replace(", ", "\n"),
+            modifier = modifier,
+        )
+    }
 }
 
 
@@ -169,11 +175,16 @@ private fun SingleSdJwtCredentialCardContent(
     }
     (credential.sdJwt.statusElement as? StatusListInfo)?.let { StatusCard(it, modifier) }
     (credential.toComplexJson()?.get("cnf") as? JsonObject)?.let { CnfCard(it, modifier) }
-    credential.allEntries().forEach {
-        LabeledText(
-            label = it.first,
-            text = it.second.run { slice(0..min(lastIndex, 100)) },
-        )
+    credential.allEntries().takeIf { it.isNotEmpty() }?.let { entries ->
+        CredentialContentsCard {
+            entries.forEach {
+                LabeledText(
+                    label = it.first,
+                    text = it.second.run { slice(0..min(lastIndex, 100)) },
+                    modifier = modifier,
+                )
+            }
+        }
     }
 }
 
@@ -211,12 +222,18 @@ private fun SingleIsoCredentialCardContent(
         }
     }
     (credential.issuerSigned.issuerAuth.payload?.status as? StatusListInfo)?.let { StatusCard(it, modifier) }
-    (credential.issuerSigned.namespaces?.mapIt() ?: listOf()).sortedBy { it.first }.forEach {
-        LabeledText(
-            label = it.first,
-            text = it.second.run { slice(0..min(lastIndex, 100)) },
-        )
-    }
+    (credential.issuerSigned.namespaces?.mapIt() ?: listOf()).sortedBy { it.first }.takeIf { it.isNotEmpty() }
+        ?.let { entries ->
+            CredentialContentsCard {
+                entries.forEach {
+                    LabeledText(
+                        label = it.first,
+                        text = it.second.run { slice(0..min(lastIndex, 100)) },
+                        modifier = modifier,
+                    )
+                }
+            }
+        }
 }
 
 private fun Map<String, IssuerSignedList>.mapIt() = entries.flatMap { (nsKey, nsValue) ->
@@ -279,6 +296,20 @@ private fun CnfCard(cnf: JsonObject, modifier: Modifier) {
                     modifier = modifier,
                 )
             }
+        }
+    }
+}
+
+/** Card wrapping the full list of credential elements/claims shown under the technical details. */
+@Composable
+private fun CredentialContentsCard(content: @Composable ColumnScope.() -> Unit) {
+    ElevatedCard(modifier = Modifier.padding(bottom = 16.dp)) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            PersonAttributeDetailCardHeading(
+                iconText = stringResource(Res.string.section_heading_credential_contents_icon_text),
+                title = stringResource(Res.string.section_heading_credential_contents),
+            )
+            content()
         }
     }
 }
