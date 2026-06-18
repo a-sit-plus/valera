@@ -50,7 +50,10 @@ sealed interface Attribute {
             is Branch -> BranchAttribute(it)
             is IssuingAuthority -> IssuingAuthorityAttribute(it)
             is PlaceOfBirth -> PlaceOfBirthAttribute(it)
-            else -> throw IllegalArgumentException("Unexpected attribute value type: ${value::class}, $value")
+            // Generic metadata-driven rendering: a nested object claim is shown as-is; raw bytes are skipped.
+            is JsonObject -> StringAttribute(it.toString())
+            is ByteArray -> null
+            else -> StringAttribute(it.toString())
         }
 
         private fun fromValueList(valueList: List<Any?>) = catchingUnwrapped {

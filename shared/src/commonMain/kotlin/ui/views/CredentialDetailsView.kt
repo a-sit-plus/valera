@@ -152,7 +152,7 @@ fun CredentialDetailsSummaryView(
                 s is HealthIdScheme -> HealthIdView(storeEntry)
                 s is EhicScheme -> EhicView(storeEntry)
                 s is TaxIdScheme -> TaxIdCredentialView(storeEntry)
-                else -> {}
+                else -> GenericMetadataCredentialView(storeEntry)
             }
         }
         GenericCredentialSummaryCardContent(
