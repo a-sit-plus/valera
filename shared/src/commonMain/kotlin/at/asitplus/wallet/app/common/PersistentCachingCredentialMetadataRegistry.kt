@@ -70,9 +70,12 @@ class PersistentCachingCredentialMetadataRegistry(
         representation: CredentialRepresentation,
     ): ResolvedCredentialMetadata? {
         val key = key(identifier, representation)
-        cache()[key]?.takeIf { it.isFresh() }?.let { return it.toResolved() }
+        cache()[key]?.takeIf { it.isFresh() }?.let {
+            return it.toResolved().also(::rememberDisplayName)
+        }
 
         val resolved = delegate.findEntry(identifier, representation) ?: return null
+        rememberDisplayName(resolved)
         mutex.withLock {
             val current = cache ?: loadFromDataStore().also { cache = it }
             current[key] = resolved.toCached()
@@ -84,6 +87,11 @@ class PersistentCachingCredentialMetadataRegistry(
             }.onFailure { Napier.w("Could not persist credential metadata cache", it) }
         }
         return resolved
+    }
+
+    /** Record the credential type's display name so the UI can show it instead of the bare vct. */
+    private fun rememberDisplayName(resolved: ResolvedCredentialMetadata) {
+        resolved.metadata.name?.let { CredentialMetadataDisplayNames[resolved.loadedFrom] = it }
     }
 
     private fun CachedMetadata.toResolved() = ResolvedCredentialMetadata(metadata, loadedFrom, aliases)
