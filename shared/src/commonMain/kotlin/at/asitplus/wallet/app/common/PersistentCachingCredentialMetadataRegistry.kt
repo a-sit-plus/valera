@@ -14,6 +14,11 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 /**
  * A [CredentialMetadataRegistry] that persists resolved type-metadata to the local data store, so a credential's
@@ -25,9 +30,12 @@ import kotlinx.serialization.json.Json
  * registry here means remote calls happen exactly for schemes that are neither bundled, already resolved this
  * session, nor present in the persisted cache.
  */
+@OptIn(ExperimentalTime::class)
 class PersistentCachingCredentialMetadataRegistry(
     private val delegate: CredentialMetadataRegistry,
     private val dataStore: DataStoreService,
+    private val ttl: Duration = 7.days,
+    private val clock: Clock = Clock.System,
     private val json: Json = Json { ignoreUnknownKeys = true; encodeDefaults = true },
 ) : CredentialMetadataRegistry {
 
@@ -36,7 +44,12 @@ class PersistentCachingCredentialMetadataRegistry(
         val metadata: SdJwtTypeMetadata,
         val loadedFrom: String,
         val aliases: Set<String> = emptySet(),
+        // Epoch seconds when this entry was cached; 0 (the default for pre-TTL entries) is always stale.
+        val cachedAtEpochSeconds: Long = 0,
     )
+
+    private fun CachedMetadata.isFresh(): Boolean =
+        clock.now() - Instant.fromEpochSeconds(cachedAtEpochSeconds) < ttl
 
     private val mutex = Mutex()
     private var cache: MutableMap<String, CachedMetadata>? = null
@@ -57,7 +70,7 @@ class PersistentCachingCredentialMetadataRegistry(
         representation: CredentialRepresentation,
     ): ResolvedCredentialMetadata? {
         val key = key(identifier, representation)
-        cache()[key]?.let { return it.toResolved() }
+        cache()[key]?.takeIf { it.isFresh() }?.let { return it.toResolved() }
 
         val resolved = delegate.findEntry(identifier, representation) ?: return null
         mutex.withLock {
@@ -74,5 +87,6 @@ class PersistentCachingCredentialMetadataRegistry(
     }
 
     private fun CachedMetadata.toResolved() = ResolvedCredentialMetadata(metadata, loadedFrom, aliases)
-    private fun ResolvedCredentialMetadata.toCached() = CachedMetadata(metadata, loadedFrom, aliases)
+    private fun ResolvedCredentialMetadata.toCached() =
+        CachedMetadata(metadata, loadedFrom, aliases, clock.now().epochSeconds)
 }
