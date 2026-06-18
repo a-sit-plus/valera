@@ -25,12 +25,18 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_credential_details_screen
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.agent.representation
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.iconLabel
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPid
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.CredentialCardActionMenu
+import ui.composables.LabeledText
 import ui.composables.Logo
+import ui.composables.PersonAttributeDetailCardHeading
+import ui.composables.PersonAttributeDetailCardHeadingIcon
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.*
@@ -133,6 +139,16 @@ fun CredentialDetailsSummaryView(
     imageDecoder: (ByteArray) -> Result<ImageBitmap>,
 ) {
     Column(modifier = Modifier.padding(horizontal = 8.dp)) {
+        @Suppress("DEPRECATION")
+        PersonAttributeDetailCardHeading(
+            icon = { PersonAttributeDetailCardHeadingIcon(storeEntry.scheme.iconLabel()) },
+            title = {
+                LabeledText(
+                    label = storeEntry.representation.uiLabel(),
+                    text = storeEntry.scheme.uiLabel(),
+                )
+            },
+        )
         @Suppress("DEPRECATION")
         storeEntry.scheme.let { s ->
             when {
