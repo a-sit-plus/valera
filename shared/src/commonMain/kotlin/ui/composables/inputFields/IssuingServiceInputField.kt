@@ -6,6 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.text_label_issuing_service
@@ -40,7 +41,8 @@ fun IssuingServiceInputField(
         },
         enabled = enabled,
         keyboardOptions = KeyboardOptions(
-            imeAction = ImeAction.Done
+            keyboardType = KeyboardType.Uri,
+            imeAction = ImeAction.Done,
         ),
         modifier = modifier,
     )
