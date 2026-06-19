@@ -23,11 +23,11 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import io.ktor.http.appendEncodedPathSegments
 import io.ktor.http.contentType
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
@@ -95,21 +95,28 @@ class InstanceAttestationHelper(
     private suspend fun getInstanceAttestation(
         preferredClientStatusPeriod: Duration
     ) = getAttestationProof(preferredClientStatusPeriod).let { proof ->
-        val response = httpClient.post(Url(instanceEndpoint().first())) {
+        httpClient.post(Url(instanceEndpoint().first())) {
             contentType(ContentType.Application.OctetStream)
             setBody(proof.encodeToDer())
-        }
+        }.let { response ->
+            when(response.status) {
+                HttpStatusCode.OK -> {
+                    val keyMaterial = signerBasedKeyMaterial().also {
+                        keyMaterialCache = it
+                    }
 
-        val keyMaterial = signerBasedKeyMaterial().also {
-            keyMaterialCache = it
+                    val attestation = catchingUnwrapped {
+                        JwsCompactTyped<JsonWebToken>(response.bodyAsText())
+                    }.getOrThrow().also {
+                        instanceAttestationCache = it
+                    }
+                    Pair(attestation, keyMaterial)
+                }
+                else -> {
+                    throw Throwable(message = "Server responded with an error", cause = Throwable(response.bodyAsText()))
+                }
+            }
         }
-
-        val attestation = catchingUnwrapped {
-            JwsCompactTyped<JsonWebToken>(response.bodyAsText())
-        }.getOrThrow().also {
-            instanceAttestationCache = it
-        }
-        Pair(attestation, keyMaterial)
     }
 
     private suspend fun signerBasedKeyMaterial() =

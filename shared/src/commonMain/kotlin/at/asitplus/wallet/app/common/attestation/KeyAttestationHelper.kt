@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.common.attestation
 
-import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.DurationSecondsIntSerializer
 import at.asitplus.signum.indispensable.josef.JsonWebKey
 import at.asitplus.signum.indispensable.josef.JsonWebToken
@@ -14,11 +13,11 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import io.ktor.http.appendEncodedPathSegments
 import io.ktor.http.contentType
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.SerialName
@@ -45,8 +44,7 @@ class KeyAttestationHelper(
 
     ): JwsCompactTyped<KeyAttestationJwt> {
         val holderKey = keyMaterial.getUnderLyingSigner()
-
-        val response = httpClient.post(Url(keyAttestationEndpoint().first())) {
+        return httpClient.post(Url(keyAttestationEndpoint().first())) {
             contentType(ContentType.Application.Json)
             setBody(
                 KeyAttestationRequest(
@@ -60,11 +58,17 @@ class KeyAttestationHelper(
                     supportedAlgorithms = supportedAlgorithms,
                 )
             )
+        }.let { response ->
+            when (response.status) {
+                HttpStatusCode.OK -> {
+                    JwsCompactTyped<KeyAttestationJwt>(response.bodyAsText())
+                }
+                else -> {
+                    throw Throwable(message = "Server responded with an error", cause = Throwable(response.bodyAsText()))
+                }
+            }
         }
-
-        return catchingUnwrapped { JwsCompactTyped<KeyAttestationJwt>(response.bodyAsText()) }.getOrThrow()
     }
-
 }
 
 @Serializable
