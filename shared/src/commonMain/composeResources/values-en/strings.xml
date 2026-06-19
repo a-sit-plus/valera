@@ -223,6 +223,7 @@
 
     <string name="text_label_issuing_service">Issuing Service</string>
     <string name="text_label_client_identifier">Client identifier</string>
+    <string name="text_label_wallet_provider_attestation">Use Wallet Attestation</string>
     <string name="text_label_id_identifier">Identifier</string>
     <string name="text_label_id_format">Representation</string>
     <string name="text_label_id_scheme">Credential Type</string>

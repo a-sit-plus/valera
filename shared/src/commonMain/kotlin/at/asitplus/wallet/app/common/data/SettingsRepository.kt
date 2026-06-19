@@ -29,6 +29,7 @@ interface SettingsRepository {
     val host: Flow<String>
     val clientId: Flow<String>
     val walletProviderHost: Flow<String>
+    val walletProviderAttestationEnabled: Flow<Boolean>
     val isConditionsAccepted: Flow<Boolean>
     val presentmentUseNegotiatedHandover: Flow<Boolean>
     val presentmentBleCentralClientModeEnabled: Flow<Boolean>
@@ -58,6 +59,7 @@ interface SettingsRepository {
         host: String? = null,
         clientId: String? = null,
         walletProviderHost: String? = null,
+        walletProviderAttestationEnabled: Boolean? = null,
         isConditionsAccepted: Boolean? = null,
         presentmentUseNegotiatedHandover: Boolean? = null,
         presentmentBleCentralClientModeEnabled: Boolean? = null,
