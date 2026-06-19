@@ -201,7 +201,8 @@ class ProvisioningService(
     @Throws(Throwable::class)
     suspend fun resumeWithAuthCode(
         redirectedUrl: String,
-        statusUpdater: ((Long, RefreshStatus) -> Unit)? = null
+        statusUpdater: ((Long, RefreshStatus) -> Unit)? = null,
+        onProgress: ((LoadingMessageKey) -> Unit)? = null,
     ): List<StoreEntryId> {
         Napier.d("handleResponse with $redirectedUrl")
         return dataStoreService.getPreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
@@ -210,11 +211,13 @@ class ProvisioningService(
                 joseCompliantSerializer.decodeFromString<ProvisioningContext>(it)
                     .also { dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT) }
             }?.let { context ->
+                onProgress?.invoke(LoadingMessageKey.IssuingCredential)
                 openId4VciClient().resumeWithAuthCode(redirectedUrl, context).getOrThrow().let { result ->
                     val idsBefore =
                         subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
                     Napier.d("resumeWithAuthCode idsBefore=$idsBefore")
                     Napier.d("resumeWithAuthCode received ${result.credentials.size} credential(s)")
+                    onProgress?.invoke(LoadingMessageKey.StoringCredential)
                     val storageResults = result.credentials.map { cred ->
                         holderAgent.storeCredential(cred, result.refreshToken)
                     }
@@ -285,8 +288,10 @@ class ProvisioningService(
         credentialOffer: CredentialOffer,
         credentialIdentifierInfo: CredentialIdentifierInfo,
         transactionCode: String? = null,
-        authorizationServerMetadata: OAuth2AuthorizationServerMetadata? = null
+        authorizationServerMetadata: OAuth2AuthorizationServerMetadata? = null,
+        onProgress: ((LoadingMessageKey) -> Unit)? = null,
     ): StoredCredentialIssuanceResult {
+        onProgress?.invoke(LoadingMessageKey.IssuingCredential)
         return openId4VciClient().loadCredentialWithOfferReturningResult(
             credentialOffer,
             credentialIdentifierInfo,
@@ -305,6 +310,7 @@ class ProvisioningService(
                         subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
                     Napier.d("loadCredentialWithOffer idsBefore=$idsBefore")
                     Napier.d("loadCredentialWithOffer received ${credentials.size} credential(s) without browser auth")
+                    onProgress?.invoke(LoadingMessageKey.StoringCredential)
                     credentials.forEach {
                         holderAgent.storeCredential(it).getOrThrow()
                     }

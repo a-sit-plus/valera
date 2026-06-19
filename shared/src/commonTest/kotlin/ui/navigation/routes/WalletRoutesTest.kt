@@ -1,5 +1,7 @@
 package ui.navigation.routes
 
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import at.asitplus.wallet.app.common.LoadingMessageKey
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -32,5 +34,15 @@ class WalletRoutesTest {
                 QrCodeScannerRoute(mode).prerequisites,
             )
         }
+    }
+
+    @Test
+    fun loadingRouteSerializesMessageKey() {
+        val route = LoadingRoute(LoadingMessageKey.IssuerMetadata)
+
+        val serialized = joseCompliantSerializer.encodeToString(route)
+        val deserialized = joseCompliantSerializer.decodeFromString<LoadingRoute>(serialized)
+
+        assertEquals(LoadingMessageKey.IssuerMetadata, deserialized.message)
     }
 }

@@ -52,6 +52,7 @@ import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLa
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.KeystoreService
+import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.decodeImage
@@ -554,14 +555,23 @@ private fun WalletNavHost(
                             }
                         },
                         onClickLogo = onClickLogo,
-                        onClickSettings = { navigator.navigate(SettingsRoute) })
-                }.onSuccess { vm = it }
+                        onClickSettings = { navigator.navigate(SettingsRoute) },
+                        onProgress = walletMain.loadingStatusService::set,
+                    )
+                }.onSuccess {
+                    walletMain.loadingStatusService.clear()
+                    vm = it
+                }
                     .onFailure {
+                        walletMain.loadingStatusService.clear()
                         navigator.popToInvoker()
                         walletMain.errorService.emit(it)
                     }
             }
-            vm?.let { LoadCredentialView(it) } ?: LoadingView()
+            val loadingMessage by walletMain.loadingStatusService.message.collectAsState()
+            vm?.let { LoadCredentialView(it) } ?: LoadingView(
+                loadingMessageString(loadingMessage ?: LoadingMessageKey.IssuerMetadata)
+            )
         }
 
         sharedFlowDestinations(

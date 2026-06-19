@@ -3,6 +3,7 @@ package at.asitplus.wallet.app.common.di
 import at.asitplus.wallet.app.common.CapabilitiesService
 import at.asitplus.wallet.app.common.CredentialValidityService
 import at.asitplus.wallet.app.common.ErrorService
+import at.asitplus.wallet.app.common.LoadingStatusService
 import at.asitplus.wallet.app.common.RealCapabilitiesService
 import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.WalletMain
@@ -21,8 +22,35 @@ fun appModule(): Module = module {
     singleOf(::LocalPresentmentSessionCoordinator)
 
     scope(named(SESSION_NAME)) {
-        scopedOf(::WalletMain)
+        scoped {
+            WalletMain(
+                keyMaterial = get(),
+                dataStoreService = get(),
+                platformAdapter = get(),
+                subjectCredentialStore = get(),
+                buildContext = get(),
+                promptModel = get(),
+                credentialValidator = get(),
+                holderAgent = get(),
+                provisioningService = get(),
+                httpService = get(),
+                presentationService = get(),
+                signingService = get(),
+                dcApiExportService = get(),
+                errorService = get(),
+                loadingStatusService = get(),
+                snackbarService = get(),
+                settingsRepository = get(),
+                localPresentmentSessionCoordinator = get(),
+                sessionService = get(),
+                capabilitiesService = get(),
+                credentialValidityService = get(),
+                attestationService = get(),
+                sessionCoroutineScope = get(),
+            )
+        }
         scopedOf(::ErrorService)
+        scopedOf(::LoadingStatusService)
         scopedOf(::CredentialValidityService)
         scopedOf(::RealCapabilitiesService) binds arrayOf(CapabilitiesService::class)
         scopedOf(::IntentService)

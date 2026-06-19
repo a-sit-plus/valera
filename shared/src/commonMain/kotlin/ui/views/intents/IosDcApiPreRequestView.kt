@@ -7,10 +7,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.IntentState
+import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.dcapi.IosParsedMdocRequestSummary
 import kotlinx.serialization.json.Json
 import ui.presentation.AuthenticationReceivedStartPageContent
 import ui.views.LoadingView
+import ui.views.loadingMessageString
 
 @Composable
 fun IosDcApiPreRequestView(
@@ -21,7 +23,7 @@ fun IosDcApiPreRequestView(
 
     // Null is expected during initial loading — show a spinner without reporting an error.
     // Only report an error once we have data but the summary is missing/unparseable.
-    val currentData = preRequestData ?: return LoadingView()
+    val currentData = preRequestData ?: return LoadingView(loadingMessageString(LoadingMessageKey.IncomingRequest))
 
     val parsedSummaryResult = remember(currentData.parsedRequestSummary) {
         catchingUnwrapped {
@@ -36,12 +38,12 @@ fun IosDcApiPreRequestView(
         LaunchedEffect(error) {
             onError(error)
         }
-        return LoadingView()
+        return LoadingView(loadingMessageString(LoadingMessageKey.IncomingRequest))
     }
 
     val parsedSummary = parsedSummaryResult.getOrNull() ?: run {
         LaunchedEffect(Unit) { onError(IllegalStateException("Missing parsed request summary")) }
-        return LoadingView()
+        return LoadingView(loadingMessageString(LoadingMessageKey.IncomingRequest))
     }
     val descriptors = parsedSummary.toDifInputDescriptors()
     val origin = currentData.origin

@@ -53,6 +53,7 @@ class WalletMain(
     val signingService: SigningService,
     val dcApiExportService: DCAPIExportService,
     val errorService: ErrorService,
+    val loadingStatusService: LoadingStatusService,
     val snackbarService: SnackbarService,
     val settingsRepository: SettingsRepository,
     val localPresentmentSessionCoordinator: LocalPresentmentSessionCoordinator,

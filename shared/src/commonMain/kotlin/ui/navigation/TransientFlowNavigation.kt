@@ -42,6 +42,7 @@ import at.asitplus.valera.resources.snackbar_local_presentment_cancel_action
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.IntentState
+import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
@@ -90,7 +91,11 @@ fun TransientFlowNavigation(
     fun startDestinationFor(link: String?): Route =
         when (link) {
             IntentService.IOS_DC_API_PRE_REQUEST ->
-                if (intentState.iosDcApiPreRequestData.value != null) IosDcApiPreRequestRoute else LoadingRoute
+                if (intentState.iosDcApiPreRequestData.value != null) {
+                    IosDcApiPreRequestRoute
+                } else {
+                    LoadingRoute(LoadingMessageKey.IncomingRequest)
+                }
 
             IntentService.IOS_DC_API_CALL ->
                 if (intentState.dcapiInvocationData.value != null) {
@@ -99,16 +104,16 @@ fun TransientFlowNavigation(
                         IntentService.IntentType.DCAPIAuthorizationIntent
                     )
                 } else {
-                    LoadingRoute
+                    LoadingRoute(LoadingMessageKey.IncomingRequest)
                 }
 
-            null -> LoadingRoute
+            null -> LoadingRoute(LoadingMessageKey.Generic)
             else -> {
                 try {
                     intentService.handleIntent(link)
                 } catch (e: Throwable) {
                     Napier.e("TransientFlowNavigation could not parse initialLink", e)
-                    LoadingRoute
+                    LoadingRoute(LoadingMessageKey.IncomingRequest)
                 }
             }
         }

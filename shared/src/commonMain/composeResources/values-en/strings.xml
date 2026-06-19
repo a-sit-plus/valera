@@ -218,6 +218,18 @@
     <string name="navigation_button_label_check">Verify</string>
 
     <string name="id_format_plain_jwt_label">PLAIN_JWT</string>
+    <string name="loading_message_app_initialization">Checking app setup</string>
+    <string name="loading_message_incoming_request">Opening request</string>
+    <string name="loading_message_credential_offer">Loading credential offer</string>
+    <string name="loading_message_issuer_metadata">Loading issuer information</string>
+    <string name="loading_message_issuing_credential">Issuing credential</string>
+    <string name="loading_message_storing_credential">Storing credential</string>
+    <string name="loading_message_checking_requested_credentials">Checking requested credentials</string>
+    <string name="loading_message_checking_device_requirements">Checking app and device requirements</string>
+    <string name="loading_message_requesting_camera_permission">Requesting camera permission</string>
+    <string name="loading_message_scanning_qr_content">Reading QR code</string>
+    <string name="loading_message_attestation_settings">Loading attestation settings</string>
+    <string name="loading_message_generic">Loading</string>
     <string name="id_format_sd_jwt_label">SD-JWT</string>
     <string name="id_format_iso_mdoc_label">ISO_MDOC</string>
 

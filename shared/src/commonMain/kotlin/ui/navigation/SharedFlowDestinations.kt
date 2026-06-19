@@ -24,6 +24,7 @@ import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_error_action_return_to_invoker
 import at.asitplus.wallet.app.common.IntentState
+import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
@@ -58,6 +59,7 @@ import ui.views.CredentialAddedView
 import ui.views.CredentialDetailsView
 import ui.views.LoadCredentialView
 import ui.views.LoadingView
+import ui.views.loadingMessageString
 import ui.views.LogView
 import ui.views.SigningQtspSelectionView
 import ui.views.authentication.AuthenticationSuccessView
@@ -236,27 +238,40 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
                     offer = offer,
                     onSubmit = { credentialIdentifierInfo, transactionCode, _ ->
                         navigator.popToInvoker()
-                        navigator.navigate(LoadingRoute)
+                        walletMain.loadingStatusService.set(LoadingMessageKey.IssuingCredential)
+                        navigator.navigate(LoadingRoute(LoadingMessageKey.IssuingCredential))
                         walletMain.scope.launch {
                             try {
                                 walletMain.provisioningService.loadCredentialWithOffer(
                                     credentialOffer = offer,
                                     credentialIdentifierInfo = credentialIdentifierInfo,
                                     transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null },
+                                    onProgress = walletMain.loadingStatusService::set,
                                 )
+                                walletMain.loadingStatusService.clear()
                                 navigator.popToInvoker()
                             } catch (e: Throwable) {
+                                walletMain.loadingStatusService.clear()
                                 flow.handleCredentialFlowFailure(navigator, walletMain, e)
                             }
                         }
                     },
                     onClickLogo = onClickLogo,
-                    onClickSettings = { navigator.navigate(SettingsRoute) }
+                    onClickSettings = { navigator.navigate(SettingsRoute) },
+                    onProgress = walletMain.loadingStatusService::set,
                 )
-            }.onSuccess { vm = it }
-                .onFailure { flow.handleCredentialFlowFailure(navigator, walletMain, it) }
+            }.onSuccess {
+                walletMain.loadingStatusService.clear()
+                vm = it
+            }.onFailure {
+                walletMain.loadingStatusService.clear()
+                flow.handleCredentialFlowFailure(navigator, walletMain, it)
+            }
         }
-        vm?.let { LoadCredentialView(it) } ?: LoadingView()
+        val loadingMessage by walletMain.loadingStatusService.message.collectAsState()
+        vm?.let { LoadCredentialView(it) } ?: LoadingView(
+            loadingMessageString(loadingMessage ?: LoadingMessageKey.IssuerMetadata)
+        )
     }
 
     composable<AddCredentialDcApiRoute> { backStackEntry ->
@@ -266,15 +281,18 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
             catchingUnwrapped {
                 lateinit var dcapiVm: LoadCredentialViewModel
                 val onSubmit: CredentialSelection = { credentialIdentifierInfo, transactionCode, _ ->
-                    navigator.navigate(LoadingRoute)
+                    walletMain.loadingStatusService.set(LoadingMessageKey.IssuingCredential)
+                    navigator.navigate(LoadingRoute(LoadingMessageKey.IssuingCredential))
                     walletMain.scope.launch {
                         try {
                             val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
                                 credentialOffer = offer,
                                 credentialIdentifierInfo = credentialIdentifierInfo,
                                 transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null },
-                                authorizationServerMetadata = offer.authorizationServerMetadata
+                                authorizationServerMetadata = offer.authorizationServerMetadata,
+                                onProgress = walletMain.loadingStatusService::set,
                             )
+                            walletMain.loadingStatusService.clear()
                             if (issuanceResult.credentialIssuanceResult is CredentialIssuanceResult.Success) {
                                 navigator.navigate(
                                     TransientFlowIssuingResultRoute(issuanceResult.storedEntryIds.firstOrNull())
@@ -283,6 +301,7 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
                                 dcapiVm.handleDCAPIIssuingResult(false, null)
                             }
                         } catch (e: Throwable) {
+                            walletMain.loadingStatusService.clear()
                             dcapiVm.handleDCAPIIssuingResult(false, e)
                         }
                     }
@@ -293,10 +312,15 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
                     offer = offer,
                     onSubmit = onSubmit,
                     onClickLogo = onClickLogo,
-                    onClickSettings = { navigator.navigate(SettingsRoute) }
+                    onClickSettings = { navigator.navigate(SettingsRoute) },
+                    onProgress = walletMain.loadingStatusService::set,
                 ).also { dcapiVm = it }
-            }.onSuccess { vm = it }
+            }.onSuccess {
+                walletMain.loadingStatusService.clear()
+                vm = it
+            }
                 .onFailure {
+                    walletMain.loadingStatusService.clear()
                     val wrapped = ErrorHandlingOverrideException(
                         resetStackOverride = navigator::invocationAwareBack,
                         actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
@@ -314,7 +338,10 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
                     walletMain.errorService.emit(wrapped)
                 }
         }
-        vm?.let { LoadCredentialView(it) } ?: LoadingView()
+        val loadingMessage by walletMain.loadingStatusService.message.collectAsState()
+        vm?.let { LoadCredentialView(it) } ?: LoadingView(
+            loadingMessageString(loadingMessage ?: LoadingMessageKey.IssuerMetadata)
+        )
     }
 
     composable<ProvisioningAuthRequestIntentRoute> { backStackEntry ->
@@ -337,12 +364,21 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
                         }
                     },
                     onClickLogo = onClickLogo,
-                    onClickSettings = { navigator.navigate(SettingsRoute) }
+                    onClickSettings = { navigator.navigate(SettingsRoute) },
+                    onProgress = walletMain.loadingStatusService::set,
                 )
-            }.onSuccess { vm = it }
-                .onFailure { flow.handleCredentialFlowFailure(navigator, walletMain, it) }
+            }.onSuccess {
+                walletMain.loadingStatusService.clear()
+                vm = it
+            }.onFailure {
+                walletMain.loadingStatusService.clear()
+                flow.handleCredentialFlowFailure(navigator, walletMain, it)
+            }
         }
-        vm?.let { LoadCredentialView(it) } ?: LoadingView()
+        val loadingMessage by walletMain.loadingStatusService.message.collectAsState()
+        vm?.let { LoadCredentialView(it) } ?: LoadingView(
+            loadingMessageString(loadingMessage ?: LoadingMessageKey.IssuerMetadata)
+        )
     }
 
     composable<TransientFlowIssuingResultRoute> { backStackEntry ->
@@ -495,8 +531,10 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
         })
     }
 
-    composable<LoadingRoute> {
-        LoadingView()
+    composable<LoadingRoute> { backStackEntry ->
+        val route = backStackEntry.toRoute<LoadingRoute>()
+        val loadingMessage by walletMain.loadingStatusService.message.collectAsState()
+        LoadingView(loadingMessageString(loadingMessage ?: route.message))
     }
 
     composable<LogRoute> {
@@ -553,31 +591,44 @@ private fun LoadCredentialFromUrlContent(
                 navigateUp = navigator::navigateBack,
                 url = uri,
                 onSubmit = { credentialIdentifierInfo, transactionCode, offer ->
-                    navigator.navigate(LoadingRoute)
+                    walletMain.loadingStatusService.set(LoadingMessageKey.IssuingCredential)
+                    navigator.navigate(LoadingRoute(LoadingMessageKey.IssuingCredential))
                     walletMain.scope.launch {
                         try {
                             val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
                                 credentialOffer = offer!!,
                                 credentialIdentifierInfo = credentialIdentifierInfo,
                                 transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null },
+                                onProgress = walletMain.loadingStatusService::set,
                             )
+                            walletMain.loadingStatusService.clear()
                             if (issuanceResult.credentialIssuanceResult is CredentialIssuanceResult.Success) {
                                 navigator.navigateNewGraph(
                                     TransientFlowIssuingResultRoute(issuanceResult.storedEntryIds.firstOrNull())
                                 )
                             }
                         } catch (e: Throwable) {
+                            walletMain.loadingStatusService.clear()
                             flow.handleCredentialFlowFailure(navigator, walletMain, e)
                         }
                     }
                 },
                 onClickLogo = onClickLogo,
-                onClickSettings = { navigator.navigate(SettingsRoute) }
+                onClickSettings = { navigator.navigate(SettingsRoute) },
+                onProgress = walletMain.loadingStatusService::set,
             )
-        }.onSuccess { vm = it }
-            .onFailure { flow.handleCredentialFlowFailure(navigator, walletMain, it) }
+        }.onSuccess {
+            walletMain.loadingStatusService.clear()
+            vm = it
+        }.onFailure {
+            walletMain.loadingStatusService.clear()
+            flow.handleCredentialFlowFailure(navigator, walletMain, it)
+        }
     }
-    vm?.let { LoadCredentialView(it) } ?: LoadingView()
+    val loadingMessage by walletMain.loadingStatusService.message.collectAsState()
+    vm?.let { LoadCredentialView(it) } ?: LoadingView(
+        loadingMessageString(loadingMessage ?: LoadingMessageKey.CredentialOffer)
+    )
 }
 
 private fun SharedDestinationFlow.navigateAfterIntentSuccess(

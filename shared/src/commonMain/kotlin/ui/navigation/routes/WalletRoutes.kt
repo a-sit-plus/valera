@@ -5,6 +5,7 @@ import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.openid.SignatureRequestParameters
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import data.storage.StoreEntryId
 import kotlinx.serialization.Serializable
@@ -112,7 +113,7 @@ data class SigningQtspSelectionRoute(
 object ErrorRoute : Route()
 
 @Serializable
-object LoadingRoute : Route()
+data class LoadingRoute(val message: LoadingMessageKey = LoadingMessageKey.Generic) : Route()
 
 @Serializable
 object PresentDataRoute : Route()

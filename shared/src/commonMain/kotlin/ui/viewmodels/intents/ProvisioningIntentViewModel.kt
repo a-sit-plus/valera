@@ -23,14 +23,17 @@ class ProvisioningIntentViewModel(
                 redirectedUrl = uri,
                 statusUpdater = { storeId, status ->
                     walletMain.credentialValidityService.updateStatus(storeId, status)
-                }
+                },
+                onProgress = walletMain.loadingStatusService::set,
             )
+            walletMain.loadingStatusService.clear()
             Napier.d("ProvisioningIntentViewModel success storedEntryIds=$storedEntryIds")
             TransientFlowIssuingResultRoute(storedEntryIds.firstOrNull())
         }.onSuccess {
             Napier.d("ProvisioningIntentViewModel navigating to route=$it")
             onSuccess(it)
         }.onFailure { error ->
+            walletMain.loadingStatusService.clear()
             onFailure(error)
         }
     }

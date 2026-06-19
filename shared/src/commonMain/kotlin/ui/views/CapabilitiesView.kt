@@ -25,6 +25,7 @@ import at.asitplus.valera.resources.info_text_capabilities_no_camera
 import at.asitplus.valera.resources.info_text_capabilities_no_device_lock_set
 import at.asitplus.valera.resources.info_text_capabilities_no_internet
 import at.asitplus.valera.resources.info_text_capabilities_no_signing
+import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.CapabilitiesData
 import getPlatformName
 import kotlinx.coroutines.Dispatchers
@@ -86,7 +87,7 @@ fun CapabilityView(
                 LaunchedEffect(data.cameraPermission) {
                     cameraPermissionRequested = true
                 }
-                LoadingView()
+                LoadingView(loadingMessageString(LoadingMessageKey.RequestingCameraPermission))
                 RequestCameraPermission()
             }
 
@@ -94,9 +95,9 @@ fun CapabilityView(
                 CapabilitiesCardView(statusData, onClickLogo, onClickSettings, onNavigateUp)
             }
 
-            else -> LoadingView()
+            else -> LoadingView(loadingMessageString(LoadingMessageKey.CheckingDeviceRequirements))
         }
-    } ?: LoadingView()
+    } ?: LoadingView(loadingMessageString(LoadingMessageKey.CheckingDeviceRequirements))
 }
 
 data class CapabilityCardData(
