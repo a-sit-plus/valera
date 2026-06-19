@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -48,6 +49,7 @@ import at.asitplus.valera.resources.text_label_attestation_storage_type
 import at.asitplus.valera.resources.text_label_attestation_user_authentication
 import at.asitplus.valera.resources.text_label_instance_attestation
 import at.asitplus.valera.resources.text_label_unit_attestation
+import at.asitplus.valera.resources.text_label_wallet_provider_attestation
 import at.asitplus.valera.resources.text_label_wallet_provider
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.LabeledText
@@ -69,6 +71,7 @@ fun AttestationSettingsView(
 
     val bufferedInstanceAttestation = vm.attestationService.bufferedInstanceAttestation.collectAsState(null)
     val bufferedKeyAttestation = vm.attestationService.bufferedKeyAttestation.collectAsState(null)
+    val walletProviderAttestationEnabled by vm.walletProviderAttestationEnabled.collectAsState()
     vm.attestationService.getWalletProviderHost().collectAsState(null).value?.let { host ->
         var hostInput by remember { mutableStateOf(host) }
         Scaffold(
@@ -144,6 +147,12 @@ fun AttestationSettingsView(
                                     Text(stringResource(Res.string.button_label_attestation_apply))
                                 }
                             }
+                            SwitchListItem(
+                                label = stringResource(Res.string.text_label_wallet_provider_attestation),
+                                checked = walletProviderAttestationEnabled,
+                                onCheckedChange = vm::setWalletProviderAttestationEnabled,
+                                modifier = listSpacingModifier.fillMaxWidth(),
+                            )
 
 
                             Column(
@@ -236,4 +245,27 @@ fun AttestationSettingsView(
             }
         }
     } ?: LoadingView()
+}
+
+@Composable
+private fun SwitchListItem(
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.padding(top = 8.dp, end = 24.dp, bottom = 8.dp, start = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.weight(1f),
+        )
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+        )
+    }
 }

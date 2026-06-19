@@ -33,12 +33,6 @@ class SettingsViewModel(
     private val clientIdInput = MutableStateFlow(SettingsRepository.DEFAULT_CLIENT_ID)
     val clientIdInputState = clientIdInput.asStateFlow()
 
-    val walletProviderAttestationEnabled = walletMain.settingsRepository.walletProviderAttestationEnabled.stateIn(
-        viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = true
-    )
-
     init {
         viewModelScope.launch {
             clientId.collectLatest { value ->
@@ -63,10 +57,6 @@ class SettingsViewModel(
 
     fun resetClientIdToDefault() {
         clientIdInput.value = SettingsRepository.DEFAULT_CLIENT_ID
-    }
-
-    fun setWalletProviderAttestationEnabled(enabled: Boolean) {
-        walletMain.settingsRepository.set(walletProviderAttestationEnabled = enabled)
     }
 
     fun showGlobalSnackbar(

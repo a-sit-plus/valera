@@ -29,7 +29,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -72,7 +71,6 @@ import at.asitplus.valera.resources.section_heading_general
 import at.asitplus.valera.resources.section_heading_information
 import at.asitplus.valera.resources.text_label_build
 import at.asitplus.valera.resources.text_label_client_identifier
-import at.asitplus.valera.resources.text_label_wallet_provider_attestation
 import at.asitplus.valera.resources.warning
 import at.asitplus.wallet.app.common.BuildType
 import org.jetbrains.compose.resources.getString
@@ -120,7 +118,6 @@ fun SettingsView(
     }
 
     var showResetAlert by remember { mutableStateOf(false) }
-    val walletProviderAttestationEnabled by settingsViewModel.walletProviderAttestationEnabled.collectAsState()
     if (showResetAlert) {
         ResetAlert(
             onConfirm = {
@@ -216,12 +213,6 @@ fun SettingsView(
                                 Text(stringResource(Res.string.button_label_default))
                             }
                         }
-                        SwitchListItem(
-                            label = stringResource(Res.string.text_label_wallet_provider_attestation),
-                            checked = walletProviderAttestationEnabled,
-                            onCheckedChange = settingsViewModel::setWalletProviderAttestationEnabled,
-                            modifier = listSpacingModifier.fillMaxWidth(),
-                        )
                     }
 
                     Column(
@@ -386,29 +377,6 @@ fun SettingsView(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun SwitchListItem(
-    label: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier.padding(top = 8.dp, end = 24.dp, bottom = 8.dp, start = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.weight(1f),
-        )
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-        )
     }
 }
 
