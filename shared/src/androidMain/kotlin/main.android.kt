@@ -312,10 +312,11 @@ public class AndroidPlatformAdapter(
                 ?: throw IllegalArgumentException("Expected GetDigitalCredentialOption object not received")
 
             Napier.d("DC API: Got request ${option.requestJson}")
-            // Android's Bundle-to-JSON conversion serializes empty (and numerically-indexed) arrays as
-            // objects, which breaks deserialization of `redirect_uris` in client_metadata.
+            // Android's Bundle-to-JSON conversion serializes arrays as numerically-indexed objects
+            // (e.g. ["a","b"] becomes {"0":"a","1":"b"}), which breaks deserialization of list
+            // properties such as `redirect_uris` in client_metadata.
             val rawRequest = joseCompliantSerializer.parseToJsonElement(option.requestJson)
-                .fixRedirectUrisArrayShape()
+                .coerceIndexedObjectsToArrays()
             val dcRequestOptions = joseCompliantSerializer.decodeFromJsonElement(
                 DigitalCredentialRequestOptions.serializer(),
                 rawRequest,
@@ -434,20 +435,81 @@ public class AndroidPlatformAdapter(
         )
     }
 
-    private fun JsonElement.fixRedirectUrisArrayShape(): JsonElement = when (this) {
-        is JsonObject -> JsonObject(mapValues { (key, value) ->
-            if (key == "redirect_uris" && value is JsonObject) {
-                JsonArray(
-                    value.entries
-                        .sortedBy { it.key.toIntOrNull() ?: Int.MAX_VALUE }
-                        .map { it.value }
-                )
-            } else {
-                value.fixRedirectUrisArrayShape()
+    /**
+     * Recursively undoes Android's Bundle-to-JSON conversion, which serializes arrays as objects.
+     *
+     * Two cases are handled:
+     *  - Non-empty arrays become numerically-indexed objects (e.g. ["a","b"] -> {"0":"a","1":"b"}).
+     *    Any object whose keys are exactly the contiguous integers 0..n-1 is converted back.
+     *  - Empty arrays become empty objects ({} ). These are indistinguishable from genuine empty
+     *    objects by shape alone, so they are only coerced for keys known to be arrays in the
+     *    OpenID4VP / DCQL / DC API standards (see [openIdArrayKeys]).
+     */
+    private fun JsonElement.coerceIndexedObjectsToArrays(): JsonElement = when (this) {
+        is JsonObject -> {
+            val fixedChildren = mapValues { (key, value) ->
+                val fixedValue = value.coerceIndexedObjectsToArrays()
+                // A standardized array field still left as an object can only be a Bundle-encoded
+                // (typically empty) array, so coerce it by index order.
+                if (key in openIdArrayKeys && fixedValue is JsonObject) {
+                    JsonArray(
+                        fixedValue.entries
+                            .sortedBy { it.key.toIntOrNull() ?: Int.MAX_VALUE }
+                            .map { it.value }
+                    )
+                } else {
+                    fixedValue
+                }
             }
-        })
-        is JsonArray -> JsonArray(map { it.fixRedirectUrisArrayShape() })
+            val indices = fixedChildren.keys.mapNotNull { it.toIntOrNull() }
+            if (indices.size == fixedChildren.size && indices.isNotEmpty() &&
+                indices.sorted() == (0 until fixedChildren.size).toList()
+            ) {
+                JsonArray(fixedChildren.entries.sortedBy { it.key.toInt() }.map { it.value })
+            } else {
+                JsonObject(fixedChildren)
+            }
+        }
+        is JsonArray -> JsonArray(map { it.coerceIndexedObjectsToArrays() })
         else -> this
+    }
+
+    private companion object {
+        /**
+         * Serialized names of array-valued properties across the OpenID4VP request, its `dcql_query`,
+         * `client_metadata`, `transaction_data` and ISO 18013-7 DC API structures. Used to recover
+         * empty arrays that Android's Bundle-to-JSON conversion collapsed into empty objects.
+         */
+        private val openIdArrayKeys = setOf(
+            // OpenID4VP / DC API request
+            "requests",
+            "redirect_uris",
+            "expected_origins",
+            "verifier_info",
+            "transaction_data",
+            "transaction_data_hashes",
+            // DCQL query
+            "credentials",
+            "credential_sets",
+            "claims",
+            "claim_sets",
+            "trusted_authorities",
+            "values",
+            "vct_values",
+            "type_values",
+            "options",
+            "path",
+            // ISO 18013-7 / mdoc document request structures
+            "documentDigests",
+            "documentLocations",
+            "documentSets",
+            "alternativeDataElements",
+            "alternativeElementSets",
+            "recipientCertificate",
+            "status_lists",
+            "systemSpecs",
+            "useCases",
+        )
     }
 
 }
