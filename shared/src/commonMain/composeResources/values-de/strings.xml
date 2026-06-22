@@ -219,11 +219,11 @@
     <string name="id_format_plain_jwt_label">PLAIN_JWT</string>
     <string name="loading_message_app_initialization">App-Einrichtung wird geprüft</string>
     <string name="loading_message_incoming_request">Anfrage wird geöffnet</string>
-    <string name="loading_message_credential_offer">Berechtigungsangebot wird geladen</string>
+    <string name="loading_message_credential_offer">Credentialangebot wird geladen</string>
     <string name="loading_message_issuer_metadata">Ausstellerinformationen werden geladen</string>
-    <string name="loading_message_issuing_credential">Berechtigung wird ausgestellt</string>
-    <string name="loading_message_storing_credential">Berechtigung wird gespeichert</string>
-    <string name="loading_message_checking_requested_credentials">Angeforderte Berechtigungen werden geprüft</string>
+    <string name="loading_message_issuing_credential">Credential wird ausgestellt</string>
+    <string name="loading_message_storing_credential">Credential wird gespeichert</string>
+    <string name="loading_message_checking_requested_credentials">Angeforderte Credentials werden geprüft</string>
     <string name="loading_message_checking_device_requirements">App- und Geräteanforderungen werden geprüft</string>
     <string name="loading_message_requesting_camera_permission">Kameraberechtigung wird angefordert</string>
     <string name="loading_message_scanning_qr_content">QR-Code wird gelesen</string>
