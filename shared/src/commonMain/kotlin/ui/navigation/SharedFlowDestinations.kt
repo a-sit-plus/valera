@@ -534,7 +534,7 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
     composable<LoadingRoute> { backStackEntry ->
         val route = backStackEntry.toRoute<LoadingRoute>()
         val loadingMessage by walletMain.loadingStatusService.message.collectAsState()
-        LoadingView(loadingMessageString(loadingMessage ?: route.message))
+        LoadingView(loadingMessageString(loadingMessage ?: route.messageKey))
     }
 
     composable<LogRoute> {

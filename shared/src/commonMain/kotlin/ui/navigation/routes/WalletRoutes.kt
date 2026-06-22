@@ -113,7 +113,12 @@ data class SigningQtspSelectionRoute(
 object ErrorRoute : Route()
 
 @Serializable
-data class LoadingRoute(val message: LoadingMessageKey = LoadingMessageKey.Generic) : Route()
+data class LoadingRoute(val message: String = LoadingMessageKey.Generic.name) : Route() {
+    constructor(message: LoadingMessageKey) : this(message.name)
+
+    val messageKey: LoadingMessageKey
+        get() = LoadingMessageKey.entries.firstOrNull { it.name == message } ?: LoadingMessageKey.Generic
+}
 
 @Serializable
 object PresentDataRoute : Route()
