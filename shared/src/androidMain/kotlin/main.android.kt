@@ -308,6 +308,7 @@ public class AndroidPlatformAdapter(
             val option = credentialRequest.credentialOptions[0] as? GetDigitalCredentialOption
                 ?: throw IllegalArgumentException("Expected GetDigitalCredentialOption object not received")
 
+            Napier.d("DC API: Got request ${option.requestJson}")
             val dcRequestOptions = joseCompliantSerializer.decodeFromString<DigitalCredentialRequestOptions>(option.requestJson)
 
             val selectionInfo = getSetSelection(credentialRequest)
@@ -317,7 +318,7 @@ public class AndroidPlatformAdapter(
                 dcRequestOptions.requests.find { it.protocol == ExchangeProtocolIdentifier(selectionInfo.protocol) }
                     ?: throw IllegalStateException("Unable to find suitable DC API request. Protocol may not be supported.")
 
-            Napier.d("DC API: Got request ${option.requestJson} for selection $selectionInfo")
+            Napier.d("DC API: Selection $selectionInfo")
 
             val credentialIds = selectionInfo.documentIds
 
