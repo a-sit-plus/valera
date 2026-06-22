@@ -23,6 +23,11 @@
 
 This [Compose Multiplatform](https://www.jetbrains.com/lp/compose-multiplatform/) app implements an Identity Wallet for iOS and Android, using [VC-K](https://github.com/a-sit-plus/vck) to load, store and present verifiable credentials.
 
+
+| ⚠️ Warning                                         |
+|:---------------------------------------------------|
+| This app is intended as a Technology Demonstrator! |
+
 <div align="center">
 
 <img alt="screenshot" src="https://github.com/user-attachments/assets/751de375-652f-4270-8cfc-00db761c26a9" width="30%" height="30%">
