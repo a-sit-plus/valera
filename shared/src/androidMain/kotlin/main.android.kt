@@ -45,6 +45,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToByteArray
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import org.multipaz.compose.prompt.PromptDialogs
 import org.multipaz.prompt.PromptModel
 import ui.theme.darkScheme
@@ -309,7 +312,14 @@ public class AndroidPlatformAdapter(
                 ?: throw IllegalArgumentException("Expected GetDigitalCredentialOption object not received")
 
             Napier.d("DC API: Got request ${option.requestJson}")
-            val dcRequestOptions = joseCompliantSerializer.decodeFromString<DigitalCredentialRequestOptions>(option.requestJson)
+            // Android's Bundle-to-JSON conversion serializes empty (and numerically-indexed) arrays as
+            // objects, which breaks deserialization of `redirect_uris` in client_metadata.
+            val rawRequest = joseCompliantSerializer.parseToJsonElement(option.requestJson)
+                .fixRedirectUrisArrayShape()
+            val dcRequestOptions = joseCompliantSerializer.decodeFromJsonElement(
+                DigitalCredentialRequestOptions.serializer(),
+                rawRequest,
+            )
 
             val selectionInfo = getSetSelection(credentialRequest)
                 ?: getSelection(credentialRequest)
@@ -422,6 +432,22 @@ public class AndroidPlatformAdapter(
                 Uri.fromParts("package", context.packageName, null)
             ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         )
+    }
+
+    private fun JsonElement.fixRedirectUrisArrayShape(): JsonElement = when (this) {
+        is JsonObject -> JsonObject(mapValues { (key, value) ->
+            if (key == "redirect_uris" && value is JsonObject) {
+                JsonArray(
+                    value.entries
+                        .sortedBy { it.key.toIntOrNull() ?: Int.MAX_VALUE }
+                        .map { it.value }
+                )
+            } else {
+                value.fixRedirectUrisArrayShape()
+            }
+        })
+        is JsonArray -> JsonArray(map { it.fixRedirectUrisArrayShape() })
+        else -> this
     }
 
 }

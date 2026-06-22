@@ -43,6 +43,7 @@ class WalletRoutesTest {
         val serialized = joseCompliantSerializer.encodeToString(route)
         val deserialized = joseCompliantSerializer.decodeFromString<LoadingRoute>(serialized)
 
-        assertEquals(LoadingMessageKey.IssuerMetadata, deserialized.message)
+        assertEquals(LoadingMessageKey.IssuerMetadata.name, deserialized.message)
+        assertEquals(LoadingMessageKey.IssuerMetadata, deserialized.messageKey)
     }
 }
