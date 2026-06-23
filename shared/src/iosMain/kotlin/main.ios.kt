@@ -27,6 +27,8 @@ import at.asitplus.wallet.app.ios.DigitalCredentials
 import at.asitplus.wallet.eupid.EU_PID_DOCTYPE
 import at.asitplus.wallet.mdl.MDL_DOCTYPE
 import kotlinx.cinterop.*
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -98,6 +100,28 @@ fun TransientFlowMainViewController(
 class IosPlatformAdapter(
     private val intentState: IntentState
 ) : PlatformAdapter {
+    private companion object {
+        const val REGISTERED_DOCUMENT_IDS_DEFAULTS_KEY = "dcapi.registeredDocumentIds"
+        val registeredDocumentIdsLock = SynchronizedObject()
+        val registeredDocumentIds = mutableSetOf<String>().apply {
+            addAll(loadRegisteredDocumentIds())
+        }
+
+        fun loadRegisteredDocumentIds(): Set<String> =
+            NSUserDefaults.standardUserDefaults
+                .stringArrayForKey(REGISTERED_DOCUMENT_IDS_DEFAULTS_KEY)
+                ?.filterIsInstance<String>()
+                ?.toSet()
+                ?: emptySet()
+
+        fun saveRegisteredDocumentIds(ids: Set<String>) {
+            NSUserDefaults.standardUserDefaults.setObject(
+                ids.toList(),
+                forKey = REGISTERED_DOCUMENT_IDS_DEFAULTS_KEY
+            )
+        }
+    }
+
     override fun openUrl(url: String) {
         dispatch_async(dispatch_get_main_queue()) {
             val url = NSURL(string = url)
@@ -243,11 +267,30 @@ class IosPlatformAdapter(
         scope: CoroutineScope
     ) {
         withContext(Dispatchers.Default) {
+            val currentIds = entries.credentials.mapNotNull { entry ->
+                entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
+            }.toSet()
+            val staleIds = synchronized(registeredDocumentIdsLock) {
+                registeredDocumentIds - currentIds
+            }
+            staleIds.forEach { id ->
+                if (removeDocumentFromSwift(id, scope)) {
+                    synchronized(registeredDocumentIdsLock) {
+                        registeredDocumentIds.remove(id)
+                        saveRegisteredDocumentIds(registeredDocumentIds)
+                    }
+                }
+            }
             for (entry in entries.credentials) {
                 val id = entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
                 val docType = entry.isoEntry?.docType ?: entry.sdJwtEntry?.verifiableCredentialType
                 if (id != null && docType != null) {
-                    storeDocumentFromSwift(id, docType, scope)
+                    if (storeDocumentFromSwift(id, docType, scope)) {
+                        synchronized(registeredDocumentIdsLock) {
+                            registeredDocumentIds.add(id)
+                            saveRegisteredDocumentIds(registeredDocumentIds)
+                        }
+                    }
                 }
             }
         }
@@ -283,6 +326,33 @@ class IosPlatformAdapter(
                 if (cont.isActive) cont.resume(success)
             }
             Napier.d("storeDocumentFromSwift got back from swift")
+        } catch (e: Throwable) {
+            Napier.e("Error while invoking Swift code", e)
+            if (cont.isActive) cont.resume(false)
+        }
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    private suspend fun removeDocumentFromSwift(
+        id: String,
+        scope: CoroutineScope
+    ): Boolean = suspendCancellableCoroutine { cont ->
+        try {
+            Napier.d("removeDocumentFromSwift invoked")
+            DigitalCredentials.removeDocumentWithId(id) { errorMessage ->
+                val success = errorMessage == null
+                Napier.d("removeDocumentFromSwift callback with success=$success error=$errorMessage")
+                if (!success) {
+                    scope.launch {
+                        IosSessionBridge.showSnackbar(
+                            errorMessage.takeUnless { it.isNullOrBlank() } ?: "Unable to remove stale document registration",
+                            SnackbarDuration.Long
+                        )
+                    }
+                }
+                if (cont.isActive) cont.resume(success)
+            }
+            Napier.d("removeDocumentFromSwift got back from swift")
         } catch (e: Throwable) {
             Napier.e("Error while invoking Swift code", e)
             if (cont.isActive) cont.resume(false)
