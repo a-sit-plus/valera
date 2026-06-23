@@ -9,6 +9,7 @@ import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_subtitle
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_title
+import at.asitplus.valera.resources.heading_label_scan_qr_code
 import at.asitplus.valera.resources.heading_label_sign
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -42,7 +43,7 @@ fun QrCodeScannerView(
             )
 
             QrCodeScannerMode.PROVISIONING -> Pair(
-                stringResource(Res.string.heading_label_authenticate_at_device_title),
+                stringResource(Res.string.heading_label_scan_qr_code),
                 null
             )
         }
