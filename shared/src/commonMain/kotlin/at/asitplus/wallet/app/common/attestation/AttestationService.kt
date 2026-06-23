@@ -30,7 +30,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 class AttestationService(
-    holderKey: WalletKeyMaterial,
+    private val holderKey: WalletKeyMaterial,
     private val config: SettingsRepository,
     buildContext: BuildContext,
     httpService: HttpService,
@@ -132,20 +132,60 @@ class AttestationService(
         ensureWalletProviderAttestationEnabled()
         if (input.allowBuffer()) {
             bufferedKeyAttestation.firstOrNull()?.let { buffer ->
-                if (buffer.hasRemainingKeyStorageStatusPeriod(input.preferredKeyStorageStatusPeriod ?: PREFERRED_DEFAULT_TTL)) {
-                    Napier.d("AttestationService: Use buffered key attestation")
-                    bufferedKeyAttestation.emit(null)
-                    return buffer
+                when {
+                    !buffer.hasMatchingAttestedKey() -> {
+                        Napier.w("Discarding buffered key attestation. ${buffer.attestedKeyMismatchMessage()}")
+                        bufferedKeyAttestation.emit(null)
+                    }
+
+                    buffer.hasRemainingKeyStorageStatusPeriod(
+                        input.preferredKeyStorageStatusPeriod ?: PREFERRED_DEFAULT_TTL
+                    ) -> {
+                        Napier.d("AttestationService: Use buffered key attestation")
+                        bufferedKeyAttestation.emit(null)
+                        return buffer
+                    }
                 }
             }
         }
 
         Napier.d("AttestationService: Request new key attestation")
+        return getVerifiedKeyAttestation(input).also {
+            if (input.allowBuffer()) {
+                bufferedKeyAttestation.emit(it)
+            }
+        }
+    }
 
-        val instanceAttestation = requestInstanceAttestation(preloadInstanceAttestationInput)
+    /**
+     * Fetches a key attestation and verifies that the attested key actually matches the holder
+     * signing key, retrying on mismatch. This mirrors [InstanceAttestationHelper]'s confirmation-key
+     * guard: it prevents the wallet from sending a credential-request proof whose `attested_keys[0]`
+     * diverges from the key signing the proof, which the issuer would reject in
+     * [at.asitplus.wallet.lib.oidvci.ProofValidator.validateJwtProof].
+     */
+    private suspend fun getVerifiedKeyAttestation(
+        input: KeyAttestationInput,
+    ): JwsCompactTyped<KeyAttestationJwt> {
+        var mismatch: IllegalStateException? = null
+        repeat(MAX_KEY_ATTESTATION_ATTEMPTS) {
+            val keyAttestation = fetchKeyAttestation(input)
+            if (keyAttestation.hasMatchingAttestedKey()) {
+                return keyAttestation
+            }
+            mismatch = IllegalStateException(keyAttestation.attestedKeyMismatchMessage())
+            Napier.w("Discarding newly loaded key attestation. ${mismatch.message}")
+        }
+        throw mismatch ?: IllegalStateException("Unable to load key attestation")
+    }
 
-        val pop = instanceAttestationHelper.buildProofOfPossession(
-            audience = config.walletProviderHost.first(), nonce = getChallenge()
+    private suspend fun fetchKeyAttestation(
+        input: KeyAttestationInput,
+    ): JwsCompactTyped<KeyAttestationJwt> {
+        val (instanceAttestation, pop) = instanceAttestationHelper.instanceAttestationWithProofOfPossession(
+            preferredClientStatusPeriod = PREFERRED_DEFAULT_TTL,
+            audience = config.walletProviderHost.first(),
+            nonce = getChallenge()
         )
 
         return keyAttestationHelper.requestKeyAttestation(
@@ -154,12 +194,16 @@ class AttestationService(
             nonce = input.clientNonce,
             preferredKeyStorageStatusPeriod = input.preferredKeyStorageStatusPeriod,
             supportedAlgorithms = input.supportedAlgorithms
-        ).also {
-            if (input.allowBuffer()) {
-                bufferedKeyAttestation.emit(it)
-            }
-        }
+        )
     }
+
+    private fun JwsCompactTyped<KeyAttestationJwt>.hasMatchingAttestedKey(): Boolean =
+        payload.attestedKeys.firstOrNull()?.jwkThumbprint == holderKey.jsonWebKey.jwkThumbprint
+
+    private fun JwsCompactTyped<KeyAttestationJwt>.attestedKeyMismatchMessage(): String =
+        "Key attestation attested_keys[0] does not match holder signing key. " +
+                "Expected attested thumbprint: ${payload.attestedKeys.firstOrNull()?.jwkThumbprint}, " +
+                "got keyMaterial thumbprint: ${holderKey.jsonWebKey.jwkThumbprint}"
 
     private fun JwsCompactTyped<KeyAttestationJwt>.hasRemainingKeyStorageStatusPeriod(ttl: Duration): Boolean {
         val now = Clock.System.now()
@@ -188,6 +232,8 @@ class AttestationService(
 class WalletProviderAttestationDisabledException : IllegalStateException(
     "The issuing service requires wallet provider attestation, but wallet provider attestation is disabled in settings."
 )
+
+private const val MAX_KEY_ATTESTATION_ATTEMPTS = 2
 
 fun KeyAttestationInput.allowBuffer() = (this.credentialIssuer == null && this.clientNonce == null)
 fun LoadInstanceAttestationInput.allowBuffer() = false
