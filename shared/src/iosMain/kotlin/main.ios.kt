@@ -36,7 +36,9 @@ import org.multipaz.compose.prompt.PromptDialogs
 import platform.AVFoundation.*
 import platform.Foundation.*
 import platform.UIKit.*
+import platform.darwin.DISPATCH_QUEUE_PRIORITY_DEFAULT
 import platform.darwin.dispatch_async
+import platform.darwin.dispatch_get_global_queue
 import platform.darwin.dispatch_get_main_queue
 import ui.theme.darkScheme
 import ui.theme.lightScheme
@@ -95,9 +97,11 @@ class IosPlatformAdapter(
     private val intentState: IntentState
 ) : PlatformAdapter {
     override fun openUrl(url: String) {
-        val url = NSURL(string = url)
-        if (UIApplication.sharedApplication.canOpenURL(url)) {
-            UIApplication.sharedApplication.openURL(url, mapOf<Any?, Any?>(), null)
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT.toLong(), 0UL)) {
+            val url = NSURL(string = url)
+            if (UIApplication.sharedApplication.canOpenURL(url)) {
+                UIApplication.sharedApplication.openURL(url, mapOf<Any?, Any?>(), null)
+            }
         }
     }
 
