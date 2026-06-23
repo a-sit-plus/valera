@@ -18,11 +18,13 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.credentials.CreateDigitalCredentialRequest
+import androidx.credentials.DigitalCredential
 import androidx.credentials.ExperimentalDigitalCredentialApi
 import androidx.credentials.GetDigitalCredentialOption
 import androidx.credentials.provider.CallingAppInfo
 import androidx.credentials.provider.PendingIntentHandler
 import androidx.credentials.provider.ProviderGetCredentialRequest
+import androidx.credentials.registry.provider.ClearCredentialRegistryRequest
 import androidx.credentials.registry.provider.RegistryManager
 import androidx.credentials.registry.provider.selectedEntryId
 import at.asitplus.KmmResult
@@ -225,12 +227,23 @@ public class AndroidPlatformAdapter(
         context.startActivity(Intent.createChooser(intent, null))
     }
 
+    @OptIn(ExperimentalDigitalCredentialApi::class)
     override suspend fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope) {
         withContext(Dispatchers.Default) {
             catching {
                 val credentialsListCbor = coseCompliantSerializer.encodeToByteArray(entries)
                 val customRegistry = CustomRegistry(credentialsListCbor, context)
-                RegistryManager.create(context).registerCredentials(customRegistry)
+                val registryManager = RegistryManager.create(context)
+                registryManager.clearCredentialRegistry(
+                    ClearCredentialRegistryRequest(
+                        ClearCredentialRegistryRequest.PerTypeConfig(
+                            isDeleteAll = false,
+                            type = DigitalCredential.TYPE_DIGITAL_CREDENTIAL,
+                            registryIds = listOf(context.packageName),
+                        )
+                    )
+                )
+                registryManager.registerCredentials(customRegistry)
                 CustomRegistry.registerIssuance(context)
             }.onSuccess { Napier.i("DC API: Credential Manager registration succeeded") }
                 .onFailure { Napier.w("DC API: Credential Manager registration failed", it) }
