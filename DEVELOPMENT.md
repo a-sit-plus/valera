@@ -39,7 +39,7 @@ Public contributors:
 * Running on the Simulator does not require an Apple Developer team, provisioning profile, or bundle identifier changes.
 * Public contributors do not need `Signing.local.xcconfig`.
 * Optional device builds with a Personal Team or another external team can use a local `Signing.local.xcconfig` with a unique bundle identifier and team id.
-* Public Debug builds default to reduced entitlements, so `Associated Domains` and NFC are not available unless you are using internal signing.
+* Public Debug builds default to reduced entitlements, so `Associated Domains` and NFC are not available unless you are using internal signing. The reduced Debug entitlements still include the Identity Document Services document types needed for Digital Credentials registration, but the active provisioning profile must also allow that entitlement.
 * Public contributors cannot run the app on a physical iPhone with the official bundle identifier `at.asitplus.wallet.compose`. Apple requires that bundle identifier to be signed by the team that owns it.
 * Device builds and release archives for the official app identifier therefore require access to the A-SIT Apple Developer team.
 
@@ -47,7 +47,7 @@ Internal team members:
 * Device builds use Xcode automatic signing in the `Debug` configuration.
 * Copy [iosApp/Configuration/Signing.example.xcconfig](iosApp/Configuration/Signing.example.xcconfig) to `iosApp/Configuration/Signing.local.xcconfig`.
 * Set `SIGNING_DEVELOPMENT_TEAM` in `Signing.local.xcconfig`.
-* Set `SIGNING_DEBUG_ENTITLEMENTS_FILE = iosApp/iosApp/iosApp.entitlements` if you want `Associated Domains` and NFC in local Debug device builds.
+* Set `SIGNING_DEBUG_ENTITLEMENTS_FILE = iosApp/iosApp.entitlements` if you want `Associated Domains` and NFC in local Debug device builds.
 * Set `SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER` in `Signing.local.xcconfig` if you want to create release archives locally.
 
 Minimal `Signing.local.xcconfig` for internal users:
@@ -55,9 +55,11 @@ Minimal `Signing.local.xcconfig` for internal users:
 ```xcconfig
 APP_BUNDLE_IDENTIFIER = at.asitplus.wallet.compose
 SIGNING_DEVELOPMENT_TEAM = 9CYHJNG644
-SIGNING_DEBUG_ENTITLEMENTS_FILE = iosApp/iosApp/iosApp.entitlements
+SIGNING_DEBUG_ENTITLEMENTS_FILE = iosApp/iosApp.entitlements
 SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER = Compose Wallet Distribution
 ```
+
+`SIGNING_DEBUG_ENTITLEMENTS_FILE` is resolved relative to the Xcode project directory (`iosApp/`), so use `iosApp/iosApp.entitlements` here. Using `iosApp/iosApp/iosApp.entitlements` makes Xcode look for a doubled path and fail to open the file.
 
 Minimal `Signing.local.xcconfig` for external device builds:
 
@@ -121,7 +123,7 @@ Create provisioning profiles:
 Local Fastlane release builds for internal users:
  - Copy `iosApp/Configuration/Signing.example.xcconfig` to `iosApp/Configuration/Signing.local.xcconfig`
  - Set `SIGNING_DEVELOPMENT_TEAM = 9CYHJNG644`
- - Set `SIGNING_DEBUG_ENTITLEMENTS_FILE = iosApp/iosApp/iosApp.entitlements` if you also need local Debug device builds with NFC and associated domains
+ - Set `SIGNING_DEBUG_ENTITLEMENTS_FILE = iosApp/iosApp.entitlements` if you also need local Debug device builds with NFC and associated domains
  - Set `SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER = Compose Wallet Distribution`
  - Place the exported signing certificate at `iosApp/cert.p12`
  - Export `APPLE_CERT_PASSWORD`
