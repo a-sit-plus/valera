@@ -3,14 +3,8 @@ package ui.navigation
 import ErrorHandlingOverrideException
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -28,10 +22,9 @@ import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
-import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult
 import io.github.aakira.napier.Napier
-import io.ktor.http.URLBuilder
+import io.ktor.http.*
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.koin.core.scope.Scope
@@ -39,38 +32,11 @@ import ui.composables.credentials.CredentialCard
 import ui.navigation.routes.*
 import ui.presentation.DCAPIPresentationGraphView
 import ui.presentation.DefaultPresentationGraphView
-import ui.viewmodels.AttestationSettingsViewModel
-import ui.viewmodels.CredentialDetailsViewModel
-import ui.viewmodels.CredentialSelection
-import ui.viewmodels.LoadCredentialViewModel
-import ui.viewmodels.LogViewModel
-import ui.viewmodels.SigningQtspSelectionViewModel
-import ui.viewmodels.intents.AuthorizationIntentViewModel
-import ui.viewmodels.intents.DCAPIAuthorizationIntentViewModel
-import ui.viewmodels.intents.DCAPIIssuingIntentViewModel
-import ui.viewmodels.intents.ErrorIntentViewModel
-import ui.viewmodels.intents.PresentationIntentViewModel
-import ui.viewmodels.intents.ProvisioningIntentViewModel
-import ui.viewmodels.intents.SigningIntentViewModel
-import ui.viewmodels.intents.SigningResumeIntentViewModel
-import ui.views.AttestationSettingsView
-import ui.views.CapabilityView
-import ui.views.CredentialAddedView
-import ui.views.CredentialDetailsView
-import ui.views.LoadCredentialView
-import ui.views.LoadingView
-import ui.views.loadingMessageString
-import ui.views.LogView
-import ui.views.SigningQtspSelectionView
+import ui.viewmodels.*
+import ui.viewmodels.intents.*
+import ui.views.*
 import ui.views.authentication.AuthenticationSuccessView
-import ui.views.intents.AuthorizationIntentView
-import ui.views.intents.DCAPIAuthorizationIntentView
-import ui.views.intents.DCAPIIssuingIntentView
-import ui.views.intents.ErrorIntentView
-import ui.views.intents.PresentationIntentView
-import ui.views.intents.ProvisioningIntentView
-import ui.views.intents.SigningIntentView
-import ui.views.intents.SigningResumeIntentView
+import ui.views.intents.*
 
 internal enum class SharedDestinationFlow {
     Wallet,
@@ -649,5 +615,5 @@ private fun SharedDestinationFlow.encodeDigitalCredentialOfferReturn(
 ): String =
     when (this) {
         SharedDestinationFlow.Wallet -> joseCompliantSerializer.encodeToString(value)
-        SharedDestinationFlow.Transient -> vckJsonSerializer.encodeToString(value)
+        SharedDestinationFlow.Transient -> joseCompliantSerializer.encodeToString(value)
     }
