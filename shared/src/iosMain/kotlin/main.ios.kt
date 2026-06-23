@@ -31,6 +31,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToByteArray
 import kotlin.coroutines.resume
 import kotlinx.serialization.json.Json
@@ -237,11 +238,11 @@ class IosPlatformAdapter(
         }
     }
 
-    override fun registerWithDigitalCredentialsAPI(
+    override suspend fun registerWithDigitalCredentialsAPI(
         entries: CredentialRegistry,
         scope: CoroutineScope
     ) {
-        scope.launch(Dispatchers.Default) {
+        withContext(Dispatchers.Default) {
             for (entry in entries.credentials) {
                 val id = entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
                 val docType = entry.isoEntry?.docType ?: entry.sdJwtEntry?.verifiableCredentialType
@@ -271,7 +272,7 @@ class IosPlatformAdapter(
                 if (!success) {
                     scope.launch {
                         val baseMessage = getString(Res.string.snackbar_digital_credentials_store_failed)
-                        val details = errorMessage?.toString()?.takeIf { it.isNotBlank() }
+                        val details = errorMessage.takeIf { it.isNotBlank() }
                         IosSessionBridge.showSnackbar(
                             listOfNotNull(baseMessage, details)
                                 .joinToString(": "),
