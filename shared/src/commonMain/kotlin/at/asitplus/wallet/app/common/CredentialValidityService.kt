@@ -18,6 +18,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
@@ -36,6 +37,7 @@ class CredentialValidityService(
     private val dataStoreService: DataStoreService
 ) {
     private var job: Job? = null
+    private var storeObserverJob: Job? = null
 
     private val _refreshItems = MutableStateFlow<List<RefreshItem>>(emptyList())
     val refreshItems: StateFlow<List<RefreshItem>> = _refreshItems.asStateFlow()
@@ -71,6 +73,16 @@ class CredentialValidityService(
      */
     fun startChecking(interval: Duration = 5.minutes) {
         job?.cancel()
+        storeObserverJob?.cancel()
+
+        storeObserverJob = sessionCoroutineScope.launch {
+            subjectCredentialStore.observeStoreContainer().collect { storeContainer ->
+                val currentIds = storeContainer.credentials.map { it.first }.toSet()
+                _refreshItems.update { items ->
+                    items.filter { it.storeEntryId in currentIds }
+                }
+            }
+        }
 
         job = sessionCoroutineScope.launch {
             delay(10.seconds)
