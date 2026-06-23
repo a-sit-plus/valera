@@ -93,7 +93,7 @@ class WalletMain(
         localPresentmentSessionCoordinator.resetAll("wallet-reset")
 
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_VCS)
-        dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
+        dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT_BY_STATE)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_STATE_TO_CODE_STORE)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_COOKIES)
         KeystoreService.clearKeyMaterial()

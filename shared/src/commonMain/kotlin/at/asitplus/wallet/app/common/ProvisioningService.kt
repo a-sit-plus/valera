@@ -31,6 +31,7 @@ import data.storage.persistentStringMapStore
 import io.github.aakira.napier.Napier
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.URLBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.first
@@ -65,6 +66,10 @@ class ProvisioningService(
     private val stateToCodeStore = persistentStringMapStore(
         dataStoreService = dataStoreService,
         preferenceKey = Configuration.DATASTORE_KEY_PROVISIONING_STATE_TO_CODE_STORE,
+    )
+    private val provisioningContextStore = persistentStringMapStore(
+        dataStoreService = dataStoreService,
+        preferenceKey = Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT_BY_STATE,
     )
 
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback/provisioning"
@@ -183,10 +188,8 @@ class ProvisioningService(
     }
 
     private suspend fun CredentialIssuanceResult.OpenUrlForAuthnRequest.storeContextOpenIntent() {
-        dataStoreService.setPreference(
-            key = Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT,
-            value = joseCompliantSerializer.encodeToString(context),
-        )
+        provisioningContextStore.put(context.state, joseCompliantSerializer.encodeToString(context))
+        Napier.d("Stored provisioning context for state ${context.state}")
         intentService.openIntent(
             url = url,
             redirectUri = redirectUrl,
@@ -205,38 +208,50 @@ class ProvisioningService(
         onProgress: ((LoadingMessageKey) -> Unit)? = null,
     ): List<StoreEntryId> {
         Napier.d("handleResponse with $redirectedUrl")
-        return dataStoreService.getPreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT)
-            .firstOrNull()
-            ?.let {
-                joseCompliantSerializer.decodeFromString<ProvisioningContext>(it)
-                    .also { dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT) }
-            }?.let { context ->
-                onProgress?.invoke(LoadingMessageKey.IssuingCredential)
-                openId4VciClient().resumeWithAuthCode(redirectedUrl, context).getOrThrow().let { result ->
-                    val idsBefore =
-                        subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
-                    Napier.d("resumeWithAuthCode idsBefore=$idsBefore")
-                    Napier.d("resumeWithAuthCode received ${result.credentials.size} credential(s)")
-                    onProgress?.invoke(LoadingMessageKey.StoringCredential)
-                    val storageResults = result.credentials.map { cred ->
-                        holderAgent.storeCredential(cred, result.refreshToken)
-                    }
-                    val storedEntryIds = resolveNewStoreEntryIds(idsBefore)
-                    Napier.d("resumeWithAuthCode resolved storeEntryIds=$storedEntryIds")
+        val context = takeProvisioningContext(redirectedUrl)
+            ?: throw IllegalStateException(
+                "No provisioning context found for callback state ${redirectedUrl.stateParameter()}"
+            )
 
-                    if (storageResults.all { it.isSuccess }) {
-                        context.reissuingStoreEntryId?.let { id ->
-                            subjectCredentialStore.removeStoreEntryById(id)
-                            statusUpdater?.invoke(id, RefreshStatus.Succeeded)
-                        }
-                    } else {
-                        context.reissuingStoreEntryId?.let { statusUpdater?.invoke(it, RefreshStatus.Failed) }
-                        storageResults.first { it.isFailure }.getOrThrow()
-                    }
-                    storedEntryIds
+        onProgress?.invoke(LoadingMessageKey.IssuingCredential)
+        clearCaches()
+        return openId4VciClient().resumeWithAuthCode(redirectedUrl, context).getOrThrow().let { result ->
+            val idsBefore =
+                subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
+            Napier.d("resumeWithAuthCode idsBefore=$idsBefore")
+            Napier.d("resumeWithAuthCode received ${result.credentials.size} credential(s)")
+            onProgress?.invoke(LoadingMessageKey.StoringCredential)
+            val storageResults = result.credentials.map { cred ->
+                holderAgent.storeCredential(cred, result.refreshToken)
+            }
+            val storedEntryIds = resolveNewStoreEntryIds(idsBefore)
+            Napier.d("resumeWithAuthCode resolved storeEntryIds=$storedEntryIds")
+
+            if (storageResults.all { it.isSuccess }) {
+                context.reissuingStoreEntryId?.let { id ->
+                    subjectCredentialStore.removeStoreEntryById(id)
+                    statusUpdater?.invoke(id, RefreshStatus.Succeeded)
                 }
-            } ?: emptyList()
+            } else {
+                context.reissuingStoreEntryId?.let { statusUpdater?.invoke(it, RefreshStatus.Failed) }
+                storageResults.first { it.isFailure }.getOrThrow()
+            }
+            storedEntryIds
+        }
     }
+
+    private suspend fun takeProvisioningContext(redirectedUrl: String): ProvisioningContext? {
+        val state = redirectedUrl.stateParameter()
+        state?.let { callbackState ->
+            provisioningContextStore.remove(callbackState)?.let {
+                return joseCompliantSerializer.decodeFromString<ProvisioningContext>(it)
+            }
+        } ?: Napier.w("Provisioning callback has no state parameter")
+
+        return null
+    }
+
+    private fun String.stateParameter(): String? = URLBuilder(this).parameters["state"]
 
     @Throws(Throwable::class)
     suspend fun refreshCredential(
