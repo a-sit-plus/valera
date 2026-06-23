@@ -5,7 +5,7 @@ import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.openid.SignatureRequestParameters
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
-import at.asitplus.wallet.app.common.presentation.PresentationRequest
+import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import data.storage.StoreEntryId
 import kotlinx.serialization.Serializable
@@ -33,6 +33,13 @@ enum class RoutePrerequisites {
     CAMERA
 }
 
+private val addCredentialPrerequisites = setOf(
+    RoutePrerequisites.INTERNET,
+    RoutePrerequisites.CRYPTO
+)
+
+private val qrCodeScannerPrerequisites = setOf(RoutePrerequisites.CAMERA)
+
 @Serializable
 object InitializationRoute : Route()
 
@@ -40,12 +47,7 @@ object InitializationRoute : Route()
 object HomeScreenRoute : Route()
 
 @Serializable
-object AddCredentialRoute : PrerequisiteRoute(
-    setOf(
-        RoutePrerequisites.INTERNET,
-        RoutePrerequisites.CRYPTO
-    )
-)
+object AddCredentialRoute : PrerequisiteRoute(addCredentialPrerequisites)
 
 @Serializable
 class LoadCredentialRoute(val host: String) : Route()
@@ -53,8 +55,7 @@ class LoadCredentialRoute(val host: String) : Route()
 @Serializable
 data class AddCredentialPreAuthnRoute(
     val credentialOfferSerialized: String
-) : Route(
-) {
+) : PrerequisiteRoute(addCredentialPrerequisites) {
     constructor(
         credentialOffer: CredentialOffer
     ) : this(
@@ -64,6 +65,23 @@ data class AddCredentialPreAuthnRoute(
     val credentialOffer: CredentialOffer
         get() = joseCompliantSerializer.decodeFromString(credentialOfferSerialized)
 }
+
+@Serializable
+data class AddCredentialDcApiRoute(
+    val credentialOfferSerialized: String
+) : PrerequisiteRoute(addCredentialPrerequisites) {
+    constructor(
+        credentialOffer: CredentialOffer
+    ) : this(
+        joseCompliantSerializer.encodeToString(credentialOffer)
+    )
+
+    val credentialOffer: CredentialOffer
+        get() = joseCompliantSerializer.decodeFromString(credentialOfferSerialized)
+}
+
+@Serializable
+data class TransientFlowIssuingResultRoute(val storeEntryId: StoreEntryId? = null) : Route()
 
 @Serializable
 data class AddCredentialWithLinkRoute(val uri: String) : Route()
@@ -95,7 +113,12 @@ data class SigningQtspSelectionRoute(
 object ErrorRoute : Route()
 
 @Serializable
-object LoadingRoute : Route()
+data class LoadingRoute(val message: String = LoadingMessageKey.Generic.name) : Route() {
+    constructor(message: LoadingMessageKey) : this(message.name)
+
+    val messageKey: LoadingMessageKey
+        get() = LoadingMessageKey.entries.firstOrNull { it.name == message } ?: LoadingMessageKey.Generic
+}
 
 @Serializable
 object PresentDataRoute : Route()
@@ -126,23 +149,12 @@ data class AuthenticationViewRoute(
 }
 
 @Serializable
-data class DCAPIAuthenticationConsentRoute(
-    val apiRequestSerialized: String
-) : Route()
-
-@Serializable
 data class DCAPIPresentationViewRoute(
     val apiRequestSerialized: String
 ) : Route()
 
 @Serializable
-data class LocalPresentationAuthenticationConsentRoute(
-    val presentationRequestSerialized: String
-) : Route() {
-    constructor(presentationRequest: PresentationRequest) : this(
-        joseCompliantSerializer.encodeToString(presentationRequest)
-    )
-}
+object LocalPresentationAuthenticationConsentRoute : Route()
 
 @Serializable
 data class AuthenticationSuccessRoute(
@@ -160,6 +172,9 @@ object ProximityVerifierRoute : Route()
 data class ProvisioningStartIntentRoute(val uri: String) : Route()
 
 @Serializable
+data class ProvisioningAuthRequestIntentRoute(val uri: String) : Route()
+
+@Serializable
 data class ProvisioningResumeIntentRoute(val uri: String) : Route()
 
 @Serializable
@@ -167,6 +182,12 @@ data class AuthorizationIntentRoute(val uri: String) : Route()
 
 @Serializable
 data class DCAPIAuthorizationIntentRoute(val uri: String) : Route()
+
+@Serializable
+object IosDcApiPreRequestRoute : Route()
+
+@Serializable
+data class DCAPIIssuingIntentRoute(val uri: String) : Route()
 
 @Serializable
 data class PresentationIntentRoute(val uri: String) : Route()
@@ -184,13 +205,14 @@ data class SigningCredentialIntentRoute(val uri: String) : Route()
 data class SigningIntentRoute(val uri: String) : Route()
 
 @Serializable
+data class SigningResumeIntentRoute(val uri: String) : Route()
+
+@Serializable
 data class ErrorIntentRoute(val uri: String) : Route()
 
 @Serializable
 data class QrCodeScannerRoute(val modeSerialized: String) : PrerequisiteRoute(
-    setOf(
-        RoutePrerequisites.CAMERA
-    )
+    addCredentialPrerequisites + qrCodeScannerPrerequisites
 ) {
     constructor(
         mode: QrCodeScannerMode

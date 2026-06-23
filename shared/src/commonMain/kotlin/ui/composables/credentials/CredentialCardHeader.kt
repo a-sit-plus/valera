@@ -17,6 +17,7 @@ import ui.models.CredentialFreshnessSummaryUiModel
 fun ColumnScope.CredentialCardHeader(
     credential: SubjectCredentialStore.StoreEntry,
     showLoadingSpinner: Boolean,
+    showActionMenu: Boolean,
     onDelete: () -> Unit,
     onRefresh: () -> Unit,
     credentialFreshnessSummaryModel: CredentialFreshnessSummaryUiModel?
@@ -32,11 +33,13 @@ fun ColumnScope.CredentialCardHeader(
             )
         },
     ) {
-        CredentialCardActionMenu(
-            showLoadingSpinner = showLoadingSpinner,
-            onDelete = onDelete,
-            onRefresh = onRefresh,
-            credentialFreshnessSummaryModel = credentialFreshnessSummaryModel
-        )
+        if (showActionMenu) {
+            CredentialCardActionMenu(
+                showLoadingSpinner = showLoadingSpinner,
+                onDelete = onDelete,
+                onRefresh = onRefresh,
+                credentialFreshnessSummaryModel = credentialFreshnessSummaryModel
+            )
+        }
     }
 }

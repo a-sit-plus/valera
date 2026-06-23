@@ -33,6 +33,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,7 +53,8 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_location
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_name
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
-import at.asitplus.valera.resources.heading_label_navigate_back
+import at.asitplus.valera.resources.heading_label_authenticate_at_device_title
+import at.asitplus.valera.resources.heading_label_show_data
 import at.asitplus.valera.resources.heading_label_show_data_third_party
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
@@ -77,7 +79,19 @@ fun AuthenticationConsentView(
     vm: AuthenticationConsentViewModel,
     onError: (Throwable) -> Unit,
 ) {
-    vm.walletMain.keyMaterial.onUnauthenticated = vm.navigateUp
+    DisposableEffect(vm) {
+        val previousOnUnauthenticated = vm.walletMain.keyMaterial.onUnauthenticated
+        vm.walletMain.keyMaterial.onUnauthenticated = vm.onUnauthenticated
+        onDispose {
+            vm.walletMain.keyMaterial.onUnauthenticated = previousOnUnauthenticated
+        }
+    }
+    val isLocalPresentation = vm.spLocation == "Local Presentation"
+    val topBarTitle = if (isLocalPresentation) {
+        stringResource(Res.string.heading_label_show_data)
+    } else {
+        stringResource(Res.string.heading_label_authenticate_at_device_title)
+    }
 
     Scaffold(
         topBar = {
@@ -85,7 +99,7 @@ fun AuthenticationConsentView(
                 title = {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            stringResource(Res.string.heading_label_navigate_back),
+                            topBarTitle,
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.titleLarge,
                         )
@@ -102,7 +116,7 @@ fun AuthenticationConsentView(
                     Spacer(Modifier.width(15.dp))
                 },
                 navigationIcon = {
-                    NavigateUpButton(vm.navigateUp)
+                    NavigateUpButton(vm.onCancel)
                 },
             )
         },
@@ -124,7 +138,7 @@ fun AuthenticationConsentView(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
                     ) {
-                        CancelButton(vm.navigateUp)
+                        CancelButton(vm.onCancel)
                         Spacer(modifier = Modifier.width(16.dp))
                         ContinueButton(vm.consentToDataTransmission)
                     }
@@ -137,7 +151,7 @@ fun AuthenticationConsentView(
                 modifier = Modifier.padding(horizontal = 16.dp)
             ) {
                 val paddingModifier = Modifier.padding(bottom = 32.dp)
-                val title = if (vm.spLocation == "Local Presentation") {
+                val title = if (isLocalPresentation) {
                     stringResource(Res.string.heading_label_show_data_third_party)
                 } else {
                     stringResource(Res.string.heading_label_authenticate_at_device_screen)

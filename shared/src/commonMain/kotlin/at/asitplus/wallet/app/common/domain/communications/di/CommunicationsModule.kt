@@ -17,8 +17,8 @@ fun communicationsModule() = module {
     scope(named(SESSION_NAME)) {
         scopedOf(::ProvisioningService)
         scopedOf(::PresentationService)
+        scopedOf(::SigningService)
+        scopedOf(::DCAPIExportService)
         scopedOf(::AttestationService)
     }
-    singleOf(::SigningService)
-    singleOf(::DCAPIExportService)
 }

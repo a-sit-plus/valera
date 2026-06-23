@@ -3,7 +3,6 @@ package at.asitplus.wallet.app.common.domain
 import at.asitplus.KmmResult
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
-import ui.navigation.routes.DCAPIAuthenticationConsentRoute
 import ui.navigation.routes.DCAPIPresentationViewRoute
 
 class BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase {

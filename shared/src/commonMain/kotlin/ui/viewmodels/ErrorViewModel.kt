@@ -1,6 +1,8 @@
 package ui.viewmodels
 
 import AppResetRequiredException
+import ErrorHandlingOverrideException
+import at.asitplus.catchingUnwrapped
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_error_action_reset_app
 import at.asitplus.valera.resources.info_text_error_action_start_screen
@@ -11,6 +13,7 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 
 class ErrorViewModel(
+    val clearError: () -> Unit,
     val resetStack: () -> Unit,
     val resetApp: () -> Unit,
     val throwable: Throwable,
@@ -21,18 +24,39 @@ class ErrorViewModel(
     var actionDescription: StringResource
     var textCause: String?
 
-    val message = throwable.enrichMessage()
-    val cause = throwable.cause?.toString()
+    private val displayThrowable = (throwable as? ErrorHandlingOverrideException)?.cause ?: throwable
+    val message = displayThrowable.enrichMessage()
+    val cause = displayThrowable.cause?.toString()
+    private val isAppResetRequired = message == AppResetRequiredException.toString()
 
     init {
-        when(message) {
-            AppResetRequiredException.toString() -> {
-                onClickButton = resetApp
+        val exceptionOverride = throwable as? ErrorHandlingOverrideException
+        val onAcknowledge = exceptionOverride?.onAcknowledge
+        when {
+            isAppResetRequired -> {
+                onClickButton = {
+                    clearError()
+                    resetApp()
+                    onAcknowledge?.catchingUnwrapped { invoke() }
+                }
                 actionDescription = Res.string.info_text_error_action_reset_app
                 textCause = runBlocking { getString(Res.string.info_text_error_cause_reset_app) }
             }
+            exceptionOverride?.hasUiOverride == true -> {
+                onClickButton = {
+                    clearError()
+                    onAcknowledge?.catchingUnwrapped { invoke() }
+                    exceptionOverride.resetStackOverride!!.invoke()
+                }
+                actionDescription = exceptionOverride.actionDescriptionOverride!!
+                textCause = cause
+            }
             else -> {
-                onClickButton = resetStack
+                onClickButton = {
+                    clearError()
+                    resetStack()
+                    onAcknowledge?.catchingUnwrapped { invoke() }
+                }
                 actionDescription = Res.string.info_text_error_action_start_screen
                 textCause = cause
             }

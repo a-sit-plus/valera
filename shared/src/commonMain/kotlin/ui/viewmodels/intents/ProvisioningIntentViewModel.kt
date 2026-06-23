@@ -3,27 +3,37 @@ package ui.viewmodels.intents
 import at.asitplus.catchingUnwrapped
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_credentials_title
-import at.asitplus.valera.resources.snackbar_credential_loaded_successfully
 import at.asitplus.wallet.app.common.WalletMain
+import io.github.aakira.napier.Napier
+import ui.navigation.routes.Route
+import ui.navigation.routes.TransientFlowIssuingResultRoute
 import org.jetbrains.compose.resources.getString
 
 class ProvisioningIntentViewModel(
     val walletMain: WalletMain,
     val uri: String,
-    val onSuccess: () -> Unit,
+    val onSuccess: (Route?) -> Unit,
     val onFailure: (Throwable) -> Unit
 ) {
     suspend fun process() {
         catchingUnwrapped {
             walletMain.keyMaterial.promptText =
                 getString(Res.string.biometric_authentication_prompt_to_bind_credentials_title)
-            walletMain.provisioningService.resumeWithAuthCode(uri)  { storeId, status ->
-                walletMain.credentialValidityService.updateStatus(storeId, status)
-            }
-            walletMain.snackbarService.showSnackbar(getString(Res.string.snackbar_credential_loaded_successfully))
+            val storedEntryIds = walletMain.provisioningService.resumeWithAuthCode(
+                redirectedUrl = uri,
+                statusUpdater = { storeId, status ->
+                    walletMain.credentialValidityService.updateStatus(storeId, status)
+                },
+                onProgress = walletMain.loadingStatusService::set,
+            )
+            walletMain.loadingStatusService.clear()
+            Napier.d("ProvisioningIntentViewModel success storedEntryIds=$storedEntryIds")
+            TransientFlowIssuingResultRoute(storedEntryIds.firstOrNull())
         }.onSuccess {
-            onSuccess()
+            Napier.d("ProvisioningIntentViewModel navigating to route=$it")
+            onSuccess(it)
         }.onFailure { error ->
+            walletMain.loadingStatusService.clear()
             onFailure(error)
         }
     }

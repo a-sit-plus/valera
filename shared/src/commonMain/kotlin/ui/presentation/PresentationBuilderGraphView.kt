@@ -6,10 +6,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import at.asitplus.openid.dcql.DCQLCredentialSubmissionOption
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.unexpected_screen_text
+import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.openid.DCQLMatchingResult
 import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
@@ -23,10 +23,10 @@ import ui.views.authentication.AuthenticationNoCredentialView
 import ui.views.LoadingView
 import kotlin.time.Duration.Companion.seconds
 
-@ExperimentalComposeUiApi
 @ExperimentalMaterial3Api
 @Composable
 fun PresentationBuilderGraphView(
+    title: String,
     authenticateAtRelyingParty: Boolean,
     serviceProviderLocalizedName: String?,
     serviceProviderLocalizedLocation: String,
@@ -40,6 +40,7 @@ fun PresentationBuilderGraphView(
 ) {
     when (selectionProvider) {
         is UiStateError -> CommonPresentationPageScaffold(
+            title = title,
             onClickLogo = onClickLogo,
             onClickSettings = onClickSettings,
             onNavigateUp = onNavigateToPresentationStart,
@@ -56,17 +57,19 @@ fun PresentationBuilderGraphView(
         }
 
         UiStateLoading -> CommonPresentationPageScaffold(
+            title = title,
             onClickLogo = onClickLogo,
             onClickSettings = onClickSettings,
             onNavigateUp = onNavigateToPresentationStart,
         ) {
-            LoadingView()
+            LoadingView(ui.views.loadingMessageString(LoadingMessageKey.CheckingRequestedCredentials))
         }
 
         is UiStateSuccess -> {
             when (val queryMatchingResult = selectionProvider.value.queryMatchingResult) {
                 is DCQLMatchingResult -> {
                     DCQLPresentationBuilderGraphView(
+                        title = title,
                         authenticateAtRelyingParty = authenticateAtRelyingParty,
                         serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
                         serviceProviderLocalizedName = serviceProviderLocalizedName,

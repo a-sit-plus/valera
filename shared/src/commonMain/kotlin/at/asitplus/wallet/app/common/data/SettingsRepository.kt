@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common.data
 
+import at.asitplus.KmmResult
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.flow.Flow
@@ -15,6 +16,7 @@ import kotlin.time.Duration
  * @property presentmentBleCentralClientModeEnabled `true` if mdoc BLE Central Client mode should be offered.
  * @property presentmentBlePeripheralServerModeEnabled true` if mdoc BLE Peripheral Server mode should be offered.
  * @property presentmentNfcDataTransferEnabled `true` if NFC data transfer should be offered.
+ * @property presentmentDeviceEngagementMethod the last selected device engagement method.
  * @property presentmentAllowMultipleRequests whether to allow multiple requests.
  * @property readerAutomaticallySelectTransport whether the reader automatically select the transport method
  * @property bleUseL2CAPEnabled set to `true` to use BLE L2CAP if available, `false` otherwise.
@@ -27,11 +29,13 @@ interface SettingsRepository {
     val host: Flow<String>
     val clientId: Flow<String>
     val walletProviderHost: Flow<String>
+    val walletProviderAttestationEnabled: Flow<Boolean>
     val isConditionsAccepted: Flow<Boolean>
     val presentmentUseNegotiatedHandover: Flow<Boolean>
     val presentmentBleCentralClientModeEnabled: Flow<Boolean>
     val presentmentBlePeripheralServerModeEnabled: Flow<Boolean>
     val presentmentNfcDataTransferEnabled: Flow<Boolean>
+    val presentmentDeviceEngagementMethod: Flow<String>
     val bleUseL2CAPEnabled: Flow<Boolean>
     val bleUseL2CAPInEngagementEnabled: Flow<Boolean>
     val presentmentAllowMultipleRequests: Flow<Boolean>
@@ -45,15 +49,23 @@ interface SettingsRepository {
             NFC_DATA_TRANSFER
         )
 
+    fun setPresentmentBleEnabled(enabled: Boolean): Result<Unit>
+
+    fun setPresentmentBleCentralClientModeEnabled(enabled: Boolean): Result<Unit>
+
+    fun setPresentmentBlePeripheralServerModeEnabled(enabled: Boolean): Result<Unit>
+
     fun set(
         host: String? = null,
         clientId: String? = null,
         walletProviderHost: String? = null,
+        walletProviderAttestationEnabled: Boolean? = null,
         isConditionsAccepted: Boolean? = null,
         presentmentUseNegotiatedHandover: Boolean? = null,
         presentmentBleCentralClientModeEnabled: Boolean? = null,
         presentmentBlePeripheralServerModeEnabled: Boolean? = null,
         presentmentNfcDataTransferEnabled: Boolean? = null,
+        presentmentDeviceEngagementMethod: String? = null,
         bleUseL2CAPEnabled: Boolean? = null,
         bleUseL2CAPInEngagementEnabled: Boolean? = null,
         presentmentAllowMultipleRequests: Boolean? = null,
@@ -78,14 +90,16 @@ interface SettingsRepository {
         combine(
             presentmentBleCentralClientModeEnabled,
             presentmentBlePeripheralServerModeEnabled,
-            presentmentNfcDataTransferEnabled
-        ) { _, _, _ -> }.first()
+            presentmentNfcDataTransferEnabled,
+            presentmentDeviceEngagementMethod
+        ) { _, _, _, _ -> }.first()
     }
 
     suspend fun reset()
 
     companion object {
         const val DEFAULT_CLIENT_ID = "https://wallet.a-sit.at/app"
+        const val DEFAULT_PRESENTMENT_DEVICE_ENGAGEMENT_METHOD = "QR_CODE"
         private const val BLE_CENTRAL_CLIENT_MODE = "ble:central_client_mode:"
         private const val BLE_PERIPHERAL_SERVER_MODE = "ble:peripheral_server_mode:"
         private const val NFC_DATA_TRANSFER = "nfc:"

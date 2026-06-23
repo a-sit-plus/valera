@@ -104,6 +104,16 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
+			<string>issuance.eudiopenid4ci</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>eudi-openid4ci</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
 			<string>issuance.offer</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
@@ -127,6 +137,12 @@
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>WalletAppGroupIdentifier</key>
+	<string>$(APP_GROUP_IDENTIFIER)</string>
+	<key>WalletKeychainAccessGroupIdentifier</key>
+	<string>$(KEYCHAIN_ACCESS_GROUP_IDENTIFIER)</string>
+	<key>WalletKeychainTagOverride</key>
+	<string>$(APP_BUNDLE_IDENTIFIER)</string>
 	<key>NFCReaderUsageDescription</key>
 	<string>This app uses NFC to engage local credential presentations</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>

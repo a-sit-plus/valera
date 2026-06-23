@@ -1,5 +1,6 @@
 package ui.composables
 
+import at.asitplus.dif.InputDescriptor
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
@@ -32,7 +33,7 @@ fun PresentationRequestPreview(
 ) {
     when (presentationRequest) {
         is DCQLRequest -> DcqlRequestPreview(presentationRequest, onError)
-        is PresentationExchangeRequest -> PresentationExchangeRequestPreview(presentationRequest, onError,)
+        is PresentationExchangeRequest -> PresentationExchangeRequestPreview(presentationRequest, onError)
     }
 }
 
@@ -41,7 +42,18 @@ fun PresentationExchangeRequestPreview(
     presentationRequest: PresentationExchangeRequest,
     onError: (Throwable) -> Unit,
 ) {
-    presentationRequest.presentationDefinition.inputDescriptors.forEach { inputDescriptor ->
+    InputDescriptorPreview(
+        inputDescriptors = presentationRequest.presentationDefinition.inputDescriptors.toList(),
+        onError = onError
+    )
+}
+
+@Composable
+fun InputDescriptorPreview(
+    inputDescriptors: List<InputDescriptor>,
+    onError: (Throwable) -> Unit,
+) {
+    inputDescriptors.forEach { inputDescriptor ->
         catchingUnwrapped {
             inputDescriptor.extractConsentData()
         }.onSuccess { (representation, scheme, attributes) ->

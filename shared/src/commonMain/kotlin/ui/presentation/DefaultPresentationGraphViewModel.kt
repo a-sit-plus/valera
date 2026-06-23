@@ -115,9 +115,9 @@ class DefaultPresentationGraphViewModel(
     private fun finalizeDcApi(
         authenticationResult: OpenId4VpWallet.AuthenticationForward,
     ): OpenId4VpWallet.AuthenticationSuccess {
-        walletMain.presentationService.finalizeOid4vpDCAPIPresentation(
-            serializeDcApiPresentationResponse(authenticationResult.authenticationResponseResult)
-        )
+        authenticationResult.authenticationResponseResult.params.let {
+            walletMain.presentationService.finalizeOpenId4VpDCAPIPresentation(joseCompliantSerializer.encodeToString(it))
+        }
         return OpenId4VpWallet.AuthenticationSuccess()
     }
 }

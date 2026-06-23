@@ -50,9 +50,8 @@ class CredentialsViewModel(
 
     fun decodeImage(byteArray: ByteArray) = imageDecoder(byteArray)
 
-    fun removeStoreEntryById(storeEntryId: StoreEntryId) = viewModelScope.launch {
+    fun removeStoreEntryById(storeEntryId: StoreEntryId) = walletMain.scope.launch {
         subjectCredentialStore.removeStoreEntryById(storeEntryId)
     }
 }
-
 

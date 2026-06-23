@@ -1,7 +1,13 @@
 # Release 5.7.7 (unreleased)
- * Update to VC-K 5.13.0
+ * Update to VC-K 6.0.0
  * Credentials: Show credential titles in refresh prompts and allow suppressing a prompt for a single credential
  * Issuing: Update key attestation to VC-K 6.0 / TS3 WUA 1.5 APIs
+ * Raise iOS target from 16.0 to 18.6 (iOS 18 is the oldest version to still receive security updates)
+ * DC API:
+   * Support requests with multiple protocols
+   * Use VC-K data classes to (de-)serialize received/emitted data
+   * Add support for iOS using ISO/IEC 18013-7 Annex C protocol
+   * Add support for issuance via the DC API based on the preliminary spec defined in https://github.com/openid/OpenID4VCI/pull/476
 
 # Release 5.7.6
  * Update to VC-K 5.12.0

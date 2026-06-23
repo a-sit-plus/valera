@@ -6,9 +6,12 @@ import at.asitplus.dcapi.DCAPIInfo
 import at.asitplus.iso.*
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.RequestParametersFrom
+import at.asitplus.signum.supreme.UserInitiatedCancellationReason
+import at.asitplus.iso.DeviceAuthentication
+import at.asitplus.iso.SessionTranscript
+import at.asitplus.iso.wrapInCborTag
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
-import at.asitplus.signum.indispensable.io.Base64UrlStrict
 import at.asitplus.wallet.lib.agent.*
 import at.asitplus.wallet.lib.cbor.CoseHeaderNone
 import at.asitplus.wallet.lib.cbor.SignCoseDetached
@@ -20,7 +23,6 @@ import io.ktor.client.*
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.encodeToByteArray
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 class PresentationService(
     val platformAdapter: PlatformAdapter,
@@ -53,71 +55,24 @@ class PresentationService(
         preparationState = preparationState
     ).getOrThrow()
 
-    @OptIn(ExperimentalEncodingApi::class, ExperimentalStdlibApi::class)
-    suspend fun finalizeDCAPIIsoMdocPresentation(
+    @OptIn(ExperimentalStdlibApi::class)
+    suspend fun finalizeIsoMdocDCAPIPresentation(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
         isoMdocWalletRequest: RequestParametersFrom.IsoMdocDcApi
     ): OpenId4VpWallet.AuthenticationSuccess {
         Napier.d("Finalizing DCAPI response")
-
-        // TODO this code is probably duplicated in the Verifier
-        val hash = coseCompliantSerializer.encodeToByteArray(
-            DCAPIInfo(isoMdocWalletRequest.parameters.isoMdocRequest.encryptionInfo, isoMdocWalletRequest.callingOrigin)
-        ).sha256()
-        val handover = DCAPIHandover(type = TYPE_DCAPI, hash = hash)
-        val sessionTranscript = SessionTranscript.forDcApi(handover)
-        val callingOrigin = isoMdocWalletRequest.callingOrigin.serializeOrigin() ?:
-            throw IllegalArgumentException("Invalid calling origin")
-
-        val presentationResult = holderAgent.createPresentation(
-            request = PresentationRequestParameters(
-                nonce = isoMdocWalletRequest.parameters.isoMdocRequest.encryptionInfo.encryptionParameters.nonce
-                    ?.encodeToString(Base64UrlStrict) ?: throw IllegalArgumentException("no nonce"),
-                audience = callingOrigin,
-                calcIsoDeviceSignaturePlain = { input ->
-                    val deviceAuthentication = DeviceAuthentication(
-                        type = DeviceAuthentication.TYPE,
-                        sessionTranscript = sessionTranscript,
-                        docType = input.docType,
-                        namespaces = input.deviceNameSpaceBytes
-                    )
-
-                    val deviceAuthenticationBytes = coseCompliantSerializer
-                        .encodeToByteArray(ByteStringWrapper(deviceAuthentication))
-                        .wrapInCborTag(24)
-                    Napier.d("Device authentication signature input is ${deviceAuthenticationBytes.toHexString()}")
-                    SignCoseDetached<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
-                        .invoke(null, null, deviceAuthenticationBytes, ByteArraySerializer())
-                        .getOrElse { e ->
-                            Napier.w("Could not create DeviceAuth for presentation", e)
-                            throw PresentationException(e)
-                        }
-                },
-            ),
+        val encryptedResponse = IsoMdocDcapiResponseBuilder.buildEncryptedResponse(
             credentialPresentation = credentialPresentation,
+            isoMdocWalletRequest = isoMdocWalletRequest,
+            keyMaterial = keyMaterial,
+            holderAgent = holderAgent,
         )
-
-        val presentation =
-            presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
-
-        val deviceResponse = when (val firstResult = presentation.presentationResults.firstOrNull()
-            ?: throw PresentationException(IllegalStateException("Presentation did not return any device response"))) {
-            is CreatePresentationResult.DeviceResponse -> firstResult.deviceResponse
-            else -> throw PresentationException(IllegalStateException("Must be a device response"))
-        }
-        val deviceResponseSerialized =
-            coseCompliantSerializer.encodeToByteArray(deviceResponse) // TODO HPKE encryption multiplatform
-
-        platformAdapter.prepareDCAPIIsoMdocCredentialResponse(
-            deviceResponseSerialized,
-            coseCompliantSerializer.encodeToByteArray(sessionTranscript),
-            isoMdocWalletRequest.parameters.isoMdocRequest.encryptionInfo.encryptionParameters
-        )
+        platformAdapter.prepareIsoMdocDCAPICredentialResponse(encryptedResponse, true)
         return OpenId4VpWallet.AuthenticationSuccess()
     }
 
-    fun finalizeOid4vpDCAPIPresentation(response: String) =
-        platformAdapter.prepareDCAPIOid4vpCredentialResponse(response, true)
+    fun finalizeOpenId4VpDCAPIPresentation(response: String) =
+        platformAdapter.prepareDCAPICredentialResponse(response, true)
 
     @OptIn(ExperimentalStdlibApi::class)
     suspend fun finalizeLocalPresentation(
@@ -149,7 +104,11 @@ class PresentationService(
                         .invoke(null, null, deviceAuthenticationBytes, ByteArraySerializer())
                         .getOrElse { e ->
                             Napier.w("Could not create DeviceAuth for presentation", e)
-                            throw PresentationException(e)
+                            // Unwrap user cancellation (e.g. biometric dismissed) so callers can
+                            // treat it separately from real errors.
+                            throw generateSequence(e as Throwable?) { it.cause }
+                                .filterIsInstance<UserInitiatedCancellationReason>()
+                                .firstOrNull() ?: PresentationException(e)
                         }
                 },
             ),
@@ -168,7 +127,9 @@ class PresentationService(
             else -> throw PresentationException(IllegalStateException("Must be a device response"))
         }
 
+        Napier.d("Local presentation created device response with ${deviceResponse.size} bytes")
         finishFunction(deviceResponse)
+        Napier.d("Local presentation handed device response back to presenter")
     }
 
 }

@@ -67,6 +67,7 @@ import ui.views.iso.verifier.requests.PIDRequests
 fun VerifierCombinedSelectionView(
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
+    navigateUp: () -> Unit,
     vm: VerifierViewModel
 ) {
     val listSpacingModifier = Modifier.padding(top = 8.dp).fillMaxWidth()
@@ -113,7 +114,7 @@ fun VerifierCombinedSelectionView(
                     }
                     Spacer(Modifier.width(15.dp))
                 },
-                navigationIcon = { NavigateUpButton({ vm.onResume() }) }
+                navigationIcon = { NavigateUpButton(navigateUp) }
             )
         },
         bottomBar = {

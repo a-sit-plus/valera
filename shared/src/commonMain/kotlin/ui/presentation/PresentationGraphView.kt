@@ -6,9 +6,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.backhandler.BackHandler
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -16,15 +17,21 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import at.asitplus.openid.TransactionDataBase64Url
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.heading_label_authenticate_at_device_title
+import at.asitplus.valera.resources.heading_label_select_data
+import at.asitplus.valera.resources.heading_label_show_data
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 import ui.views.authentication.AuthenticationSuccessView
 import ui.views.authentication.TransactionDataView
 
-@ExperimentalComposeUiApi
 @ExperimentalMaterial3Api
 @Composable
 fun PresentationGraphView(
+    koinScope: Scope,
     serviceProviderLogo: ImageBitmap?,
     serviceProviderNameLocalized: String?,
     serviceProviderLocationLocalized: String,
@@ -38,6 +45,8 @@ fun PresentationGraphView(
     navController: NavHostController = rememberNavController(),
     transactionData: TransactionDataBase64Url?,
     presentationRequest: CredentialPresentationRequest?,
+    navigateUpIsClose: Boolean = false,
+    showStartRoute: Boolean = true,
 ) {
     LaunchedEffect(selectionProvider) {
         selectionProvider.let {
@@ -46,10 +55,16 @@ fun PresentationGraphView(
             }
         }
     }
+    val startPageTitle = if (authenticateAtRelyingParty) {
+        stringResource(Res.string.heading_label_authenticate_at_device_title)
+    } else {
+        stringResource(Res.string.heading_label_show_data)
+    }
+    val selectionPageTitle = stringResource(Res.string.heading_label_select_data)
 
     NavHost(
         navController = navController,
-        startDestination = PresentationStartRoute::class,
+        startDestination = if (showStartRoute) PresentationStartRoute::class else PresentationBuilderGraphRoute::class,
         popEnterTransition = {
             slideIntoContainer(
                 towards = AnimatedContentTransitionScope.SlideDirection.End,
@@ -73,9 +88,11 @@ fun PresentationGraphView(
     ) {
         composable<PresentationStartRoute> {
             CommonPresentationPageScaffold(
+                title = startPageTitle,
                 onClickLogo = onClickLogo,
                 onClickSettings = onClickSettings,
                 onNavigateUp = onNavigateUp,
+                navigateUpIsClose = navigateUpIsClose,
             ) {
                 AuthenticationReceivedStartPageContent(
                     presentationRequest = presentationRequest,
@@ -107,6 +124,7 @@ fun PresentationGraphView(
 
         composable<PresentationBuilderGraphRoute> {
             PresentationBuilderGraphView(
+                title = selectionPageTitle,
                 authenticateAtRelyingParty = authenticateAtRelyingParty,
                 serviceProviderLocalizedName = serviceProviderNameLocalized,
                 serviceProviderLocalizedLocation = serviceProviderLocationLocalized,
@@ -138,13 +156,14 @@ fun PresentationGraphView(
         }
 
         composable<PresentationSuccessRoute> {
-            BackHandler {
-                onNavigateUp()
-            }
+            val backState = rememberNavigationEventState(NavigationEventInfo.None)
+            NavigationBackHandler(state = backState) { onNavigateUp() }
             AuthenticationSuccessView(
+                koinScope = koinScope,
                 navigateUp = onNavigateUp,
                 onClickLogo = onClickLogo,
-                onClickSettings = onClickSettings
+                onClickSettings = onClickSettings,
+                navigateUpIsClose = navigateUpIsClose,
             )
         }
     }

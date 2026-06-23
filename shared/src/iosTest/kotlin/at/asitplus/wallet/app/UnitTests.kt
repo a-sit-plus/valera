@@ -3,7 +3,7 @@ package at.asitplus.wallet.app
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.DummyPlatformAdapter
 import data.storage.RealDataStoreService
-import data.storage.createDataStore
+import data.storage.createTestDataStore
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
@@ -12,7 +12,7 @@ import kotlin.test.assertEquals
 class UnitTests {
     @Test
     fun testDataStore() {
-        val dataStore = createDataStore()
+        val dataStore = createTestDataStore()
         val realDataStoreService = RealDataStoreService(dataStore, DummyPlatformAdapter())
         runBlocking {
             realDataStoreService.setPreference(

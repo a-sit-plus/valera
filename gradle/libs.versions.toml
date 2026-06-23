@@ -1,23 +1,27 @@
 [versions]
-vck="6.0.0-SNAPSHOT"
+vck="6.0.0-RC1"
 
 agp = "8.12.3"
 kotlin = "2.3.0"
-compose-plugin = "1.8.2"
-koin = "4.1.1"
-testballoon = "0.7.1-K2.3.0"
+compose-plugin = "1.10.3"
+compose-material-icons-core = "1.7.3"
+compose-material3 = "1.10.0-alpha05"
+koin = "4.2.2"
+# TestBallon has to be the same version as in vck, otherwise tests in composite builds may fail
+testballoon = "1.0.0-K2.3.0"
 
 accompanist-permissions = "0.37.3"
-activity-compose = "1.10.1"
+activity-compose = "1.13.0"
 appcompat = "1.7.1"
 barcode-scanning = "17.3.0"
 biometric = "1.2.0-alpha05"
-core-ktx = "1.16.0"
+core-ktx = "1.18.0"
 
-camera-camera2 = "1.4.2"
-datastore-preferences-core = "1.1.7"
-multipaz = "0.94.0"
-navigation-compose = "2.8.0-alpha13"
+camera-camera2 = "1.6.1"
+datastore-preferences-core = "1.2.1"
+multipaz = "0.99.0"
+navigation-compose = "2.9.2"
+navigationevent-compose = "1.0.1" # Check if issuing a credential works on iOS after upgrading this. 1.1.0 has an issue, possibly just requires a compose update
 semver = "2.1.0"
 
 mdl = "1.4.0"
@@ -31,17 +35,18 @@ healthid = "2.3.0"
 ehic = "1.3.0"
 taxid = "1.3.0"
 
-atomicfu = "0.29.0"
-qrose = "1.0.1"
-core-splashscreen = "1.0.1"
+atomicfu = "0.32.1"
+qrose = "1.1.2"
+core-splashscreen = "1.2.0"
+androidx-browser = "1.10.0"
 
 authcheckkit = "1.0.0-alpha01"
 warden-supreme = "1.0.0-RC11"
 
 
-# Test if DC API is still working after upgrading the following libraries
-androidx-credentials = "1.6.0-beta03"
-androidx-credentials-registry-provider = "1.0.0-alpha03"
+# Test if DC API verification and issuing are still working after upgrading the following libraries:
+androidx-credentials = "1.6.0"
+androidx-credentials-registry-provider = "1.0.0-alpha04"
 
 
 [libraries]
@@ -52,6 +57,7 @@ androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "b
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camera-camera2" }
 androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "camera-camera2" }
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camera-camera2" }
+androidx-browser = { module = "androidx.browser:browser", version.ref = "androidx-browser" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
 androidx-credentials = { module = "androidx.credentials:credentials", version.ref="androidx-credentials" }
 androidx-credentials-registry-provider = { module = "androidx.credentials.registry:registry-provider", version.ref = "androidx-credentials-registry-provider" }
@@ -76,6 +82,7 @@ koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
 koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }
 koin-compose-viewmodel-navigation = { module = "io.insert-koin:koin-compose-viewmodel-navigation", version.ref = "koin" }
 testballoon = { module = "de.infix.testBalloon:testBalloon-framework-shared", version.ref = "testballoon" }
+testballoon-framework-core = { module = "de.infix.testBalloon:testBalloon-framework-core", version.ref = "testballoon" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
 qrose = { group = "io.github.alexzhirkevich", name = "qrose", version.ref="qrose"}
 multipaz = { module = "org.multipaz:multipaz", version.ref = "multipaz" }
@@ -84,14 +91,20 @@ multipaz-doctypes = { module = "org.multipaz:multipaz-doctypes", version.ref = "
 semver = { module = "net.swiftzer.semver:semver", version.ref = "semver" }
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
 back-handler = { module = "org.jetbrains.compose.ui:ui-backhandler", version.ref = "compose-plugin" }
+navigation-event-compose = { module = "org.jetbrains.androidx.navigationevent:navigationevent-compose", version.ref = "navigationevent-compose" }
 authcheckkit = { module = "at.asitplus.authcheckkit:core", version.ref = "authcheckkit"}
-warden-supreme = { module = "at.asitplus.warden:supreme-client", version.ref = "warden-supreme" }
 
-
+compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "compose-plugin" }
+compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "compose-plugin" }
+compose-material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version.ref = "compose-material-icons-core" }
+compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "compose-material3" }
+compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose-plugin" }
+compose-ui-test = { module = "org.jetbrains.compose.ui:ui-test", version.ref = "compose-plugin" }
 
 vck = {group= "at.asitplus.wallet", name="vck", version.ref = "vck"}
 vck-openid = {group= "at.asitplus.wallet", name="vck-openid", version.ref = "vck"}
 vck-openid-ktor = {group= "at.asitplus.wallet", name="vck-openid-ktor", version.ref = "vck"}
+warden-supreme = { module = "at.asitplus.warden:supreme-client", version.ref = "warden-supreme" }
 
 #multipazz workaround
 datetime-compat = {module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.7.1-0.6.x-compat"}

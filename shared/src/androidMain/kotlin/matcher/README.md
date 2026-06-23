@@ -15,8 +15,8 @@ of the identity-appsupport library. The following command-line does this
 $ make clean && make -j && cp build/matcher.wasm ../../../../../androidApp/src/androidMain/assets/dcapimatcher.wasm
 ```
 
-The [cJSON library](https://github.com/DaveGamble/cJSON) is bundled as `cJSON.[c, h]` with
-license in `cJSON-LICENSE` file.
+The [cJSON library](https://github.com/DaveGamble/cJSON) is shared in
+`../matcher_common/cJSON.[c, h]` with license in `../matcher_common/cJSON-LICENSE` file.
 
 The [LibCppBor library](https://android.googlesource.com/platform/system/libcppbor/) is
 bundled as `cppbor.[cpp, h]` and `cppbor_parse.[cpp, h]`. This is licensed under the Apache

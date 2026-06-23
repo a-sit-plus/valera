@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -21,6 +23,8 @@ class WalletConfig(
     val dataStoreService: DataStoreService,
     val errorService: ErrorService
 ) : SettingsRepository {
+    private val configMutex = Mutex()
+
     private val config: Flow<ConfigData> =
         dataStoreService.getPreference(Configuration.DATASTORE_KEY_CONFIG).map {
             it?.let {
@@ -30,72 +34,133 @@ class WalletConfig(
 
     override val host: Flow<String> = config.map {
         // Rewrite old issuing service to new instance
-        if (it.host == "https://wallet.a-sit.at/m6") "https://wallet.a-sit.at/m7" else it.host
+        if (it.host == "https://wallet.a-sit.at/m6" || it.host == "https://wallet.a-sit.at/m7") "https://wallet-issuer.a-sit.plus/" else it.host
     }
     override val clientId: Flow<String> = config.map { it.clientId }
 
     override val walletProviderHost = config.map { it.walletProviderHost }
+    override val walletProviderAttestationEnabled = config.map { it.walletProviderAttestationEnabled }
     override val isConditionsAccepted: Flow<Boolean> = config.map { it.isConditionsAccepted }
     override val presentmentUseNegotiatedHandover: Flow<Boolean> = config.map { it.presentmentUseNegotiatedHandover }
     override val presentmentBleCentralClientModeEnabled: Flow<Boolean> = config.map { it.presentmentBleCentralClientModeEnabled }
     override val presentmentBlePeripheralServerModeEnabled: Flow<Boolean> = config.map { it.presentmentBlePeripheralServerModeEnabled }
     override val presentmentNfcDataTransferEnabled: Flow<Boolean> = config.map { it.presentmentNfcDataTransferEnabled }
+    override val presentmentDeviceEngagementMethod: Flow<String> = config.map { it.presentmentDeviceEngagementMethod }
     override val bleUseL2CAPEnabled: Flow<Boolean> = config.map { it.bleUseL2CAPEnabled }
     override val bleUseL2CAPInEngagementEnabled: Flow<Boolean> = config.map { it.bleUseL2CAPInEngagementEnabled }
     override val presentmentAllowMultipleRequests: Flow<Boolean> = config.map { it.presentmentAllowMultipleRequests }
     override val readerAutomaticallySelectTransport: Flow<Boolean> = config.map { it.readerAutomaticallySelectTransport }
     override val connectionTimeout: Flow<Duration> = config.map { it.connectionTimeout }
 
+    override fun setPresentmentBleEnabled(enabled: Boolean): Result<Unit> =
+        updateConfig { current ->
+            if (!enabled) {
+                current.copy(
+                    presentmentBleCentralClientModeEnabled = false,
+                    presentmentBlePeripheralServerModeEnabled = false,
+                )
+            } else {
+                val restoreDefault = !current.presentmentBleCentralClientModeRemembered &&
+                        !current.presentmentBlePeripheralServerModeRemembered
+                val centralEnabled = if (restoreDefault) {
+                    ConfigData().presentmentBleCentralClientModeEnabled
+                } else {
+                    current.presentmentBleCentralClientModeRemembered
+                }
+                val peripheralEnabled = if (restoreDefault) {
+                    ConfigData().presentmentBlePeripheralServerModeEnabled
+                } else {
+                    current.presentmentBlePeripheralServerModeRemembered
+                }
+                current.copy(
+                    presentmentBleCentralClientModeEnabled = centralEnabled,
+                    presentmentBlePeripheralServerModeEnabled = peripheralEnabled,
+                    presentmentBleCentralClientModeRemembered = centralEnabled,
+                    presentmentBlePeripheralServerModeRemembered = peripheralEnabled,
+                )
+            }
+        }
+
+    override fun setPresentmentBleCentralClientModeEnabled(enabled: Boolean): Result<Unit> =
+        updateConfig { current ->
+            current.copy(
+                presentmentBleCentralClientModeEnabled = enabled,
+                presentmentBleCentralClientModeRemembered = enabled,
+                presentmentBlePeripheralServerModeRemembered = current.presentmentBlePeripheralServerModeEnabled,
+            )
+        }
+
+    override fun setPresentmentBlePeripheralServerModeEnabled(enabled: Boolean): Result<Unit> =
+        updateConfig { current ->
+            current.copy(
+                presentmentBlePeripheralServerModeEnabled = enabled,
+                presentmentBlePeripheralServerModeRemembered = enabled,
+                presentmentBleCentralClientModeRemembered = current.presentmentBleCentralClientModeEnabled,
+            )
+        }
+
     override fun set(
         host: String?,
         clientId: String?,
         walletProviderHost: String?,
+        walletProviderAttestationEnabled: Boolean?,
         isConditionsAccepted: Boolean?,
         presentmentUseNegotiatedHandover: Boolean?,
         presentmentBleCentralClientModeEnabled: Boolean?,
         presentmentBlePeripheralServerModeEnabled: Boolean?,
         presentmentNfcDataTransferEnabled: Boolean?,
+        presentmentDeviceEngagementMethod: String?,
         bleUseL2CAPEnabled: Boolean?,
         bleUseL2CAPInEngagementEnabled: Boolean?,
         presentmentAllowMultipleRequests: Boolean?,
         readerAutomaticallySelectTransport: Boolean?,
         connectionTimeout: Duration?,
         completionHandler: CompletionHandler
-    ): Result<Unit> = catchingUnwrapped {
-        runBlocking {
-            val newConfig = ConfigData(
-                host = host ?: this@WalletConfig.host.first(),
-                clientId = clientId ?: this@WalletConfig.clientId.first(),
-                walletProviderHost = walletProviderHost ?: this@WalletConfig.walletProviderHost.first(),
-                isConditionsAccepted = isConditionsAccepted
-                    ?: this@WalletConfig.isConditionsAccepted.first(),
-                presentmentUseNegotiatedHandover = presentmentUseNegotiatedHandover
-                    ?: this@WalletConfig.presentmentUseNegotiatedHandover.first(),
-                presentmentBleCentralClientModeEnabled = presentmentBleCentralClientModeEnabled
-                    ?: this@WalletConfig.presentmentBleCentralClientModeEnabled.first(),
-                presentmentBlePeripheralServerModeEnabled = presentmentBlePeripheralServerModeEnabled
-                    ?: this@WalletConfig.presentmentBlePeripheralServerModeEnabled.first(),
-                presentmentNfcDataTransferEnabled = presentmentNfcDataTransferEnabled
-                    ?: this@WalletConfig.presentmentNfcDataTransferEnabled.first(),
-                bleUseL2CAPEnabled = bleUseL2CAPEnabled
-                    ?: this@WalletConfig.bleUseL2CAPEnabled.first(),
-                bleUseL2CAPInEngagementEnabled = bleUseL2CAPInEngagementEnabled
-                    ?: this@WalletConfig.bleUseL2CAPInEngagementEnabled.first(),
-                presentmentAllowMultipleRequests = presentmentAllowMultipleRequests
-                    ?: this@WalletConfig.presentmentAllowMultipleRequests.first(),
-                readerAutomaticallySelectTransport = readerAutomaticallySelectTransport
-                    ?: this@WalletConfig.readerAutomaticallySelectTransport.first(),
-                connectionTimeout = connectionTimeout ?: this@WalletConfig.connectionTimeout.first(),
-            )
+    ): Result<Unit> =
+        updateConfig { current ->
+            val bleModesProvided = presentmentBleCentralClientModeEnabled != null ||
+                    presentmentBlePeripheralServerModeEnabled != null
+            val centralEnabled = presentmentBleCentralClientModeEnabled
+                ?: current.presentmentBleCentralClientModeEnabled
+            val peripheralEnabled = presentmentBlePeripheralServerModeEnabled
+                ?: current.presentmentBlePeripheralServerModeEnabled
 
-            dataStoreService.setPreference(
-                joseCompliantSerializer.encodeToString(newConfig),
-                Configuration.DATASTORE_KEY_CONFIG
+            current.copy(
+                host = host ?: current.host,
+                clientId = clientId ?: current.clientId,
+                walletProviderHost = walletProviderHost ?: current.walletProviderHost,
+                walletProviderAttestationEnabled = walletProviderAttestationEnabled
+                    ?: current.walletProviderAttestationEnabled,
+                isConditionsAccepted = isConditionsAccepted ?: current.isConditionsAccepted,
+                presentmentUseNegotiatedHandover = presentmentUseNegotiatedHandover
+                    ?: current.presentmentUseNegotiatedHandover,
+                presentmentBleCentralClientModeEnabled = centralEnabled,
+                presentmentBlePeripheralServerModeEnabled = peripheralEnabled,
+                presentmentBleCentralClientModeRemembered = if (bleModesProvided) {
+                    centralEnabled
+                } else {
+                    current.presentmentBleCentralClientModeRemembered
+                },
+                presentmentBlePeripheralServerModeRemembered = if (bleModesProvided) {
+                    peripheralEnabled
+                } else {
+                    current.presentmentBlePeripheralServerModeRemembered
+                },
+                presentmentNfcDataTransferEnabled = presentmentNfcDataTransferEnabled
+                    ?: current.presentmentNfcDataTransferEnabled,
+                presentmentDeviceEngagementMethod = presentmentDeviceEngagementMethod
+                    ?: current.presentmentDeviceEngagementMethod,
+                bleUseL2CAPEnabled = bleUseL2CAPEnabled ?: current.bleUseL2CAPEnabled,
+                bleUseL2CAPInEngagementEnabled = bleUseL2CAPInEngagementEnabled
+                    ?: current.bleUseL2CAPInEngagementEnabled,
+                presentmentAllowMultipleRequests = presentmentAllowMultipleRequests
+                    ?: current.presentmentAllowMultipleRequests,
+                readerAutomaticallySelectTransport = readerAutomaticallySelectTransport
+                    ?: current.readerAutomaticallySelectTransport,
+                connectionTimeout = connectionTimeout ?: current.connectionTimeout,
             )
         }
-    }.onFailure {
-        errorService.emit(it)
-    }
+
 
     override val presentmentNegotiatedHandoverPreferredOrder: List<String> = listOf(
         BLE_CENTRAL_CLIENT_MODE,
@@ -119,6 +184,26 @@ class WalletConfig(
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_CONFIG)
     }
 
+    private fun updateConfig(transform: (ConfigData) -> ConfigData) = catchingUnwrapped {
+        runBlocking {
+            configMutex.withLock {
+                val current = readConfigData()
+                val updated = transform(current)
+                dataStoreService.setPreference(
+                    joseCompliantSerializer.encodeToString(updated),
+                    Configuration.DATASTORE_KEY_CONFIG
+                )
+            }
+        }
+    }.onFailure {
+        errorService.emit(it)
+    }
+
+    private suspend fun readConfigData(): ConfigData =
+        dataStoreService.getPreference(Configuration.DATASTORE_KEY_CONFIG).first()
+            ?.let { joseCompliantSerializer.decodeFromString<ConfigData>(it) }
+            ?: ConfigData()
+
     companion object {
         private const val BLE_CENTRAL_CLIENT_MODE = "ble:central_client_mode:"
         private const val BLE_PERIPHERAL_SERVER_MODE = "ble:peripheral_server_mode:"
@@ -134,14 +219,18 @@ private data class ConfigData(
     val clientId: String = SettingsRepository.DEFAULT_CLIENT_ID,
     val host: String = "https://wallet.a-sit.at/m7",
     val walletProviderHost: String = "https://wallet-provider.a-sit.plus",
+    val walletProviderAttestationEnabled: Boolean = true,
     val isConditionsAccepted: Boolean = false,
     val presentmentUseNegotiatedHandover: Boolean = true,
     val presentmentBleCentralClientModeEnabled: Boolean = true,
     val presentmentBlePeripheralServerModeEnabled: Boolean = true,
+    val presentmentBleCentralClientModeRemembered: Boolean = true,
+    val presentmentBlePeripheralServerModeRemembered: Boolean = true,
     val presentmentNfcDataTransferEnabled: Boolean = false,
+    val presentmentDeviceEngagementMethod: String = SettingsRepository.DEFAULT_PRESENTMENT_DEVICE_ENGAGEMENT_METHOD,
     val bleUseL2CAPEnabled: Boolean = true,
     val bleUseL2CAPInEngagementEnabled: Boolean = true,
     val presentmentAllowMultipleRequests: Boolean = false,
     val readerAutomaticallySelectTransport: Boolean = true,
-    val connectionTimeout: Duration = 15.seconds,
+    val connectionTimeout: Duration = 30.seconds, // ISO 18013-5 9.4: "the time-out should be no less than 30 seconds"
 )

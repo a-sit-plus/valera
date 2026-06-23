@@ -150,10 +150,10 @@ open class KeystoreService(
         fun checkKeyMaterialValid() {
             PlatformSigningProvider.let { provider ->
                 runBlocking {
-                    provider.getSignerForKey(Configuration.KS_ALIAS_OLD).onSuccess {
-                        provider.deleteSigningKey(Configuration.KS_ALIAS_OLD)
-                            .getOrThrow() //well if we can't delete we're boned
-                        throw AppResetRequiredException
+                    Configuration.KS_ALIASES_OLDER_THAN_THE_HILLS.forEach { alias ->
+                        provider.getSignerForKey(alias).onSuccess {
+                            throw AppResetRequiredException
+                        }
                     }
                 }
             }
@@ -163,11 +163,13 @@ open class KeystoreService(
         fun clearKeyMaterial() {
             PlatformSigningProvider.let { provider ->
                 runBlocking {
-                    provider.getSignerForKey(Configuration.KS_ALIAS_OLD).onSuccess {
-                        provider.deleteSigningKey(Configuration.KS_ALIAS_OLD)
-                    }
-                    provider.getSignerForKey(Configuration.KS_ALIAS).onSuccess {
-                        provider.deleteSigningKey(Configuration.KS_ALIAS)
+                    Configuration.KS_ALIASES_OLDER_THAN_THE_HILLS.forEach { alias ->
+                        provider.getSignerForKey(alias).onSuccess {
+                            provider.deleteSigningKey(alias)
+                        }
+                        provider.getSignerForKey(Configuration.KS_ALIAS).onSuccess {
+                            provider.deleteSigningKey(Configuration.KS_ALIAS)
+                        }
                     }
                 }
             }

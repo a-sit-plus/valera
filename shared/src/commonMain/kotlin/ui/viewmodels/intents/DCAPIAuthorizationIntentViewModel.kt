@@ -1,5 +1,6 @@
 package ui.viewmodels.intents
 
+import ErrorHandlingOverrideException
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
@@ -31,8 +32,14 @@ class DCAPIAuthorizationIntentViewModel(
             is OAuth2Exception -> error
             else -> OAuth2Exception.InvalidRequest(error.message) // TODO Not sure what to return in this case
         }.serialize()
-        walletMain.platformAdapter.prepareDCAPIOid4vpCredentialResponse(response, false)
-        onFailure(error)
+        onFailure(
+            ErrorHandlingOverrideException(
+                onAcknowledge = {
+                    walletMain.platformAdapter.prepareDCAPICredentialResponse(response, false)
+                },
+                cause = error
+            )
+        )
     }
 
     fun process() = walletMain.scope.launch(Dispatchers.Default + coroutineExceptionHandler) {
