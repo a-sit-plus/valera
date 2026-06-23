@@ -18,6 +18,7 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import io.ktor.http.appendEncodedPathSegments
 import io.ktor.http.contentType
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.SerialName
@@ -44,6 +45,7 @@ class KeyAttestationHelper(
 
     ): JwsCompactTyped<KeyAttestationJwt> {
         val holderKey = keyMaterial.getUnderLyingSigner()
+        Napier.d("Requesting key attestation for key ${holderKey.publicKey.toJsonWebKey().jwkThumbprint}")
         return httpClient.post(Url(keyAttestationEndpoint().first())) {
             contentType(ContentType.Application.Json)
             setBody(

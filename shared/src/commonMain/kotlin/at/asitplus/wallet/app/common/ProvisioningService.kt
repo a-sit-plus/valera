@@ -10,7 +10,9 @@ import at.asitplus.openid.SupportedCredentialFormatW3cVcJwt
 import at.asitplus.openid.SupportedCredentialFormatW3cVcJwtJsonLd
 import at.asitplus.signum.indispensable.josef.JsonWebToken
 import at.asitplus.signum.indispensable.josef.JwsCompactTyped
+import at.asitplus.signum.indispensable.equalsCryptographically
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import at.asitplus.signum.indispensable.josef.toJsonWebKey
 import at.asitplus.wallet.app.common.attestation.AttestationService
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
@@ -51,6 +53,7 @@ class ProvisioningService(
     private val intentService: IntentService,
     private val dataStoreService: DataStoreService,
     private val keyMaterial: KeyMaterial,
+    private val keystoreService: KeystoreService,
     private val holderAgent: HolderAgent,
     private val subjectCredentialStore: WalletSubjectCredentialStore,
     private val config: SettingsRepository,
@@ -133,7 +136,39 @@ class ProvisioningService(
         )
     }.also { walletServiceCached = it }
 
-    private suspend fun openId4VciClient(): OpenId4VciClient = openId4VciClientCached ?: run {
+    private suspend fun openId4VciClient(): OpenId4VciClient {
+        assertProofKeyConsistent()
+        return openId4VciClientCached ?: buildOpenId4VciClient()
+    }
+
+    /**
+     * Verifies that the [keyMaterial] used to sign OID4VCI credential-request proofs still matches the
+     * key actually present in the platform key store. A mismatch means the in-memory key material has
+     * gone stale (e.g. the hardware key was invalidated and re-created); signing a proof with it would
+     * be rejected by the issuer at `ProofValidator.validateJwtProof`. We fail fast with a clear error
+     * and drop all cached clients/attestations, so a fresh key (and a matching key attestation) is used
+     * once the key material has been re-derived.
+     */
+    private suspend fun assertProofKeyConsistent() {
+        val proofThumbprint = keyMaterial.jsonWebKey.jwkThumbprint
+        val liveKey = keystoreService.liveSigningPublicKey()
+        val liveThumbprint = liveKey?.toJsonWebKey()?.jwkThumbprint
+        Napier.d("Proof key consistency check: proofKey=$proofThumbprint, liveKeyStore=$liveThumbprint")
+        if (liveKey == null) {
+            Napier.w("Proof key consistency check: no live signing key under KS_ALIAS, skipping guard")
+            return
+        }
+        if (!liveKey.equalsCryptographically(keyMaterial.publicKey)) {
+            Napier.e(
+                "Proof signing key mismatch: proof would be signed with $proofThumbprint, " +
+                        "but key store holds $liveThumbprint. Invalidating caches."
+            )
+            clearCaches()
+            throw ProofKeyMismatchException(expected = liveThumbprint, actual = proofThumbprint)
+        }
+    }
+
+    private suspend fun buildOpenId4VciClient(): OpenId4VciClient = run {
         val clientId = currentClientId()
         val walletProviderAttestationEnabled = currentWalletProviderAttestationEnabled()
         val oAuth2Client = OAuth2Client(
@@ -462,6 +497,11 @@ internal fun validateProvisioningCallbackState(redirectedUrl: String, expectedSt
 }
 
 private const val ACTIVE_PROVISIONING_STATE_KEY = "active"
+class ProofKeyMismatchException(expected: String?, actual: String?) : IllegalStateException(
+    "The credential proof signing key no longer matches the device key store " +
+            "(key store holds $expected, key material advertises $actual). " +
+            "The key material must be re-derived before issuing credentials."
+)
 
 val CredentialIdentifierInfo.credentialScheme: ConstantIndex.CredentialScheme?
     get() =  with(supportedCredentialFormat) {
