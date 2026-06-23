@@ -1,27 +1,19 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.catchingUnwrapped
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_no_refresh_token
 import at.asitplus.valera.resources.error_reissue_failed
 import at.asitplus.valera.resources.success_refreshed
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import data.storage.DataStoreService
 import data.storage.StoreEntryId
 import data.storage.WalletSubjectCredentialStore
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import org.jetbrains.compose.resources.getString
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -55,15 +47,6 @@ class CredentialValidityService(
                 .filterNot { it.first in suppressedIds }
                 .map { RefreshItem(storeEntryId = it.first, entry = it.second) }
         }
-    }
-
-    fun suppressRefreshRequest(item: RefreshItem): Job = sessionCoroutineScope.launch {
-        val suppressedIds = getSuppressedRefreshCredentialIds() + item.storeEntryId
-        dataStoreService.setPreference(
-            key = Configuration.DATASTORE_KEY_REFRESH_SUPPRESSED_CREDENTIALS,
-            value = vckJsonSerializer.encodeToString(suppressedIds.toList()),
-        )
-        removeRefreshRequest(item)
     }
 
     /**
@@ -154,7 +137,7 @@ class CredentialValidityService(
         dataStoreService.getPreference(Configuration.DATASTORE_KEY_REFRESH_SUPPRESSED_CREDENTIALS)
             .first()
             ?.let {
-                catchingUnwrapped { vckJsonSerializer.decodeFromString<List<StoreEntryId>>(it).toSet() }
+                catchingUnwrapped { joseCompliantSerializer.decodeFromString<List<StoreEntryId>>(it).toSet() }
                     .getOrDefault(emptySet())
             }
             ?: emptySet()

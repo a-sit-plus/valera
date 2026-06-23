@@ -3,9 +3,9 @@ package ui.viewmodels
 import ErrorHandlingOverrideException
 import at.asitplus.dcapi.issuance.DigitalCredentialOfferReturn
 import at.asitplus.openid.CredentialOffer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import kotlinx.coroutines.async
 
@@ -23,13 +23,13 @@ class LoadCredentialViewModel(
     val offer: CredentialOffer?,
     val onClickLogo: () -> Unit,
 ) {
-    
+
     init {
         check(credentialIdentifiers.isNotEmpty()) {
             "Issuer '$hostString' did not provide any credential configuration that can be loaded"
         }
     }
-    
+
     fun handleDCAPIIssuingResult(success: Boolean, error: Throwable? = null) {
         if (!walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
             return
@@ -42,7 +42,7 @@ class LoadCredentialViewModel(
                     }
                     // TODO replace with official status messages once specification defines them
                     val response =
-                        vckJsonSerializer.encodeToString(DigitalCredentialOfferReturn.error(status = "offer_declined"))
+                        joseCompliantSerializer.encodeToString(DigitalCredentialOfferReturn.error(status = "offer_declined"))
                     walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, false)
                     navigateUp()
                 },
@@ -50,7 +50,7 @@ class LoadCredentialViewModel(
             )
             walletMain.errorService.emit(deferredError)
         } else {
-            val response = vckJsonSerializer.encodeToString(DigitalCredentialOfferReturn.success())
+            val response = joseCompliantSerializer.encodeToString(DigitalCredentialOfferReturn.success())
             walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, true)
             navigateUp()
         }

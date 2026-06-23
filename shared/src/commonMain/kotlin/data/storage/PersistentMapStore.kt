@@ -1,12 +1,12 @@
 package data.storage
 
-import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.lib.utils.MapStore
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlin.time.Clock
@@ -63,7 +63,7 @@ class PersistentMapStore<Key : Any, Value : Any>(
     private suspend fun loadEntriesLocked(): MutableMap<Key, PersistentMapStoreEntry<Value>> =
         dataStoreService.getPreference(preferenceKey).firstOrNull()
             ?.let { serialized ->
-                vckJsonSerializer.decodeFromString(serializer, serialized).toMutableMap()
+                joseCompliantSerializer.decodeFromString(serializer, serialized).toMutableMap()
             } ?: mutableMapOf()
 
     private suspend fun saveEntriesLocked(entries: Map<Key, PersistentMapStoreEntry<Value>>) {
@@ -72,7 +72,7 @@ class PersistentMapStore<Key : Any, Value : Any>(
         } else {
             dataStoreService.setPreference(
                 key = preferenceKey,
-                value = vckJsonSerializer.encodeToString(serializer, entries),
+                value = joseCompliantSerializer.encodeToString(serializer, entries),
             )
         }
     }
