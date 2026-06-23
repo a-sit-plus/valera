@@ -113,7 +113,7 @@ fun HolderView(
 
     when (val state = holderState) {
         is HolderState.Settings ->
-            HolderSettingsView(navigateUp, onClickLogo, onClickSettings, bottomBar, vm)
+            HolderSettingsView(navigateUp, onClickLogo, bottomBar, vm)
 
         is HolderState.CheckSettings -> LoadingView(
             customLabel = stringResource(Res.string.info_text_check_settings),

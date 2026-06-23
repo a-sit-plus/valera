@@ -281,8 +281,7 @@ private fun TransientFlowNavHost(
                             onAuthenticationSuccess = { },
                             navigateToHomeScreen = { navigator.popToInvoker() },
                             walletMain = walletMain,
-                            onClickLogo = onClickLogo,
-                            onClickSettings = { navigator.navigate(SettingsRoute) })
+                            onClickLogo = onClickLogo)
                     } ?: throw IllegalStateException("No presentation view model set")
                 } catch (e: Throwable) {
                     walletMain.errorService.emit(e)

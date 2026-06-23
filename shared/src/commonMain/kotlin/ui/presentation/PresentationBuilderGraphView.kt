@@ -32,7 +32,6 @@ fun PresentationBuilderGraphView(
     serviceProviderLocalizedLocation: String,
     selectionProvider: UiState<CredentialSelectionProvider<SubjectCredentialStore.StoreEntry>>,
     onClickLogo: () -> Unit,
-    onClickSettings: () -> Unit,
     onError: (Throwable) -> Unit,
     onNavigateUp: () -> Unit,
     onNavigateToPresentationStart: () -> Unit,
@@ -42,7 +41,6 @@ fun PresentationBuilderGraphView(
         is UiStateError -> CommonPresentationPageScaffold(
             title = title,
             onClickLogo = onClickLogo,
-            onClickSettings = onClickSettings,
             onNavigateUp = onNavigateToPresentationStart,
         ) {
             Column(
@@ -59,7 +57,6 @@ fun PresentationBuilderGraphView(
         UiStateLoading -> CommonPresentationPageScaffold(
             title = title,
             onClickLogo = onClickLogo,
-            onClickSettings = onClickSettings,
             onNavigateUp = onNavigateToPresentationStart,
         ) {
             LoadingView(ui.views.loadingMessageString(LoadingMessageKey.CheckingRequestedCredentials))
@@ -74,7 +71,6 @@ fun PresentationBuilderGraphView(
                         serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
                         serviceProviderLocalizedName = serviceProviderLocalizedName,
                         onClickLogo = onClickLogo,
-                        onClickSettings = onClickSettings,
                         dcqlQuery = queryMatchingResult.presentationRequest.dcqlQuery,
                         satisfiableCredentialQueries = queryMatchingResult.matchingResult.credentialQueryMatches.filter {
                             it.value.isNotEmpty()
@@ -147,7 +143,6 @@ fun PresentationBuilderGraphView(
                         serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
                         serviceProviderLocalizedName = serviceProviderLocalizedName,
                         onClickLogo = onClickLogo,
-                        onClickSettings = onClickSettings,
                         matchingResult = selectionProvider.value.queryMatchingResult,
                         onError = onError,
                         onNavigateUp = onNavigateToPresentationStart,

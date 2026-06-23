@@ -480,8 +480,7 @@ private fun WalletNavHost(
                                     ?: navigator.popToInvoker()
                             },
                             walletMain = walletMain,
-                            onClickLogo = onClickLogo,
-                            onClickSettings = { navigator.navigate(SettingsRoute) })
+                            onClickLogo = onClickLogo)
                     } ?: throw IllegalStateException("No presentation view model set")
                 } catch (e: Throwable) {
                     navigator.popToInvoker()
@@ -529,7 +528,6 @@ private fun WalletNavHost(
             SelectIssuingServerView(
                 navigateUp = navigator::navigateBack,
                 onClickLogo = onClickLogo,
-                onClickSettings = { navigator.navigate(SettingsRoute) },
                 onNavigateToLoadCredentialRoute = { host ->
                     navigator.navigate(LoadCredentialRoute(host))
                 },
@@ -555,7 +553,6 @@ private fun WalletNavHost(
                             }
                         },
                         onClickLogo = onClickLogo,
-                        onClickSettings = { navigator.navigate(SettingsRoute) },
                         onProgress = walletMain.loadingStatusService::set,
                     )
                 }.onSuccess {

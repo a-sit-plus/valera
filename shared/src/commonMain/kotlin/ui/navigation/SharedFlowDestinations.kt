@@ -179,7 +179,6 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
         DefaultPresentationGraphView(
             onError = onError,
             onClickLogo = onClickLogo,
-            onClickSettings = { navigator.navigate(SettingsRoute) },
             koinScope = koinScope,
             onNavigateUp = navigator::invocationAwareBack,
             navigateUpIsClose = true,
@@ -190,7 +189,6 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
         DCAPIPresentationGraphView(
             onError = onError,
             onClickLogo = onClickLogo,
-            onClickSettings = { navigator.navigate(SettingsRoute) },
             koinScope = koinScope,
             onNavigateUp = navigator::invocationAwareBack,
             showStartRoute = flow == SharedDestinationFlow.Wallet,
@@ -202,7 +200,6 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
             koinScope = koinScope,
             navigateUp = navigator::invocationAwareBack,
             onClickLogo = onClickLogo,
-            onClickSettings = { navigator.navigate(SettingsRoute) },
             navigateUpIsClose = true,
         )
     }
@@ -257,7 +254,6 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
                         }
                     },
                     onClickLogo = onClickLogo,
-                    onClickSettings = { navigator.navigate(SettingsRoute) },
                     onProgress = walletMain.loadingStatusService::set,
                 )
             }.onSuccess {
@@ -312,7 +308,6 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
                     offer = offer,
                     onSubmit = onSubmit,
                     onClickLogo = onClickLogo,
-                    onClickSettings = { navigator.navigate(SettingsRoute) },
                     onProgress = walletMain.loadingStatusService::set,
                 ).also { dcapiVm = it }
             }.onSuccess {
@@ -364,7 +359,6 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
                         }
                     },
                     onClickLogo = onClickLogo,
-                    onClickSettings = { navigator.navigate(SettingsRoute) },
                     onProgress = walletMain.loadingStatusService::set,
                 )
             }.onSuccess {
@@ -415,7 +409,6 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
             onAutoDismiss = onAcknowledge,
             onClickButton = onAcknowledge,
             onClickLogo = onClickLogo,
-            onClickSettings = { navigator.navigate(SettingsRoute) },
             isAutoDismissEnabled = isAutoDismissEnabled,
             credentialContent = storeEntry?.let { credential ->
                 {
@@ -502,7 +495,6 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
                 },
                 walletMain = walletMain,
                 onClickLogo = onClickLogo,
-                onClickSettings = { navigator.navigate(SettingsRoute) },
                 signatureRequestParameters = backStackEntry.toRoute<SigningQtspSelectionRoute>().signatureRequestParameters
             )
         })
@@ -614,7 +606,6 @@ private fun LoadCredentialFromUrlContent(
                     }
                 },
                 onClickLogo = onClickLogo,
-                onClickSettings = { navigator.navigate(SettingsRoute) },
                 onProgress = walletMain.loadingStatusService::set,
             )
         }.onSuccess {

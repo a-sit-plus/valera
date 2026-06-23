@@ -94,11 +94,11 @@ fun VerifierView(
             navigateUp = vm.onResume
         )
         is VerifierState.SelectDocument ->
-            VerifierDocumentSelectionView(onClickLogo, onClickSettings, { vm.setState(VerifierState.Settings) }, vm, bottomBar)
+            VerifierDocumentSelectionView(onClickLogo, { vm.setState(VerifierState.Settings) }, vm, bottomBar)
         is VerifierState.SelectCustomRequest ->
-            VerifierCustomSelectionView(onClickLogo, onClickSettings, { vm.setState(VerifierState.SelectDocument) }, vm)
+            VerifierCustomSelectionView(onClickLogo, { vm.setState(VerifierState.SelectDocument) }, vm)
         is VerifierState.SelectCombinedRequest ->
-            VerifierCombinedSelectionView(onClickLogo, onClickSettings, { vm.setState(VerifierState.SelectDocument) }, vm)
+            VerifierCombinedSelectionView(onClickLogo, { vm.setState(VerifierState.SelectDocument) }, vm)
         is VerifierState.QrEngagement -> VerifierQrEngagementView(
             onClickLogo = onClickLogo,
             onClickSettings = onClickSettings,

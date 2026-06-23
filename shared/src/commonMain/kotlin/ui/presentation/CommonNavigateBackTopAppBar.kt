@@ -17,7 +17,6 @@ fun CommonNavigateBackTopAppBar(
     title: String,
     onNavigateUp: () -> Unit,
     onClickLogo: () -> Unit,
-    onClickSettings: () -> Unit,
     navigateUpIsClose: Boolean = false,
 ) {
     TopAppBar(
@@ -32,8 +31,7 @@ fun CommonNavigateBackTopAppBar(
         },
         actions = {
             CommonNavigationActions(
-                onClickLogo = onClickLogo,
-                onClickSettings = onClickSettings
+                onClickLogo = onClickLogo
             )
         },
         navigationIcon = {

@@ -14,7 +14,6 @@ fun CommonPresentationPageScaffold(
     title: String,
     onNavigateUp: () -> Unit,
     onClickLogo: () -> Unit,
-    onClickSettings: () -> Unit,
     navigateUpIsClose: Boolean = false,
     content: @Composable (() -> Unit),
 ) {
@@ -24,7 +23,6 @@ fun CommonPresentationPageScaffold(
                 title = title,
                 onNavigateUp = onNavigateUp,
                 onClickLogo = onClickLogo,
-                onClickSettings = onClickSettings,
                 navigateUpIsClose = navigateUpIsClose,
             )
         },

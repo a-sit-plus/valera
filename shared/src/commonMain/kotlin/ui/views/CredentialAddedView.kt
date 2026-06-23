@@ -1,7 +1,6 @@
 package ui.views
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -13,11 +12,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -54,7 +50,6 @@ fun CredentialAddedView(
     onAutoDismiss: () -> Unit,
     onClickButton: () -> Unit,
     onClickLogo: () -> Unit,
-    onClickSettings: () -> Unit,
     isAutoDismissEnabled: Boolean = true,
     credentialContent: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
@@ -96,12 +91,6 @@ fun CredentialAddedView(
                 },
                 actions = {
                     Logo(onClick = onClickLogo)
-                    Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
-                        Icon(
-                            imageVector = Icons.Outlined.Settings,
-                            contentDescription = null,
-                        )
-                    }
                     Spacer(Modifier.width(15.dp))
                 },
                 navigationIcon = {}

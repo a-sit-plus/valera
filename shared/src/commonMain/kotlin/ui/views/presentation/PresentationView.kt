@@ -134,7 +134,6 @@ fun PresentationView(
                             walletMain = presentationViewModel.walletMain,
                             presentationRequest = presentationViewModel.presentationRequest,
                             onClickLogo = presentationViewModel.onClickLogo,
-                            onClickSettings = presentationViewModel.onClickSettings,
                             onUnauthenticated = {}
                         ),
                         onError = onError
@@ -155,7 +154,6 @@ fun PresentationView(
                                 title = stringResource(Res.string.heading_label_select_data),
                                 onNavigateUp = presentationViewModel.navigateUp,
                                 onClickLogo = presentationViewModel.onClickLogo,
-                                onClickSettings = presentationViewModel.onClickSettings,
                                 onNext = {
                                     presentationViewModel.confirmSelection(null)
                                 },
@@ -179,7 +177,6 @@ fun PresentationView(
                                 ),
                                 onError = onError,
                                 onClickLogo = presentationViewModel.onClickLogo,
-                                onClickSettings = presentationViewModel.onClickSettings,
                             )
                         }
                     }
