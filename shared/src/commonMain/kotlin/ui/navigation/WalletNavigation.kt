@@ -6,7 +6,6 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,12 +23,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.navigationevent.NavigationEventInfo
-import androidx.navigationevent.compose.NavigationBackHandler
-import androidx.navigationevent.compose.rememberNavigationEventState
 import androidx.compose.ui.platform.testTag
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
@@ -39,7 +34,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import at.asitplus.catchingUnwrapped
-import at.asitplus.dcapi.issuance.DigitalCredentialOfferReturn
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_error_action_return_to_invoker
 import at.asitplus.valera.resources.refresh_snackbar_action
@@ -55,35 +49,26 @@ import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.app.common.presentation.NfcDispatchSuppressionMode
 import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
-import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import io.github.aakira.napier.Napier
-import io.ktor.http.URLBuilder
 import kotlinx.coroutines.flow.combineTransform
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import org.koin.compose.koinInject
 import org.koin.core.scope.Scope
 import ui.composables.BottomBar
-import ui.composables.credentials.CredentialCard
 import ui.composables.NavigationData
 import ui.navigation.routes.*
-import ui.navigation.routes.RoutePrerequisites.CRYPTO
-import ui.presentation.DCAPIPresentationGraphView
-import ui.presentation.DefaultPresentationGraphView
 import ui.viewmodels.*
 import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.authentication.PresentationViewModel
 import ui.viewmodels.intents.*
 import ui.views.*
-import ui.views.authentication.AuthenticationSuccessView
 import ui.views.intents.*
 import ui.views.iso.holder.HolderView
 import ui.views.iso.verifier.VerifierView
@@ -251,7 +236,7 @@ private fun WalletNavHost(
 ) {
 
     val resetNavigationScope = rememberCoroutineScope()
-    val items by walletMain.credentialValidityService.refreshItems.collectAsState()
+    val refreshItems by walletMain.credentialValidityService.refreshItems.collectAsState()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val isOnRefreshCenter = backStackEntry?.destination?.hasRoute<RefreshCenterRoute>() == true
 
@@ -271,14 +256,14 @@ private fun WalletNavHost(
     var processedItemIds by remember { mutableStateOf(setOf<Long>()) }
     var hasNavigatedToCenter by remember { mutableStateOf(false) }
 
-    LaunchedEffect(items.isEmpty()) {
-        if (items.isEmpty()) {
+    LaunchedEffect(refreshItems.isEmpty()) {
+        if (refreshItems.isEmpty()) {
             processedItemIds = emptySet()
             hasNavigatedToCenter = false
         }
     }
 
-    val singleRefreshItem = if (!suppressRefreshSnackbar && items.size == 1) items.first() else null
+    val singleRefreshItem = if (!suppressRefreshSnackbar && refreshItems.size == 1) refreshItems.first() else null
     LaunchedEffect(singleRefreshItem?.storeEntryId) {
         val item = singleRefreshItem ?: return@LaunchedEffect
         if (processedItemIds.contains(item.storeEntryId)) return@LaunchedEffect
@@ -299,7 +284,7 @@ private fun WalletNavHost(
         }
     }
 
-    val shouldShowMultipleSnackbar = !suppressRefreshSnackbar && items.size > 1 && !hasNavigatedToCenter
+    val shouldShowMultipleSnackbar = !suppressRefreshSnackbar && refreshItems.size > 1 && !hasNavigatedToCenter
     LaunchedEffect(shouldShowMultipleSnackbar) {
         if (!shouldShowMultipleSnackbar) return@LaunchedEffect
         val result = snackbarHostState.showSnackbar(
@@ -318,8 +303,8 @@ private fun WalletNavHost(
         }
     }
 
-    LaunchedEffect(items.size, isOnRefreshCenter) {
-        if (isOnRefreshCenter && items.isEmpty()) {
+    LaunchedEffect(refreshItems.size, isOnRefreshCenter) {
+        if (isOnRefreshCenter && refreshItems.isEmpty()) {
             navController.popBackStack()
         }
     }
@@ -334,7 +319,7 @@ private fun WalletNavHost(
 
         composable<RefreshCenterRoute> {
             RefreshCredentialsView(
-                items = items,
+                items = refreshItems,
                 onRefreshItem = { item ->
                     walletMain.credentialValidityService.refreshSingleWithStatus(item)
                 },

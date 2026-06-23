@@ -1,28 +1,19 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.catchingUnwrapped
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_no_refresh_token
 import at.asitplus.valera.resources.error_reissue_failed
 import at.asitplus.valera.resources.success_refreshed
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.data.vckJsonSerializer
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import data.storage.DataStoreService
 import data.storage.StoreEntryId
 import data.storage.WalletSubjectCredentialStore
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import org.jetbrains.compose.resources.getString
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -36,8 +27,8 @@ class CredentialValidityService(
     private val sessionCoroutineScope: CoroutineScope,
     private val dataStoreService: DataStoreService
 ) {
-    private var job: Job? = null
-    private var storeObserverJob: Job? = null
+    private var periodicCheckJob: Job? = null
+    private var storePruneJob: Job? = null
 
     private val _refreshItems = MutableStateFlow<List<RefreshItem>>(emptyList())
     val refreshItems: StateFlow<List<RefreshItem>> = _refreshItems.asStateFlow()
@@ -50,6 +41,11 @@ class CredentialValidityService(
         _refreshItems.update { list -> list.filterNot { it.storeEntryId == item.storeEntryId } }
     }
 
+    /** Drops refresh requests whose credential no longer exists in the store. */
+    private fun retainExisting(existingIds: Set<StoreEntryId>) {
+        _refreshItems.update { list -> list.filter { it.storeEntryId in existingIds } }
+    }
+
     suspend fun requestRefreshmentBatch(entriesWithIds: List<Pair<StoreEntryId, SubjectCredentialStore.StoreEntry>>) {
         val suppressedIds = getSuppressedRefreshCredentialIds()
         _refreshItems.update {
@@ -59,38 +55,27 @@ class CredentialValidityService(
         }
     }
 
-    fun suppressRefreshRequest(item: RefreshItem): Job = sessionCoroutineScope.launch {
-        val suppressedIds = getSuppressedRefreshCredentialIds() + item.storeEntryId
-        dataStoreService.setPreference(
-            key = Configuration.DATASTORE_KEY_REFRESH_SUPPRESSED_CREDENTIALS,
-            value = vckJsonSerializer.encodeToString(suppressedIds.toList()),
-        )
-        removeRefreshRequest(item)
-    }
-
     /**
-     * Starts a periodic loop that checks for expired credentials.
+     * Starts two background jobs: a periodic loop that queues expired credentials for refresh,
+     * and an observer that drops queued requests once their credential is removed from the store.
      */
     fun startChecking(interval: Duration = 5.minutes) {
-        job?.cancel()
-        storeObserverJob?.cancel()
-
-        storeObserverJob = sessionCoroutineScope.launch {
-            subjectCredentialStore.observeStoreContainer().collect { storeContainer ->
-                val currentIds = storeContainer.credentials.map { it.first }.toSet()
-                _refreshItems.update { items ->
-                    items.filter { it.storeEntryId in currentIds }
-                }
-            }
-        }
-
-        job = sessionCoroutineScope.launch {
+        periodicCheckJob?.cancel()
+        periodicCheckJob = sessionCoroutineScope.launch {
             delay(10.seconds)
             while (isActive) {
                 requestRefreshmentBatch(subjectCredentialStore.getInvalidCredentials())
                 delay(interval)
             }
         }
+
+        storePruneJob?.cancel()
+        storePruneJob = sessionCoroutineScope.launch {
+            subjectCredentialStore.observeStoreContainer().collect { storeContainer ->
+                retainExisting(storeContainer.credentials.map { it.first }.toSet())
+            }
+        }
+
     }
 
     /**
@@ -166,7 +151,7 @@ class CredentialValidityService(
         dataStoreService.getPreference(Configuration.DATASTORE_KEY_REFRESH_SUPPRESSED_CREDENTIALS)
             .first()
             ?.let {
-                catchingUnwrapped { vckJsonSerializer.decodeFromString<List<StoreEntryId>>(it).toSet() }
+                catchingUnwrapped { joseCompliantSerializer.decodeFromString<List<StoreEntryId>>(it).toSet() }
                     .getOrDefault(emptySet())
             }
             ?: emptySet()
