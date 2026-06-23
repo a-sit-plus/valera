@@ -404,6 +404,7 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
     composable<TransientFlowIssuingResultRoute> { backStackEntry ->
         val route = backStackEntry.toRoute<TransientFlowIssuingResultRoute>()
         var isAutoDismissEnabled by rememberSaveable(route.storeEntryId) { mutableStateOf(true) }
+        var isAcknowledgeInProgress by rememberSaveable(route.storeEntryId) { mutableStateOf(false) }
         val detailsStoreEntryId = route.storeEntryId
         val storeEntry = route.storeEntryId?.let { storeEntryId ->
             walletMain.subjectCredentialStore.observeStoreContainer().map { container ->
@@ -424,11 +425,17 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
             )
         }
         val onAcknowledge = {
-            if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
-                val response = flow.encodeDigitalCredentialOfferReturn(DigitalCredentialOfferReturn.success())
-                walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, true)
+            if (!isAcknowledgeInProgress) {
+                isAcknowledgeInProgress = true
+                walletMain.scope.launch {
+                    walletMain.refreshDcApiCredentialRegistration()
+                    if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
+                        val response = flow.encodeDigitalCredentialOfferReturn(DigitalCredentialOfferReturn.success())
+                        walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, true)
+                    }
+                    navigator.popToInvoker()
+                }
             }
-            navigator.popToInvoker()
         }
 
         val backState = rememberNavigationEventState(NavigationEventInfo.None)

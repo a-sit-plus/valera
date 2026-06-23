@@ -175,6 +175,16 @@ class WalletMain(
         }
     }
 
+    suspend fun refreshDcApiCredentialRegistration() {
+        try {
+            Napier.d("DC API: Refreshing credential registration")
+            val storeContainer = subjectCredentialStore.observeStoreContainer().first()
+            dcApiExportService.registerCredentialWithSystem(storeContainer, scope)
+        } catch (e: Throwable) {
+            Napier.w("DC API: Could not refresh credentials with system", e)
+        }
+    }
+
     fun updateCheck() {
         scope.launch(Dispatchers.IO) {
             catchingUnwrapped {
@@ -258,7 +268,7 @@ interface PlatformAdapter {
      * @param entries credentials to add
      * @param scope CoroutineScope for registering credentials
      */
-    fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope)
+    suspend fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope)
 
     /**
      * Retrieves request from the digital credentials browser API
@@ -330,7 +340,7 @@ class DummyPlatformAdapter : PlatformAdapter {
     override fun shareLog() {
     }
 
-    override fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope) {
+    override suspend fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope) {
     }
 
     override fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest> {

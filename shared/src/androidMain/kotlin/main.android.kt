@@ -43,7 +43,7 @@ import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -225,8 +225,8 @@ public class AndroidPlatformAdapter(
         context.startActivity(Intent.createChooser(intent, null))
     }
 
-    override fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope) {
-        scope.launch(Dispatchers.Default) {
+    override suspend fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope) {
+        withContext(Dispatchers.Default) {
             catching {
                 val credentialsListCbor = coseCompliantSerializer.encodeToByteArray(entries)
                 val customRegistry = CustomRegistry(credentialsListCbor, context)
