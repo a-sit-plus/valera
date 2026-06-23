@@ -62,6 +62,13 @@ class AttestationService(
 
     suspend fun getInstanceAttestationKeyMaterial() = instanceAttestationHelper.keyMaterial()
 
+    fun currentInstanceAttestation() = instanceAttestationHelper.currentInstanceAttestation()
+
+    suspend fun restoreInstanceAttestation(attestation: JwsCompactTyped<JsonWebToken>) {
+        bufferedInstanceAttestation.emit(null)
+        instanceAttestationHelper.restoreInstanceAttestation(attestation)
+    }
+
     suspend fun preloadInstanceAttestation() = catchingUnwrapped {
         Napier.d("AttestationService: Preload instance attestation")
         requestInstanceAttestation(preloadInstanceAttestationInput).let {

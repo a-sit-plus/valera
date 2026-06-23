@@ -51,7 +51,9 @@ struct ContentView: View {
                 // before the session is created overwrites pendingTransientState (logged).
                 showTransientFlow = true
             }
-            .sheet(isPresented: $showTransientFlow) {
+            .sheet(isPresented: $showTransientFlow, onDismiss: {
+                IosSessionBridge.shared.closeTransientFlowSession()
+            }) {
                 TransientFlowView()
                     .ignoresSafeArea(.all)
             }

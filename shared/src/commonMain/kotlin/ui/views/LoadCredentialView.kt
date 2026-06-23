@@ -47,6 +47,8 @@ fun LoadCredentialView(
         mutableStateOf(TextFieldValue(""))
     }
 
+    var isSubmitting by rememberSaveable { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -81,10 +83,21 @@ fun LoadCredentialView(
             onChangeCredentialIdentifierInfo = { credentialIdentifierInfo = it },
             transactionCode = transactionCode,
             onChangeTransactionCode = { transactionCode = it },
-            onSubmit = { vm.onSubmit(credentialIdentifierInfo, transactionCode.text, vm.offer) },
+            onSubmit = {
+                if (!isSubmitting) {
+                    isSubmitting = true
+                    try {
+                        vm.onSubmit(credentialIdentifierInfo, transactionCode.text, vm.offer)
+                    } catch (e: Throwable) {
+                        isSubmitting = false
+                        throw e
+                    }
+                }
+            },
             modifier = Modifier.padding(scaffoldPadding),
             availableIdentifiers = vm.credentialIdentifiers,
             showTransactionCode = vm.offer?.grants?.preAuthorizedCode?.transactionCode != null,
+            isSubmitEnabled = !isSubmitting,
         )
     }
 }

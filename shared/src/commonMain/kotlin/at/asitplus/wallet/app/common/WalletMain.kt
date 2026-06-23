@@ -94,6 +94,8 @@ class WalletMain(
 
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_VCS)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_CONTEXT_BY_STATE)
+        dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_INSTANCE_ATTESTATION_BY_STATE)
+        dataStoreService.deletePreference(Configuration.DATASTORE_KEY_ACTIVE_PROVISIONING_STATE)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_PROVISIONING_STATE_TO_CODE_STORE)
         dataStoreService.deletePreference(Configuration.DATASTORE_KEY_COOKIES)
         KeystoreService.clearKeyMaterial()

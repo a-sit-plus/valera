@@ -72,6 +72,19 @@ class InstanceAttestationHelper(
         }
     }
 
+    fun currentInstanceAttestation(): JwsCompactTyped<JsonWebToken>? = instanceAttestationCache
+
+    suspend fun restoreInstanceAttestation(attestation: JwsCompactTyped<JsonWebToken>) {
+        val keyMaterial = signerBasedKeyMaterial()
+        val attestationKey = attestation.payload.confirmationClaim?.jsonWebKey
+            ?: throw IllegalStateException("Stored instance attestation has no cnf.jwk")
+        require(attestationKey.jwkThumbprint == keyMaterial.jsonWebKey.jwkThumbprint) {
+            "Stored instance attestation does not match the current WIA signing key"
+        }
+        instanceAttestationCache = attestation
+        keyMaterialCache = keyMaterial
+    }
+
     private suspend fun getAttestationChallenge() = client.getChallenge(Url(challengeEndpoint().first()))
 
     private suspend fun getAttestationProof(preferredClientStatusPeriod: Duration) =

@@ -27,6 +27,7 @@ fun LoadDataView(
     modifier: Modifier = Modifier,
     availableIdentifiers: Collection<CredentialIdentifierInfo>,
     showTransactionCode: Boolean,
+    isSubmitEnabled: Boolean = true,
 ) {
     Scaffold(
         bottomBar = {
@@ -36,7 +37,8 @@ fun LoadDataView(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
                     LoadDataButton(
-                        onClick = onSubmit
+                        onClick = onSubmit,
+                        enabled = isSubmitEnabled,
                     )
                 }
             }

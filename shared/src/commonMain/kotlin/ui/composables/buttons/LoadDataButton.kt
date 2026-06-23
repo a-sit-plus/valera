@@ -19,6 +19,7 @@ import ui.composables.TextIconButton
 fun LoadDataButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     TextIconButton(
         icon = {
@@ -32,5 +33,6 @@ fun LoadDataButton(
         },
         onClick = onClick,
         modifier = modifier,
+        enabled = enabled,
     )
 }
