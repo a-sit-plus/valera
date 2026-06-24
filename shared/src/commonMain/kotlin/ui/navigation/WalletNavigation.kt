@@ -576,7 +576,7 @@ private fun WalletNavHost(
                 },
                 onClickLogo = onClickLogo,
                 onClickBack = navigator::navigateBack,
-                onClickFAQs = null,
+                onClickFAQ = { urlOpener("https://wallet.a-sit.plus") },
                 onClickAttestation = { navigator.navigate(AttestationSettingsRoute) },
                 onReset = { navigator.navigateNewGraph(InitializationRoute) },
                 koinScope = koinScope
