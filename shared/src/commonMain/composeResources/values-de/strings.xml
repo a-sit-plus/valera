@@ -288,6 +288,7 @@
     <string name="heading_label_authenticate_at_device_screen">Anmelden\nan Service Provider</string>
     <string name="heading_label_sign_document">Dokument signieren</string>
     <string name="heading_label_check_scan_qr_code">QR-Code Scannen</string>
+    <string name="heading_label_scan_qr_code">QR-Code scannen</string>
     <string name="heading_label_show_qr_code_screen">Scan mich!</string>
     <string name="heading_label_received_data">Erhaltene Daten</string>
     <string name="heading_label_select_vda">VDA auswählen</string>

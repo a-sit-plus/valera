@@ -27,8 +27,6 @@ fun QrCodeScannerScreen(
             subTitle = subTitle,
             navigateUp = navigateUp,
             onFoundQrCode = onFoundQrCode,
-            onClickLogo = onClickLogo,
-            onClickSettings = onClickSettings,
         )
     } else {
         CapabilityView(
