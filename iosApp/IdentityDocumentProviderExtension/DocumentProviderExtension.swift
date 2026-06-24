@@ -160,6 +160,12 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
         }
 
         private func setupForCurrentRequest(statefulViewController: StatefulViewController, context: Context) {
+            // The extension process is reused across DC API requests, so the cached transient
+            // session keeps a stale DataStore snapshot (DataStore is single-process and never
+            // observes the main app's cross-process writes). Close it so the session below is
+            // rebuilt with a fresh DataStore that reads newly issued credentials from disk.
+            IosSessionBridge.shared.closeTransientFlowSession()
+
             // Reset per-request state before wiring up the new request.
             context.coordinator.requestStarted = false
             context.coordinator.lastRequestSignature = buildRequestSignature(from: requestContext)
