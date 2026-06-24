@@ -533,8 +533,7 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
             LogViewModel(
                 navigateUp = navigator::navigateBack,
                 walletMain = walletMain,
-                onClickLogo = onClickLogo,
-                onClickSettings = { navigator.navigate(SettingsRoute) })
+                onClickLogo = onClickLogo)
         })
     }
 
