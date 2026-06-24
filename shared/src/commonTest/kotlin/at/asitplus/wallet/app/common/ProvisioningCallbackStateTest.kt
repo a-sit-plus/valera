@@ -34,5 +34,5 @@ class ProvisioningCallbackStateTest {
 }
 
 private object IntentStateTestConstants {
-    const val PROVISIONING_CALLBACK_URI = "asitplus-wallet://wallet.a-sit.at/app/callback/provisioning"
+    const val PROVISIONING_CALLBACK_URI = "asitplus-wallet://wallet.a-sit.plus/app/callback/provisioning"
 }

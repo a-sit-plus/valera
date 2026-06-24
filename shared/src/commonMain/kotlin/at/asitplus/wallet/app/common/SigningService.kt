@@ -70,7 +70,7 @@ class SigningService(
 
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = httpService.buildHttpClient(cookieStorage)
-    private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback/signing"
+    private val redirectUrl = "asitplus-wallet://wallet.a-sit.plus/app/callback/signing"
     private val pdfSigningService = "https://apps.egiz.gv.at/qtsp"
     lateinit var rqesWalletService: RqesWalletService
 

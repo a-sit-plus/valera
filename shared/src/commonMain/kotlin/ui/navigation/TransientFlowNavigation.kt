@@ -106,7 +106,7 @@ fun TransientFlowNavigation(
         )
     }
 
-    val onClickLogo = { urlOpener("https://wallet.a-sit.at/") }
+    val onClickLogo = { urlOpener("https://wallet.a-sit.plus/") }
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }

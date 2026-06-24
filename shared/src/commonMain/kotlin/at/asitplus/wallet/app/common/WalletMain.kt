@@ -158,7 +158,7 @@ class WalletMain(
         scope.launch(Dispatchers.IO) {
             catchingUnwrapped {
                 val httpClient = httpService.buildHttpClient()
-                val host = "https://wallet.a-sit.at/"
+                val host = "https://wallet.a-sit.plus/"
                 val url = "${host}check.json"
                 Napier.d("Performing update check with $url")
                 val json = httpClient.get(url).body<JsonObject>()
