@@ -45,9 +45,7 @@
     <string name="button_label_close">Schließen</string>
     <string name="button_label_open_url">URL öffnen</string>
     <string name="button_label_scan_qr_code">QR-Code scannen</string>
-    <string name="button_label_faq">FAQ</string>
-    <string name="button_label_licenses">Lizenzen</string>
-    <string name="button_label_data_protection_policy">Datenschutzrichtlinie</string>
+    <string name="button_label_faq">FAQ unter wallet.a-sit.plus</string>
     <string name="button_label_share_log_file">Log-Datei teilen</string>
     <string name="button_label_reset_app">App zurücksetzen</string>
     <string name="button_label_clear_log">Log löschen</string>
@@ -326,7 +324,6 @@
     <string name="error_credential_timeliness_not_yet_valid">NOCH NICHT GÜLTIG</string>
     <string name="error_credential_selection_error_invalid_request_id">Keine Auswahl mit requestId</string>
     <string name="error_credential_scheme_not_supported">Credential Schema wird nicht unterstützt</string>
-    <string name="error_feature_not_yet_available">Implementation unvollständig</string>
     <string name="error_authentication_at_sp_failed">Anmeldung fehlgeschlagen</string>
     <string name="error_biometric_error_no_hardware">Keine kryptografische Hardware gefunden.</string>
     <string name="error_biometric_error_hardware_unavailable">Hardware für Biometrie ist nicht verfügbar.</string>

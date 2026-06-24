@@ -45,10 +45,8 @@
     <string name="button_label_close">Close</string>
     <string name="button_label_open_url">Open URL</string>
     <string name="button_label_scan_qr_code">Scan QR-Code</string>
-    <string name="button_label_faq">FAQ</string>
-    <string name="button_label_licenses">Licenses</string>
-    <string name="button_label_data_protection_policy">Privacy policy</string>
-    <string name="button_label_share_log_file">Share Log-File</string>
+    <string name="button_label_faq">FAQ at wallet.a-sit.plus</string>
+    <string name="button_label_share_log_file">Share Log file</string>
     <string name="button_label_reset_app">Reset App</string>
     <string name="button_label_clear_log">Clear Log</string>
     <string name="button_label_default">Default</string>
@@ -331,7 +329,6 @@
     <string name="error_credential_timeliness_expired">EXPIRED</string>
     <string name="error_credential_timeliness_not_yet_valid">NOT YET VALID</string>
     <string name="error_credential_scheme_not_supported">Unsupported credential scheme</string>
-    <string name="error_feature_not_yet_available">Incomplete Implementation</string>
     <string name="error_authentication_at_sp_failed">Authentication failed</string>
     <string name="error_biometric_error_no_hardware">error_biometric_error_no_hardware</string>
     <string name="error_biometric_error_hardware_unavailable">BIOMETRIC_ERROR_HW_UNAVAILABLE</string>

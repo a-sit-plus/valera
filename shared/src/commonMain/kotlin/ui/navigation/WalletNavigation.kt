@@ -577,8 +577,6 @@ private fun WalletNavHost(
                 onClickLogo = onClickLogo,
                 onClickBack = navigator::navigateBack,
                 onClickFAQs = null,
-                onClickDataProtectionPolicy = null,
-                onClickLicenses = null,
                 onClickAttestation = { navigator.navigate(AttestationSettingsRoute) },
                 onReset = { navigator.navigateNewGraph(InitializationRoute) },
                 koinScope = koinScope
