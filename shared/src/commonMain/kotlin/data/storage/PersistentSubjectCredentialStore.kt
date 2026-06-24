@@ -7,10 +7,12 @@ import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
+import at.asitplus.wallet.lib.agent.validation.CredentialFreshnessSummary
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
 import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
+import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatusValidationResult
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
@@ -226,14 +228,18 @@ class PersistentSubjectCredentialStore(
 
             deferredStatus.map { (pair, deferred) ->
                 pair to deferred.await()
-            }.filter { (_, freshness) ->
-                !freshness.isFresh
+            }.filter { (pair, freshness) ->
+                pair.second.renewalInfo != null && freshness.needsRefresh
             }.map { (pair, _) ->
                 pair
             }
         }
     }
 }
+
+private val CredentialFreshnessSummary.needsRefresh: Boolean
+    get() = timelinessValidationSummary.isExpired ||
+            tokenStatusValidationResult is TokenStatusValidationResult.Invalid
 
 typealias StoreEntryId = Long
 
