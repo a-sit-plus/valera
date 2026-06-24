@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Key
@@ -89,7 +90,7 @@ fun SettingsView(
     onClickShareLogFile: () -> Unit,
     onClickLogo: () -> Unit,
     onClickBack: () -> Unit,
-    onClickFAQ: (() -> Unit)?,
+    onClickFAQ: () -> Unit,
     onClickAttestation: () -> Unit,
     koinScope: Scope,
     onReset: () -> Unit,
@@ -217,10 +218,14 @@ fun SettingsView(
                                 )
                             },
                             label = stringResource(Res.string.button_label_faq),
-                            onClick = {
-                                onClickFAQ?.invoke()
-                            },
+                            onClick = onClickFAQ,
                             modifier = listSpacingModifier.fillMaxWidth(),
+                            trailingIcon = {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                                    contentDescription = null,
+                                )
+                            },
                         )
                     }
 
@@ -339,13 +344,15 @@ private fun TextIconButtonListItem(
     icon: @Composable () -> Unit,
     label: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    trailingIcon: (@Composable () -> Unit)? = null,
 ) {
     val gap = 16.dp
     Row(
         modifier = modifier.clickable(
             onClick = onClick,
         ).padding(top = 8.dp, end = 24.dp, bottom = 8.dp, start = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         icon()
         Spacer(modifier = Modifier.width(gap))
@@ -353,6 +360,10 @@ private fun TextIconButtonListItem(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
         )
+        if (trailingIcon != null) {
+            Spacer(modifier = Modifier.weight(1f).width(gap))
+            trailingIcon()
+        }
     }
 }
 
