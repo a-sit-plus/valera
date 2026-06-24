@@ -91,7 +91,7 @@ class RealCapabilitiesService(
     }
 
     private suspend fun getOnlineStatus() = catchingUnwrapped {
-        HttpClient().get("https://wallet.a-sit.at/check.json")
+        HttpClient().get("https://wallet.a-sit.plus/check.json")
     }.isSuccess
 
     private suspend fun getSignerStatus() = keyStoreService.testSigner()

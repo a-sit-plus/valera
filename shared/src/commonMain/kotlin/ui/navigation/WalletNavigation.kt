@@ -116,7 +116,7 @@ fun WalletNavigation(
         )
     }
 
-    val onClickLogo = { urlOpener("https://wallet.a-sit.at/") }
+    val onClickLogo = { urlOpener("https://wallet.a-sit.plus/") }
 
     val startDestination = remember(initialLink) {
         if (initialLink != null) {

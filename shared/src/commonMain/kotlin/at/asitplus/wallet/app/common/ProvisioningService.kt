@@ -85,7 +85,7 @@ class ProvisioningService(
         preferenceKey = Configuration.DATASTORE_KEY_ACTIVE_PROVISIONING_STATE,
     )
 
-    private val redirectUrl = "asitplus-wallet://wallet.a-sit.at/app/callback/provisioning"
+    private val redirectUrl = "asitplus-wallet://wallet.a-sit.plus/app/callback/provisioning"
     private var cachedClientId: String? = null
     private var cachedWalletProviderAttestationEnabled: Boolean? = null
 

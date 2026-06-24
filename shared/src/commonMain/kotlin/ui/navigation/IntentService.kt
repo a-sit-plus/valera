@@ -81,8 +81,8 @@ class IntentService(
         const val CREATE_CREDENTIAL_INTENT = "androidx.credentials.registry.provider.action.CREATE_CREDENTIAL"
         const val IOS_DC_API_CALL = "IOS_DC_API_CALL"
         const val IOS_DC_API_PRE_REQUEST = "IOS_DC_API_PRE_REQUEST"
-        const val SIGNING_CALLBACK_URI = "asitplus-wallet://wallet.a-sit.at/app/callback/signing"
-        const val PROVISIONING_CALLBACK_URI = "asitplus-wallet://wallet.a-sit.at/app/callback/provisioning"
+        const val SIGNING_CALLBACK_URI = "asitplus-wallet://wallet.a-sit.plus/app/callback/signing"
+        const val PROVISIONING_CALLBACK_URI = "asitplus-wallet://wallet.a-sit.plus/app/callback/provisioning"
         const val OPENID4CI_AUTHORIZATION_REQUEST_URI_PREFIX = "eudi-openid4ci://authorize"
     }
 
