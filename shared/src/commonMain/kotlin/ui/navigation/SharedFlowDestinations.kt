@@ -439,8 +439,7 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
                 storeEntryId = backStackEntry.toRoute<CredentialDetailsRoute>().storeEntryId,
                 navigateUp = navigator::navigateBack,
                 walletMain = walletMain,
-                onClickLogo = onClickLogo,
-                onClickSettings = { navigator.navigate(SettingsRoute) })
+                onClickLogo = onClickLogo)
         })
     }
 
@@ -560,7 +559,6 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
         AttestationSettingsView(
             onClickLogo = onClickLogo,
             onClickBack = { navigator.navigateBack() },
-            onClickSettings = { navigator.navigateBack() },
             vm = remember { AttestationSettingsViewModel(walletMain.attestationService, walletMain.settingsRepository) },
             onError = { walletMain.errorService.emit(it) }
         )

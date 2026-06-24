@@ -590,7 +590,6 @@ private fun WalletNavHost(
                     navigator.navigate(LogRoute)
                 },
                 onClickLogo = onClickLogo,
-                onClickSettings = { navigator.popToInvoker() },
                 onClickBack = navigator::navigateBack,
                 onClickFAQs = null,
                 onClickDataProtectionPolicy = null,

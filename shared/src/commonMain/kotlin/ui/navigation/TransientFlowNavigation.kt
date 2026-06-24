@@ -371,7 +371,6 @@ private fun TransientFlowNavHost(
                 version = walletMain.buildContext.versionName,
                 onClickShareLogFile = { navigator.navigate(LogRoute) },
                 onClickLogo = onClickLogo,
-                onClickSettings = navigator::navigateBack,
                 onClickBack = navigator::navigateBack,
                 onClickFAQs = null,
                 onClickDataProtectionPolicy = null,
