@@ -27,12 +27,12 @@ import at.asitplus.wallet.app.ios.DigitalCredentials
 import at.asitplus.wallet.eupid.EU_PID_DOCTYPE
 import at.asitplus.wallet.mdl.MDL_DOCTYPE
 import kotlinx.cinterop.*
-import kotlinx.atomicfu.locks.SynchronizedObject
-import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToByteArray
 import kotlin.coroutines.resume
@@ -102,7 +102,7 @@ class IosPlatformAdapter(
 ) : PlatformAdapter {
     private companion object {
         const val REGISTERED_DOCUMENT_IDS_DEFAULTS_KEY = "dcapi.registeredDocumentIds"
-        val registeredDocumentIdsLock = SynchronizedObject()
+        val registeredDocumentIdsLock = Mutex()
         val registeredDocumentIds = mutableSetOf<String>().apply {
             addAll(loadRegisteredDocumentIds())
         }
@@ -267,26 +267,24 @@ class IosPlatformAdapter(
         scope: CoroutineScope
     ) {
         withContext(Dispatchers.Default) {
-            val currentIds = entries.credentials.mapNotNull { entry ->
-                entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
-            }.toSet()
-            val staleIds = synchronized(registeredDocumentIdsLock) {
-                registeredDocumentIds - currentIds
-            }
-            staleIds.forEach { id ->
-                if (removeDocumentFromSwift(id, scope)) {
-                    synchronized(registeredDocumentIdsLock) {
+            // Serialize the whole removal+add process so concurrent snapshots can't interleave.
+            registeredDocumentIdsLock.withLock {
+                val currentIds = entries.credentials.mapNotNull { entry ->
+                    entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
+                }.toSet()
+                val staleIds = registeredDocumentIds - currentIds
+                staleIds.forEach { id ->
+                    if (removeDocumentFromSwift(id, scope)) {
                         registeredDocumentIds.remove(id)
                         saveRegisteredDocumentIds(registeredDocumentIds)
                     }
                 }
-            }
-            for (entry in entries.credentials) {
-                val id = entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
-                val docType = entry.isoEntry?.docType ?: entry.sdJwtEntry?.verifiableCredentialType
-                if (id != null && docType != null) {
-                    if (storeDocumentFromSwift(id, docType, scope)) {
-                        synchronized(registeredDocumentIdsLock) {
+                for (entry in entries.credentials) {
+                    val id = entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
+                    val docType = entry.isoEntry?.docType ?: entry.sdJwtEntry?.verifiableCredentialType
+                    // Only register credentials we haven't registered before.
+                    if (id != null && docType != null && id !in registeredDocumentIds) {
+                        if (storeDocumentFromSwift(id, docType, scope)) {
                             registeredDocumentIds.add(id)
                             saveRegisteredDocumentIds(registeredDocumentIds)
                         }
