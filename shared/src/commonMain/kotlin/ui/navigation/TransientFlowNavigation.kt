@@ -32,11 +32,10 @@ import org.jetbrains.compose.resources.getString
 import org.koin.compose.koinInject
 import org.koin.core.scope.Scope
 import ui.navigation.routes.*
-import ui.viewmodels.ErrorViewModel
+import ui.viewmodels.*
 import ui.viewmodels.authentication.PresentationViewModel
-import ui.views.ErrorView
-import ui.views.SettingsView
-import ui.views.intents.IosDcApiPreRequestView
+import ui.views.*
+import ui.views.intents.*
 import ui.views.presentation.PresentationView
 
 @ExperimentalMaterial3Api
@@ -340,8 +339,6 @@ private fun TransientFlowNavHost(
                 onClickLogo = onClickLogo,
                 onClickBack = navigator::navigateBack,
                 onClickFAQs = null,
-                onClickDataProtectionPolicy = null,
-                onClickLicenses = null,
                 onReset = {
                     walletMain.scope.launch { walletMain.resetApp() }
                     navigator.popToInvoker()

@@ -18,7 +18,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import androidx.compose.material.icons.outlined.Share
@@ -50,15 +49,12 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_attestation_config
 import at.asitplus.valera.resources.button_label_clear_log
 import at.asitplus.valera.resources.button_label_confirm
-import at.asitplus.valera.resources.button_label_data_protection_policy
 import at.asitplus.valera.resources.button_label_default
 import at.asitplus.valera.resources.button_label_dismiss
 import at.asitplus.valera.resources.button_label_faq
-import at.asitplus.valera.resources.button_label_licenses
 import at.asitplus.valera.resources.button_label_reset_app
 import at.asitplus.valera.resources.button_label_share_log_file
 import at.asitplus.valera.resources.error_clearing_log_failed
-import at.asitplus.valera.resources.error_feature_not_yet_available
 import at.asitplus.valera.resources.error_resetting_app_failed
 import at.asitplus.valera.resources.eu_normal_reproduction_low_resolution
 import at.asitplus.valera.resources.heading_label_settings_screen
@@ -94,8 +90,6 @@ fun SettingsView(
     onClickLogo: () -> Unit,
     onClickBack: () -> Unit,
     onClickFAQs: (() -> Unit)?,
-    onClickDataProtectionPolicy: (() -> Unit)?,
-    onClickLicenses: (() -> Unit)?,
     onClickAttestation: () -> Unit,
     koinScope: Scope,
     onReset: () -> Unit,
@@ -224,39 +218,8 @@ fun SettingsView(
                             },
                             label = stringResource(Res.string.button_label_faq),
                             onClick = {
-                                onClickFAQs?.invoke() ?: settingsViewModel.showGlobalSnackbar {
-                                    getString(Res.string.error_feature_not_yet_available)
-                                }
-                            },
-                            modifier = listSpacingModifier.fillMaxWidth(),
-                        )
-                        TextIconButtonListItem(
-                            icon = {
-                                Icon(
-                                    imageVector = Icons.Outlined.Info,
-                                    contentDescription = null,
-                                )
-                            },
-                            label = stringResource(Res.string.button_label_data_protection_policy),
-                            onClick = {
-                                onClickDataProtectionPolicy?.invoke() ?: settingsViewModel.showGlobalSnackbar {
-                                    getString(Res.string.error_feature_not_yet_available)
-                                }
-                            },
-                            modifier = listSpacingModifier.fillMaxWidth(),
-                        )
-                        TextIconButtonListItem(
-                            icon = {
-                                Icon(
-                                    imageVector = Icons.Outlined.Info,
-                                    contentDescription = null,
-                                )
-                            },
-                            label = stringResource(Res.string.button_label_licenses),
-                            onClick = {
-                                onClickLicenses?.invoke() ?: settingsViewModel.showGlobalSnackbar {
-                                    getString(Res.string.error_feature_not_yet_available)
-                                }
+                                // TODO make it open external browser
+                                onClickFAQs?.invoke()
                             },
                             modifier = listSpacingModifier.fillMaxWidth(),
                         )
