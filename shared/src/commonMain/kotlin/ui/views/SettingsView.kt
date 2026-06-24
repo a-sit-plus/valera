@@ -89,7 +89,7 @@ fun SettingsView(
     onClickShareLogFile: () -> Unit,
     onClickLogo: () -> Unit,
     onClickBack: () -> Unit,
-    onClickFAQs: (() -> Unit)?,
+    onClickFAQ: (() -> Unit)?,
     onClickAttestation: () -> Unit,
     koinScope: Scope,
     onReset: () -> Unit,
@@ -218,8 +218,7 @@ fun SettingsView(
                             },
                             label = stringResource(Res.string.button_label_faq),
                             onClick = {
-                                // TODO make it open external browser
-                                onClickFAQs?.invoke()
+                                onClickFAQ?.invoke()
                             },
                             modifier = listSpacingModifier.fillMaxWidth(),
                         )

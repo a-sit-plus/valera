@@ -338,7 +338,7 @@ private fun TransientFlowNavHost(
                 onClickShareLogFile = { navigator.navigate(LogRoute) },
                 onClickLogo = onClickLogo,
                 onClickBack = navigator::navigateBack,
-                onClickFAQs = null,
+                onClickFAQ = { urlOpener("https://wallet.a-sit.plus") },
                 onReset = {
                     walletMain.scope.launch { walletMain.resetApp() }
                     navigator.popToInvoker()
