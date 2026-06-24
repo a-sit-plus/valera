@@ -20,7 +20,6 @@ import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Key
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
@@ -94,7 +93,6 @@ fun SettingsView(
     onClickShareLogFile: () -> Unit,
     onClickLogo: () -> Unit,
     onClickBack: () -> Unit,
-    onClickSettings: () -> Unit,
     onClickFAQs: (() -> Unit)?,
     onClickDataProtectionPolicy: (() -> Unit)?,
     onClickLicenses: (() -> Unit)?,
@@ -151,12 +149,6 @@ fun SettingsView(
                 },
                 actions = {
                     Logo(onClick = onClickLogo)
-                    Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
-                        Icon(
-                            imageVector = Icons.Outlined.Settings,
-                            contentDescription = null,
-                        )
-                    }
                     Spacer(Modifier.width(15.dp))
                 },
                 navigationIcon = {

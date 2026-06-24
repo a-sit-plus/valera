@@ -22,7 +22,6 @@ class LoadCredentialViewModel(
     val credentialIdentifiers: Collection<CredentialIdentifierInfo>,
     val offer: CredentialOffer?,
     val onClickLogo: () -> Unit,
-    val onClickSettings: () -> Unit,
 ) {
     
     init {
@@ -64,7 +63,6 @@ class LoadCredentialViewModel(
             navigateUp: () -> Unit,
             hostString: String,
             onClickLogo: () -> Unit,
-            onClickSettings: () -> Unit,
             onProgress: ((LoadingMessageKey) -> Unit)? = null,
         ) = LoadCredentialViewModel(
             walletMain = walletMain,
@@ -73,7 +71,6 @@ class LoadCredentialViewModel(
             hostString = hostString,
             offer = null,
             onClickLogo = onClickLogo,
-            onClickSettings = onClickSettings,
             credentialIdentifiers = walletMain.scope.async {
                 onProgress?.invoke(LoadingMessageKey.IssuerMetadata)
                 walletMain.provisioningService.loadCredentialMetadata(hostString)
@@ -86,7 +83,6 @@ class LoadCredentialViewModel(
             onSubmit: CredentialSelection,
             navigateUp: () -> Unit,
             onClickLogo: () -> Unit,
-            onClickSettings: () -> Unit,
             onProgress: ((LoadingMessageKey) -> Unit)? = null,
         ) = LoadCredentialViewModel(
             walletMain = walletMain,
@@ -95,7 +91,6 @@ class LoadCredentialViewModel(
             hostString = offer.credentialIssuer,
             offer = offer,
             onClickLogo = onClickLogo,
-            onClickSettings = onClickSettings,
             credentialIdentifiers = walletMain.scope.async {
                 onProgress?.invoke(LoadingMessageKey.IssuerMetadata)
                 walletMain.provisioningService.loadCredentialMetadata(offer.credentialIssuer)
@@ -109,7 +104,6 @@ class LoadCredentialViewModel(
             onSubmit: CredentialSelection,
             navigateUp: () -> Unit,
             onClickLogo: () -> Unit,
-            onClickSettings: () -> Unit,
             onProgress: ((LoadingMessageKey) -> Unit)? = null,
         ) = LoadCredentialViewModel(
             walletMain = walletMain,
@@ -118,7 +112,6 @@ class LoadCredentialViewModel(
             hostString = offer.credentialIssuer,
             offer = offer,
             onClickLogo = onClickLogo,
-            onClickSettings = onClickSettings,
             credentialIdentifiers = walletMain.scope.async {
                 onProgress?.invoke(LoadingMessageKey.IssuerMetadata)
                 val issuerMetadata = requireNotNull(offer.credentialIssuerMetadata) {
@@ -134,7 +127,6 @@ class LoadCredentialViewModel(
             onSubmit: CredentialSelection,
             navigateUp: () -> Unit,
             onClickLogo: () -> Unit,
-            onClickSettings: () -> Unit,
             onProgress: ((LoadingMessageKey) -> Unit)? = null,
         ): LoadCredentialViewModel {
             val offer = walletMain.scope.async {
@@ -148,7 +140,6 @@ class LoadCredentialViewModel(
                 hostString = offer.credentialIssuer,
                 offer = offer,
                 onClickLogo = onClickLogo,
-                onClickSettings = onClickSettings,
                 credentialIdentifiers = walletMain.scope.async {
                     onProgress?.invoke(LoadingMessageKey.IssuerMetadata)
                     walletMain.provisioningService.loadCredentialMetadata(offer.credentialIssuer)

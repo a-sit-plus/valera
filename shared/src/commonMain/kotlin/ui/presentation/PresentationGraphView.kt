@@ -39,7 +39,6 @@ fun PresentationGraphView(
     onNavigateUp: () -> Unit,
     onError: (Throwable) -> Unit,
     onClickLogo: () -> Unit,
-    onClickSettings: () -> Unit,
     selectionProvider: UiState<CredentialSelectionProvider<SubjectCredentialStore.StoreEntry>>,
     submitPresentation: SubmitPresentation,
     navController: NavHostController = rememberNavController(),
@@ -90,7 +89,6 @@ fun PresentationGraphView(
             CommonPresentationPageScaffold(
                 title = startPageTitle,
                 onClickLogo = onClickLogo,
-                onClickSettings = onClickSettings,
                 onNavigateUp = onNavigateUp,
                 navigateUpIsClose = navigateUpIsClose,
             ) {
@@ -130,7 +128,6 @@ fun PresentationGraphView(
                 serviceProviderLocalizedLocation = serviceProviderLocationLocalized,
                 selectionProvider = selectionProvider,
                 onClickLogo = onClickLogo,
-                onClickSettings = onClickSettings,
                 onError = onError,
                 onNavigateUp = onNavigateUp,
                 onNavigateToPresentationStart = {
@@ -162,7 +159,6 @@ fun PresentationGraphView(
                 koinScope = koinScope,
                 navigateUp = onNavigateUp,
                 onClickLogo = onClickLogo,
-                onClickSettings = onClickSettings,
                 navigateUpIsClose = navigateUpIsClose,
             )
         }

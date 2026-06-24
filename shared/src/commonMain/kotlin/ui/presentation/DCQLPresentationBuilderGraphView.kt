@@ -20,7 +20,6 @@ fun DCQLPresentationBuilderGraphView(
     serviceProviderLocalizedLocation: String,
     dcqlQuery: DCQLQuery,
     onClickLogo: () -> Unit,
-    onClickSettings: () -> Unit,
     /**
      * This delegates to library users how to display the credential cards.
      * A library user may also include credentials that did not match and simply not invoke the selection function.
@@ -57,7 +56,6 @@ fun DCQLPresentationBuilderGraphView(
     CommonPresentationPageScaffold(
         title = title,
         onClickLogo = onClickLogo,
-        onClickSettings = onClickSettings,
         onNavigateUp = {
             navigationManager.popSelectionsUntilConfirmationInclusive {
                 onNavigateUp()

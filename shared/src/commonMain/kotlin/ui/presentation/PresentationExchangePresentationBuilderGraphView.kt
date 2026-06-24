@@ -20,7 +20,6 @@ fun PresentationExchangePresentationBuilderGraphView(
     serviceProviderLocalizedName: String?,
     serviceProviderLocalizedLocation: String,
     onClickLogo: () -> Unit,
-    onClickSettings: () -> Unit,
     /**
      * This delegates to library users how to display the credential cards.
      * A library user may also include credentials that did not match and simply not invoke the selection function.
@@ -31,7 +30,6 @@ fun PresentationExchangePresentationBuilderGraphView(
 ) {
     AuthenticationSelectionPresentationExchangeView(
         onClickLogo = onClickLogo,
-        onClickSettings = onClickSettings,
         vm = AuthenticationSelectionPresentationExchangeViewModel(
             confirmSelections = { selections -> onSubmit(selections) },
             navigateUp = onNavigateUp,

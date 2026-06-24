@@ -1,6 +1,5 @@
 package ui.views.iso.verifier
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,7 +13,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -66,7 +64,6 @@ import ui.views.iso.verifier.requests.PIDRequests
 @Composable
 fun VerifierCombinedSelectionView(
     onClickLogo: () -> Unit,
-    onClickSettings: () -> Unit,
     navigateUp: () -> Unit,
     vm: VerifierViewModel
 ) {
@@ -109,9 +106,6 @@ fun VerifierCombinedSelectionView(
                 },
                 actions = {
                     Logo(onClick = onClickLogo)
-                    Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
-                        Icon(imageVector = Icons.Outlined.Settings, contentDescription = null)
-                    }
                     Spacer(Modifier.width(15.dp))
                 },
                 navigationIcon = { NavigateUpButton(navigateUp) }

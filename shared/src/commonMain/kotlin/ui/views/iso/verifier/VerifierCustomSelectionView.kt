@@ -1,6 +1,5 @@
 package ui.views.iso.verifier
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,7 +11,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -50,7 +48,6 @@ import ui.views.iso.common.SingleChoiceButton
 @Composable
 fun VerifierCustomSelectionView(
     onClickLogo: () -> Unit,
-    onClickSettings: () -> Unit,
     navigateUp: () -> Unit,
     vm: VerifierViewModel
 ) {
@@ -75,12 +72,6 @@ fun VerifierCustomSelectionView(
                 },
                 actions = {
                     Logo(onClick = onClickLogo)
-                    Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
-                        Icon(
-                            imageVector = Icons.Outlined.Settings,
-                            contentDescription = null
-                        )
-                    }
                     Spacer(Modifier.width(15.dp))
                 },
                 navigationIcon = { NavigateUpButton(navigateUp) }

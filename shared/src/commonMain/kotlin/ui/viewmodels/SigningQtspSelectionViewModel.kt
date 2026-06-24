@@ -12,7 +12,6 @@ class SigningQtspSelectionViewModel(
     val onContinue: (SignatureRequestParameters) -> Unit,
     val walletMain: WalletMain,
     val onClickLogo: () -> Unit,
-    val onClickSettings: () -> Unit,
     val signatureRequestParameters: SignatureRequestParameters
 ) {
     val selection = mutableStateOf(walletMain.signingService.config.current)

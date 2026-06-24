@@ -13,7 +13,6 @@ fun DCAPIPresentationGraphView(
     onNavigateUp: () -> Unit,
     onError: (Throwable) -> Unit,
     onClickLogo: () -> Unit,
-    onClickSettings: () -> Unit,
     koinScope: Scope,
     showStartRoute: Boolean = true,
     viewModel: DCAPIPresentationGraphViewModel = koinViewModel(scope = koinScope),
@@ -39,7 +38,6 @@ fun DCAPIPresentationGraphView(
         onNavigateUp = onNavigateUp,
         onError = onError,
         onClickLogo = onClickLogo,
-        onClickSettings = onClickSettings,
         navigateUpIsClose = true,
         selectionProvider = matchingResult.map {
             it.second
