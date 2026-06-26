@@ -1,4 +1,4 @@
-# Release 5.7.7 (unreleased)
+# Release 5.8.0
  * Update to VC-K 6.0.0
  * Credentials: Show credential titles in refresh prompts and allow suppressing a prompt for a single credential
  * Issuing: Update key attestation to VC-K 6.0 / TS3 WUA 1.5 APIs
