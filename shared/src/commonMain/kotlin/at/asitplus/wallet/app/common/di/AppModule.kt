@@ -48,15 +48,21 @@ fun appModule(): Module = module {
                 credentialValidityService = get(),
                 attestationService = get(),
                 sessionCoroutineScope = get(),
-                trustListService = get()
+                trustListService = get(),
             )
         }
         scopedOf(::ErrorService)
         scopedOf(::LoadingStatusService)
         scopedOf(::CredentialValidityService)
-        scopedOf(::TrustListService)
         scopedOf(::RealCapabilitiesService) binds arrayOf(CapabilitiesService::class)
         scopedOf(::IntentService)
+        scoped {
+            TrustListService(
+                persistentTrustListStore = get(),
+                httpService = get()
+            )
+        }
+
     }
 
     includes(dataModule())

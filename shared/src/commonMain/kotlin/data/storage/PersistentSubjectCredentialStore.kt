@@ -272,6 +272,7 @@ private sealed interface ExportableStoreEntry {
     val renewalInfo: CredentialRenewalInfo?
     // has been added nullable to not break de-serializing existing store entries
     val schemeIdentifier: String?
+    val issuer: ByteArray?
     @Serializable
     data class Vc(
         val vcSerialized: String,

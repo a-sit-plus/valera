@@ -5,8 +5,6 @@ import at.asitplus.catching
 import at.asitplus.etsi.ListOfTrustedEntities
 import at.asitplus.etsi.TrustListPayload
 import at.asitplus.signum.indispensable.josef.JwsCompact
-import at.asitplus.signum.indispensable.josef.JwsSigned
-import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.etsi.LoTEFilterCriteria
@@ -29,8 +27,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import ui.views.TrustState
-import kotlin.time.Clock
+import ui.composables.TrustState
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
@@ -53,8 +50,7 @@ val asitRootPem = "-----BEGIN CERTIFICATE-----\n" +
 
 class TrustListService(
     private val persistentTrustListStore: PersistentTrustListStore,
-    private val httpService: HttpService,
-//    TODO: will be included after alignment with vck
+    httpService: HttpService,
     private val verifyJwsObject: VerifyJwsObjectFun = VerifyJwsObjectJades(),
 ) {
     private var job: Job? = null
@@ -83,7 +79,7 @@ class TrustListService(
             if (entry == null) return@combine TrustState.EVALUATING
 
             val issuerBytes = entry.issuer ?: return@combine TrustState.UNKNOWN
-            val allLoTes = trustContainerMap.values.map { it.loTe }
+            val allLoTes = trustContainerMap.values.toList()
             val serviceType = entry.schemaUri
 
             evaluateIssuer(issuerBytes, allLoTes, serviceType)
@@ -130,7 +126,7 @@ class TrustListService(
         job?.cancel()
 
         job = scope.launch {
-            delay(15.seconds)
+            delay(5.seconds)
             while (isActive) {
                 refreshAll()
                 delay(interval)
@@ -147,7 +143,7 @@ class TrustListService(
     private suspend fun syncSingleUrl(url: String) {
         fetchTrustList(url)
             .onSuccess { result ->
-                persistentTrustListStore.persistTrustList(url, result.rawJwsText, Clock.System.now().epochSeconds)
+                persistentTrustListStore.persistTrustList(url, result.rawJwsText)
                 Napier.i("Successfully synced and persisted Trust List: $url")
             }
             .onFailure { e ->

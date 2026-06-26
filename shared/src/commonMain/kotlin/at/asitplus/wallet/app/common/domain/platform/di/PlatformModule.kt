@@ -39,6 +39,7 @@ fun platformModule() = module {
         scoped<at.asitplus.wallet.app.common.KeystoreService> { get<WalletSessionBindings>().keystoreService }
         scoped<CoroutineScope> { get<WalletSessionBindings>().sessionCoroutineScope }
         scopedOf(::PersistentSubjectCredentialStore)
+        scopedOf(::PersistentTrustListStore)
 
         scoped<WalletKeyMaterial> {
             WalletKeyMaterial(get<at.asitplus.wallet.app.common.KeystoreService>().getSignerBlocking())

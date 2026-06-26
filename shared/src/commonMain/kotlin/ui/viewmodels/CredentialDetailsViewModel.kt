@@ -19,15 +19,14 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import ui.composables.TrustState
 import ui.models.CredentialFreshnessSummaryUiModel
 import ui.models.toFallbackResolvedCredential
 import ui.models.toResolvedCredential
 import ui.models.toCredentialFreshnessSummaryModel
-import ui.views.TrustState
 
 class CredentialDetailsViewModel(
     val storeEntryId: StoreEntryId,

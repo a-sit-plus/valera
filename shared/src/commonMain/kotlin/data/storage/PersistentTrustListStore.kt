@@ -5,23 +5,18 @@ import at.asitplus.etsi.TrustListPayload
 import at.asitplus.signum.indispensable.josef.JwsCompact
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-
-data class CachedTrustList(
-    val loTe: ListOfTrustedEntities,
-    val lastFetched: Long
-)
+import kotlinx.coroutines.flow.map
 
 class PersistentTrustListStore(
     private val dataStoreService: DataStoreService,
 ) {
 
-    suspend fun persistTrustList(url: String, rawJwsText: String, timestampMillis: Long) {
+    suspend fun persistTrustList(url: String, rawJwsText: String) {
         val key = TrustListStorageKeys.mapUrlToKey(url) ?: return
         dataStoreService.setPreference(rawJwsText, key)
-        dataStoreService.setPreference(timestampMillis.toString(), "${key}_last_success")
     }
 
-    fun observeTrustContainer(): Flow<Map<String, CachedTrustList>> {
+    fun observeTrustContainer(): Flow<Map<String, ListOfTrustedEntities>> {
         val keys = listOf(
             TrustListStorageKeys.PID_PROVIDERS,
             TrustListStorageKeys.WALLET_PROVIDERS,
@@ -31,19 +26,9 @@ class PersistentTrustListStore(
             TrustListStorageKeys.ASIT_PLUS_PROVIDERS
         )
 
-        val flows = keys.map { key ->
-            combine(
-                dataStoreService.getPreference(key),
-                dataStoreService.getPreference("${key}_last_success")
-            ) { rawJws, timestampStr ->
-                val lote = parseLoTE(rawJws)
-                val timestamp = timestampStr?.toLongOrNull() ?: 0L
-
-                if (lote != null) {
-                    key to CachedTrustList(lote, timestamp)
-                } else {
-                    key to null
-                }
+        val flows: List<Flow<Pair<String, ListOfTrustedEntities?>>> = keys.map { key ->
+            dataStoreService.getPreference(key).map { rawJws ->
+                key to parseLoTE(rawJws)
             }
         }
 

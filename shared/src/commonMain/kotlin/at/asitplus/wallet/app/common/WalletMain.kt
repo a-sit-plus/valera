@@ -70,7 +70,6 @@ class WalletMain(
     val attestationService: AttestationService,
     sessionCoroutineScope: CoroutineScope,
     val trustListService: TrustListService,
-    val trustListStore: PersistentTrustListStore
 ) {
     val appReady = MutableStateFlow<Boolean?>(null)
 
