@@ -48,7 +48,7 @@ Internal team members:
 * Copy [iosApp/Configuration/Signing.example.xcconfig](iosApp/Configuration/Signing.example.xcconfig) to `iosApp/Configuration/Signing.local.xcconfig`.
 * Set `SIGNING_DEVELOPMENT_TEAM` in `Signing.local.xcconfig`.
 * Set `SIGNING_DEBUG_ENTITLEMENTS_FILE = iosApp/iosApp.entitlements` if you want `Associated Domains` and NFC in local Debug device builds.
-* Set `SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER` in `Signing.local.xcconfig` if you want to create release archives locally.
+* Set `SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER` and `SIGNING_RELEASE_EXTENSION_PROVISIONING_PROFILE_SPECIFIER` in `Signing.local.xcconfig` if you want to create release archives locally.
 
 Minimal `Signing.local.xcconfig` for internal users:
 
@@ -57,6 +57,7 @@ APP_BUNDLE_IDENTIFIER = at.asitplus.wallet.compose
 SIGNING_DEVELOPMENT_TEAM = 9CYHJNG644
 SIGNING_DEBUG_ENTITLEMENTS_FILE = iosApp/iosApp.entitlements
 SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER = Compose Wallet Distribution
+SIGNING_RELEASE_EXTENSION_PROVISIONING_PROFILE_SPECIFIER = Compose Wallet Extension Distribution
 ```
 
 `SIGNING_DEBUG_ENTITLEMENTS_FILE` is resolved relative to the Xcode project directory (`iosApp/`), so use `iosApp/iosApp.entitlements` here. Using `iosApp/iosApp/iosApp.entitlements` makes Xcode look for a doubled path and fail to open the file.
@@ -74,8 +75,8 @@ External device build limitations:
 * `Associated Domains` and NFC are disabled in public Debug builds, so features that depend on those capabilities are not available on external device builds.
 
 For release builds:
-* The `Release` configuration uses manual signing.
-* Maintainers can provide `SIGNING_DEVELOPMENT_TEAM` and `SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER` in the untracked `iosApp/Configuration/Signing.local.xcconfig`.
+* The `Release` configuration uses manual signing for both the app and the `IdentityDocumentProviderExtension` target.
+* Maintainers can provide `SIGNING_DEVELOPMENT_TEAM`, `SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER`, and `SIGNING_RELEASE_EXTENSION_PROVISIONING_PROFILE_SPECIFIER` in the untracked `iosApp/Configuration/Signing.local.xcconfig`.
 * CI should inject the signing certificate and provisioning profile from secrets at runtime instead of committing signing material to the repository.
 
 Do not commit any of the following:
@@ -112,19 +113,24 @@ Create a new certificate:
  - Use the password of the `p12` file for GitHub repository secret `APPLE_CERT_PASSWORD`
 
 Create provisioning profiles:
- - XCode will register the app identifier automatically for this project
- - Create two provisioning profiles on the [Apple developer website](https://developer.apple.com/account/resources/profiles/add), one for `iOS App Development` (name it `Compose Wallet Development`) and one for `App Store Connect` (name it `Compose Wallet Distribution`)
+ - XCode will register the app identifiers automatically for this project, both for the main app (`at.asitplus.wallet.compose`) and the `IdentityDocumentProviderExtension` target (`at.asitplus.wallet.compose.IdentityDocumentProviderExtension`)
+ - Make sure the extension's App ID has the `App Groups` capability enabled and assigned to `group.Compose.Wallet`
+ - Create the following provisioning profiles on the [Apple developer website](https://developer.apple.com/account/resources/profiles/add):
+   - `iOS App Development` for the main app, name it `Compose Wallet Development`
+   - `App Store Connect` for the main app, name it `Compose Wallet Distribution`
+   - `App Store Connect` for the extension app identifier, name it `Compose Wallet Extension Distribution`
  - If you create a new key and certificate (above), you can edit the existing provisioning profile to add the new certificate
  - Be sure to include the necessary entitlements, e.g. associated domains
  - Download the provisioning profiles in XCode and set them for the project, instead of `automatically manage signing` (you can also download the profile from the website and import it in XCode when selecting the profile for the release build)
  - Use `Compose Wallet Development` for debug builds
- - Use `Compose Wallet Distribution` for release builds
+ - Use `Compose Wallet Distribution` (main app) and `Compose Wallet Extension Distribution` (extension) for release builds
 
 Local Fastlane release builds for internal users:
  - Copy `iosApp/Configuration/Signing.example.xcconfig` to `iosApp/Configuration/Signing.local.xcconfig`
  - Set `SIGNING_DEVELOPMENT_TEAM = 9CYHJNG644`
  - Set `SIGNING_DEBUG_ENTITLEMENTS_FILE = iosApp/iosApp.entitlements` if you also need local Debug device builds with NFC and associated domains
  - Set `SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER = Compose Wallet Distribution`
+ - Set `SIGNING_RELEASE_EXTENSION_PROVISIONING_PROFILE_SPECIFIER = Compose Wallet Extension Distribution`
  - Place the exported signing certificate at `iosApp/cert.p12`
  - Export `APPLE_CERT_PASSWORD`
  - Export `APPLE_ID`, `APPLE_API_KEY_ID`, `APPLE_API_ISSUER_ID`, and `APPLE_API_KEY_CONTENT`
