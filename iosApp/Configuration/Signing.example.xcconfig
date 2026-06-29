@@ -23,3 +23,6 @@ SIGNING_RELEASE_ENTITLEMENTS_FILE = iosApp/iosApp.entitlements
 
 // Required for manual Release signing if you archive locally.
 SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER =
+
+// Same, for the IdentityDocumentProviderExtension target (its own App Store profile).
+SIGNING_RELEASE_EXTENSION_PROVISIONING_PROFILE_SPECIFIER =

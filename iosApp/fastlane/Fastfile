@@ -12,6 +12,14 @@ def release_provisioning_profile
   required_xcconfig_value("SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER")
 end
 
+def extension_bundle_identifier
+  "#{app_bundle_identifier}.IdentityDocumentProviderExtension"
+end
+
+def extension_release_provisioning_profile
+  required_xcconfig_value("SIGNING_RELEASE_EXTENSION_PROVISIONING_PROFILE_SPECIFIER")
+end
+
 def app_bundle_identifier
   required_xcconfig_value("APP_BUNDLE_IDENTIFIER")
 end
@@ -43,14 +51,28 @@ lane :build do
     provisioning_name: release_provisioning_profile,
     readonly: true
   )
-  profile_path = lane_context[SharedValues::SIGH_PROFILE_PATH]
+  app_profile_path = lane_context[SharedValues::SIGH_PROFILE_PATH]
+  get_provisioning_profile(
+    app_identifier: extension_bundle_identifier,
+    team_id: signing_development_team,
+    provisioning_name: extension_release_provisioning_profile,
+    readonly: true
+  )
+  extension_profile_path = lane_context[SharedValues::SIGH_PROFILE_PATH]
   update_project_provisioning(
     build_configuration: "Release",
-    profile: profile_path,
+    profile: app_profile_path,
     target_filter: "iosApp"
   )
+  update_project_provisioning(
+    build_configuration: "Release",
+    profile: extension_profile_path,
+    target_filter: "IdentityDocumentProviderExtension"
+  )
   build_app(
+    scheme: "iosApp",
     configuration: "Release",
+    xcodebuild_formatter: "xcbeautify",
     xcargs: "SIGNING_DEVELOPMENT_TEAM=#{signing_development_team}"
   )
 end
@@ -75,18 +97,32 @@ lane :deploy do
     provisioning_name: release_provisioning_profile,
     readonly: true
   )
-  profile_path = lane_context[SharedValues::SIGH_PROFILE_PATH]
+  app_profile_path = lane_context[SharedValues::SIGH_PROFILE_PATH]
+  get_provisioning_profile(
+    app_identifier: extension_bundle_identifier,
+    team_id: signing_development_team,
+    provisioning_name: extension_release_provisioning_profile,
+    readonly: true
+  )
+  extension_profile_path = lane_context[SharedValues::SIGH_PROFILE_PATH]
   increment_build_number(
     build_number: latest_testflight_build_number + 1
   )
   update_project_provisioning(
     build_configuration: "Release",
-    profile: profile_path,
+    profile: app_profile_path,
     target_filter: "iosApp"
   )
+  update_project_provisioning(
+    build_configuration: "Release",
+    profile: extension_profile_path,
+    target_filter: "IdentityDocumentProviderExtension"
+  )
   build_app(
+    scheme: "iosApp",
     configuration: "Release",
     export_method: "app-store",
+    xcodebuild_formatter: "xcbeautify",
     xcargs: "SIGNING_DEVELOPMENT_TEAM=#{signing_development_team}"
   )
   upload_to_testflight(

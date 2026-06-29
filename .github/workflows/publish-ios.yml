@@ -2,7 +2,7 @@ name: Publish iOS App
 on: workflow_dispatch
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 90
     steps:
       - name: Common setup
@@ -10,7 +10,7 @@ jobs:
       - name: Set up Ruby gems
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.1'
+          ruby-version: '3.3'
           bundler-cache: true
         env:
           BUNDLE_GEMFILE: ${{ github.workspace }}/iosApp/Gemfile
@@ -32,6 +32,7 @@ jobs:
           APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
           SIGNING_DEVELOPMENT_TEAM: ${{ secrets.APPLE_DEVELOPMENT_TEAM }}
           SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER: Compose Wallet Distribution
+          SIGNING_RELEASE_EXTENSION_PROVISIONING_PROFILE_SPECIFIER: Compose Wallet Extension Distribution
           CI: true
       - name: Upload logs
         uses: actions/upload-artifact@v4
