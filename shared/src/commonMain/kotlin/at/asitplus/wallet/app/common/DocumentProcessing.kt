@@ -7,7 +7,7 @@ import at.asitplus.signum.indispensable.X509SignatureAlgorithm
 import at.asitplus.signum.indispensable.asn1.ObjectIdentifier
 import at.asitplus.signum.indispensable.asn1.ObjectIdentifierStringSerializer
 import at.asitplus.signum.indispensable.io.ByteArrayBase64Serializer
-import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.lib.rqes.RqesWalletService
 import io.ktor.client.HttpClient
 import io.ktor.client.request.header
@@ -178,9 +178,9 @@ internal suspend fun getDTBSR(
 
     val dtbsrResponse = client.post("${qtspHost}/sca/buildDtbs") {
         contentType(ContentType.Application.Json)
-        setBody(vckJsonSerializer.encodeToString(dtbs))
+        setBody(joseCompliantSerializer.encodeToString(dtbs))
     }
-    val wrapper = vckJsonSerializer.decodeFromString<DtbsrWrapper>(dtbsrResponse.bodyAsText())
+    val wrapper = joseCompliantSerializer.decodeFromString<DtbsrWrapper>(dtbsrResponse.bodyAsText())
 
     return wrapper.transactionToken to OAuthDocumentDigest(wrapper.dtbsr, document.label)
 }
@@ -207,12 +207,12 @@ internal suspend fun getFinishedDocuments(
                     contentType(ContentType.Application.Json)
                     header("Wallet-QTSP-ID", qtspIdentifier)
                     setBody(
-                        vckJsonSerializer.encodeToString(
+                        joseCompliantSerializer.encodeToString(
                             wrappedSig
                         )
                     )
                 }
-                val finishedDocument = vckJsonSerializer.decodeFromString<FinishedDocument>(finishedDocResponse.bodyAsText())
+                val finishedDocument = joseCompliantSerializer.decodeFromString<FinishedDocument>(finishedDocResponse.bodyAsText())
                 finishedDocuments.add(finishedDocument)
             }
         }

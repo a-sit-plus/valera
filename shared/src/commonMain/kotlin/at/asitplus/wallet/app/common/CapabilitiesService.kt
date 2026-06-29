@@ -4,7 +4,7 @@ import at.asitplus.authcheckkit.AuthCheckKit
 import at.asitplus.authcheckkit.BiometricSecurityClass
 import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.Configuration.DATASTORE_CAPABILITIES_ATTESTATION
-import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import data.storage.DataStoreService
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
@@ -31,7 +31,8 @@ interface CapabilitiesService {
 class RealCapabilitiesService(
     private val keyStoreService: KeystoreService,
     private val dataStoreService: DataStoreService,
-    private val platformAdapter: PlatformAdapter
+    private val platformAdapter: PlatformAdapter,
+    sessionCoroutineScope: CoroutineScope,
 ) : CapabilitiesService {
     private val refreshTrigger = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val deviceLockStatus: Flow<Boolean> = refreshTrigger
@@ -66,7 +67,7 @@ class RealCapabilitiesService(
 
     override fun getDeviceStatus(): Flow<CapabilitiesData?> =
         combine(flows) {
-            runCatching {
+            catchingUnwrapped {
                 CapabilitiesData(
                     it[0] as Boolean,
                     it[1] as Boolean,
@@ -80,7 +81,7 @@ class RealCapabilitiesService(
         }
 
     init {
-        CoroutineScope(Dispatchers.IO).launch {
+        sessionCoroutineScope.launch(Dispatchers.IO) {
             refreshStatus()
         }
     }
@@ -90,7 +91,7 @@ class RealCapabilitiesService(
     }
 
     private suspend fun getOnlineStatus() = catchingUnwrapped {
-        HttpClient().get("https://wallet.a-sit.at/check.json")
+        HttpClient().get("https://wallet.a-sit.plus/check.json")
     }.isSuccess
 
     private suspend fun getSignerStatus() = keyStoreService.testSigner()
@@ -105,17 +106,16 @@ class RealCapabilitiesService(
         }
 
 
-    private suspend fun getAttestationPreference() =
-        runCatching {
-            vckJsonSerializer.decodeFromString<Boolean>(
-                dataStoreService.getPreference(DATASTORE_CAPABILITIES_ATTESTATION).first()!!
-            )
-        }
+    private suspend fun getAttestationPreference() = catchingUnwrapped {
+        joseCompliantSerializer.decodeFromString<Boolean>(
+            dataStoreService.getPreference(DATASTORE_CAPABILITIES_ATTESTATION).first()!!
+        )
+    }
 
 
     private suspend fun setAttestationPreference(value: Boolean) =
         dataStoreService.setPreference(
-            key = DATASTORE_CAPABILITIES_ATTESTATION, value = vckJsonSerializer.encodeToString(value)
+            key = DATASTORE_CAPABILITIES_ATTESTATION, value = joseCompliantSerializer.encodeToString(value)
         )
 
 

@@ -23,6 +23,11 @@
 
 This [Compose Multiplatform](https://www.jetbrains.com/lp/compose-multiplatform/) app implements an Identity Wallet for iOS and Android, using [VC-K](https://github.com/a-sit-plus/vck) to load, store and present verifiable credentials.
 
+
+| ⚠️ Warning                                         |
+|:---------------------------------------------------|
+| This app is intended as a Technology Demonstrator! |
+
 <div align="center">
 
 <img alt="screenshot" src="https://github.com/user-attachments/assets/751de375-652f-4270-8cfc-00db761c26a9" width="30%" height="30%">
@@ -37,10 +42,10 @@ what an [EU digital identity wallet](https://github.com/eu-digital-identity-wall
 
 ## Features
 
-Currently, Valera can be used to fetch credentials from [wallet.a-sit.at](https://wallet.a-sit.at/m5/) in various formats
+Currently, Valera can be used to fetch credentials from [wallet-issuer.a-sit.plus](https://wallet-issuer.a-sit.plus/) in various formats
 even beyond what is targeted by the upcoming EUDIW.
 <br>
-To explore verifiable presentation in all its glory (and technical details), check out our [demo service provider](https://apps.egiz.gv.at/customverifier/#),
+To explore verifiable presentation in all its glory (and technical details), check out our [demo relying party](https://wallet-rp.a-sit.plus/),
 to present previously provisioned credentials.
 This demo service allows for freely defining how and which details of a verifiable credentials are requested for presentation.
 

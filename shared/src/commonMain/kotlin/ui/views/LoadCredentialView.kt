@@ -1,16 +1,11 @@
 package ui.views
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -47,6 +42,8 @@ fun LoadCredentialView(
         mutableStateOf(TextFieldValue(""))
     }
 
+    var isSubmitting by rememberSaveable { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -61,12 +58,6 @@ fun LoadCredentialView(
                 },
                 actions = {
                     Logo(onClick = vm.onClickLogo)
-                    Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
-                        Icon(
-                            imageVector = Icons.Outlined.Settings,
-                            contentDescription = null,
-                        )
-                    }
                     Spacer(Modifier.width(15.dp))
                 },
                 navigationIcon = {
@@ -81,10 +72,21 @@ fun LoadCredentialView(
             onChangeCredentialIdentifierInfo = { credentialIdentifierInfo = it },
             transactionCode = transactionCode,
             onChangeTransactionCode = { transactionCode = it },
-            onSubmit = { vm.onSubmit(credentialIdentifierInfo, transactionCode.text, vm.offer) },
+            onSubmit = {
+                if (!isSubmitting) {
+                    isSubmitting = true
+                    try {
+                        vm.onSubmit(credentialIdentifierInfo, transactionCode.text, vm.offer)
+                    } catch (e: Throwable) {
+                        isSubmitting = false
+                        throw e
+                    }
+                }
+            },
             modifier = Modifier.padding(scaffoldPadding),
             availableIdentifiers = vm.credentialIdentifiers,
             showTransactionCode = vm.offer?.grants?.preAuthorizedCode?.transactionCode != null,
+            isSubmitEnabled = !isSubmitting,
         )
     }
 }

@@ -4,19 +4,17 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.ExperimentalComposeUiApi
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope
 
-@ExperimentalComposeUiApi
 @ExperimentalMaterial3Api
 @Composable
 fun DCAPIPresentationGraphView(
     onNavigateUp: () -> Unit,
     onError: (Throwable) -> Unit,
     onClickLogo: () -> Unit,
-    onClickSettings: () -> Unit,
     koinScope: Scope,
+    showStartRoute: Boolean = true,
     viewModel: DCAPIPresentationGraphViewModel = koinViewModel(scope = koinScope),
 ) {
     val isoMdocRequest = try {
@@ -32,6 +30,7 @@ fun DCAPIPresentationGraphView(
 
     val matchingResult by viewModel.selectionProvider.collectAsState()
     PresentationGraphView(
+        koinScope = koinScope,
         serviceProviderLogo = null,
         serviceProviderNameLocalized = spName,
         serviceProviderLocationLocalized = spLocation,
@@ -39,11 +38,11 @@ fun DCAPIPresentationGraphView(
         onNavigateUp = onNavigateUp,
         onError = onError,
         onClickLogo = onClickLogo,
-        onClickSettings = onClickSettings,
+        navigateUpIsClose = true,
         selectionProvider = matchingResult.map {
             it.second
         },
-        submitPresentation = SubmitPresentation { it, navigate ->
+        submitPresentation = { it, navigate ->
             viewModel.confirmSelection(
                 credentialPresentationSubmissions = it,
                 onFailure = onError,
@@ -58,6 +57,8 @@ fun DCAPIPresentationGraphView(
             )
         },
         transactionData = null,
-        presentationRequest = null
+        presentationRequest = (matchingResult as? UiStateSuccess)?.value?.second
+            ?.queryMatchingResult?.presentationRequest,
+        showStartRoute = showStartRoute,
     )
 }

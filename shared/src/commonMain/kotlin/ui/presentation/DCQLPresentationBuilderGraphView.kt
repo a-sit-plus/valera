@@ -5,21 +5,21 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.backhandler.BackHandler
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.openid.dcql.DCQLQuery
 
-@ExperimentalComposeUiApi
 @ExperimentalMaterial3Api
 @Composable
 fun DCQLPresentationBuilderGraphView(
+    title: String,
     authenticateAtRelyingParty: Boolean,
     serviceProviderLocalizedName: String?,
     serviceProviderLocalizedLocation: String,
     dcqlQuery: DCQLQuery,
     onClickLogo: () -> Unit,
-    onClickSettings: () -> Unit,
     /**
      * This delegates to library users how to display the credential cards.
      * A library user may also include credentials that did not match and simply not invoke the selection function.
@@ -35,7 +35,8 @@ fun DCQLPresentationBuilderGraphView(
     }
 
     val selectionStack = navigationManager.selectionStack
-    BackHandler(selectionStack.isNotEmpty()) {
+    val backState = rememberNavigationEventState(NavigationEventInfo.None)
+    NavigationBackHandler(state = backState, isBackEnabled = selectionStack.isNotEmpty()) {
         navigationManager.popSelection()
     }
 
@@ -53,8 +54,8 @@ fun DCQLPresentationBuilderGraphView(
     val confirmedSubmissionIndices = confirmedSelections.toSubmissionIndices()
 
     CommonPresentationPageScaffold(
+        title = title,
         onClickLogo = onClickLogo,
-        onClickSettings = onClickSettings,
         onNavigateUp = {
             navigationManager.popSelectionsUntilConfirmationInclusive {
                 onNavigateUp()

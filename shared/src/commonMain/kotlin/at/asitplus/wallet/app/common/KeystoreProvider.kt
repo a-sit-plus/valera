@@ -74,8 +74,23 @@ open class KeystoreService(
     @Throws(Throwable::class)
     private suspend fun initSigner(): KeyWithSelfSignedCert = initSigner(Configuration.KS_ALIAS)
 
+    /**
+     * Reads the public key currently held under [Configuration.KS_ALIAS] directly from the platform
+     * key store, bypassing any cached [KeyMaterial]/[Signer]. Returns null when no usable key exists.
+     *
+     * Used to detect when an in-memory key material has gone stale relative to the hardware key
+     * (e.g. after the key was invalidated and re-created): signing an OID4VCI credential-request proof
+     * with a stale key surfaces only as an opaque issuer-side rejection in
+     * [at.asitplus.wallet.lib.oidvci.ProofValidator.validateJwtProof].
+     */
+    open suspend fun liveSigningPublicKey(): CryptoPublicKey? = withContext(dispatcher) {
+        PlatformSigningProvider.getSignerForKey(Configuration.KS_ALIAS)
+            .map { it.publicKey }
+            .getOrNull()
+    }
+
     open suspend fun testSigner(): Boolean = withContext(dispatcher) {
-        runCatching {
+        catchingUnwrapped {
             PlatformSigningProvider.let { provider ->
                 provider.deleteSigningKey(Configuration.KS_CAPABILITY_ALIAS)
                 provider.createSigningKey(Configuration.KS_CAPABILITY_ALIAS)
@@ -84,7 +99,7 @@ open class KeystoreService(
     }
 
     suspend fun testAttestation() = withContext(dispatcher) {
-        runCatching {
+        catchingUnwrapped {
             PlatformSigningProvider.deleteSigningKey(Configuration.KS_CAPABILITY_ALIAS)
             PlatformSigningProvider.createSigningKey(Configuration.KS_CAPABILITY_ALIAS) {
                 ec {}
@@ -150,10 +165,10 @@ open class KeystoreService(
         fun checkKeyMaterialValid() {
             PlatformSigningProvider.let { provider ->
                 runBlocking {
-                    provider.getSignerForKey(Configuration.KS_ALIAS_OLD).onSuccess {
-                        provider.deleteSigningKey(Configuration.KS_ALIAS_OLD)
-                            .getOrThrow() //well if we can't delete we're boned
-                        throw AppResetRequiredException
+                    Configuration.KS_ALIASES_OLDER_THAN_THE_HILLS.forEach { alias ->
+                        provider.getSignerForKey(alias).onSuccess {
+                            throw AppResetRequiredException
+                        }
                     }
                 }
             }
@@ -163,11 +178,13 @@ open class KeystoreService(
         fun clearKeyMaterial() {
             PlatformSigningProvider.let { provider ->
                 runBlocking {
-                    provider.getSignerForKey(Configuration.KS_ALIAS_OLD).onSuccess {
-                        provider.deleteSigningKey(Configuration.KS_ALIAS_OLD)
-                    }
-                    provider.getSignerForKey(Configuration.KS_ALIAS).onSuccess {
-                        provider.deleteSigningKey(Configuration.KS_ALIAS)
+                    Configuration.KS_ALIASES_OLDER_THAN_THE_HILLS.forEach { alias ->
+                        provider.getSignerForKey(alias).onSuccess {
+                            provider.deleteSigningKey(alias)
+                        }
+                        provider.getSignerForKey(Configuration.KS_ALIAS).onSuccess {
+                            provider.deleteSigningKey(Configuration.KS_ALIAS)
+                        }
                     }
                 }
             }

@@ -28,8 +28,7 @@ abstract class AuthenticationViewModel(
     val onAuthenticationSuccess: (redirectUrl: String?) -> Unit,
     val navigateToHomeScreen: () -> Unit,
     val walletMain: WalletMain,
-    val onClickLogo: () -> Unit,
-    val onClickSettings: () -> Unit
+    val onClickLogo: () -> Unit
 ) {
     abstract val presentationRequest: CredentialPresentationRequest
 
@@ -40,6 +39,14 @@ abstract class AuthenticationViewModel(
     lateinit var defaultCredentialSelection: Map<String, SubjectCredentialStore.StoreEntry>
 
     abstract suspend fun findMatchingCredentials(): Result<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>>
+
+    open fun onCancel() {
+        navigateUp()
+    }
+
+    open fun onError(error: Throwable) {
+        walletMain.errorService.emit(error)
+    }
 
     suspend fun onConsent() {
         matchingCredentials = findMatchingCredentials().getOrElse {
@@ -106,16 +113,20 @@ abstract class AuthenticationViewModel(
 
     abstract suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpWallet.AuthenticationResult
 
+    protected open fun handleAuthenticationSuccess(result: OpenId4VpWallet.AuthenticationSuccess) {
+        navigateUp()
+        onAuthenticationSuccess(result.redirectUri)
+    }
+
     private suspend fun finalizeAuthorization(credentialPresentation: CredentialPresentation) {
         catchingUnwrapped {
             walletMain.keyMaterial.promptText =
                 getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
             finalizationMethod(credentialPresentation) as OpenId4VpWallet.AuthenticationSuccess
         }.onSuccess {
-            navigateUp()
-            onAuthenticationSuccess(it.redirectUri)
+            handleAuthenticationSuccess(it)
         }.onFailure {
-            walletMain.errorService.emit(it)
+            onError(it)
         }
     }
 }

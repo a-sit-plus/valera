@@ -2,57 +2,88 @@ package at.asitplus.wallet.app.android
 
 import MainView
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.credentials.registry.provider.RegistryManager
-import at.asitplus.wallet.app.android.dcapi.DCAPIInvocationData
-import at.asitplus.wallet.app.common.BuildContext
-import at.asitplus.wallet.app.common.BuildType
+import at.asitplus.wallet.app.common.IntentState
+import at.asitplus.wallet.app.common.SessionService
+import io.github.aakira.napier.Napier
 import org.multipaz.prompt.AndroidPromptModel
-import ui.navigation.PRESENTATION_REQUESTED_INTENT
-
+import org.multipaz.prompt.PromptModel
+import ui.navigation.IntentService.Companion.PRESENTATION_REQUESTED_INTENT
 
 class MainActivity : AbstractWalletActivity() {
+    private val intentState = IntentState()
+    private val buildContext by lazy { createAndroidBuildContext() }
+    private val promptModel: PromptModel by lazy {
+        AndroidPromptModel.Builder().apply { addCommonDialogs() }.build()
+    }
+    private lateinit var sessionService: SessionService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-        val promptModel = AndroidPromptModel()
+        intentState.finishApp = { finish() }
+
+        if (!::sessionService.isInitialized) {
+            sessionService = SessionService().apply {
+                initialize {
+                    createAndroidMainWalletSessionScope(
+                        sessionName = "main",
+                        activity = this@MainActivity,
+                        intentState = intentState,
+                        sessionService = this,
+                        buildContext = buildContext,
+                        promptModel = promptModel
+                    )
+                }
+            }
+        }
+
         setContent {
             MainView(
-                buildContext = BuildContext(
-                    buildType = BuildType.valueOf(BuildConfig.BUILD_TYPE.uppercase()),
-                    packageName = BuildConfig.APPLICATION_ID,
-                    versionCode = BuildConfig.VERSION_CODE,
-                    versionName = BuildConfig.VERSION_NAME,
-                    osVersion = "Android ${Build.VERSION.RELEASE}"
-                ),
-                promptModel
+                buildContext = buildContext,
+                promptModel = promptModel,
+                intentState = intentState,
+                sessionService = sessionService
             )
         }
     }
 
     override fun populateLink(intent: Intent) {
+        Napier.d("MainActivity.populateLink url=${intent.data} action=${intent.action}")
         when (intent.action) {
-            RegistryManager.ACTION_GET_CREDENTIAL -> {
-                Globals.dcapiInvocationData.value =
-                    DCAPIInvocationData(intent, ::sendCredentialResponseToDCAPIInvoker)
-                Globals.appLink.value = intent.action
-            }
             PRESENTATION_REQUESTED_INTENT -> {
-                Globals.presentationStateModel.value = NdefDeviceEngagementService.presentationStateModel
-                Globals.appLink.value = PRESENTATION_REQUESTED_INTENT
+                Napier.d("MainActivity PRESENTATION_REQUESTED_INTENT")
+                intentState.presentationStateModelProvider = {
+                    NdefDeviceEngagementService.currentPresentationStateModel
+                }
+                intentState.presentationStateModel.value = NdefDeviceEngagementService.currentPresentationStateModel
+                intentState.appLink.value = PRESENTATION_REQUESTED_INTENT
             }
+
             else -> {
-                Globals.appLink.value = intent.data?.toString()
+                Napier.d("MainActivity appLink=${intent.data}")
+                intentState.presentationStateModel.value = null
+                intentState.presentationStateModelProvider = null
+                intentState.appLink.value = intent.data?.toString()
             }
         }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-            populateLink(intent)
+        populateLink(intent)
+    }
+
+    override fun onDestroy() {
+        // Guard against configuration changes: onDestroy is also called on rotation,
+        // locale switches, etc. without isFinishing = true. Closing the session there cancels
+        // in-flight coroutines and leaks the old Koin scope while the new Activity instance is
+        // already initialising a replacement session.
+        if (isFinishing && ::sessionService.isInitialized) {
+            sessionService.close()
+        }
+        super.onDestroy()
     }
 }

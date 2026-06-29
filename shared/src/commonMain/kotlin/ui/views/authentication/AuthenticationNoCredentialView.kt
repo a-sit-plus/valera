@@ -22,7 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
-import at.asitplus.valera.resources.info_text_error_action_start_screen
+import at.asitplus.valera.resources.info_text_error_action_return_to_invoker
 import at.asitplus.valera.resources.info_text_no_matching_credential
 import org.jetbrains.compose.resources.stringResource
 import ui.viewmodels.authentication.AuthenticationNoCredentialViewModel
@@ -47,7 +47,7 @@ fun AuthenticationNoCredentialView(vm: AuthenticationNoCredentialViewModel) {
                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 ) {
                     Text(
-                        text = stringResource(Res.string.info_text_error_action_start_screen),
+                        text = stringResource(Res.string.info_text_error_action_return_to_invoker),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Row(
@@ -71,6 +71,7 @@ fun AuthenticationNoCredentialView(vm: AuthenticationNoCredentialViewModel) {
             ) {
                 Text(
                     stringResource(Res.string.info_text_no_matching_credential),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
                     textAlign = TextAlign.Center
                 )
             }

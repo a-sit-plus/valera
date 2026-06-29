@@ -1,6 +1,5 @@
 package ui.views
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,11 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
@@ -65,7 +61,6 @@ fun CredentialDetailsView(
             vm.navigateUp()
         },
         onClickLogo = vm.onClickLogo,
-        onClickSettings = vm.onClickSettings,
         credentialFreshnessSummaryModel = credentialFreshnessSummary,
         onRefresh = {
             storeEntry?.let { entry ->
@@ -103,7 +98,6 @@ fun CredentialDetailsScaffold(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
     onClickLogo: () -> Unit,
-    onClickSettings: () -> Unit,
     content: @Composable () -> Unit,
 ) {
     Scaffold(
@@ -128,12 +122,6 @@ fun CredentialDetailsScaffold(
                             credentialFreshnessSummaryModel = credentialFreshnessSummaryModel
                         )
                         Logo(onClick = onClickLogo)
-                        Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
-                            Icon(
-                                imageVector = Icons.Outlined.Settings,
-                                contentDescription = null,
-                            )
-                        }
                         Spacer(Modifier.width(15.dp))
                     }
                 },

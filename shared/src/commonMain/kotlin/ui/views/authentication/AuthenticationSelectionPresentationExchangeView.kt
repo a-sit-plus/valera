@@ -1,6 +1,5 @@
 package ui.views.authentication
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,11 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
@@ -32,21 +28,18 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.error_credential_selection_error_invalid_request_id
 import at.asitplus.valera.resources.error_no_requests
-import at.asitplus.valera.resources.heading_label_navigate_back
+import at.asitplus.valera.resources.heading_label_select_data
 import at.asitplus.valera.resources.prompt_select_credential
-import at.asitplus.wallet.app.common.decodeImage
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CredentialSelectionGroup
-import ui.models.toCredentialFreshnessSummaryModel
 import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
 
 @Composable
 fun AuthenticationSelectionPresentationExchangeView(
     vm: AuthenticationSelectionPresentationExchangeViewModel,
     onClickLogo: () -> Unit,
-    onClickSettings: () -> Unit,
     onError: (Throwable) -> Unit,
 ) {
     val iterableRequests = vm.iterableRequests
@@ -56,8 +49,8 @@ fun AuthenticationSelectionPresentationExchangeView(
         val currentRequest = vm.iterableRequests[vm.requestIterator.value]
 
         AuthenticationSelectionViewScaffold(
+            title = stringResource(Res.string.heading_label_select_data),
             onClickLogo = onClickLogo,
-            onClickSettings = onClickSettings,
             onNavigateUp = vm.onBack,
             onNext = vm.onNext,
         ) {
@@ -91,8 +84,8 @@ fun AuthenticationSelectionPresentationExchangeView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthenticationSelectionViewScaffold(
+    title: String,
     onClickLogo: () -> Unit,
-    onClickSettings: () -> Unit,
     onNavigateUp: () -> Unit,
     onNext: () -> Unit,
     modifier: Modifier = Modifier,
@@ -104,7 +97,7 @@ fun AuthenticationSelectionViewScaffold(
                 title = {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            stringResource(Res.string.heading_label_navigate_back),
+                            title,
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.titleLarge,
                         )
@@ -112,12 +105,6 @@ fun AuthenticationSelectionViewScaffold(
                 },
                 actions = {
                     Logo(onClick = onClickLogo)
-                    Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
-                        Icon(
-                            imageVector = Icons.Outlined.Settings,
-                            contentDescription = null,
-                        )
-                    }
                     Spacer(Modifier.width(15.dp))
                 },
                 navigationIcon = {

@@ -19,7 +19,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -55,6 +57,7 @@ fun CredentialsView(
 ) {
     val credentialsStatus by vm.storeContainer.collectAsState()
     val credentialTimelinessesStates by vm.credentialTimelinessesStates.collectAsState()
+    val imageDecoder = remember(vm) { vm::decodeImage }
 
     Scaffold(
         topBar = {
@@ -106,11 +109,15 @@ fun CredentialsView(
                 }
 
                 is CredentialStateModel.Success -> {
-                    val credentials = credentialsStatusDelegate.credentials.sortedBy { (id, _) ->
-                        if (credentialTimelinessesStates[id]?.isNotBad == true) {
-                            0
-                        } else {
-                            1
+                    val credentials by remember(credentialsStatusDelegate.credentials) {
+                        derivedStateOf {
+                            credentialsStatusDelegate.credentials.sortedBy { (id, _) ->
+                                if (credentialTimelinessesStates[id]?.isNotBad == true) {
+                                    0
+                                } else {
+                                    1
+                                }
+                            }
                         }
                     }
                     if (credentials.isEmpty()) {
@@ -119,7 +126,8 @@ fun CredentialsView(
                         LazyColumn {
                             items(
                                 credentials.size,
-                                key = { credentials[it].first }
+                                key = { credentials[it].first },
+                                contentType = { credentials[it].second.scheme?.let { it::class } }
                             ) { index ->
                                 val storeEntry = credentials[index]
                                 val storeEntryIdentifier = storeEntry.first
@@ -127,27 +135,25 @@ fun CredentialsView(
                                 val isTokenStatusEvaluated = storeEntryIdentifier in credentialTimelinessesStates
                                 val credentialFreshnessSummary = credentialTimelinessesStates[storeEntryIdentifier]
 
-                                Column {
-                                    CredentialCard(
-                                        credential,
-                                        // TODO: is this still necessary?
-                                        isTokenStatusEvaluated = isTokenStatusEvaluated,
-                                        credentialFreshnessSummaryModel = credentialFreshnessSummary,
-                                        onDelete = {
-                                            vm.removeStoreEntryById(storeEntryIdentifier)
-                                        },
-                                        onOpenDetails = {
-                                            navigateToCredentialDetailsPage(storeEntryIdentifier)
-                                        },
-                                        imageDecoder = vm::decodeImage,
-                                        modifier = Modifier.padding(
-                                            start = 16.dp,
-                                            end = 16.dp,
-                                            bottom = 16.dp
-                                        ),
-                                        onRefresh = { onRefresh(credential, storeEntryIdentifier) }
-                                    )
-                                }
+                                CredentialCard(
+                                    credential,
+                                    // TODO: is this still necessary?
+                                    isTokenStatusEvaluated = isTokenStatusEvaluated,
+                                    credentialFreshnessSummaryModel = credentialFreshnessSummary,
+                                    onDelete = {
+                                        vm.removeStoreEntryById(storeEntryIdentifier)
+                                    },
+                                    onOpenDetails = {
+                                        navigateToCredentialDetailsPage(storeEntryIdentifier)
+                                    },
+                                    imageDecoder = imageDecoder,
+                                    modifier = Modifier.padding(
+                                        start = 16.dp,
+                                        end = 16.dp,
+                                        bottom = 16.dp
+                                    ),
+                                    onRefresh = { onRefresh(credential, storeEntryIdentifier) }
+                                )
                             }
                             item {
                                 FloatingActionButtonHeightSpacer(

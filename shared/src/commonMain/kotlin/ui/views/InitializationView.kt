@@ -1,7 +1,9 @@
 package ui.views
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import at.asitplus.wallet.app.common.LoadingMessageKey
 import org.koin.compose.koinInject
 import org.koin.core.scope.Scope
 import ui.viewmodels.InitializationViewModel
@@ -16,10 +18,12 @@ fun InitializationView(
 
     val isConditionsAccepted = viewModel.walletMain.settingsRepository.isConditionsAccepted.collectAsState(null)
 
-    when (isConditionsAccepted.value) {
-        false -> navigateOnboarding()
-        true -> navigateHomeScreen()
-        null -> {}
+    LaunchedEffect(isConditionsAccepted.value) {
+        when (isConditionsAccepted.value) {
+            false -> navigateOnboarding()
+            true -> navigateHomeScreen()
+            null -> {}
+        }
     }
-    LoadingView()
+    LoadingView(loadingMessageString(LoadingMessageKey.AppInitialization))
 }

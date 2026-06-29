@@ -18,6 +18,7 @@ open class WalletKeyMaterial(val keyMaterial: KeyMaterial) :
     override suspend fun sign(
         data: ByteArray
     ): SignatureResult<CryptoSignature.RawByteEncodable> = run {
+        Napier.d("WalletKeyMaterial.sign using key ${keyMaterial.jsonWebKey.jwkThumbprint}")
         when (val signer = keyMaterial.getUnderLyingSigner()) {
             is PlatformSigningProviderSigner<*, *> ->
                 signer.sign(data) {

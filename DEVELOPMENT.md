@@ -39,7 +39,7 @@ Public contributors:
 * Running on the Simulator does not require an Apple Developer team, provisioning profile, or bundle identifier changes.
 * Public contributors do not need `Signing.local.xcconfig`.
 * Optional device builds with a Personal Team or another external team can use a local `Signing.local.xcconfig` with a unique bundle identifier and team id.
-* Public Debug builds default to reduced entitlements, so `Associated Domains` and NFC are not available unless you are using internal signing.
+* Public Debug builds default to reduced entitlements, so `Associated Domains` and NFC are not available unless you are using internal signing. The reduced Debug entitlements still include the Identity Document Services document types needed for Digital Credentials registration, but the active provisioning profile must also allow that entitlement.
 * Public contributors cannot run the app on a physical iPhone with the official bundle identifier `at.asitplus.wallet.compose`. Apple requires that bundle identifier to be signed by the team that owns it.
 * Device builds and release archives for the official app identifier therefore require access to the A-SIT Apple Developer team.
 
@@ -47,7 +47,7 @@ Internal team members:
 * Device builds use Xcode automatic signing in the `Debug` configuration.
 * Copy [iosApp/Configuration/Signing.example.xcconfig](iosApp/Configuration/Signing.example.xcconfig) to `iosApp/Configuration/Signing.local.xcconfig`.
 * Set `SIGNING_DEVELOPMENT_TEAM` in `Signing.local.xcconfig`.
-* Set `SIGNING_DEBUG_ENTITLEMENTS_FILE = iosApp/iosApp/iosApp.entitlements` if you want `Associated Domains` and NFC in local Debug device builds.
+* Set `SIGNING_DEBUG_ENTITLEMENTS_FILE = iosApp/iosApp.entitlements` if you want `Associated Domains` and NFC in local Debug device builds.
 * Set `SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER` in `Signing.local.xcconfig` if you want to create release archives locally.
 
 Minimal `Signing.local.xcconfig` for internal users:
@@ -55,9 +55,11 @@ Minimal `Signing.local.xcconfig` for internal users:
 ```xcconfig
 APP_BUNDLE_IDENTIFIER = at.asitplus.wallet.compose
 SIGNING_DEVELOPMENT_TEAM = 9CYHJNG644
-SIGNING_DEBUG_ENTITLEMENTS_FILE = iosApp/iosApp/iosApp.entitlements
+SIGNING_DEBUG_ENTITLEMENTS_FILE = iosApp/iosApp.entitlements
 SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER = Compose Wallet Distribution
 ```
+
+`SIGNING_DEBUG_ENTITLEMENTS_FILE` is resolved relative to the Xcode project directory (`iosApp/`), so use `iosApp/iosApp.entitlements` here. Using `iosApp/iosApp/iosApp.entitlements` makes Xcode look for a doubled path and fail to open the file.
 
 Minimal `Signing.local.xcconfig` for external device builds:
 
@@ -121,7 +123,7 @@ Create provisioning profiles:
 Local Fastlane release builds for internal users:
  - Copy `iosApp/Configuration/Signing.example.xcconfig` to `iosApp/Configuration/Signing.local.xcconfig`
  - Set `SIGNING_DEVELOPMENT_TEAM = 9CYHJNG644`
- - Set `SIGNING_DEBUG_ENTITLEMENTS_FILE = iosApp/iosApp/iosApp.entitlements` if you also need local Debug device builds with NFC and associated domains
+ - Set `SIGNING_DEBUG_ENTITLEMENTS_FILE = iosApp/iosApp.entitlements` if you also need local Debug device builds with NFC and associated domains
  - Set `SIGNING_RELEASE_PROVISIONING_PROFILE_SPECIFIER = Compose Wallet Distribution`
  - Place the exported signing certificate at `iosApp/cert.p12`
  - Export `APPLE_CERT_PASSWORD`
@@ -143,4 +145,30 @@ Setup:
  - Create a new keystore, e.g. from Android Studio
 
 Required secrets for GitHub Actions:
- - `ANDROID_CERT_PASSWORD` with the password for the keystore you've exported
+- `ANDROID_CERT_PASSWORD` with the password for the keystore you've exported
+
+## DC API matcher
+
+Android uses custom WebAssembly matchers for the Digital Credentials API integration.
+These matchers are loaded from app assets by [`CustomRegistry`](./shared/src/androidMain/kotlin/at/asitplus/wallet/app/android/dcapi/CustomRegistry.kt).
+
+There are currently two separate matcher binaries:
+* Verification matcher: `androidApp/src/androidMain/assets/dcapimatcher.wasm`
+* Issuance matcher: `androidApp/src/androidMain/assets/dcapimatcher_issuing_hardcoded.wasm`
+
+Source locations:
+* Verification matcher: [`shared/src/androidMain/kotlin/matcher`](./shared/src/androidMain/kotlin/matcher)
+* Issuance matcher: [`shared/src/androidMain/kotlin/matcher_issuance_hardcoded`](./shared/src/androidMain/kotlin/matcher_issuance_hardcoded)
+* Build instructions:
+  [`shared/src/androidMain/kotlin/matcher/README.md`](./shared/src/androidMain/kotlin/matcher/README.md)
+  and
+  [`shared/src/androidMain/kotlin/matcher_issuance_hardcoded/README.md`](./shared/src/androidMain/kotlin/matcher_issuance_hardcoded/README.md)
+
+Prerequisites:
+* Install [WASI SDK](https://github.com/WebAssembly/wasi-sdk/releases), version 20
+* The Makefiles assume it is available under `~/wasi-sdk-20.0`
+
+Notes:
+* The verification matcher parses DCQL requests in native code, mainly in [`dcql.cpp`](./shared/src/androidMain/kotlin/matcher/dcql.cpp) and [`Request.cpp`](./shared/src/androidMain/kotlin/matcher/Request.cpp).
+* If you change the native matcher sources, rebuild the `.wasm` binary and copy it into the Android assets, otherwise the app will continue using the previously bundled matcher.
+* Complex DCQL requests are only supported to the extent implemented in the matcher and UI.

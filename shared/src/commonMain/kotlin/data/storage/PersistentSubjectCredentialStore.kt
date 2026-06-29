@@ -1,16 +1,19 @@
 package data.storage
 
 import at.asitplus.KmmResult
+import at.asitplus.catchingUnwrapped
 import at.asitplus.iso.IssuerSigned
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
+import at.asitplus.wallet.lib.agent.validation.CredentialFreshnessSummary
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
 import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
-import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatusValidationResult
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
 import io.github.aakira.napier.Napier
@@ -128,7 +131,7 @@ class PersistentSubjectCredentialStore(
 
         val exportableContainer = ExportableStoreContainer(exportableCredentials)
 
-        val json = vckJsonSerializer.encodeToString(exportableContainer)
+        val json = joseCompliantSerializer.encodeToString(exportableContainer)
         dataStore.setPreference(key = Configuration.DATASTORE_KEY_VCS, value = json)
     }
 
@@ -151,13 +154,13 @@ class PersistentSubjectCredentialStore(
         if (input == null) {
             return StoreContainer(credentials = mutableListOf())
         } else {
-            val export: ExportableStoreContainer = kotlin.runCatching {
-                vckJsonSerializer.decodeFromString<ExportableStoreContainer>(input)
+            val export: ExportableStoreContainer = catchingUnwrapped {
+                joseCompliantSerializer.decodeFromString<ExportableStoreContainer>(input)
             }.getOrElse {
                 Napier.w("dataStoreValueToContainer failed for new format", it)
-                kotlin.runCatching {
+                catchingUnwrapped {
                     ExportableStoreContainer(
-                        vckJsonSerializer.decodeFromString<OldExportableStoreContainer>(input).credentials.mapIndexed { index, it ->
+                        joseCompliantSerializer.decodeFromString<OldExportableStoreContainer>(input).credentials.mapIndexed { index, it ->
                             index.toLong() to it
                         }
                     )
@@ -225,14 +228,18 @@ class PersistentSubjectCredentialStore(
 
             deferredStatus.map { (pair, deferred) ->
                 pair to deferred.await()
-            }.filter { (_, freshness) ->
-                !freshness.isFresh
+            }.filter { (pair, freshness) ->
+                pair.second.renewalInfo != null && freshness.needsRefresh
             }.map { (pair, _) ->
                 pair
             }
         }
     }
 }
+
+private val CredentialFreshnessSummary.needsRefresh: Boolean
+    get() = timelinessValidationSummary.isExpired ||
+            tokenStatusValidationResult is TokenStatusValidationResult.Invalid
 
 typealias StoreEntryId = Long
 

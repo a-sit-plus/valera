@@ -22,8 +22,7 @@ class CredentialDetailsViewModel(
     val storeEntryId: StoreEntryId,
     val walletMain: WalletMain,
     val navigateUp: () -> Unit,
-    val onClickLogo: () -> Unit,
-    val onClickSettings: () -> Unit
+    val onClickLogo: () -> Unit
 ) : ViewModel() {
     val imageDecoder: (ByteArray) -> Result<ImageBitmap> = { walletMain.platformAdapter.decodeImage(it) }
 

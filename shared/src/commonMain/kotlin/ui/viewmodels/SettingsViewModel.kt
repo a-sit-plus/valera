@@ -61,13 +61,13 @@ class SettingsViewModel(
 
     fun showGlobalSnackbar(
         message: suspend () -> String,
-    ) = viewModelScope.launch {
+    ) = walletMain.scope.launch {
         walletMain.snackbarService.showSnackbar(message())
     }
 
     fun onClickResetApp(
         completionHandler: CompletionHandler = {},
-    ) = viewModelScope.launch {
+    ) = walletMain.scope.launch {
         try {
             walletMain.resetApp()
             val resetMessage = getString(Res.string.snackbar_reset_app_successfully)
@@ -81,7 +81,7 @@ class SettingsViewModel(
 
     fun onClickClearLogFile(
         completionHandler: CompletionHandler = {},
-    ) = viewModelScope.launch {
+    ) = walletMain.scope.launch {
         try {
             walletMain.clearLog()
             val clearMessage = getString(Res.string.snackbar_clear_log_successfully)

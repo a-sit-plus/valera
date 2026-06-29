@@ -1,6 +1,7 @@
 package data
 
 import androidx.compose.ui.graphics.ImageBitmap
+import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.companyregistration.Address
 import at.asitplus.wallet.companyregistration.Branch
 import at.asitplus.wallet.companyregistration.CompanyActivity
@@ -52,11 +53,11 @@ sealed interface Attribute {
             else -> throw IllegalArgumentException("Unexpected attribute value type: ${value::class}, $value")
         }
 
-        private fun fromValueList(valueList: List<Any?>) = runCatching {
+        private fun fromValueList(valueList: List<Any?>) = catchingUnwrapped {
             StringListAttribute(valueList.map { it as String })
-        }.getOrNull() ?: runCatching {
+        }.getOrNull() ?: catchingUnwrapped {
             DrivingPrivilegeAttribute(valueList.map { it as DrivingPrivilege }.toTypedArray())
-        }.getOrNull() ?: runCatching {
+        }.getOrNull() ?: catchingUnwrapped {
             StringListAttribute(valueList.map { (it as JsonPrimitive).content })
         }.getOrNull() ?: StringListAttribute(valueList.map { it.toString() })
     }

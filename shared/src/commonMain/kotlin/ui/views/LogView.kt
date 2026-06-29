@@ -1,7 +1,6 @@
 package ui.views
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,7 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowDownward
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -62,12 +60,6 @@ fun LogView(
                 },
                 actions = {
                     Logo(onClick = vm.onClickLogo)
-                    Column(modifier = Modifier.clickable(onClick = vm.onClickSettings)) {
-                        Icon(
-                            imageVector = Icons.Outlined.Settings,
-                            contentDescription = null,
-                        )
-                    }
                     Spacer(Modifier.width(15.dp))
                 },
                 navigationIcon = {

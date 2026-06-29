@@ -35,7 +35,7 @@ import at.asitplus.wallet.lib.data.VcDataModelConstants.VERIFIABLE_CREDENTIAL
 import at.asitplus.wallet.lib.data.VcFallbackCredentialScheme
 import at.asitplus.wallet.lib.data.dif.ConstraintFieldsEvaluationException
 import at.asitplus.wallet.lib.data.dif.PresentationExchangeInputEvaluator
-import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.lib.oidvci.toFormat
 import data.credentials.JsonClaimReference
 import data.credentials.JwtClaimDefinition
@@ -274,7 +274,7 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
 
     return (dataElements + (requestedElements ?: listOf())).associateWith { "" }.let { attributes ->
         when (representation) {
-            PLAIN_JWT -> vckJsonSerializer.encodeToJsonElement(attributes + ("type" to this.vcType))
+            PLAIN_JWT -> joseCompliantSerializer.encodeToJsonElement(attributes + ("type" to this.vcType))
             SD_JWT -> buildJsonObject {
                 addSdJwtDummyMetadata()
                 attributes.forEach {
@@ -286,7 +286,7 @@ fun ConstantIndex.CredentialScheme.toJsonElement(
                 }
             }
 
-            ISO_MDOC -> vckJsonSerializer.encodeToJsonElement(mapOf(this.isoNamespace to attributes))
+            ISO_MDOC -> joseCompliantSerializer.encodeToJsonElement(mapOf(this.isoNamespace to attributes))
         }
     }
 }
@@ -333,13 +333,13 @@ private fun String.unquote() = removePrefix("'").removePrefix("\"")
 
 private fun String.fallback(): List<NameSegment> = listOf(NameSegment(this))
 
-fun NormalizedJsonPath.memberName(id: Int) = this.segments.map { (it as NameSegment).memberName }.getOrNull(id)
+// Only NameSegments carry a member name; IndexSegments (e.g. [0] in array paths) are skipped.
+fun NormalizedJsonPath.memberName(id: Int) =
+    this.segments.filterIsInstance<NameSegment>().map { it.memberName }.getOrNull(id)
 
+// Removes NameSegments whose name matches [name]; IndexSegments are passed through unchanged.
 fun NormalizedJsonPath.minus(name: String) =
-    NormalizedJsonPath(this.segments.filter {
-        (it as NameSegment).memberName != name
-    }
-    )
+    NormalizedJsonPath(this.segments.filter { it !is NameSegment || it.memberName != name })
 
 fun Array<DocRequest>.toDifInputDescriptorList() = this.map {
     val itemsRequest = it.itemsRequest.value

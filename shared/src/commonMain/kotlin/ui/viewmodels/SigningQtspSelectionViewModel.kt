@@ -3,18 +3,15 @@ package ui.viewmodels
 import androidx.compose.runtime.mutableStateOf
 import at.asitplus.openid.SignatureRequestParameters
 import at.asitplus.wallet.app.common.WalletMain
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 class SigningQtspSelectionViewModel(
     val navigateUp: () -> Unit,
     val onContinue: (SignatureRequestParameters) -> Unit,
     val walletMain: WalletMain,
     val onClickLogo: () -> Unit,
-    val onClickSettings: () -> Unit,
     val signatureRequestParameters: SignatureRequestParameters
 ) {
     val selection = mutableStateOf(walletMain.signingService.config.current)
@@ -23,7 +20,7 @@ class SigningQtspSelectionViewModel(
     val qtspList = walletMain.signingService.config.qtsps
 
     val onClickPreload: () -> Unit = {
-        CoroutineScope(Dispatchers.IO).launch {
+        walletMain.scope.launch(Dispatchers.IO) {
             walletMain.signingService.preloadCertificate()
         }
     }
@@ -31,11 +28,13 @@ class SigningQtspSelectionViewModel(
     val onClickDelete: () -> Unit = {
         walletMain.signingService.config.getQtspByIdentifier(selection.value).credentialInfo = null
         credentialInfo.value = null
-        runBlocking { walletMain.signingService.exportToDataStore() }
+        walletMain.scope.launch(Dispatchers.IO) {
+            walletMain.signingService.exportToDataStore()
+        }
     }
 
     val onQtspChange: (String) -> Unit = { qtsp ->
-        CoroutineScope(Dispatchers.IO).launch {
+        walletMain.scope.launch(Dispatchers.IO) {
             selection.value = qtsp
             credentialInfo.value = walletMain.signingService.config.getQtspByIdentifier(selection.value).credentialInfo
             walletMain.signingService.setCurrentQtsp(qtsp)

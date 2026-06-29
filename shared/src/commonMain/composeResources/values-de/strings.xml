@@ -12,12 +12,15 @@
     <string name="unknown_exception">Unbekannter Fehler</string>
 
     <string name="app_display_name">Valera</string>
-    <string name="snackbar_credential_loaded_successfully">Daten wurden erfolgreich geladen</string>
     <string name="snackbar_reset_app_successfully">App erfolgreich zurückgesetzt</string>
     <string name="snackbar_clear_log_successfully">Log erfolgreich gelöscht</string>
     <string name="snackbar_update_hint">App ist nicht aktuell. Bitte auf %1$s aktualisieren.</string>
     <string name="snackbar_update_action">Öffnen</string>
     <string name="snackbar_sign_successful">Signatur erfolgreich</string>
+    <string name="snackbar_digital_credentials_store_failed">Die Digital Credentials API Unterstützung konnte nicht aktiviert werden.</string>
+    <string name="snackbar_nfc_tag_lost_retrying">NFC-Verbindung verloren. Bitte das andere Gerät erneut nahe halten.</string>
+    <string name="snackbar_local_presentment_busy">Eine Präsentation läuft bereits.</string>
+    <string name="snackbar_local_presentment_cancel_action">Abbrechen</string>
 
     <string name="button_label_use_device_credential">Passwort</string>
     <string name="button_label_confirm">Bestätigen</string>
@@ -39,11 +42,10 @@
     <string name="button_label_start">Starten</string>
     <string name="button_label_save">Speichern</string>
     <string name="button_label_conclude">Abschließen</string>
+    <string name="button_label_close">Schließen</string>
     <string name="button_label_open_url">URL öffnen</string>
     <string name="button_label_scan_qr_code">QR-Code scannen</string>
-    <string name="button_label_faq">FAQ</string>
-    <string name="button_label_licenses">Lizenzen</string>
-    <string name="button_label_data_protection_policy">Datenschutzrichtlinie</string>
+    <string name="button_label_faq">FAQ unter wallet.a-sit.plus</string>
     <string name="button_label_share_log_file">Log-Datei teilen</string>
     <string name="button_label_reset_app">App zurücksetzen</string>
     <string name="button_label_clear_log">Log löschen</string>
@@ -55,6 +57,7 @@
     <string name="button_label_hide_technical_details">Technische Details ausblenden</string>
     <string name="button_label_sign">Signieren</string>
     <string name="button_label_back">Zurück</string>
+    <string name="button_label_attestation_config">Attestierungs-Konfiguration</string>
 
     <string name="attribute_friendly_name_bpk">BPK</string>
     <string name="attribute_friendly_name_firstname">Vorname</string>
@@ -212,11 +215,24 @@
     <string name="navigation_button_label_check">Prüfen</string>
 
     <string name="id_format_plain_jwt_label">PLAIN_JWT</string>
-    <string name="sid_format_sd_jwt_label">SD-JWT</string>
+    <string name="loading_message_app_initialization">App-Einrichtung wird geprüft</string>
+    <string name="loading_message_incoming_request">Anfrage wird geöffnet</string>
+    <string name="loading_message_credential_offer">Credentialangebot wird geladen</string>
+    <string name="loading_message_issuer_metadata">Ausstellerinformationen werden geladen</string>
+    <string name="loading_message_issuing_credential">Credential wird ausgestellt</string>
+    <string name="loading_message_storing_credential">Credential wird gespeichert</string>
+    <string name="loading_message_checking_requested_credentials">Angeforderte Credentials werden geprüft</string>
+    <string name="loading_message_checking_device_requirements">App- und Geräteanforderungen werden geprüft</string>
+    <string name="loading_message_requesting_camera_permission">Kameraberechtigung wird angefordert</string>
+    <string name="loading_message_scanning_qr_content">QR-Code wird gelesen</string>
+    <string name="loading_message_attestation_settings">Attestierungseinstellungen werden geladen</string>
+    <string name="loading_message_generic">Laden</string>
+    <string name="id_format_sd_jwt_label">SD-JWT</string>
     <string name="id_format_iso_mdoc_label">ISO_MDOC</string>
 
     <string name="text_label_issuing_service">Ausstellservice</string>
     <string name="text_label_client_identifier">Client-ID</string>
+    <string name="text_label_wallet_provider_attestation">Wallet Attestierung verwenden</string>
     <string name="text_label_id_identifier">Bezeichnung</string>
     <string name="text_label_id_format">Datenrepräsentation</string>
     <string name="text_label_id_scheme">Credential Typ</string>
@@ -246,6 +262,7 @@
     <string name="text_label_vcType">VcType</string>
     <string name="text_label_docType">DocType</string>
     <string name="text_label_select_no_optional_credential_set_query_option">Nichts senden</string>
+    <string name="text_label_wallet_provider">Wallet-Provider</string>
 
     <string name="heading_label_credential_selection">Welche Daten sollen präsentiert werden?</string>
     <string name="heading_label_authenticate_at_device_title">Anmelden</string>
@@ -253,6 +270,7 @@
     <string name="heading_label_show_data">Daten Vorzeigen</string>
     <string name="heading_label_show_data_third_party">Daten vorzeigen an dritte Bürger</string>
     <string name="heading_label_authentication_success">Angemeldet</string>
+    <string name="heading_label_credential_added_screen">Ausweis hinzugefügt</string>
     <string name="heading_label_settings_screen">Einstellungen</string>
     <string name="heading_label_error_screen">Fehler</string>
     <string name="heading_label_loading_screen">Laden</string>
@@ -268,6 +286,7 @@
     <string name="heading_label_authenticate_at_device_screen">Anmelden\nan Service Provider</string>
     <string name="heading_label_sign_document">Dokument signieren</string>
     <string name="heading_label_check_scan_qr_code">QR-Code Scannen</string>
+    <string name="heading_label_scan_qr_code">QR-Code scannen</string>
     <string name="heading_label_show_qr_code_screen">Scan mich!</string>
     <string name="heading_label_received_data">Erhaltene Daten</string>
     <string name="heading_label_select_vda">VDA auswählen</string>
@@ -276,12 +295,15 @@
     <string name="heading_label_result">Ergebnis</string>
     <string name="heading_label_device_engagement">Verbindungsaufbau</string>
     <string name="heading_label_capabilities">Gerätefunktionen</string>
+    <string name="heading_label_attestation">Attestierung</string>
+    <string name="heading_label_select_data">Daten wählen</string>
 
     <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Daten vorzeigen</string>
     <string name="biometric_authentication_prompt_to_load_data_title">Daten laden</string>
     <string name="biometric_authentication_prompt_to_bind_credentials_title">Gerätbindung erzeugen</string>
 
     <string name="content_description_navigate_back">Zurück</string>
+    <string name="content_description_close">Schließen</string>
     <string name="content_description_delete_credential">Löschen</string>
     <string name="content_description_portrait">Porträt</string>
     <string name="content_description_refresh_credentials">Daten laden</string>
@@ -302,7 +324,6 @@
     <string name="error_credential_timeliness_not_yet_valid">NOCH NICHT GÜLTIG</string>
     <string name="error_credential_selection_error_invalid_request_id">Keine Auswahl mit requestId</string>
     <string name="error_credential_scheme_not_supported">Credential Schema wird nicht unterstützt</string>
-    <string name="error_feature_not_yet_available">Implementation unvollständig</string>
     <string name="error_authentication_at_sp_failed">Anmeldung fehlgeschlagen</string>
     <string name="error_biometric_error_no_hardware">Keine kryptografische Hardware gefunden.</string>
     <string name="error_biometric_error_hardware_unavailable">Hardware für Biometrie ist nicht verfügbar.</string>
@@ -335,9 +356,12 @@
     <string name="info_text_error_occurred">Es ist ein Fehler aufgetreten.</string>
     <string name="info_text_error_action_start_screen">Sie werden zur Startseite weitergeleitet.</string>
     <string name="info_text_error_action_reset_app">Sie werden zur Erstkonfiguration weitergeleitet.</string>
+    <string name="info_text_error_action_close_intent">Sie kehren zum vorherigen Bildschirm zurück.</string>
+    <string name="info_text_error_action_return_to_invoker">Sie kehren zur anfragenden App/Webseite zurück.</string>
     <string name="info_text_error_cause_reset_app">Aufgrund technischer Verbesserungen muss die App zurückgesetzt werden.</string>
     <string name="info_text_data_items_missing">fehlend</string>
     <string name="info_text_authentication_success">Die Anmeldung wurde erfolgreich durchgeführt.</string>
+    <string name="info_text_credential_added">Das Credential wurde erfolgreich hinzugefügt.</string>
     <string name="info_text_no_credentials_available">Es sind noch keine Daten verfügbar.</string>
     <string name="info_text_available_credentials">Verfügbare Daten</string>
     <string name="info_text_requested_credentials">Angefragte Daten</string>
@@ -347,7 +371,8 @@
     <string name="info_text_no_matching_credential">Es wurde kein passendes Credential für die Anfrage gefunden.</string>
     <string name="info_text_data_is_being_loaded">Daten werden geladen</string>
     <string name="info_text_missing_permission">Berechtigung fehlt</string>
-    <string name="info_text_qr_code_loading">QR-Code wird geladen</string>
+    <string name="info_text_qr_code_loading">QR-Code und Übertragungsmethoden werden vorbereitet</string>
+    <string name="info_text_holder_connecting_to_verifier">Verbindungsaufbau mit dem anderen Gerät. Warte auf die Anfrage des Überprüfers…</string>
     <string name="info_text_nfc_mdoc_reader">In die Nähe des Gerätes des Ausweishalters halten.</string>
     <string name="info_text_waiting_for_response">Warte auf Antwort vom Gerät des Ausweishalters</string>
     <string name="info_text_check_response">Überprüfung der Antwort</string>
@@ -420,6 +445,7 @@
     <string name="presentation_success">Die Information wurde freigegeben.</string>
     <string name="presentation_error">Ein unbekannter Fehler ist aufgetreten.</string>
     <string name="presentation_canceled">Die Verifizierung wurde abgebrochen.</string>
+    <string name="warning_authentication_cancelled">Authentifizierung wurde abgebrochen</string>
     <string name="presentation_timeout">Zeitüberschreitung</string>
     <string name="presentation_waiting_for_request">Warte auf den Überprüfer</string>
     <string name="presentation_missing_permission">Ohne Berechtigung kann die Überprüfung nicht abgeschlossen werden.</string>
@@ -498,6 +524,7 @@
     <string name="capabilities_heading_biometry">Biometrie</string>
     <string name="capabilities_heading_signing">Signatur</string>
     <string name="capabilities_heading_attestation">Attestierung</string>
+
     <string name="capabilities_heading_internet">Internet</string>
     <string name="capabilities_heading_camera">Kamera</string>
 
@@ -512,7 +539,7 @@
     <string name="info_text_capabilities_no_camera">Der Zugriff auf die Kamera wurde verweigert. Bitte passen Sie die Einstellungen an.</string>
     <string name="button_label_capabilities_settings">Geräteeinstellungen</string>
     <string name="additional_text_other_untranslated_claims">weitere Attribute</string>
-  
+
     <!--  Refresh views  -->
     <string name="refresh_center_title">Ausweise aktualisieren</string>
     <string name="button_clear_and_close">Leeren &amp; Schließen</string>
@@ -525,15 +552,31 @@
     <string name="button_dismiss">Verwerfen</string>
     <string name="button_remove">Entfernen</string>
     <string name="button_refresh">Aktualisieren</string>
-    <string name="refresh_dialog_title_single">Update verfügbar</string>
-    <string name="refresh_dialog_title_multiple">Updates verfügbar</string>
-    <string name="refresh_dialog_message_single">Eine neue Version von '%1$s' ist verfügbar. Möchten Sie diese jetzt aktualisieren?</string>
-    <string name="refresh_dialog_message_multiple">Für mehrere Ausweise sind neue Versionen verfügbar. Möchten Sie diese jetzt aktualisieren?</string>
-    <string name="refresh_dialog_confirm">Jetzt aktualisieren</string>
-    <string name="refresh_dialog_dismiss">Später</string>
+    <string name="refresh_snackbar_message_single">Aktualisierung verfügbar für \'%1$s\'</string>
+    <string name="refresh_snackbar_message_multiple">Aktualisierungen für mehrere Ausweise verfügbar</string>
+    <string name="refresh_snackbar_action">Jetzt aktualisieren</string>
     <string name="error_no_refresh_token">Kein Refresh-Token verfügbar</string>
     <string name="success_refreshed">Aktualisiert</string>
     <string name="success_reissued">Neu ausgestellt</string>
     <string name="error_reissue_failed">Neuausstellung fehlgeschlagen</string>
     <string name="error_refresh_failed">Aktualisierung fehlgeschlagen</string>
+
+    <string name="heading_label_nfc_transfer">Datenübertragung</string>
+    <string name="info_text_nfc_engagement_verifier">Halten Sie dieses Gerät an das NFC-Feld des anderen Geräts.</string>
+    <string name="info_text_qr_nfc_data_transfer_tap">Halten Sie beide Geräte zusammen, um die NFC-Datenübertragung zu starten.</string>
+    <string name="info_text_nfc_data_transfer">Bitte halten Sie beide Geräte im NFC-Feld, bis die Übertragung abgeschlossen ist.</string>
+    <string name="info_text_ble_data_transfer">Warte auf Daten via Bluetooth…</string>
+
+    <!-- AttestationSettings -->
+    <string name="text_label_instance_attestation">Instance-Attestation</string>
+    <string name="text_label_unit_attestation">Unit-Attestation</string>
+    <string name="button_label_load_attestation">Attestation laden</string>
+    <string name="button_label_attestation_apply">Anwenden</string>
+    <string name="section_heading_attestation_certificates">Zertifikate</string>
+    <string name="text_label_attestation_issued">Token gültig von</string>
+    <string name="text_label_attestation_expiration">Token gültig bis</string>
+    <string name="text_label_attestation_status_expiration">Status gültig bis</string>
+    <string name="text_label_attestation_storage_type">Schlüsselspeicher</string>
+    <string name="text_label_attestation_user_authentication">Authentifizierung</string>
+
 </resources>

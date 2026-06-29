@@ -18,6 +18,11 @@ import at.asitplus.wallet.app.common.iso.transfer.state.TransferPrecondition
 import at.asitplus.wallet.app.common.iso.transfer.state.evaluateTransferPrecondition
 import at.asitplus.wallet.app.common.iso.transfer.state.rememberTransferSettingsState
 import at.asitplus.wallet.app.common.iso.transfer.state.toEnum
+import at.asitplus.wallet.app.common.presentation.LocalPresentmentBusyException
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
+import at.asitplus.catchingUnwrapped
 import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -29,12 +34,13 @@ import ui.viewmodels.iso.holder.HolderViewModel
 import ui.views.LoadingView
 import ui.views.iso.common.MissingPreconditionView
 import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HolderView(
     navigateUp: () -> Unit,
-    onNavigateToPresentmentScreen: (PresentationStateModel) -> Unit,
+    onNavigateToPresentmentScreen: () -> Unit,
     onClickLogo: () -> Unit,
     onClickSettings: () -> Unit,
     bottomBar: @Composable () -> Unit,
@@ -47,13 +53,14 @@ fun HolderView(
     val bluetoothPermissionState = rememberBluetoothPermissionState()
     val bluetoothEnabledState = rememberBluetoothEnabledState()
     val nfcEnabledState = rememberNfcEnabledState()
-    val transferSettingsState = rememberTransferSettingsState(vm.settingsRepository)
+    val transferSettingsState = rememberTransferSettingsState(vm.settingsRepository, userRequired = true)
     val appSettings = rememberAppSettings()
 
     val settingsReady by vm.settingsReady.collectAsStateWithLifecycle()
     val holderState by vm.holderState.collectAsState()
-    val presentationState by remember(vm.presentationStateModel) {
-        vm.presentationStateModel.state
+    val presentationStateModel = vm.presentationStateModel
+    val presentationState by remember(presentationStateModel) {
+        presentationStateModel?.state ?: MutableStateFlow(PresentationStateModel.State.IDLE)
     }.collectAsStateWithLifecycle()
 
     LaunchedEffect(transferSettingsState) {
@@ -97,9 +104,16 @@ fun HolderView(
         }
     }
 
+    // System back in any sub-state resets to Settings rather than popping the route.
+    // Disabled in Settings so back exits the route normally.
+    val backState = rememberNavigationEventState(NavigationEventInfo.None)
+    NavigationBackHandler(state = backState, isBackEnabled = holderState !is HolderState.Settings) {
+        vm.onResume()
+    }
+
     when (val state = holderState) {
         is HolderState.Settings ->
-            HolderSettingsView(navigateUp, onClickLogo, onClickSettings, bottomBar, vm)
+            HolderSettingsView(navigateUp, onClickLogo, bottomBar, vm)
 
         is HolderState.CheckSettings -> LoadingView(
             customLabel = stringResource(Res.string.info_text_check_settings),
@@ -115,7 +129,8 @@ fun HolderView(
             navigateUp = vm.onResume,
             onClickLogo = onClickLogo,
             onClickBackToSettings = vm.onResume,
-            onOpenAppSettings = { appSettings.open() }
+            onOpenAppSettings = { appSettings.open() },
+            coroutineScope = vm.walletMain.scope,
         )
 
         is HolderState.CreateEngagement -> {
@@ -127,33 +142,45 @@ fun HolderView(
             LaunchedEffect(holderState) {
                 if (vm.hasBeenCalledHack) return@LaunchedEffect
                 vm.hasBeenCalledHack = true
-                vm.setupPresentmentModel(
-                    bluetoothPermissionState,
-                    transferSettingsState.ble.required
-                )
-                vm.doHolderFlow(
-                    transferSettingsState.ble.settingOn,
-                    transferSettingsState.nfc.settingOn
-                ) { error ->
-                    handleError(error, vm, onNavigateToPresentmentScreen, onError)
+                catchingUnwrapped {
+                    vm.setupPresentmentModel(
+                        bluetoothPermissionState,
+                        transferSettingsState.ble.required
+                    )
+                    vm.doHolderFlow(
+                        transferSettingsState.ble.settingOn,
+                        transferSettingsState.nfc.settingOn
+                    ) { error ->
+                        handleError(error, vm, onNavigateToPresentmentScreen, onError)
+                    }
+                }.onFailure {
+                    vm.finishPresentmentSession("holder-start-error")
+                    if (it is LocalPresentmentBusyException) {
+                        vm.hasBeenCalledHack = false
+                        vm.setState(HolderState.Settings)
+                        return@onFailure
+                    }
+                    onError(it)
                 }
             }
         }
 
         is HolderState.ShowQrCode -> HolderShowQrCodeView(onClickLogo, vm, onError)
         is HolderState.ShowNfcInfo -> HolderShowNfcView(onClickLogo, vm)
-        is HolderState.Finished -> LoadingView()
     }
 }
 
 private fun handleError(
     error: Throwable?,
     vm: HolderViewModel,
-    onNavigateToPresentmentScreen: (PresentationStateModel) -> Unit,
+    onNavigateToPresentmentScreen: () -> Unit,
     onError: (Throwable) -> Unit
 ) {
     when {
-        error == null -> onNavigateToPresentmentScreen(vm.presentationStateModel)
+        error == null -> {
+            vm.markPresentmentUiAttached()
+            onNavigateToPresentmentScreen()
+        }
         error is CancellationException &&
                 error.message?.contains("PresentationModel reset") == true -> {
             Napier.i(
@@ -161,6 +188,9 @@ private fun handleError(
                 tag = "ShowQrCodeView"
             )
         }
-        else -> onError(error)
+        else -> {
+            vm.finishPresentmentSession("holder-flow-error")
+            onError(error)
+        }
     }
 }

@@ -1,6 +1,6 @@
 package at.asitplus.wallet.app.common
 
-import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
@@ -23,7 +23,7 @@ class HttpService(private val buildContext: BuildContext) {
     fun buildHttpClient(cookieStorage: CookiesStorage? = null) = HttpClient {
         followRedirects = false
         install(ContentNegotiation) {
-            json(vckJsonSerializer)
+            json(joseCompliantSerializer)
         }
 
         install(DefaultRequest) {

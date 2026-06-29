@@ -1,6 +1,10 @@
 package ui.viewmodels
 
+import ErrorHandlingOverrideException
+import at.asitplus.dcapi.issuance.DigitalCredentialOfferReturn
 import at.asitplus.openid.CredentialOffer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import kotlinx.coroutines.async
@@ -18,11 +22,37 @@ class LoadCredentialViewModel(
     val credentialIdentifiers: Collection<CredentialIdentifierInfo>,
     val offer: CredentialOffer?,
     val onClickLogo: () -> Unit,
-    val onClickSettings: () -> Unit,
 ) {
+
     init {
         check(credentialIdentifiers.isNotEmpty()) {
             "Issuer '$hostString' did not provide any credential configuration that can be loaded"
+        }
+    }
+
+    fun handleDCAPIIssuingResult(success: Boolean, error: Throwable? = null) {
+        if (!walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
+            return
+        }
+        if (!success) {
+            val deferredError = ErrorHandlingOverrideException(
+                onAcknowledge = {
+                    if (!walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
+                        return@ErrorHandlingOverrideException
+                    }
+                    // TODO replace with official status messages once specification defines them
+                    val response =
+                        joseCompliantSerializer.encodeToString(DigitalCredentialOfferReturn.error(status = "offer_declined"))
+                    walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, false)
+                    navigateUp()
+                },
+                cause = error ?: Exception("Issuance failed")
+            )
+            walletMain.errorService.emit(deferredError)
+        } else {
+            val response = joseCompliantSerializer.encodeToString(DigitalCredentialOfferReturn.success())
+            walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, true)
+            navigateUp()
         }
     }
 
@@ -33,7 +63,7 @@ class LoadCredentialViewModel(
             navigateUp: () -> Unit,
             hostString: String,
             onClickLogo: () -> Unit,
-            onClickSettings: () -> Unit
+            onProgress: ((LoadingMessageKey) -> Unit)? = null,
         ) = LoadCredentialViewModel(
             walletMain = walletMain,
             onSubmit = onSubmit,
@@ -41,8 +71,8 @@ class LoadCredentialViewModel(
             hostString = hostString,
             offer = null,
             onClickLogo = onClickLogo,
-            onClickSettings = onClickSettings,
             credentialIdentifiers = walletMain.scope.async {
+                onProgress?.invoke(LoadingMessageKey.IssuerMetadata)
                 walletMain.provisioningService.loadCredentialMetadata(hostString)
             }.await()
         )
@@ -53,7 +83,7 @@ class LoadCredentialViewModel(
             onSubmit: CredentialSelection,
             navigateUp: () -> Unit,
             onClickLogo: () -> Unit,
-            onClickSettings: () -> Unit
+            onProgress: ((LoadingMessageKey) -> Unit)? = null,
         ) = LoadCredentialViewModel(
             walletMain = walletMain,
             onSubmit = onSubmit,
@@ -61,9 +91,33 @@ class LoadCredentialViewModel(
             hostString = offer.credentialIssuer,
             offer = offer,
             onClickLogo = onClickLogo,
-            onClickSettings = onClickSettings,
             credentialIdentifiers = walletMain.scope.async {
+                onProgress?.invoke(LoadingMessageKey.IssuerMetadata)
                 walletMain.provisioningService.loadCredentialMetadata(offer.credentialIssuer)
+                    .filter { it.credentialIdentifier in offer.configurationIds }
+            }.await()
+        )
+
+        suspend fun initFromDcApi(
+            walletMain: WalletMain,
+            offer: CredentialOffer,
+            onSubmit: CredentialSelection,
+            navigateUp: () -> Unit,
+            onClickLogo: () -> Unit,
+            onProgress: ((LoadingMessageKey) -> Unit)? = null,
+        ) = LoadCredentialViewModel(
+            walletMain = walletMain,
+            onSubmit = onSubmit,
+            navigateUp = navigateUp,
+            hostString = offer.credentialIssuer,
+            offer = offer,
+            onClickLogo = onClickLogo,
+            credentialIdentifiers = walletMain.scope.async {
+                onProgress?.invoke(LoadingMessageKey.IssuerMetadata)
+                val issuerMetadata = requireNotNull(offer.credentialIssuerMetadata) {
+                    "Missing credential issuer metadata for DC API request"
+                }
+                walletMain.provisioningService.parseCredentialMetadata(issuerMetadata)
                     .filter { it.credentialIdentifier in offer.configurationIds }
             }.await()
         )
@@ -73,9 +127,10 @@ class LoadCredentialViewModel(
             onSubmit: CredentialSelection,
             navigateUp: () -> Unit,
             onClickLogo: () -> Unit,
-            onClickSettings: () -> Unit
+            onProgress: ((LoadingMessageKey) -> Unit)? = null,
         ): LoadCredentialViewModel {
             val offer = walletMain.scope.async {
+                onProgress?.invoke(LoadingMessageKey.CredentialOffer)
                 walletMain.provisioningService.decodeCredentialOffer(url)
             }.await()
             return LoadCredentialViewModel(
@@ -85,8 +140,8 @@ class LoadCredentialViewModel(
                 hostString = offer.credentialIssuer,
                 offer = offer,
                 onClickLogo = onClickLogo,
-                onClickSettings = onClickSettings,
                 credentialIdentifiers = walletMain.scope.async {
+                    onProgress?.invoke(LoadingMessageKey.IssuerMetadata)
                     walletMain.provisioningService.loadCredentialMetadata(offer.credentialIssuer)
                         .filter { it.credentialIdentifier in offer.configurationIds }
                 }.await()

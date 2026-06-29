@@ -1,75 +1,56 @@
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.window.ComposeUIViewController
+import at.asitplus.catching
 import at.asitplus.KmmResult
-import at.asitplus.dcapi.request.DCAPIWalletRequest
-import at.asitplus.iso.EncryptionParameters
+import at.asitplus.dcapi.EncryptedResponse
+import at.asitplus.dcapi.request.IsoMdocRequest
+import at.asitplus.openid.RequestParametersFrom
+import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.BuildContext
-import at.asitplus.wallet.app.common.CapabilitiesService
-import at.asitplus.wallet.app.common.KeystoreService
+import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.PlatformAdapter
-import at.asitplus.wallet.app.common.RealCapabilitiesService
-import at.asitplus.wallet.app.common.SESSION_NAME
-import at.asitplus.wallet.app.common.WalletDependencyProvider
+import at.asitplus.wallet.app.dcapi.IosParsedMdocRequestSummary
+import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
+import at.asitplus.wallet.app.common.*
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
-import at.asitplus.wallet.app.common.di.appModule
-import data.storage.RealDataStoreService
-import data.storage.createDataStore
+import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.snackbar_digital_credentials_store_failed
 import io.github.aakira.napier.Napier
-import kotlinx.cinterop.BetaInteropApi
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.ObjCObjectVar
-import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.alloc
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.ptr
-import kotlinx.cinterop.usePinned
-import kotlinx.cinterop.value
+import at.asitplus.wallet.app.ios.DigitalCredentials
+import kotlinx.cinterop.*
 import kotlinx.coroutines.CoroutineScope
-import org.koin.core.module.dsl.scopedOf
-import org.koin.core.qualifier.named
-import org.koin.dsl.binds
-import org.koin.dsl.module
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.serialization.encodeToByteArray
+import kotlin.coroutines.resume
+import kotlinx.serialization.json.Json
+import org.jetbrains.compose.resources.getString
 import org.multipaz.compose.prompt.PromptDialogs
-import org.multipaz.prompt.IosPromptModel
-import platform.AVFoundation.AVAuthorizationStatusAuthorized
-import platform.AVFoundation.AVAuthorizationStatusDenied
-import platform.AVFoundation.AVAuthorizationStatusNotDetermined
-import platform.AVFoundation.AVAuthorizationStatusRestricted
-import platform.AVFoundation.AVCaptureDevice
-import platform.AVFoundation.AVMediaTypeVideo
-import platform.AVFoundation.authorizationStatusForMediaType
-import platform.Foundation.NSData
-import platform.Foundation.NSDocumentDirectory
-import platform.Foundation.NSError
-import platform.Foundation.NSFileHandle
-import platform.Foundation.NSFileManager
-import platform.Foundation.NSSet
-import platform.Foundation.NSString
-import platform.Foundation.NSURL
-import platform.Foundation.NSUTF8StringEncoding
-import platform.Foundation.NSUserDomainMask
-import platform.Foundation.anyObject
-import platform.Foundation.closeFile
-import platform.Foundation.create
-import platform.Foundation.fileHandleForWritingAtPath
-import platform.Foundation.seekToEndOfFile
-import platform.Foundation.stringWithContentsOfFile
-import platform.Foundation.writeData
-import platform.UIKit.UIActivityViewController
-import platform.UIKit.UIApplication
-import platform.UIKit.UIApplicationOpenSettingsURLString
-import platform.UIKit.UIViewController
-import platform.UIKit.UIWindow
-import platform.UIKit.UIWindowScene
+import platform.AVFoundation.*
+import platform.Foundation.*
+import platform.UIKit.*
 import platform.darwin.dispatch_async
 import platform.darwin.dispatch_get_main_queue
 import ui.theme.darkScheme
 import ui.theme.lightScheme
+import kotlin.collections.mapValues
+
 
 actual fun getPlatformName(): String = "iOS"
+
+private val SUPPORTED_DOC_TYPES = listOf(
+    "eu.europa.ec.av.1",
+    "eu.europa.ec.eudi.pid.1",
+    "org.iso.23220.photoid.1",
+    "org.iso.18013.5.1.mDL"
+)
 
 @Composable
 actual fun getColorScheme(): ColorScheme {
@@ -84,36 +65,41 @@ actual fun getColorScheme(): ColorScheme {
 fun MainViewController(
     buildContext: BuildContext,
 ): UIViewController {
-    val iosPlatformAdapter = IosPlatformAdapter()
-    val dataStoreService = RealDataStoreService(createDataStore(), iosPlatformAdapter)
-    val keystoreService = KeystoreService(dataStoreService)
-    val promptModel = IosPromptModel()
-    val walletDependencyProvider = WalletDependencyProvider(
-        keystoreService,
-        dataStoreService,
-        iosPlatformAdapter,
-        buildContext = buildContext,
-        promptModel = promptModel
-    )
-    val capabilitiesModule = module {
-        scope(named(SESSION_NAME)) {
-            scopedOf(::RealCapabilitiesService) binds arrayOf(CapabilitiesService::class)
-        }
-    }
-    val module = appModule(walletDependencyProvider, capabilitiesModule)
+    val (intentState, sessionService, promptModel) = getOrCreateIosSession(buildContext)
 
     return ComposeUIViewController {
         PromptDialogs(promptModel)
-        App(module)
+        App(
+            sessionService = sessionService,
+            intentState = intentState
+        )
+    }
+}
+
+@ExperimentalMaterial3Api
+fun TransientFlowMainViewController(
+    buildContext: BuildContext,
+): UIViewController {
+    val (intentState, sessionService, promptModel) = getOrCreateIosTransientFlowSession(buildContext)
+
+    return ComposeUIViewController {
+        PromptDialogs(promptModel)
+        TransientFlowApp(
+            sessionService = sessionService,
+            intentState = intentState
+        )
     }
 }
 
 class IosPlatformAdapter(
+    private val intentState: IntentState
 ) : PlatformAdapter {
     override fun openUrl(url: String) {
-        val url = NSURL(string = url)
-        if (UIApplication.sharedApplication.canOpenURL(url)) {
-            UIApplication.sharedApplication.openURL(url, mapOf<Any?, Any?>(), null)
+        dispatch_async(dispatch_get_main_queue()) {
+            val url = NSURL(string = url)
+            if (UIApplication.sharedApplication.canOpenURL(url)) {
+                UIApplication.sharedApplication.openURL(url, mapOf<Any?, Any?>(), null)
+            }
         }
     }
 
@@ -252,23 +238,109 @@ class IosPlatformAdapter(
         entries: CredentialRegistry,
         scope: CoroutineScope
     ) {
-        //TODO("Not yet implemented")
+        scope.launch(Dispatchers.Default) {
+            for (entry in entries.credentials) {
+                val id = entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
+                val docType = entry.isoEntry?.docType ?: entry.sdJwtEntry?.verifiableCredentialType
+                if (id != null && docType != null) {
+                    storeDocumentFromSwift(id, docType, scope)
+                }
+            }
+        }
     }
 
-    override fun getCurrentDCAPIData(): KmmResult<DCAPIWalletRequest> {
-        return KmmResult.failure(Throwable("Using Swift platform adapter"))
+    @OptIn(ExperimentalForeignApi::class)
+    private suspend fun storeDocumentFromSwift(
+        id: String,
+        docType: String,
+        scope: CoroutineScope
+    ): Boolean = suspendCancellableCoroutine { cont ->
+        try {
+            Napier.d("storeDocumentFromSwift invoked")
+            if (docType !in SUPPORTED_DOC_TYPES) {
+                Napier.w("DocType '$docType' is not supported on iOS, will not add it to the system")
+                if (cont.isActive) cont.resume(false)
+                return@suspendCancellableCoroutine
+            }
+            DigitalCredentials.storeDocumentWithId(id, docType) { errorMessage ->
+                val success = errorMessage == null
+                Napier.d("storeDocumentFromSwift callback with success=$success error=$errorMessage")
+                if (!success) {
+                    scope.launch {
+                        val baseMessage = getString(Res.string.snackbar_digital_credentials_store_failed)
+                        val details = errorMessage?.toString()?.takeIf { it.isNotBlank() }
+                        IosSessionBridge.showSnackbar(
+                            listOfNotNull(baseMessage, details)
+                                .joinToString(": "),
+                            SnackbarDuration.Long
+                        )
+                    }
+                }
+                if (cont.isActive) cont.resume(success)
+            }
+            Napier.d("storeDocumentFromSwift got back from swift")
+        } catch (e: Throwable) {
+            Napier.e("Error while invoking Swift code", e)
+            if (cont.isActive) cont.resume(false)
+        }
     }
 
-    override fun prepareDCAPIIsoMdocCredentialResponse(
-        responseJson: ByteArray,
-        sessionTranscript: ByteArray,
-        encryptionParameters: EncryptionParameters
-    ) {
-        //TODO("Not yet implemented")
+    override fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest> {
+        Napier.d("getCurrentDCAPIVerificationData called")
+        return (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let {
+            try {
+                val isoMdocRequest = it.rawRequest?.let { request -> Json.decodeFromString<IsoMdocRequest>(request) }
+                    ?: throw IllegalStateException("No request data available")
+                Napier.d("getCurrentDCAPIVerificationData: rawRequest docTypes=${isoMdocRequest.deviceRequest.docRequests.map { req -> req.itemsRequest.value.docType }}")
+                Napier.d("getCurrentDCAPIVerificationData: rawRequest namespaces=${isoMdocRequest.deviceRequest.docRequests.map { req -> req.itemsRequest.value.namespaces.mapValues { (_, items) -> items.entries.map { item -> "${item.dataElementIdentifier}→retain=${item.intentToRetain}" } } }}")
+
+                val parsedRequestSummary = it.parsedRequestSummary?.let { summary ->
+                    Json.decodeFromString<IosParsedMdocRequestSummary>(summary)
+                } ?: throw IllegalStateException("No parsed request summary available")
+                Napier.d("getCurrentDCAPIVerificationData: parsedSummary docTypes=${parsedRequestSummary.documentRequests.map { req -> req.docType }}")
+                Napier.d("getCurrentDCAPIVerificationData: parsedSummary namespaces=${parsedRequestSummary.documentRequests.map { req -> req.namespaces.mapValues { (_, elems) -> elems.map { (id, retain) -> "$id→retain=$retain" } } }}")
+                require(parsedRequestSummary.isConsistentWith(isoMdocRequest)) {
+                    "Parsed ISO18013 mobile document pre-request is inconsistent with rawRequest"
+                }
+                val walletRequest = RequestParametersFrom.IsoMdocDcApi(
+                    parameters = RequestParametersFrom.IsoMdocDcApi.IsoMdocRequestWrapper(isoMdocRequest),
+                    jsonString = joseCompliantSerializer.encodeToString(isoMdocRequest),
+                    callingOrigin = it.origin ?: throw IllegalStateException("No origin received"),
+                    credentialIds = null
+                )
+                KmmResult.success(walletRequest)
+            } catch (e: Throwable) {
+                Napier.e("Error parsing mdoc request", e)
+                KmmResult.failure(e)
+            }
+        } ?: KmmResult.failure(Throwable("No request data available"))
     }
 
-    override fun prepareDCAPIOid4vpCredentialResponse(responseJson: String, success: Boolean) {
-        //TODO("Not yet implemented")
+    override fun getCurrentDCAPIIssuingData(): KmmResult<DCAPIIssuingRequest> = catching {
+        throw IllegalStateException("Not supported by iOS")
+    }
+
+    override fun prepareDCAPICredentialResponse(response: String, success: Boolean) {
+        Napier.w("Got error response: $response")
+        (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.onCancel()
+            ?: throw IllegalStateException("Callback for response not found")
+    }
+
+    override fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean) =
+        (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let {
+            Napier.d("prepareDCAPICredentialResponse called with $response")
+            val encodedResponse = coseCompliantSerializer.encodeToByteArray(response)
+            it.sendCredentialResponse.invoke(encodedResponse.toNSData())
+            IosSessionBridge.clearDcapiInvocation()
+        } ?: throw IllegalStateException("Callback for response not found")
+
+    override fun prepareDCAPIIssuingResponse(response: String, success: Boolean) {
+        Napier.w("DC API issuing not supported by iOS")
+    }
+
+    override fun hasPendingDCAPIIssuingRequest(): Boolean {
+        Napier.w("DC API issuing not supported by iOS")
+        return false
     }
 
     override fun openDeviceSettings() {
@@ -294,7 +366,6 @@ class IosPlatformAdapter(
             else -> null
         }
     }
-
 }
 
 @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)

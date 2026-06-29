@@ -1,33 +1,24 @@
+@file:OptIn(org.koin.core.annotation.KoinInternalApi::class)
+
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.ErrorService
+import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.dcapi.DCAPIInvocationData
 import io.github.aakira.napier.Napier
-import kotlinx.coroutines.flow.MutableStateFlow
-import org.koin.compose.KoinApplication
+import org.koin.compose.ComposeContextWrapper
+import org.koin.compose.LocalKoinScopeContext
 import org.koin.compose.koinInject
-import org.koin.core.module.Module
+import ui.navigation.TransientFlowNavigation
 import ui.navigation.WalletNavigation
 import ui.theme.WalletTheme
-import ui.viewmodels.authentication.PresentationStateModel
-
-/**
- * Global variables which help to channel information from platform-specific code
- * to compose whenever the app gets called from native code, such as via an associated domain,
- * NFC or the DC API
- */
-object Globals {
-    var appLink = MutableStateFlow<String?>(null)
-    var dcapiInvocationData = MutableStateFlow<DCAPIInvocationData?>(null)
-    var presentationStateModel = MutableStateFlow<PresentationStateModel?>(null)
-}
 
 internal object AppTestTags {
     const val rootScaffold = "rootScaffold"
@@ -35,11 +26,15 @@ internal object AppTestTags {
 
 @ExperimentalMaterial3Api
 @Composable
-fun App(koinModule: Module) {
-    KoinApplication({
-        modules(koinModule)
-    }) {
-        val koinScope = koinInject<SessionService>().scope.collectAsState().value
+fun App(
+    sessionService: SessionService,
+    intentState: IntentState
+) {
+    val koinScope = sessionService.scope.collectAsState().value
+
+    CompositionLocalProvider(
+        LocalKoinScopeContext provides ComposeContextWrapper(koinScope) { koinScope }
+    ) {
         catchingUnwrapped {
             val walletMain: WalletMain = koinInject(scope = koinScope)
 
@@ -57,16 +52,30 @@ fun App(koinModule: Module) {
         }
 
         WalletTheme {
-//            Scaffold {
-//                Box(modifier = Modifier.padding(it)) {
-//                    Box(
-//                        modifier = Modifier.align(Alignment.Center)
-//                    ) {
-//                        CredentialSetQueryOptionSelectionCardPreview()
-//                    }
-//                }
-//            }
-            WalletNavigation(koinScope = koinScope)
+            WalletNavigation(
+                koinScope = koinScope,
+                intentState = intentState
+            )
+        }
+    }
+}
+
+@ExperimentalMaterial3Api
+@Composable
+fun TransientFlowApp(
+    sessionService: SessionService,
+    intentState: IntentState
+) {
+    val koinScope = sessionService.scope.collectAsState().value
+
+    CompositionLocalProvider(
+        LocalKoinScopeContext provides ComposeContextWrapper(koinScope) { koinScope }
+    ) {
+        WalletTheme {
+            TransientFlowNavigation(
+                koinScope = koinScope,
+                intentState = intentState
+            )
         }
     }
 }

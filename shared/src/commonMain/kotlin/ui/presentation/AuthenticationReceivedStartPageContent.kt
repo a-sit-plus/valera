@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import at.asitplus.dif.InputDescriptor
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_location
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_name
@@ -31,6 +32,7 @@ import at.asitplus.wallet.app.common.toCredentialQueryUiModel
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.DataDisplaySection
+import ui.composables.InputDescriptorPreview
 import ui.composables.PresentationRequestPreview
 import ui.composables.ScreenHeading
 
@@ -39,11 +41,12 @@ fun AuthenticationReceivedStartPageContent(
     authenticateAtRelyingParty: Boolean,
     serviceProviderLogo: ImageBitmap?,
     serviceProviderLocalizedName: String?,
-    serviceProviderLocalizedLocation: String,
+    serviceProviderLocalizedLocation: String?,
     additionalDataView: @Composable (() -> Unit)? = null,
     onAbort: () -> Unit,
     onContinue: () -> Unit,
     presentationRequest: CredentialPresentationRequest?,
+    inputDescriptors: List<InputDescriptor>? = null,
     onError: (Throwable) -> Unit,
 ) {
     Scaffold(
@@ -87,7 +90,9 @@ fun AuthenticationReceivedStartPageContent(
                             serviceProviderLocalizedName?.let {
                                 stringResource(Res.string.attribute_friendly_name_data_recipient_name) to serviceProviderLocalizedName
                             },
-                            stringResource(Res.string.attribute_friendly_name_data_recipient_location) to serviceProviderLocalizedLocation,
+                            serviceProviderLocalizedLocation?.takeIf { value -> value.isNotBlank() }?.let {
+                                stringResource(Res.string.attribute_friendly_name_data_recipient_location) to it
+                            },
                         ),
                     )
 
@@ -118,7 +123,9 @@ fun AuthenticationReceivedStartPageContent(
                         is CredentialPresentationRequest.PresentationExchangeRequest -> PresentationRequestPreview(presentationRequest, onError = onError)
 
                         null -> {
-                            // TODO?
+                            inputDescriptors?.let {
+                                InputDescriptorPreview(it, onError = onError)
+                            }
                         }
                     }
 

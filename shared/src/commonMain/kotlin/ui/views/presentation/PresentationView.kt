@@ -13,12 +13,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.info_text_holder_connecting_to_verifier
 import at.asitplus.valera.resources.presentation_connecting_to_verifier
+import at.asitplus.valera.resources.heading_label_select_data
 import at.asitplus.valera.resources.presentation_initialised
 import at.asitplus.valera.resources.presentation_missing_permission
 import at.asitplus.valera.resources.presentation_permission_required
@@ -45,6 +48,7 @@ import ui.views.authentication.AuthenticationConsentView
 import ui.views.authentication.AuthenticationNoCredentialView
 import ui.views.authentication.AuthenticationSelectionPresentationExchangeView
 import ui.views.authentication.AuthenticationSelectionViewScaffold
+import ui.composables.buttons.CancelButton
 import kotlin.time.Duration.Companion.seconds
 
 // Based on the identity-credential sample code
@@ -69,20 +73,27 @@ fun PresentationView(
     onError: (Throwable) -> Unit
 ) {
     val presentationStateModel = presentationViewModel.presentationStateModel
-    presentationViewModel.walletMain.keyMaterial.onUnauthenticated =
-        presentationViewModel.navigateUp
+    DisposableEffect(presentationViewModel) {
+        val previousOnUnauthenticated = presentationViewModel.walletMain.keyMaterial.onUnauthenticated
+        presentationViewModel.walletMain.keyMaterial.onUnauthenticated = {}
+        onDispose {
+            presentationViewModel.walletMain.keyMaterial.onUnauthenticated = previousOnUnauthenticated
+        }
+    }
 
     val blePermissionState = rememberBluetoothPermissionState()
 
-    // Make sure we clean up the PresentmentModel when we're done. This is to ensure
-    // the mechanism is properly shut down, for example for proximity we need to release
-    // all BLE and NFC resources.
-    //
-    DisposableEffect(presentationStateModel) {
-        onDispose { presentationStateModel.reset() }
-    }
-
     val state = presentationStateModel.state.collectAsState().value
+    val dismissible = presentationStateModel.dismissible.collectAsState().value
+    val cancelPresentment = {
+        presentationStateModel.dismiss(PresentationStateModel.DismissType.CLICK)
+    }
+    val loadingAction: (@Composable () -> Unit)? =
+        if (dismissible && state != PresentationStateModel.State.COMPLETED) {
+            { CancelButton(onClick = cancelPresentment) }
+        } else {
+            null
+        }
     when (state) {
         PresentationStateModel.State.IDLE,
         PresentationStateModel.State.NO_PERMISSION,
@@ -114,15 +125,16 @@ fun PresentationView(
                             spImage = presentationViewModel.spImage,
                             transactionData = presentationViewModel.transactionData,
                             navigateUp = presentationViewModel.navigateUp,
+                            onCancel = { presentationViewModel.onCancel() },
                             buttonConsent = {
-                                CoroutineScope(Dispatchers.IO).launch {
+                                coroutineScope.launch(Dispatchers.IO) {
                                     presentationViewModel.onConsent()
                                 }
                             },
                             walletMain = presentationViewModel.walletMain,
                             presentationRequest = presentationViewModel.presentationRequest,
                             onClickLogo = presentationViewModel.onClickLogo,
-                            onClickSettings = presentationViewModel.onClickSettings
+                            onUnauthenticated = {}
                         ),
                         onError = onError
                     )
@@ -139,9 +151,9 @@ fun PresentationView(
                     when (val matching = presentationViewModel.matchingCredentials) {
                         is DCQLMatchingResult -> {
                             AuthenticationSelectionViewScaffold(
+                                title = stringResource(Res.string.heading_label_select_data),
                                 onNavigateUp = presentationViewModel.navigateUp,
                                 onClickLogo = presentationViewModel.onClickLogo,
-                                onClickSettings = presentationViewModel.onClickSettings,
                                 onNext = {
                                     presentationViewModel.confirmSelection(null)
                                 },
@@ -165,7 +177,6 @@ fun PresentationView(
                                 ),
                                 onError = onError,
                                 onClickLogo = presentationViewModel.onClickLogo,
-                                onClickSettings = presentationViewModel.onClickSettings,
                             )
                         }
                     }
@@ -174,14 +185,14 @@ fun PresentationView(
         }
 
         PresentationStateModel.State.COMPLETED -> {
-            coroutineScope.launch {
+            // LaunchedEffect(Unit) fires once per composition entry, preventing repeated
+            // calls to onPresentmentComplete/onError when the composable recomposes.
+            LaunchedEffect(Unit) {
                 when (val error = presentationStateModel.error) {
                     null -> {
-                        // Delay for a short amount of time so the user has a chance to see the success indication
                         delay(3.seconds)
                         onPresentmentComplete()
                     }
-
                     else -> onError(error)
                 }
             }
@@ -196,32 +207,48 @@ fun PresentationView(
             when (state) {
                 PresentationStateModel.State.IDLE,
                 PresentationStateModel.State.CONNECTING ->
-                    LoadingView(stringResource(Res.string.presentation_connecting_to_verifier))
+                    LoadingView(
+                        customLabel = stringResource(Res.string.presentation_connecting_to_verifier),
+                        action = loadingAction
+                    )
 
                 PresentationStateModel.State.WAITING_FOR_SOURCE,
                 PresentationStateModel.State.PROCESSING -> LoadingView(
-                    if (presentationStateModel.numRequestsServed.collectAsState().value == 0) {
-                        ""
+                    customLabel = if (presentationStateModel.numRequestsServed.collectAsState().value == 0) {
+                        stringResource(Res.string.info_text_holder_connecting_to_verifier)
                     } else {
                         stringResource(Res.string.presentation_waiting_for_request)
-                    }
+                    },
+                    action = loadingAction
                 )
 
-                PresentationStateModel.State.COMPLETED -> PresentationCompletedView(
-                    presentationStateModel.error
-                )
+                PresentationStateModel.State.COMPLETED ->
+                    if (presentationStateModel.error == null) {
+                        PresentationCompletedView(null)
+                    }
+                    // Error case: render nothing. onError() is already in flight from the
+                    // coroutineScope.launch above and will navigate to the error screen immediately.
 
                 PresentationStateModel.State.WAITING_FOR_DOCUMENT_SELECTION ->
                     throw IllegalStateException("should not be reachable")
 
                 PresentationStateModel.State.NO_PERMISSION ->
-                    LoadingView(stringResource(Res.string.presentation_missing_permission))
+                    LoadingView(
+                        customLabel = stringResource(Res.string.presentation_missing_permission),
+                        action = loadingAction
+                    )
 
                 PresentationStateModel.State.CHECK_PERMISSIONS ->
-                    LoadingView(stringResource(Res.string.presentation_permission_required))
+                    LoadingView(
+                        customLabel = stringResource(Res.string.presentation_permission_required),
+                        action = loadingAction
+                    )
 
                 PresentationStateModel.State.INITIALISING ->
-                    LoadingView(stringResource(Res.string.presentation_initialised))
+                    LoadingView(
+                        customLabel = stringResource(Res.string.presentation_initialised),
+                        action = loadingAction
+                    )
             }
         }
     }
@@ -239,7 +266,7 @@ fun PresentationView(
     //   sending a termination message at all. This is useful for testing and at interoperability events
     //   and since it's hidden it doesn't materially affect a production app.
     //
-    if (presentationStateModel.dismissible.collectAsState().value && state != PresentationStateModel.State.COMPLETED) {
+    if (dismissible && state != PresentationStateModel.State.COMPLETED) {
         // TODO: for phones with display cutouts in the top-right (for example Pixel 9 Pro Fold when unfolded)
         //   the Close icon may be obscured. Examine the displayCutouts path and move the icon so it doesn't
         //   overlap.
@@ -252,7 +279,7 @@ fun PresentationView(
                 modifier = Modifier
                     .align(Alignment.TopEnd).padding(20.dp)
                     .combinedClickable(
-                        onClick = { presentationStateModel.dismiss(PresentationStateModel.DismissType.CLICK) },
+                        onClick = cancelPresentment,
                         onLongClick = { presentationStateModel.dismiss(PresentationStateModel.DismissType.LONG_CLICK) },
                         onDoubleClick = { presentationStateModel.dismiss(PresentationStateModel.DismissType.DOUBLE_CLICK) },
                     ),

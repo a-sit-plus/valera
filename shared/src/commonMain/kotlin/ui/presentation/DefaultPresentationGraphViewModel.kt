@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import at.asitplus.catching
-import at.asitplus.dcapi.request.DCAPIWalletRequest
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
@@ -14,7 +13,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import at.asitplus.wallet.lib.data.vckJsonSerializer
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthenticationResponseResult
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,11 +35,7 @@ class DefaultPresentationGraphViewModel(
     }
 
     val dcApiRequest = preparationState.map {
-        when (val request = it.request) {
-            is RequestParametersFrom.DcApiSigned -> request.dcApiRequest
-            is RequestParametersFrom.DcApiUnsigned -> request.dcApiRequest
-            else -> null
-        } as? DCAPIWalletRequest
+        it.request as? RequestParametersFrom.DcApiRequest
     }
 
     val selectionProvider = MutableStateFlow<UiState<CredentialSelectionProvider<SubjectCredentialStore.StoreEntry>>>(
@@ -120,14 +115,13 @@ class DefaultPresentationGraphViewModel(
     private fun finalizeDcApi(
         authenticationResult: OpenId4VpWallet.AuthenticationForward,
     ): OpenId4VpWallet.AuthenticationSuccess {
-        walletMain.presentationService.finalizeOid4vpDCAPIPresentation(
-            serializeDcApiPresentationResponse(authenticationResult.authenticationResponseResult)
-        )
+        authenticationResult.authenticationResponseResult.params.let {
+            walletMain.presentationService.finalizeOpenId4VpDCAPIPresentation(joseCompliantSerializer.encodeToString(it))
+        }
         return OpenId4VpWallet.AuthenticationSuccess()
     }
 }
 
 internal fun serializeDcApiPresentationResponse(
     authenticationResponseResult: AuthenticationResponseResult.DcApi,
-) = vckJsonSerializer.encodeToString(authenticationResponseResult.params.data)
-
+) = joseCompliantSerializer.encodeToString(authenticationResponseResult.params.data)

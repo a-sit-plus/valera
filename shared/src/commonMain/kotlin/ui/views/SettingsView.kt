@@ -2,6 +2,7 @@ package ui.views
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,10 +16,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
@@ -42,20 +43,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.button_label_attestation_config
 import at.asitplus.valera.resources.button_label_clear_log
 import at.asitplus.valera.resources.button_label_confirm
-import at.asitplus.valera.resources.button_label_data_protection_policy
 import at.asitplus.valera.resources.button_label_default
 import at.asitplus.valera.resources.button_label_dismiss
 import at.asitplus.valera.resources.button_label_faq
-import at.asitplus.valera.resources.button_label_licenses
 import at.asitplus.valera.resources.button_label_reset_app
 import at.asitplus.valera.resources.button_label_share_log_file
 import at.asitplus.valera.resources.error_clearing_log_failed
-import at.asitplus.valera.resources.error_feature_not_yet_available
 import at.asitplus.valera.resources.error_resetting_app_failed
 import at.asitplus.valera.resources.eu_normal_reproduction_low_resolution
 import at.asitplus.valera.resources.heading_label_settings_screen
@@ -90,10 +90,8 @@ fun SettingsView(
     onClickShareLogFile: () -> Unit,
     onClickLogo: () -> Unit,
     onClickBack: () -> Unit,
-    onClickSettings: () -> Unit,
-    onClickFAQs: (() -> Unit)?,
-    onClickDataProtectionPolicy: (() -> Unit)?,
-    onClickLicenses: (() -> Unit)?,
+    onClickFAQ: () -> Unit,
+    onClickAttestation: () -> Unit,
     koinScope: Scope,
     onReset: () -> Unit,
     settingsViewModel: SettingsViewModel = koinViewModel(scope = koinScope),
@@ -146,12 +144,6 @@ fun SettingsView(
                 },
                 actions = {
                     Logo(onClick = onClickLogo)
-                    Column(modifier = Modifier.clickable(onClick = onClickSettings)) {
-                        Icon(
-                            imageVector = Icons.Outlined.Settings,
-                            contentDescription = null,
-                        )
-                    }
                     Spacer(Modifier.width(15.dp))
                 },
                 navigationIcon = {
@@ -194,6 +186,9 @@ fun SettingsView(
                                     Text(stringResource(Res.string.text_label_client_identifier))
                                 },
                                 singleLine = true,
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Uri,
+                                ),
                                 modifier = Modifier.weight(1f),
                             )
                             Spacer(modifier = Modifier.width(8.dp))
@@ -223,42 +218,14 @@ fun SettingsView(
                                 )
                             },
                             label = stringResource(Res.string.button_label_faq),
-                            onClick = {
-                                onClickFAQs?.invoke() ?: settingsViewModel.showGlobalSnackbar {
-                                    getString(Res.string.error_feature_not_yet_available)
-                                }
-                            },
+                            onClick = onClickFAQ,
                             modifier = listSpacingModifier.fillMaxWidth(),
-                        )
-                        TextIconButtonListItem(
-                            icon = {
+                            trailingIcon = {
                                 Icon(
-                                    imageVector = Icons.Outlined.Info,
+                                    imageVector = Icons.AutoMirrored.Filled.OpenInNew,
                                     contentDescription = null,
                                 )
                             },
-                            label = stringResource(Res.string.button_label_data_protection_policy),
-                            onClick = {
-                                onClickDataProtectionPolicy?.invoke() ?: settingsViewModel.showGlobalSnackbar {
-                                    getString(Res.string.error_feature_not_yet_available)
-                                }
-                            },
-                            modifier = listSpacingModifier.fillMaxWidth(),
-                        )
-                        TextIconButtonListItem(
-                            icon = {
-                                Icon(
-                                    imageVector = Icons.Outlined.Info,
-                                    contentDescription = null,
-                                )
-                            },
-                            label = stringResource(Res.string.button_label_licenses),
-                            onClick = {
-                                onClickLicenses?.invoke() ?: settingsViewModel.showGlobalSnackbar {
-                                    getString(Res.string.error_feature_not_yet_available)
-                                }
-                            },
-                            modifier = listSpacingModifier.fillMaxWidth(),
                         )
                     }
 
@@ -298,6 +265,17 @@ fun SettingsView(
                                     }
                                 }
                             },
+                            modifier = listSpacingModifier.fillMaxWidth(),
+                        )
+                        TextIconButtonListItem(
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Outlined.Key,
+                                    contentDescription = null,
+                                )
+                            },
+                            label = stringResource(Res.string.button_label_attestation_config),
+                            onClick = { onClickAttestation() },
                             modifier = listSpacingModifier.fillMaxWidth(),
                         )
                         TextIconButtonListItem(
@@ -366,13 +344,15 @@ private fun TextIconButtonListItem(
     icon: @Composable () -> Unit,
     label: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    trailingIcon: (@Composable () -> Unit)? = null,
 ) {
     val gap = 16.dp
     Row(
         modifier = modifier.clickable(
             onClick = onClick,
         ).padding(top = 8.dp, end = 24.dp, bottom = 8.dp, start = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         icon()
         Spacer(modifier = Modifier.width(gap))
@@ -380,6 +360,10 @@ private fun TextIconButtonListItem(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
         )
+        if (trailingIcon != null) {
+            Spacer(modifier = Modifier.weight(1f).width(gap))
+            trailingIcon()
+        }
     }
 }
 

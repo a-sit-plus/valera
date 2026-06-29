@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common.data.primitives
 
+import at.asitplus.catchingUnwrapped
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll
@@ -34,7 +35,7 @@ data class SimpleBootstrappingBulkStore<Key : Any, Value : Any>(
 
         // resolve all necessary default values
         val pendingValues = defaultValues.mapValues { (key, default) ->
-            val value = runCatching {
+            val value = catchingUnwrapped {
                 available.getValue(key)
             }.getOrElse {
                 throw SimpleBulkStoreImplementationException(it)
