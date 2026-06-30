@@ -1,5 +1,6 @@
-# Release 5.8.1 (unreleased)
- * tbd
+# Release 5.8.1 (unreleased):
+ * Update to VC-K 7.0.0-SNAPSHOT
+ * Rework resolving credential schemes
 
 # Release 5.8.0
  * Update to VC-K 6.0.0
