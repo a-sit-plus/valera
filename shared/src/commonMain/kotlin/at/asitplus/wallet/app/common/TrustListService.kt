@@ -90,14 +90,12 @@ class TrustListService(
      * Evaluates if a given issuer is trusted based on the internal root cert and LoTEs.
      */
     fun evaluateIssuer(
-        issuerBytes: ByteArray,
+        issuer: X509Certificate,
         trustLists: List<ListOfTrustedEntities>,
         serviceType: String
     ): TrustState {
         return try {
-            val certificate = X509Certificate.decodeFromDer(issuerBytes)
-
-            if (certificate.isTrustedBy(listOf(aistIssuerCert)).isSuccess) {
+            if (issuer.isTrustedBy(listOf(aistIssuerCert)).isSuccess) {
                 return TrustState.TRUSTED
             }
 
@@ -110,7 +108,7 @@ class TrustListService(
                 return TrustState.UNTRUSTED
             }
 
-            val validationResult = certificate.isTrustedBy(certificateList)
+            val validationResult = issuer.isTrustedBy(certificateList)
 
             if (validationResult.isSuccess) TrustState.TRUSTED else TrustState.UNTRUSTED
         } catch (_: Exception) {
