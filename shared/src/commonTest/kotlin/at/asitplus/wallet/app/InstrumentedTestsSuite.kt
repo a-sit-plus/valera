@@ -45,7 +45,7 @@ import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.WalletSessionBindings
 import at.asitplus.wallet.app.common.di.appModule
-import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements
 import at.asitplus.wallet.lib.RequestOptionsCredential
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
@@ -55,7 +55,9 @@ import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
+import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.SD_JWT
+import at.asitplus.wallet.lib.data.SdJwtCredentialScheme
 import at.asitplus.wallet.lib.data.rfc3986.toUri
 import at.asitplus.wallet.lib.openid.ClientIdScheme
 import at.asitplus.wallet.lib.openid.CredentialPresentationRequestBuilder
@@ -182,7 +184,7 @@ fun ComposeUiTest.endToEndTest() {
                             CredentialToBeIssued.VcSd(
                                 getAttributes(),
                                 Clock.System.now().plus(60.minutes),
-                                EuPidSdJwtScheme,
+                                pidSdJwtScheme(),
                                 holderAgent.keyMaterial.publicKey,
                                 OidcUserInfoExtended(userInfo = OidcUserInfo(subject = ""))
                             )
@@ -257,13 +259,13 @@ private suspend fun createLocalPresentationRequest(): LocalPresentationRequest {
         presentationRequest = CredentialPresentationRequestBuilder(
             credentials = setOf(
                 RequestOptionsCredential(
-                    credentialScheme = EuPidSdJwtScheme,
+                    credentialScheme = pidSdJwtScheme(),
                     representation = SD_JWT,
                     requestedAttributes = setOf(
-                        EuPidSdJwtScheme.SdJwtAttributes.GIVEN_NAME,
-                        EuPidSdJwtScheme.SdJwtAttributes.FAMILY_NAME,
-                        EuPidSdJwtScheme.SdJwtAttributes.BIRTH_DATE,
-                        EuPidSdJwtScheme.SdJwtAttributes.PORTRAIT,
+                        EuPidSdJwtDataElements.GIVEN_NAME,
+                        EuPidSdJwtDataElements.FAMILY_NAME,
+                        EuPidSdJwtDataElements.BIRTH_DATE,
+                        EuPidSdJwtDataElements.PORTRAIT,
                     ),
                 )
             )
@@ -289,11 +291,11 @@ private class RecordingPlatformAdapter(
 }
 
 private fun getAttributes(): List<ClaimToBeIssued> = listOf(
-    ClaimToBeIssued(EuPidSdJwtScheme.SdJwtAttributes.GIVEN_NAME, "XXXÉliás"),
-    ClaimToBeIssued(EuPidSdJwtScheme.SdJwtAttributes.FAMILY_NAME, "XXXTörőcsik"),
-    ClaimToBeIssued(EuPidSdJwtScheme.SdJwtAttributes.BIRTH_DATE, "1965-10-11"),
+    ClaimToBeIssued(EuPidSdJwtDataElements.GIVEN_NAME, "XXXÉliás"),
+    ClaimToBeIssued(EuPidSdJwtDataElements.FAMILY_NAME, "XXXTörőcsik"),
+    ClaimToBeIssued(EuPidSdJwtDataElements.BIRTH_DATE, "1965-10-11"),
     ClaimToBeIssued(
-        EuPidSdJwtScheme.SdJwtAttributes.PORTRAIT,
+        EuPidSdJwtDataElements.PORTRAIT,
         TEST_PORTRAIT_PNG.decodeToByteArray(Base64Strict)
     ),
 )
@@ -326,6 +328,10 @@ private fun createWalletDependencyProvider(platformAdapter: PlatformAdapter): Wa
         antilog = AntilogAdapter(platformAdapter, "", BuildType.DEBUG),
     )
 }
+// Scheme is resolved from remote type metadata registered at boot, not the removed library scheme object.
+private fun pidSdJwtScheme() =
+    AttributeIndex.resolveSdJwtAttributeType("urn:eudi:pid:1") as? SdJwtCredentialScheme
+        ?: error("SD-JWT scheme not resolved: urn:eudi:pid:1")
 
 class TestLifecycleOwner : LifecycleOwner {
     private val _lifecycle = LifecycleRegistry(this)
