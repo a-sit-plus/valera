@@ -81,19 +81,6 @@ class EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
         EuPidCredentialClaimDefinition.GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
         EuPidCredentialClaimDefinition.BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
         EuPidCredentialClaimDefinition.PORTRAIT -> Res.string.attribute_friendly_name_portrait
-        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_12 -> Res.string.attribute_friendly_name_age_at_least_12
-        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_13 -> Res.string.attribute_friendly_name_age_at_least_13
-        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_14 -> Res.string.attribute_friendly_name_age_at_least_14
-        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_16 -> Res.string.attribute_friendly_name_age_at_least_16
-        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_18 -> Res.string.attribute_friendly_name_age_at_least_18
-        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_21 -> Res.string.attribute_friendly_name_age_at_least_21
-        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_25 -> Res.string.attribute_friendly_name_age_at_least_25
-        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_60 -> Res.string.attribute_friendly_name_age_at_least_60
-        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_62 -> Res.string.attribute_friendly_name_age_at_least_62
-        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_65 -> Res.string.attribute_friendly_name_age_at_least_65
-        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_68 -> Res.string.attribute_friendly_name_age_at_least_68
-        EuPidCredentialClaimDefinition.AGE_IN_YEARS -> Res.string.attribute_friendly_name_age_in_years
-        EuPidCredentialClaimDefinition.AGE_BIRTH_YEAR -> Res.string.attribute_friendly_name_age_birth_year
         EuPidCredentialClaimDefinition.FAMILY_NAME_BIRTH -> Res.string.attribute_friendly_name_family_name_birth
         EuPidCredentialClaimDefinition.GIVEN_NAME_BIRTH -> Res.string.attribute_friendly_name_given_name_birth
         EuPidCredentialClaimDefinition.PLACE_OF_BIRTH -> Res.string.attribute_friendly_name_place_of_birth
@@ -117,13 +104,10 @@ class EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
         EuPidCredentialClaimDefinition.DOCUMENT_NUMBER -> Res.string.attribute_friendly_name_document_number
         EuPidCredentialClaimDefinition.ISSUING_COUNTRY -> Res.string.attribute_friendly_name_issuing_country
         EuPidCredentialClaimDefinition.ISSUING_JURISDICTION -> Res.string.attribute_friendly_name_issuing_jurisdiction
-        EuPidCredentialClaimDefinition.ADMINISTRATIVE_NUMBER -> Res.string.attribute_friendly_name_administrative_number
         EuPidCredentialClaimDefinition.PERSONAL_ADMINISTRATIVE_NUMBER -> Res.string.attribute_friendly_name_personal_administrative_number
         EuPidCredentialClaimDefinition.EMAIL_ADDRESS -> Res.string.attribute_friendly_name_email_address
         EuPidCredentialClaimDefinition.MOBILE_PHONE_NUMBER -> Res.string.attribute_friendly_name_mobile_phone_number
         EuPidCredentialClaimDefinition.TRUST_ANCHOR -> Res.string.attribute_friendly_name_trust_anchor
         EuPidCredentialClaimDefinition.LOCATION_STATUS -> Res.string.attribute_friendly_name_location_status
-        EuPidCredentialClaimDefinition.PORTRAIT_CAPTURE_DATE -> Res.string.attribute_friendly_name_portrait_capture_date
-        EuPidCredentialClaimDefinition.AGE_EQUAL_OR_OVER_CONTAINER -> null
     }
 }
