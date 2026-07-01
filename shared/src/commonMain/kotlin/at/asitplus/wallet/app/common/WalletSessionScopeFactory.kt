@@ -18,6 +18,7 @@ private fun createWalletSessionScope(
     dataStoreService: DataStoreService,
 ): SessionHandle {
     val keystoreService = KeystoreService(dataStoreService)
+    registerCredentialMetadata(buildContext, dataStoreService)
     val scope = KoinPlatform.getKoin().createScope(
         "$sessionName:${UUID.randomUUID()}",
         named(SESSION_NAME)

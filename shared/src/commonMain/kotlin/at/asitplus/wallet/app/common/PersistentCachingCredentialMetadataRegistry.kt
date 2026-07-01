@@ -73,10 +73,16 @@ class PersistentCachingCredentialMetadataRegistry(
     ): ResolvedCredentialMetadata? {
         val key = key(identifier, representation)
         cache()[key]?.takeIf { it.isFresh() }?.let {
+            Napier.d("Type metadata cache hit for $identifier ($representation), loaded from ${it.loadedFrom}")
             return it.toResolved().also(::rememberDisplayName)
         }
 
-        val resolved = delegate.findEntry(identifier, representation) ?: return null
+        val resolved = delegate.findEntry(identifier, representation) ?: run {
+            // Resolution is otherwise swallowed to a fallback scheme (bare vct, no claim labels) with no trace.
+            Napier.w("Could not resolve type metadata for $identifier ($representation); using fallback scheme")
+            return null
+        }
+        Napier.d("Resolved type metadata for $identifier from ${resolved.loadedFrom} (name=${resolved.metadata.name})")
         rememberDisplayName(resolved)
         mutex.withLock {
             val current = cache ?: loadFromDataStore().also { cache = it }

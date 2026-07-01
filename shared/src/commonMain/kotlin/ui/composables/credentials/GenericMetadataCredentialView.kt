@@ -64,4 +64,4 @@ private fun NormalizedJsonPath.genericLabel(): String =
     (0 until segments.size).mapNotNull { memberName(it) }.joinToString(".").ifEmpty { toString() }
 
 /** Registered JWT claims rendered in their own dedicated cards rather than the attribute list. */
-private val HIDDEN_TOP_LEVEL_CLAIMS = setOf("status", "cnf")
+private val HIDDEN_TOP_LEVEL_CLAIMS = setOf("status", "cnf", "vct", "iat", "iss", "nbf", "exp", "sub")
