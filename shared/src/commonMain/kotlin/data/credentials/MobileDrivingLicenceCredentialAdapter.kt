@@ -93,15 +93,20 @@ sealed class MobileDrivingLicenceCredentialAdapter(
             if (!storeEntry.scheme.isMdl) {
                 throw IllegalArgumentException("credential")
             }
-            val scheme = storeEntry.scheme!!
             return when (storeEntry) {
                 is SubjectCredentialStore.StoreEntry.Vc -> TODO("Operation not yet supported")
 
-                is SubjectCredentialStore.StoreEntry.SdJwt ->
-                    MobileDrivingLicenceCredentialSdJwtAdapter(storeEntry.toAttributeMap(), decodePortrait, scheme)
+                is SubjectCredentialStore.StoreEntry.SdJwt -> MobileDrivingLicenceCredentialSdJwtAdapter(
+                    attributes = storeEntry.toAttributeMap(),
+                    decodePortrait = decodePortrait,
+                    scheme = storeEntry.scheme
+                )
 
-                is SubjectCredentialStore.StoreEntry.Iso ->
-                    MobileDrivingLicenceCredentialIsoMdocAdapter(storeEntry.toNamespaceAttributeMap(), decodePortrait, scheme)
+                is SubjectCredentialStore.StoreEntry.Iso -> MobileDrivingLicenceCredentialIsoMdocAdapter(
+                    namespaces = storeEntry.toNamespaceAttributeMap(),
+                    decodePortrait = decodePortrait,
+                    scheme = storeEntry.scheme
+                )
             }
         }
     }
