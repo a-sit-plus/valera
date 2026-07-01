@@ -3,6 +3,7 @@ package ui.viewmodels
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.decodeImage
 import data.storage.StoreEntryId
@@ -29,7 +30,11 @@ class CredentialDetailsViewModel(
     val storeEntry = walletMain.subjectCredentialStore.observeStoreContainer().map { container ->
         container.credentials.find {
             it.first == storeEntryId
-        }?.second
+        }?.second?.also {
+            // Resolve (and register) the scheme up front so the synchronous scheme getters used by the detail
+            // composables return the metadata-backed scheme (type display name + claim labels), not a fallback.
+            catchingUnwrapped { it.resolveScheme() }
+        }
     }
 
     val credentialTimelinessesStates = channelFlow {

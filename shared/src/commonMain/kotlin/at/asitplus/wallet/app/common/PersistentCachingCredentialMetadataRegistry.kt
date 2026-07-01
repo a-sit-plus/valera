@@ -4,6 +4,8 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.wallet.lib.data.CredentialMetadataRegistry
 import at.asitplus.wallet.lib.data.ResolvedCredentialMetadata
+import at.asitplus.wallet.lib.data.toCredentialScheme
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.sdjwt.SdJwtTypeMetadata
 import data.storage.DataStoreService
 import io.github.aakira.napier.Napier
@@ -89,9 +91,13 @@ class PersistentCachingCredentialMetadataRegistry(
         return resolved
     }
 
-    /** Record the credential type's display name so the UI can show it instead of the bare vct. */
+    /**
+     * Record the credential type's display name so the UI can show it instead of the bare vct. Keyed by the resolved
+     * scheme's identifier (vct/docType) — that is what the UI has at hand; the document URL (loadedFrom) is not.
+     */
     private fun rememberDisplayName(resolved: ResolvedCredentialMetadata) {
-        resolved.metadata.name?.let { CredentialMetadataDisplayNames[resolved.loadedFrom] = it }
+        val name = resolved.metadata.name ?: return
+        CredentialMetadataDisplayNames[resolved.toCredentialScheme().identifier] = name
     }
 
     private fun CachedMetadata.toResolved() = ResolvedCredentialMetadata(metadata, loadedFrom, aliases)

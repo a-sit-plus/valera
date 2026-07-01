@@ -22,6 +22,7 @@ import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult
 import io.github.aakira.napier.Napier
 import io.ktor.http.*
@@ -357,7 +358,7 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
             }
             Napier.d(
                 "${prefix}TransientFlowIssuingResultRoute render storeEntryId=${route.storeEntryId} " +
-                    "resolved=${storeEntry != null} scheme=${storeEntry?.scheme?.schemaUri}"
+                    "resolved=${storeEntry != null} scheme=${storeEntry?.scheme?.identifier}"
             )
         }
         val onAcknowledge = {

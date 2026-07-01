@@ -22,7 +22,7 @@ import org.jetbrains.compose.resources.stringResource
 
 /** Display name from resolved type metadata, falling back to the identifier (vct/docType). */
 private val CredentialScheme?.metadataDisplayName: String?
-    get() = CredentialMetadataDisplayNames[this?.schemaUri]
+    get() = CredentialMetadataDisplayNames[this?.identifier]
 
 @Composable
 fun CredentialScheme?.uiLabel(): String = when {

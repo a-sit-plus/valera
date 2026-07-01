@@ -107,7 +107,8 @@ sealed class MobileDrivingLicenceCredentialAdapter(
         }
     }
 
-    private fun MobileDrivingLicenceCredentialClaimDefinition.toAttribute(): Attribute? = when (this) {
+    private fun MobileDrivingLicenceCredentialClaimDefinition.toAttribute(): Attribute? =
+        when (this) {
         MobileDrivingLicenceCredentialClaimDefinition.GIVEN_NAME -> Attribute.fromValue(givenName)
         MobileDrivingLicenceCredentialClaimDefinition.FAMILY_NAME -> Attribute.fromValue(familyName)
         MobileDrivingLicenceCredentialClaimDefinition.BIRTH_DATE -> Attribute.fromValue(birthDate)

@@ -18,6 +18,7 @@ import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.data.IsoMdocCredentialScheme
 import at.asitplus.wallet.lib.data.SdJwtCredentialScheme
 import at.asitplus.wallet.lib.data.VcJwtCredentialScheme
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPidIso
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPidSdJwt
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
@@ -56,8 +57,8 @@ class PersistentSubjectCredentialStore(
     ) = SubjectCredentialStore.StoreEntry.Vc(
         vcSerialized,
         vc,
-        scheme.schemaUri,
-        renewalInfo,
+        renewalInfo = renewalInfo,
+        schemeIdentifier = scheme.identifier,
     ).also {
         addStoreEntry(it)
     }
@@ -73,8 +74,8 @@ class PersistentSubjectCredentialStore(
         vcSerialized,
         vc,
         disclosures,
-        scheme.schemaUri,
-        renewalInfo,
+        renewalInfo = renewalInfo,
+        schemeIdentifier = scheme.identifier,
     ).also {
         addStoreEntry(it)
     }
@@ -85,8 +86,8 @@ class PersistentSubjectCredentialStore(
         renewalInfo: CredentialRenewalInfo?
     ) = SubjectCredentialStore.StoreEntry.Iso(
         issuerSigned,
-        scheme.schemaUri,
-        renewalInfo,
+        renewalInfo = renewalInfo,
+        schemeIdentifier = scheme.identifier,
     ).also {
         addStoreEntry(it)
     }
