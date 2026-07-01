@@ -8,6 +8,7 @@ import at.asitplus.valera.resources.error_reissue_failed
 import at.asitplus.valera.resources.success_refreshed
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import data.storage.DataStoreService
 import data.storage.StoreEntryId
@@ -59,7 +60,7 @@ class CredentialValidityService(
         _refreshItems.update {
             entriesWithIds
                 .filterNot { it.first in suppressedIds }
-                .map { RefreshItem(storeEntryId = it.first, entry = it.second) }
+                .map { RefreshItem(storeEntryId = it.first, entry = it.second, scheme = it.second.resolveScheme()) }
         }
     }
 
@@ -168,6 +169,7 @@ class CredentialValidityService(
 data class RefreshItem(
     val storeEntryId: Long,
     val entry: SubjectCredentialStore.StoreEntry,
+    val scheme: CredentialScheme,
     val selected: Boolean = true,
     val status: RefreshStatus = RefreshStatus.Pending,
     val error: String? = null

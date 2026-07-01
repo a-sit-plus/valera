@@ -33,11 +33,7 @@ class HotWalletSubjectCredentialStore(
         val latestCredentials = observeStoreContainer().first().credentials.map { it.second }
         return credentialSchemes?.let { schemes ->
             KmmResult.success(latestCredentials.filter {
-                when (it) {
-                    is SubjectCredentialStore.StoreEntry.Iso -> it.scheme in schemes
-                    is SubjectCredentialStore.StoreEntry.SdJwt -> it.scheme in schemes
-                    is SubjectCredentialStore.StoreEntry.Vc -> it.scheme in schemes
-                }
+                it.resolveScheme() in schemes
             }.toList())
         } ?: KmmResult.success(latestCredentials)
     }

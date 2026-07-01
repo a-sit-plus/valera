@@ -307,7 +307,7 @@ private fun WalletNavHost(
         if (processedItemIds.contains(item.storeEntryId)) return@LaunchedEffect
         processedItemIds = processedItemIds + item.storeEntryId
         val result = snackbarHostState.showSnackbar(
-            message = getString(Res.string.refresh_snackbar_message_single, item.entry.scheme.uiLabelNonCompose()),
+            message = getString(Res.string.refresh_snackbar_message_single, item.scheme.uiLabelNonCompose()),
             actionLabel = getString(Res.string.refresh_snackbar_action),
             withDismissAction = true,
             duration = SnackbarDuration.Long,

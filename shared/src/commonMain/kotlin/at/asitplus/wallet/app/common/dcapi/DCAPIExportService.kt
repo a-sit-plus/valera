@@ -70,14 +70,14 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
         claims = SdJwtEntry.fromAttributeMap(toAttributeMap(), getTranslator())
     )
 
-    private fun SubjectCredentialStore.StoreEntry.getTranslator(): CredentialAttributeTranslator =
-        CredentialAttributeTranslator[scheme]
+    private suspend fun SubjectCredentialStore.StoreEntry.getTranslator(): CredentialAttributeTranslator =
+        CredentialAttributeTranslator[resolveScheme()]
             ?: throw IllegalStateException("Attribute translator not implemented")
 
     private suspend fun SubjectCredentialStore.StoreEntry.extractPicture() = resolveScheme().let { s ->
         when {
-            s.isMdl -> MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(this, imageDecoder).portraitRaw
-            s.isEuPid -> EuPidCredentialAdapter.createFromStoreEntry(this, imageDecoder).portraitRaw
+            s.isMdl -> MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(this, s, imageDecoder).portraitRaw
+            s.isEuPid -> EuPidCredentialAdapter.createFromStoreEntry(this, s, imageDecoder).portraitRaw
 
             else -> null
         }

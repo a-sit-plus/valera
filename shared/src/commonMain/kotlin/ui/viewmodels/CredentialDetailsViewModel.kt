@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import ui.models.CredentialFreshnessSummaryUiModel
+import ui.models.toFallbackResolvedCredential
+import ui.models.toResolvedCredential
 import ui.models.toCredentialFreshnessSummaryModel
 
 class CredentialDetailsViewModel(
@@ -30,10 +32,9 @@ class CredentialDetailsViewModel(
     val storeEntry = walletMain.subjectCredentialStore.observeStoreContainer().map { container ->
         container.credentials.find {
             it.first == storeEntryId
-        }?.second?.also {
-            // Resolve (and register) the scheme up front so the synchronous scheme getters used by the detail
-            // composables return the metadata-backed scheme (type display name + claim labels), not a fallback.
-            catchingUnwrapped { it.resolveScheme() }
+        }?.second?.let {
+            catchingUnwrapped { it.toResolvedCredential() }
+                .getOrElse { _ -> it.toFallbackResolvedCredential() }
         }
     }
 

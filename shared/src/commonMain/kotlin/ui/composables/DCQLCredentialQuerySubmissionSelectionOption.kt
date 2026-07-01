@@ -10,10 +10,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.KmmResult
+import at.asitplus.catchingUnwrapped
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.openid.dcql.DCQLClaimsQueryResult
 import at.asitplus.openid.dcql.DCQLCredentialQueryMatchingResult
@@ -25,7 +27,6 @@ import at.asitplus.wallet.lib.agent.SdJwtDecoded
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialToJsonConverter.toJsonElement
 import at.asitplus.wallet.lib.jws.SdJwtSigned
-import data.credentials.FallbackCredentialAdapter
 import data.credentials.toCredentialAdapter
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.json.buildJsonObject
@@ -35,6 +36,9 @@ import ui.composables.credentials.CredentialSelectionCardHeader
 import ui.composables.credentials.CredentialSelectionCardLayout
 import ui.composables.credentials.CredentialSummaryCardContent
 import ui.models.CredentialFreshnessValidationStateUiModel
+import ui.models.ResolvedCredential
+import ui.models.toFallbackResolvedCredential
+import ui.models.toResolvedCredential
 
 
 @Composable
@@ -49,6 +53,11 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
     freshnessState: StateFlow<CredentialFreshnessValidationStateUiModel>,
 ) {
     val credentialFreshnessValidationState by freshnessState.collectAsState()
+    val resolvedCredential by produceState<ResolvedCredential?>(null, credential) {
+        value = catchingUnwrapped { credential.toResolvedCredential() }
+            .getOrElse { credential.toFallbackResolvedCredential() }
+    }
+    val displayCredential = resolvedCredential ?: return
 
     val genericAttributeList: List<Pair<NormalizedJsonPath, Any>> =
         when (val matchingResult = matchingResult.getOrNull()) {
@@ -70,8 +79,7 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
             }
         }
 
-    val credentialAdapter = credential.toCredentialAdapter { decodeToBitmap(it) }
-        ?: FallbackCredentialAdapter(genericAttributeList, credential)
+    val credentialAdapter = credential.toCredentialAdapter(displayCredential.scheme) { decodeToBitmap(it) }
 
     val labeledAttributes = genericAttributeList.mapNotNull { (key, value) ->
         try {
@@ -80,7 +88,7 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
             null
         }?.let { attribute ->
             key.segments.lastOrNull()?.let {
-                credential.scheme.getLocalization(key) ?: credential.scheme.getLocalization(NormalizedJsonPath(it))
+                displayCredential.scheme.getLocalization(key) ?: displayCredential.scheme.getLocalization(NormalizedJsonPath(it))
             }?.let { it to attribute }
         }
     }.sortedBy {
@@ -103,12 +111,12 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
         CredentialSelectionCardHeader(
             credentialFreshnessValidationState = credentialFreshnessValidationState,
             matchingException = matchingResult.exceptionOrNull(),
-            credential = credential,
+            credential = displayCredential,
             modifier = Modifier.fillMaxWidth(),
             allowMultiSelection = allowMultiSelection,
         )
         CredentialSummaryCardContent(
-            credential = credential,
+            credential = displayCredential,
             decodeToBitmap = {
                 decodeToBitmap(it)
             },

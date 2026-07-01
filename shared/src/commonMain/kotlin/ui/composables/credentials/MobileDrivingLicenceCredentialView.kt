@@ -7,17 +7,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import data.credentials.MobileDrivingLicenceCredentialAdapter
+import ui.models.ResolvedCredential
 
 @Composable
 fun MobileDrivingLicenceCredentialView(
-    credential: SubjectCredentialStore.StoreEntry,
+    credential: ResolvedCredential,
     decodeImage: (ByteArray) -> Result<ImageBitmap>,
     modifier: Modifier = Modifier,
 ) {
-    val credentialAdapter = remember {
-        MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(credential, decodeImage)
+    val credentialAdapter = remember(credential) {
+        MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(credential.entry, credential.scheme, decodeImage)
     }
     MobileDrivingLicenceCredentialViewFromAdapter(credentialAdapter, modifier)
 }

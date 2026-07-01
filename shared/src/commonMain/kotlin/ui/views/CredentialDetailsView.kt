@@ -44,6 +44,7 @@ import ui.composables.credentials.GenericCredentialSummaryCardContent
 import ui.composables.credentials.GenericMetadataCredentialView
 import ui.composables.credentials.MobileDrivingLicenceCredentialView
 import ui.models.CredentialFreshnessSummaryUiModel
+import ui.models.ResolvedCredential
 import ui.viewmodels.CredentialDetailsViewModel
 
 @Composable
@@ -65,14 +66,14 @@ fun CredentialDetailsView(
         credentialFreshnessSummaryModel = credentialFreshnessSummary,
         onRefresh = {
             storeEntry?.let { entry ->
-                vm.walletMain.credentialValidityService.refreshSingle(entry, vm.storeEntryId)
+                vm.walletMain.credentialValidityService.refreshSingle(entry.entry, vm.storeEntryId)
                 vm.navigateUp()
             }
         }
     ) {
         storeEntry?.let {
             CredentialDetailsSummaryView(
-                storeEntry = it,
+                credential = it,
                 imageDecoder = vm.imageDecoder,
             )
         } ?: Column(
@@ -138,30 +139,28 @@ fun CredentialDetailsScaffold(
 
 @Composable
 fun CredentialDetailsSummaryView(
-    storeEntry: SubjectCredentialStore.StoreEntry,
+    credential: ResolvedCredential,
     imageDecoder: (ByteArray) -> Result<ImageBitmap>,
 ) {
     Column(modifier = Modifier.padding(horizontal = 8.dp)) {
-        @Suppress("DEPRECATION")
         PersonAttributeDetailCardHeading(
-            icon = { PersonAttributeDetailCardHeadingIcon(storeEntry.scheme.iconLabel()) },
+            icon = { PersonAttributeDetailCardHeadingIcon(credential.scheme.iconLabel()) },
             title = {
                 LabeledText(
-                    label = storeEntry.representation.uiLabel(),
-                    text = storeEntry.scheme.uiLabel(),
+                    label = credential.entry.representation.uiLabel(),
+                    text = credential.scheme.uiLabel(),
                 )
             },
         )
-        @Suppress("DEPRECATION")
-        storeEntry.scheme.let { s ->
+        credential.scheme.let { s ->
             when {
-                s.isEuPid -> EuPidCredentialView(storeEntry, imageDecoder)
-                s.isMdl -> MobileDrivingLicenceCredentialView(storeEntry, imageDecoder)
-                else -> GenericMetadataCredentialView(storeEntry)
+                s.isEuPid -> EuPidCredentialView(credential, imageDecoder)
+                s.isMdl -> MobileDrivingLicenceCredentialView(credential, imageDecoder)
+                else -> GenericMetadataCredentialView(credential)
             }
         }
         // No extra horizontal padding here: the enclosing Column already applies it, otherwise the cards
         // (technical data, status, contents, cnf) would be indented twice.
-        GenericCredentialSummaryCardContent(credential = storeEntry)
+        GenericCredentialSummaryCardContent(credential = credential)
     }
 }

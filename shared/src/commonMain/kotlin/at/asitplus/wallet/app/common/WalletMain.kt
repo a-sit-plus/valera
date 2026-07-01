@@ -93,8 +93,7 @@ class WalletMain(
 
     /**
      * Resolves the scheme of every stored credential on startup, triggering remote type-metadata retrieval for
-     * those whose scheme is not known locally. Resolved schemes are cached in VC-K, so later (synchronous) reads of
-     * [SubjectCredentialStore.StoreEntry.scheme] return the proper scheme instead of a fallback.
+     * those whose scheme is not known locally. Resolved schemes are cached in VC-K for later [resolveScheme] calls.
      */
     private fun resolveUnknownCredentialSchemes() {
         scope.launch(Dispatchers.IO) {

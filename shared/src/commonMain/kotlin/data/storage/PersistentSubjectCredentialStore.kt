@@ -6,17 +6,10 @@ import at.asitplus.iso.IssuerSigned
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.identifier
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPidIso
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPidSdJwt
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
-import at.asitplus.wallet.eupid.EU_PID_DOCTYPE
-import at.asitplus.wallet.eupidsdjwt.EU_PID_SD_JWT_VCT
 import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.agent.validation.CredentialFreshnessSummary
-import at.asitplus.wallet.lib.data.AttributeIndex
-import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.data.IsoMdocCredentialScheme
 import at.asitplus.wallet.lib.data.SdJwtCredentialScheme
@@ -25,14 +18,13 @@ import at.asitplus.wallet.lib.data.VcJwtCredentialScheme
 import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatusValidationResult
-import at.asitplus.wallet.mdl.MDL_DOCTYPE
-import data.storage.ExportableCredentialScheme.Companion.toExportableCredentialScheme
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.random.Random
 
@@ -98,11 +90,7 @@ class PersistentSubjectCredentialStore(
         val latestCredentials = container.first().credentials.map { it.second }
         return credentialSchemes?.let { schemes ->
             KmmResult.success(latestCredentials.filter {
-                when (it) {
-                    is SubjectCredentialStore.StoreEntry.Iso -> it.scheme in schemes
-                    is SubjectCredentialStore.StoreEntry.SdJwt -> it.scheme in schemes
-                    is SubjectCredentialStore.StoreEntry.Vc -> it.scheme in schemes
-                }
+                it.resolveScheme() in schemes
             }.toList())
         } ?: KmmResult.success(latestCredentials)
     }
@@ -114,7 +102,6 @@ class PersistentSubjectCredentialStore(
                 is SubjectCredentialStore.StoreEntry.Iso -> {
                     ExportableStoreEntry.Iso(
                         issuerSigned = storeEntry.issuerSigned,
-                        exportableCredentialScheme = storeEntry.resolveScheme().toExportableCredentialScheme(),
                         renewalInfo = storeEntry.renewalInfo,
                         schemeIdentifier = storeEntry.schemeIdentifier,
                     )
@@ -125,7 +112,6 @@ class PersistentSubjectCredentialStore(
                         vcSerialized = storeEntry.vcSerialized,
                         sdJwt = storeEntry.sdJwt,
                         disclosures = storeEntry.disclosures,
-                        exportableCredentialScheme = storeEntry.resolveScheme().toExportableCredentialScheme(),
                         renewalInfo = storeEntry.renewalInfo,
                         schemeIdentifier = storeEntry.schemeIdentifier,
                     )
@@ -135,7 +121,6 @@ class PersistentSubjectCredentialStore(
                     ExportableStoreEntry.Vc(
                         vcSerialized = storeEntry.vcSerialized,
                         vc = storeEntry.vc,
-                        exportableCredentialScheme = storeEntry.resolveScheme().toExportableCredentialScheme(),
                         renewalInfo = storeEntry.renewalInfo,
                         schemeIdentifier = storeEntry.schemeIdentifier,
                     )
@@ -280,7 +265,6 @@ private data class OldExportableStoreContainer(
 
 @Serializable
 private sealed interface ExportableStoreEntry {
-    val exportableCredentialScheme: ExportableCredentialScheme
     val renewalInfo: CredentialRenewalInfo?
     // has been added nullable to not break de-serializing existing store entries
     val schemeIdentifier: String?
@@ -288,7 +272,6 @@ private sealed interface ExportableStoreEntry {
     data class Vc(
         val vcSerialized: String,
         val vc: VerifiableCredentialJws,
-        override val exportableCredentialScheme: ExportableCredentialScheme,
         override val renewalInfo: CredentialRenewalInfo? = null,
         override val schemeIdentifier: String? = null,
     ) : ExportableStoreEntry
@@ -301,7 +284,6 @@ private sealed interface ExportableStoreEntry {
          * Map of original serialized disclosure item to parsed item
          */
         val disclosures: Map<String, SelectiveDisclosureItem?>,
-        override val exportableCredentialScheme: ExportableCredentialScheme,
         override val renewalInfo: CredentialRenewalInfo? = null,
         override val schemeIdentifier: String? = null,
     ) : ExportableStoreEntry
@@ -309,68 +291,7 @@ private sealed interface ExportableStoreEntry {
     @Serializable
     data class Iso(
         val issuerSigned: IssuerSigned,
-        override val exportableCredentialScheme: ExportableCredentialScheme,
         override val renewalInfo: CredentialRenewalInfo? = null,
         override val schemeIdentifier: String? = null,
     ) : ExportableStoreEntry
 }
-
-enum class ExportableCredentialScheme {
-    AtomicAttribute2023, MobileDrivingLicence2023, EuPidScheme, EuPidSdJwtScheme, PowerOfRepresentationScheme, CertificateOfResidenceScheme, CompanyRegistrationScheme, HealthIdScheme, EhicScheme, TaxIdScheme, VcFallbackCredentialScheme, SdJwtFallbackCredentialScheme, IsoMdocFallbackCredentialScheme, AgeVerificationScheme;
-
-    fun toScheme() = when (this) {
-        AtomicAttribute2023 -> ConstantIndex.AtomicAttribute2023
-        MobileDrivingLicence2023 -> resolveIsoScheme(MDL_DOCTYPE)
-        EuPidScheme -> resolveIsoScheme(EU_PID_DOCTYPE)
-        EuPidSdJwtScheme -> resolveSdJwtScheme(EU_PID_SD_JWT_VCT)
-        AgeVerificationScheme -> resolveIsoScheme(EXPORTABLE_AV_DOCTYPE)
-        PowerOfRepresentationScheme -> resolveSdJwtScheme(EXPORTABLE_POR_VCT)
-        CertificateOfResidenceScheme -> resolveSdJwtScheme(EXPORTABLE_COR_VCT)
-        CompanyRegistrationScheme -> resolveSdJwtScheme(EXPORTABLE_CR_VCT)
-        HealthIdScheme -> resolveSdJwtScheme(EXPORTABLE_HIID_VCT)
-        EhicScheme -> resolveSdJwtScheme(EXPORTABLE_EHIC_VCT)
-        TaxIdScheme -> resolveSdJwtScheme(EXPORTABLE_TAX_VCT)
-        VcFallbackCredentialScheme -> at.asitplus.wallet.lib.data.VcFallbackCredentialScheme
-        SdJwtFallbackCredentialScheme -> at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme
-        IsoMdocFallbackCredentialScheme -> at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme
-    }
-
-    companion object {
-        @Suppress("DEPRECATION")
-        fun CredentialScheme.toExportableCredentialScheme() = when {
-            this == ConstantIndex.AtomicAttribute2023 -> AtomicAttribute2023
-            isMdl -> MobileDrivingLicence2023
-            isEuPidIso -> EuPidScheme
-            isEuPidSdJwt -> EuPidSdJwtScheme
-            isoDocType == EXPORTABLE_AV_DOCTYPE -> AgeVerificationScheme
-            sdJwtType == EXPORTABLE_POR_VCT -> PowerOfRepresentationScheme
-            sdJwtType == EXPORTABLE_COR_VCT -> CertificateOfResidenceScheme
-            sdJwtType == EXPORTABLE_CR_VCT -> CompanyRegistrationScheme
-            sdJwtType == EXPORTABLE_HIID_VCT -> HealthIdScheme
-            sdJwtType == EXPORTABLE_EHIC_VCT -> EhicScheme
-            sdJwtType == EXPORTABLE_TAX_VCT -> TaxIdScheme
-            this is at.asitplus.wallet.lib.data.VcFallbackCredentialScheme -> VcFallbackCredentialScheme
-            this is at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme -> SdJwtFallbackCredentialScheme
-            this is at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme -> IsoMdocFallbackCredentialScheme
-            else -> throw Exception("Unknown CredentialScheme")
-        }
-    }
-}
-
-// vct / docType identifiers for credentials resolved from remote type metadata (no compiled-in scheme objects),
-// used to map stored ExportableCredentialScheme entries back to a CredentialScheme.
-private const val EXPORTABLE_AV_DOCTYPE = "eu.europa.ec.av.1"
-private const val EXPORTABLE_POR_VCT = "urn:eu.europa.ec.eudi:por:1"
-private const val EXPORTABLE_COR_VCT = "eu.europa.ec.eudi.cor.1"
-private const val EXPORTABLE_CR_VCT = "urn:eu.europa.ec.eudi:cr:1"
-private const val EXPORTABLE_HIID_VCT = "urn:eu.europa.ec.eudi:hiid:1"
-private const val EXPORTABLE_EHIC_VCT = "urn:eudi:ehic:1"
-private const val EXPORTABLE_TAX_VCT = "urn:eu.europa.ec.eudi:tax:1"
-
-private fun resolveIsoScheme(docType: String): CredentialScheme =
-    AttributeIndex.resolveIsoDoctype(docType)
-        ?: at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme(isoDocType = docType)
-
-private fun resolveSdJwtScheme(vct: String): CredentialScheme =
-    AttributeIndex.resolveSdJwtAttributeType(vct)
-        ?: at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme(sdJwtType = vct)

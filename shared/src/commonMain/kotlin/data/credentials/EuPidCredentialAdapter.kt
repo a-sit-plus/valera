@@ -72,10 +72,11 @@ sealed class EuPidCredentialAdapter(
     companion object {
         fun createFromStoreEntry(
             storeEntry: SubjectCredentialStore.StoreEntry,
+            scheme: CredentialScheme,
             decodePortrait: (ByteArray) -> Result<ImageBitmap>,
         ): EuPidCredentialAdapter {
-            if (!storeEntry.scheme.isEuPid) {
-                throw IllegalArgumentException("credential: ${storeEntry.scheme}")
+            if (!scheme.isEuPid) {
+                throw IllegalArgumentException("credential: $scheme")
             }
             return when (storeEntry) {
                 is SubjectCredentialStore.StoreEntry.Vc -> TODO("Operation not yet supported")
@@ -84,12 +85,12 @@ sealed class EuPidCredentialAdapter(
                     attributes = storeEntry.toAttributeMap(),
                     complexJson = storeEntry.toComplexJson(),
                     decodePortrait = decodePortrait,
-                    scheme = storeEntry.scheme
+                    scheme = scheme,
                 )
 
                 is SubjectCredentialStore.StoreEntry.Iso -> EuPidCredentialIsoMdocAdapter(
                     namespaces = storeEntry.toNamespaceAttributeMap(), decodePortrait = decodePortrait,
-                    scheme = storeEntry.scheme
+                    scheme = scheme,
                 )
             }
         }

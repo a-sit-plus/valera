@@ -36,6 +36,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.koin.core.scope.Scope
 import ui.composables.credentials.CredentialCard
+import ui.models.toFallbackResolvedCredential
+import ui.models.toResolvedCredential
 import ui.navigation.routes.AddCredentialDcApiRoute
 import ui.navigation.routes.AddCredentialPreAuthnRoute
 import ui.navigation.routes.AddCredentialWithLinkRoute
@@ -405,7 +407,10 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
         val detailsStoreEntryId = route.storeEntryId
         val storeEntry = route.storeEntryId?.let { storeEntryId ->
             walletMain.subjectCredentialStore.observeStoreContainer().map { container ->
-                container.credentials.find { it.first == storeEntryId }?.second
+                container.credentials.find { it.first == storeEntryId }?.second?.let { storeEntry ->
+                    catchingUnwrapped { storeEntry.toResolvedCredential() }
+                        .getOrElse { storeEntry.toFallbackResolvedCredential() }
+                }
             }.collectAsState(null).value
         }
         LaunchedEffect(route.storeEntryId, storeEntry) {

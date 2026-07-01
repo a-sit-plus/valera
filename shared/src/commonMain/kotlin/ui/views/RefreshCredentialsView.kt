@@ -94,7 +94,7 @@ fun RefreshItemRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(Modifier.weight(1f).padding(end = 8.dp)) {
-            Text(item.entry.scheme.uiLabel(), fontWeight = FontWeight.SemiBold)
+            Text(item.scheme.uiLabel(), fontWeight = FontWeight.SemiBold)
             val statusColor = when (item.status) {
                 RefreshStatus.Pending -> LocalContentColor.current
                 RefreshStatus.InProgress -> Color(0xFF1565C0)

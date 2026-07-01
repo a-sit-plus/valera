@@ -20,11 +20,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import at.asitplus.catchingUnwrapped
 import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import ui.models.CredentialFreshnessSummaryUiModel
 import ui.models.CredentialFreshnessValidationStateUiModel
+import ui.models.ResolvedCredential
+import ui.models.toFallbackResolvedCredential
+import ui.models.toResolvedCredential
 
 @Composable
 fun CredentialSelectionCard(
@@ -36,6 +40,10 @@ fun CredentialSelectionCard(
 ) {
     val selected = remember { mutableStateOf(false) }
     selected.value = credentialSelection.value == credential.key
+    val resolvedCredential by produceState<ResolvedCredential?>(null, credential.key) {
+        value = catchingUnwrapped { credential.key.toResolvedCredential() }
+            .getOrElse { credential.key.toFallbackResolvedCredential() }
+    }
 
     val credentialFreshnessValidationState by produceState(
         CredentialFreshnessValidationStateUiModel.Loading as CredentialFreshnessValidationStateUiModel,
@@ -57,15 +65,16 @@ fun CredentialSelectionCard(
             CredentialFreshnessValidationStateUiModel.Loading -> false
         },
     ) {
+        val displayCredential = resolvedCredential ?: return@CredentialSelectionCardLayout
         CredentialSelectionCardHeader(
             credentialFreshnessValidationState = credentialFreshnessValidationState,
-            credential = credential.key,
+            credential = displayCredential,
             modifier = Modifier.fillMaxWidth(),
             allowMultiSelection = false,
             matchingException = null,
         )
         CredentialSummaryCardContent(
-            credential = credential.key,
+            credential = displayCredential,
             decodeToBitmap = imageDecoder,
         )
 
@@ -87,7 +96,7 @@ fun CredentialSelectionCard(
                 targetAlpha = 0f
             )
         ) {
-            AttributeSelectionGroup(credential, format = credential.key.scheme, selection = attributeSelection)
+            AttributeSelectionGroup(credential, format = displayCredential.scheme, selection = attributeSelection)
         }
     }
 }

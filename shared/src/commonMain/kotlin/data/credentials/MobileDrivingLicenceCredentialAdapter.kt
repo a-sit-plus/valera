@@ -88,9 +88,10 @@ sealed class MobileDrivingLicenceCredentialAdapter(
     companion object {
         fun createFromStoreEntry(
             storeEntry: SubjectCredentialStore.StoreEntry,
+            scheme: CredentialScheme,
             decodePortrait: (ByteArray) -> Result<ImageBitmap>,
         ): MobileDrivingLicenceCredentialAdapter {
-            if (!storeEntry.scheme.isMdl) {
+            if (!scheme.isMdl) {
                 throw IllegalArgumentException("credential")
             }
             return when (storeEntry) {
@@ -99,13 +100,13 @@ sealed class MobileDrivingLicenceCredentialAdapter(
                 is SubjectCredentialStore.StoreEntry.SdJwt -> MobileDrivingLicenceCredentialSdJwtAdapter(
                     attributes = storeEntry.toAttributeMap(),
                     decodePortrait = decodePortrait,
-                    scheme = storeEntry.scheme
+                    scheme = scheme,
                 )
 
                 is SubjectCredentialStore.StoreEntry.Iso -> MobileDrivingLicenceCredentialIsoMdocAdapter(
                     namespaces = storeEntry.toNamespaceAttributeMap(),
                     decodePortrait = decodePortrait,
-                    scheme = storeEntry.scheme
+                    scheme = scheme,
                 )
             }
         }

@@ -7,6 +7,7 @@ import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.agent.rep
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPid
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.CredentialScheme
 import data.Attribute
 import data.credentials.CredentialAdapter.Companion.toComplexJson
 import data.credentials.CredentialAdapter.Companion.toNamespaceAttributeMap
@@ -16,20 +17,22 @@ import kotlinx.serialization.json.JsonObject
 @Suppress("DEPRECATION")
 @Composable
 fun SubjectCredentialStore.StoreEntry.toCredentialAdapter(
+    scheme: CredentialScheme,
     decodeImage: (ByteArray) -> Result<ImageBitmap>,
 ): CredentialAdapter = scheme.let { s ->
     when {
-        s.isEuPid -> EuPidCredentialAdapter.createFromStoreEntry(this, decodePortrait = decodeImage)
-        s.isMdl -> MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(this, decodePortrait = decodeImage)
+        s.isEuPid -> EuPidCredentialAdapter.createFromStoreEntry(this, scheme, decodePortrait = decodeImage)
+        s.isMdl -> MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(this, scheme, decodePortrait = decodeImage)
         // No bespoke renderer (e.g. a scheme resolved from remote type metadata): render generically.
-        else -> FallbackCredentialAdapter(toGenericAttributeList(), this)
+        else -> FallbackCredentialAdapter(toGenericAttributeList(), this, scheme)
     }
 }
 
 
 class FallbackCredentialAdapter(
     genericAttributeList: List<Pair<NormalizedJsonPath, Any>>,
-    val credential: SubjectCredentialStore.StoreEntry
+    val credential: SubjectCredentialStore.StoreEntry,
+    override val scheme: CredentialScheme,
 ) : CredentialAdapter() {
     // trying our best to map the values to attributes
     private val mapping = genericAttributeList.toMap()
@@ -38,7 +41,6 @@ class FallbackCredentialAdapter(
         ?.let { Attribute.fromValue(it) }
 
     override val representation = credential.representation
-    override val scheme = credential.scheme!!
 }
 
 /**
