@@ -392,8 +392,6 @@
     <string name="section_heading_information">Information</string>
     <string name="section_heading_requested_data">Angefragte Daten</string>
     <string name="section_heading_data_recipient">Empfänger</string>
-    <string name="section_heading_admission_data">Zulassungsdaten</string>
-    <string name="section_heading_admission_data_icon_text">Z</string>
     <string name="section_heading_other_data_category_title">Sonstige</string>
     <string name="section_heading_other_data_category_icon_text">S</string>
     <string name="section_heading_age_data">Altersstufen</string>
@@ -410,10 +408,6 @@
     <string name="section_heading_biometric_data_icon_text">B</string>
     <string name="section_heading_metadata">Metadaten</string>
     <string name="section_heading_metadata_icon_text">M</string>
-    <string name="section_heading_representation_data">Vertretung</string>
-    <string name="section_heading_representation_data_icon_text">V</string>
-    <string name="section_heading_company_data">Firmendaten</string>
-    <string name="section_heading_company_data_icon_text">F</string>
     <string name="section_heading_residence_data">Meldeadresse</string>
     <string name="section_heading_residence_data_icon_text">MA</string>
     <string name="section_heading_missing_data">Neue Daten laden</string>

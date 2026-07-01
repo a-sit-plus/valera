@@ -397,8 +397,6 @@
     <string name="section_heading_information">Information</string>
     <string name="section_heading_requested_data">Requested Data</string>
     <string name="section_heading_data_recipient">Recipient</string>
-    <string name="section_heading_admission_data">Admission Data</string>
-    <string name="section_heading_admission_data_icon_text">AD</string>
     <string name="section_heading_other_data_category_title">Other</string>
     <string name="section_heading_other_data_category_icon_text">O</string>
     <string name="section_heading_age_data">Age Levels</string>
@@ -413,10 +411,6 @@
     <string name="section_heading_birth_data_icon_text">BIR</string>
     <string name="section_heading_biometric_data">Biometry</string>
     <string name="section_heading_biometric_data_icon_text">BIO</string>
-    <string name="section_heading_representation_data">Representation</string>
-    <string name="section_heading_representation_data_icon_text">REP</string>
-    <string name="section_heading_company_data">Company</string>
-    <string name="section_heading_company_data_icon_text">CO</string>
     <string name="section_heading_metadata">Metadata</string>
     <string name="section_heading_metadata_icon_text">M</string>
     <string name="section_heading_residence_data">Residence</string>
