@@ -25,8 +25,6 @@ import ui.composables.PersonAttributeDetailCardHeading
 fun GenericMetadataCredentialView(
     storeEntry: SubjectCredentialStore.StoreEntry,
 ) {
-    @Suppress("DEPRECATION")
-    val scheme = storeEntry.scheme ?: return
     val grouped = remember(storeEntry) {
         storeEntry.toGenericAttributeList()
             // status and cnf are shown in their own cards (see GenericCredentialSummaryCardContent).
@@ -40,7 +38,7 @@ fun GenericMetadataCredentialView(
             // Show a group header only when there are multiple groups and this one has nested sub-claims
             // (e.g. address.region, address.locality). A single group would just duplicate the credential heading.
             if (grouped.size > 1 && items.any { it.first.segments.size > 1 }) {
-                val groupLabel = scheme.metadataLabel(NormalizedJsonPath() + groupKey) ?: groupKey
+                val groupLabel = storeEntry.scheme.metadataLabel(NormalizedJsonPath() + groupKey) ?: groupKey
                 PersonAttributeDetailCardHeading(
                     title = groupLabel,
                     iconText = groupLabel.take(2).uppercase(),
@@ -49,7 +47,7 @@ fun GenericMetadataCredentialView(
             items.forEach { (path, value) ->
                 Attribute.fromValue(value)?.let { attribute ->
                     LabeledContent(
-                        label = scheme.metadataLabel(path) ?: path.genericLabel(),
+                        label = storeEntry.scheme.metadataLabel(path) ?: path.genericLabel(),
                         modifier = Modifier.padding(bottom = 8.dp),
                     ) {
                         AttributeRepresentation(attribute)

@@ -75,7 +75,7 @@ fun GenericCredentialSummaryCardContent(
 ) {
 
     var showContent by remember {
-        mutableStateOf(credential.scheme?.schemaUri?.contains("unknown") ?: false)
+        mutableStateOf(credential.scheme.schemaUri.contains("unknown"))
     }
 
 

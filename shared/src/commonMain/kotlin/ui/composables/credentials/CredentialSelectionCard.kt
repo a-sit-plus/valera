@@ -52,7 +52,7 @@ fun CredentialSelectionCard(
         },
         modifier = Modifier,
         isSelected = selected.value,
-        isError = when(val it = credentialFreshnessValidationState) {
+        isError = when (val it = credentialFreshnessValidationState) {
             is CredentialFreshnessValidationStateUiModel.Done -> !it.credentialFreshnessSummary.isNotBad
             CredentialFreshnessValidationStateUiModel.Loading -> false
         },
@@ -87,8 +87,7 @@ fun CredentialSelectionCard(
                 targetAlpha = 0f
             )
         ) {
-            val format = credential.key.scheme
-            AttributeSelectionGroup(credential, format = format, selection = attributeSelection)
+            AttributeSelectionGroup(credential, format = credential.key.scheme, selection = attributeSelection)
         }
     }
 }

@@ -127,7 +127,7 @@ fun CredentialsView(
                             items(
                                 credentials.size,
                                 key = { credentials[it].first },
-                                contentType = { credentials[it].second.scheme?.let { it::class } }
+                                contentType = { credentials[it].second.scheme.let { it::class } }
                             ) { index ->
                                 val storeEntry = credentials[index]
                                 val storeEntryIdentifier = storeEntry.first

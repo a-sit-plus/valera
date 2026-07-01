@@ -108,14 +108,14 @@ class CredentialValidityService(
             val renewalInfo = entry.renewalInfo ?: return RefreshStatus.Failed.also {
                     snackbarService.showSnackbar(
                         getString(Res.string.error_no_refresh_token),
-                        entry.scheme.uiLabelNonCompose()
+                        entry.resolveScheme().uiLabelNonCompose()
                     )
                 }
 
             provisioningService.refreshCredential(renewalInfo, storeId, ::updateStatus)
             snackbarService.showSnackbar(
                 getString(Res.string.success_refreshed),
-                entry.scheme.uiLabelNonCompose()
+                entry.resolveScheme().uiLabelNonCompose()
             )
             RefreshStatus.Succeeded
         } catch (_: Exception) {
@@ -141,7 +141,7 @@ class CredentialValidityService(
             errorService.emit(e)
             snackbarService.showSnackbar(
                 getString(Res.string.error_reissue_failed),
-                entry.scheme.uiLabelNonCompose()
+                entry.resolveScheme().uiLabelNonCompose()
             )
             RefreshStatus.Failed
         }

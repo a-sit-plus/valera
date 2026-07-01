@@ -17,7 +17,7 @@ import kotlinx.serialization.json.JsonObject
 @Composable
 fun SubjectCredentialStore.StoreEntry.toCredentialAdapter(
     decodeImage: (ByteArray) -> Result<ImageBitmap>,
-): CredentialAdapter? = scheme.let { s ->
+): CredentialAdapter = scheme.let { s ->
     when {
         s.isEuPid -> EuPidCredentialAdapter.createFromStoreEntry(this, decodePortrait = decodeImage)
         s.isMdl -> MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(this, decodePortrait = decodeImage)

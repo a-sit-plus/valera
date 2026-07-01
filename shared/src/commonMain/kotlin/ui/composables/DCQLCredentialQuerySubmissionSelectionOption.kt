@@ -81,8 +81,8 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
             null
         }?.let { attribute ->
             key.segments.lastOrNull()?.let {
-                credential.scheme?.getLocalization(key)?.let { stringResource(it) }
-                    ?: credential.scheme?.getLocalization(NormalizedJsonPath(it))?.let { stringResource(it) }
+                credential.scheme.getLocalization(key)?.let { stringResource(it) }
+                    ?: credential.scheme.getLocalization(NormalizedJsonPath(it))?.let { stringResource(it) }
 
             }?.let { it to attribute }
         }

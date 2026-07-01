@@ -41,14 +41,14 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
 
     private suspend fun SubjectCredentialStore.StoreEntry.toCredentialEntry() = when (this) {
         is SubjectCredentialStore.StoreEntry.SdJwt -> CredentialEntry(
-            title = scheme.uiLabelNonCompose(),
+            title = resolveScheme().uiLabelNonCompose(),
             subtitle = getString(Res.string.app_display_name),
             bitmap = extractPicture(),
             sdJwtEntry = toSdJwtEntry()
         )
 
         is SubjectCredentialStore.StoreEntry.Iso -> CredentialEntry(
-            title = scheme.uiLabelNonCompose(),
+            title = resolveScheme().uiLabelNonCompose(),
             subtitle = getString(Res.string.app_display_name),
             bitmap = extractPicture(),
             isoEntry = toIsoEntry()
@@ -59,27 +59,26 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
 
     private suspend fun SubjectCredentialStore.StoreEntry.Iso.toIsoEntry() = IsoMdocEntry(
         id = getDcApiId(),
-        docType = scheme?.isoDocType ?: "",
+        docType = schemeIdentifier ?: resolveScheme().isoDocType ?: "",
         isoNamespaces = toNamespaceAttributeMap()?.let {
             IsoMdocEntry.isoNamespacesFromNamespaceAttributeMap(it, getTranslator())
         } ?: mapOf())
 
     private suspend fun SubjectCredentialStore.StoreEntry.SdJwt.toSdJwtEntry() = SdJwtEntry(
         jwtId = getDcApiId(),
-        verifiableCredentialType = sdJwt.verifiableCredentialType,
+        verifiableCredentialType = schemeIdentifier ?: sdJwt.verifiableCredentialType,
         claims = SdJwtEntry.fromAttributeMap(toAttributeMap(), getTranslator())
     )
 
-    private fun SubjectCredentialStore.StoreEntry.getTranslator(): CredentialAttributeTranslator = CredentialAttributeTranslator[scheme]
-        ?: throw IllegalStateException("Attribute translator not implemented")
+    private fun SubjectCredentialStore.StoreEntry.getTranslator(): CredentialAttributeTranslator =
+        CredentialAttributeTranslator[scheme]
+            ?: throw IllegalStateException("Attribute translator not implemented")
 
-    @Suppress("DEPRECATION")
-    private fun SubjectCredentialStore.StoreEntry.extractPicture() = scheme.let { s ->
+    private suspend fun SubjectCredentialStore.StoreEntry.extractPicture() = resolveScheme().let { s ->
         when {
-            s.isMdl ->
-                MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(this, imageDecoder).portraitRaw
-            s.isEuPid ->
-                EuPidCredentialAdapter.createFromStoreEntry(this, imageDecoder).portraitRaw
+            s.isMdl -> MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(this, imageDecoder).portraitRaw
+            s.isEuPid -> EuPidCredentialAdapter.createFromStoreEntry(this, imageDecoder).portraitRaw
+
             else -> null
         }
     }
