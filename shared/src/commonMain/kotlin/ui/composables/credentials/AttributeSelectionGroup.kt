@@ -96,16 +96,14 @@ fun AttributeSelectionGroup(
             Spacer(modifier = Modifier.height(4.dp))
 
             attributeSelectionList.forEach { entry ->
-                format?.getLocalization(entry.jsonPath)?.let {
-                    LabeledTextCheckbox(
-                        label = stringResource(it),
-                        text = entry.value,
-                        checked = selection[entry.memberName] ?: true,
-                        onCheckedChange = { bool -> changeSelection(bool, entry.memberName) },
-                        enabled = entry.enabled
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
+                LabeledTextCheckbox(
+                    label = format?.getLocalization(entry.jsonPath) ?: entry.memberName,
+                    text = entry.value,
+                    checked = selection[entry.memberName] ?: true,
+                    onCheckedChange = { bool -> changeSelection(bool, entry.memberName) },
+                    enabled = entry.enabled
+                )
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }

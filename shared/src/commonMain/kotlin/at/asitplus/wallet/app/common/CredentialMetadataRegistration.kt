@@ -1,21 +1,19 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.wallet.eupid.EU_PID_DOCTYPE
 import at.asitplus.wallet.eupid.EU_PID_METADATA_URL
 import at.asitplus.wallet.eupid.EuPidItemValueSerializerMap
 import at.asitplus.wallet.eupid.EuPidJsonValueEncoder
-import at.asitplus.wallet.eupid.EuPidMetadataDocument
 import at.asitplus.wallet.eupidsdjwt.EU_PID_SD_JWT_METADATA_URL
-import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtMetadataDocument
+import at.asitplus.wallet.eupidsdjwt.EU_PID_SD_JWT_VCT
 import at.asitplus.wallet.lib.LibraryInitializer
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.ISO_MDOC
 import at.asitplus.wallet.lib.data.CredentialMetadataLookup
-import at.asitplus.wallet.lib.data.StaticCredentialMetadataRegistry
 import at.asitplus.wallet.lib.ktor.openid.RemoteCredentialMetadataRegistry
+import at.asitplus.wallet.mdl.MDL_DOCTYPE
 import at.asitplus.wallet.mdl.MDL_METADATA_URL
 import at.asitplus.wallet.mdl.MobileDrivingLicenceItemValueSerializerMap
 import at.asitplus.wallet.mdl.MobileDrivingLicenceJsonValueEncoder
-import at.asitplus.wallet.mdl.MobileDrivingLicenceMetadataDocument
-import at.asitplus.wallet.sdjwt.SdJwtTypeMetadataDocumentRegistry
 import at.asitplus.wallet.sdjwt.SdJwtVcType
 import data.storage.DataStoreService
 import kotlinx.atomicfu.locks.SynchronizedObject
@@ -50,6 +48,9 @@ const val AV_DOC_TYPE = "eu.europa.ec.av.1"
 
 /** vct -> hosted document URL for the remotely-resolved credentials. */
 private val remoteCredentialDocumentUrls: Map<SdJwtVcType, String> = mapOf(
+    SdJwtVcType("EuPid2023") to EU_PID_METADATA_URL,
+    SdJwtVcType(EU_PID_SD_JWT_VCT) to EU_PID_SD_JWT_METADATA_URL,
+    SdJwtVcType(MDL_DOCTYPE) to MDL_METADATA_URL,
     SdJwtVcType(EHIC_VCT) to "${CREDENTIALS_COLLECTION_BASE}ehic.json",
     SdJwtVcType(TAX_ID_VCT) to "${CREDENTIALS_COLLECTION_BASE}tax-id-credential.json",
     SdJwtVcType(COR_VCT) to "${CREDENTIALS_COLLECTION_BASE}certificate-of-residence.json",
@@ -71,22 +72,8 @@ fun registerCredentialMetadata(buildContext: BuildContext, dataStoreService: Dat
     registerRemoteCredentialMetadata(buildContext, dataStoreService)
 }
 
-/** EU PID, EU PID SD-JWT and mDL ship bundled in vck core; register their metadata + serializers. */
+/** EU PID, EU PID SD-JWT and mDL serializers ship bundled in vck core. Metadata labels come from remote documents. */
 private fun registerBundledCredentialMetadata() {
-    LibraryInitializer.registerCredentialMetadataRegistry(
-        StaticCredentialMetadataRegistry(
-            documentRegistry = SdJwtTypeMetadataDocumentRegistry(
-                EuPidSdJwtMetadataDocument,
-                EuPidMetadataDocument,
-                MobileDrivingLicenceMetadataDocument,
-            ),
-            documentUrls = mapOf(
-                EuPidSdJwtMetadataDocument.first to EU_PID_SD_JWT_METADATA_URL,
-                EuPidMetadataDocument.first to EU_PID_METADATA_URL,
-                MobileDrivingLicenceMetadataDocument.first to MDL_METADATA_URL,
-            ),
-        )
-    )
     LibraryInitializer.registerCredentialSerializers(
         jsonValueEncoder = MobileDrivingLicenceJsonValueEncoder,
         itemValueSerializerMap = MobileDrivingLicenceItemValueSerializerMap,
@@ -103,8 +90,10 @@ private fun registerRemoteCredentialMetadata(buildContext: BuildContext, dataSto
         httpClient = HttpService(buildContext).buildHttpClient(),
         clock = Clock.System,
         documentUrls = remoteCredentialDocumentUrls.toMutableMap(),
-        // age-verification is ISO mdoc: its docType (== vct) must be aliased to the document's vct.
+        // ISO mdoc lookups use docType identifiers; alias them to the vct keys used by the remote documents.
         aliases = mapOf(
+            CredentialMetadataLookup(ISO_MDOC, EU_PID_DOCTYPE) to SdJwtVcType("EuPid2023"),
+            CredentialMetadataLookup(ISO_MDOC, MDL_DOCTYPE) to SdJwtVcType(MDL_DOCTYPE),
             CredentialMetadataLookup(ISO_MDOC, AV_DOC_TYPE) to SdJwtVcType(AV_DOC_TYPE),
         ),
     )

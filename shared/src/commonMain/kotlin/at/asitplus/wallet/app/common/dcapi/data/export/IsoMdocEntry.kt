@@ -3,7 +3,6 @@ package at.asitplus.wallet.app.common.dcapi.data.export
 import data.credentials.CredentialAttributeTranslator
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.jetbrains.compose.resources.getString
 
 @Serializable
 data class IsoMdocEntry(
@@ -23,8 +22,7 @@ data class IsoMdocEntry(
             return attributeMap.map { (namespace, valuePair) ->
                 namespace to valuePair.map { (name, value) ->
                     val displayName =
-                        attributeTranslator.translate(name.toJsonPath())
-                            ?.let { getString(it) } ?: name
+                        attributeTranslator.translate(name.toJsonPath()) ?: name
                     val truncatedValue = value.toCustomString().safeSubstring(128)
                     name to ExportedElements(displayName, truncatedValue, truncatedValue)
                 }.toMap()

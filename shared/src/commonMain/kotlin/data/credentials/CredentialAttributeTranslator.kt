@@ -4,20 +4,23 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPid
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
 import at.asitplus.wallet.lib.data.CredentialScheme
-import org.jetbrains.compose.resources.StringResource
 
 @Suppress("DEPRECATION")
-interface CredentialAttributeTranslator {
-    fun translateSingleClaimReference(claimReference: SingleClaimReference): StringResource?
+class CredentialAttributeTranslator private constructor(
+    private val scheme: CredentialScheme,
+) {
+    fun translateSingleClaimReference(claimReference: SingleClaimReference): String? = when (claimReference) {
+        is JsonClaimReference -> translate(claimReference.normalizedJsonPath)
+        is MdocClaimReference -> translate(NormalizedJsonPath() + claimReference.namespace + claimReference.claimName)
+    }
 
-    fun translate(attributeName: NormalizedJsonPath): StringResource?
+    fun translate(attributeName: NormalizedJsonPath): String? = scheme.metadataLabel(attributeName)
 
     companion object {
-        operator fun get(scheme: CredentialScheme?) = when {
-            scheme.isEuPid -> EuPidCredentialAttributeTranslator()
-            scheme.isMdl -> MobileDrivingLicenceCredentialAttributeTranslator()
+        operator fun get(scheme: CredentialScheme?): CredentialAttributeTranslator? = when {
+            scheme == null -> null
+            scheme.isEuPid || scheme.isMdl -> CredentialAttributeTranslator(scheme)
             else -> null
         }
     }
 }
-

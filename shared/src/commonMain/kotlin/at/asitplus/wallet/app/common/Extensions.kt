@@ -310,8 +310,8 @@ fun Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimRef
                 otherAttributes = claimReferences.count { it == null },
                 attributesLocalized = claimReferences.filterNotNull().map { path ->
                     catchingUnwrapped {
-                        (scheme.getLocalization(path) ?: representation.getMetadataLocalization(path))
-                            ?.let { stringResource(it) }
+                        scheme.getLocalization(path)
+                            ?: representation.getMetadataLocalization(path)?.let { stringResource(it) }
                             ?: path.toString()
                     }.getOrElse { path.toString() }
                 }

@@ -132,7 +132,7 @@ fun VerifierCustomSelectionView(
                             MultipleChoiceButton(
                                 config.translator(
                                     NormalizedJsonPath(NormalizedJsonPathSegment.NameSegment(element))
-                                )?.let { stringResource(it) } ?: element,
+                                ) ?: element,
                                 selectedEntries.contains(element),
                                 selectedEntries.contains(element),
                                 listSpacingModifier

@@ -30,7 +30,6 @@ import data.credentials.toCredentialAdapter
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToJsonElement
-import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import ui.composables.credentials.CredentialSelectionCardHeader
 import ui.composables.credentials.CredentialSelectionCardLayout
@@ -81,9 +80,7 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
             null
         }?.let { attribute ->
             key.segments.lastOrNull()?.let {
-                credential.scheme.getLocalization(key)?.let { stringResource(it) }
-                    ?: credential.scheme.getLocalization(NormalizedJsonPath(it))?.let { stringResource(it) }
-
+                credential.scheme.getLocalization(key) ?: credential.scheme.getLocalization(NormalizedJsonPath(it))
             }?.let { it to attribute }
         }
     }.sortedBy {
@@ -160,4 +157,3 @@ private fun SubjectCredentialStore.StoreEntry.allClaims() = when (this) {
 
     is SubjectCredentialStore.StoreEntry.Vc -> joseCompliantSerializer.encodeToJsonElement(vc)
 }
-

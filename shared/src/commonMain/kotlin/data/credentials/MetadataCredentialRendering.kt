@@ -3,6 +3,7 @@ package data.credentials
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.openid.OpenId4VciClaimsPathPointer
 import at.asitplus.openid.OpenId4VciClaimsPathPointerSegmentString
+import at.asitplus.wallet.app.common.memberName
 import at.asitplus.wallet.lib.data.CredentialScheme
 
 // Helpers to drive a generic credential UI from SD-JWT VC Type Metadata claim descriptions, for schemes that have
@@ -16,7 +17,10 @@ fun OpenId4VciClaimsPathPointer.toNormalizedJsonPathOrNull(): NormalizedJsonPath
 }
 
 /** Localized display label for [path] from this scheme's type-metadata claim descriptions, or null. */
-fun CredentialScheme.metadataLabel(path: NormalizedJsonPath, locale: String = "en"): String? {
+fun CredentialScheme.metadataLabel(path: NormalizedJsonPath, locale: String = "en"): String? =
+    metadataLabelCandidatePaths(path).firstNotNullOfOrNull { metadataLabelExact(it, locale) }
+
+private fun CredentialScheme.metadataLabelExact(path: NormalizedJsonPath, locale: String): String? {
     val key = path.toString()
     val claim = claimDescriptions.firstOrNull {
         it.path.toNormalizedJsonPathOrNull()?.toString() == key
@@ -24,3 +28,21 @@ fun CredentialScheme.metadataLabel(path: NormalizedJsonPath, locale: String = "e
     val displays = claim.display ?: return null
     return (displays.firstOrNull { it.locale?.startsWith(locale) == true } ?: displays.firstOrNull())?.name
 }
+
+private fun CredentialScheme.metadataLabelCandidatePaths(path: NormalizedJsonPath): List<NormalizedJsonPath> {
+    val expanded = path.expandSingleDottedName()
+    return buildList {
+        add(path)
+        if (expanded != path) add(expanded)
+        isoNamespace?.takeIf { expanded.memberName(0) != it }?.let { namespace ->
+            add(NormalizedJsonPath() + namespace + expanded)
+        }
+    }
+}
+
+private fun NormalizedJsonPath.expandSingleDottedName(): NormalizedJsonPath =
+    memberName(0)
+        ?.takeIf { segments.size == 1 && "." in it }
+        ?.split(".")
+        ?.fold(NormalizedJsonPath()) { path, segment -> path + segment }
+        ?: this

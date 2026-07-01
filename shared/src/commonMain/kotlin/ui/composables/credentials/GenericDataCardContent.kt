@@ -11,7 +11,6 @@ import data.PersonalDataCategory
 import data.credentials.CredentialAdapter
 import data.credentials.CredentialAttributeCategorization
 import data.credentials.CredentialAttributeTranslator
-import org.jetbrains.compose.resources.stringResource
 import ui.composables.AttributeRepresentation
 import ui.composables.LabeledContent
 
@@ -27,7 +26,6 @@ fun GenericDataCardContent(
             LabeledContent(
                 label = CredentialAttributeTranslator[credentialScheme]
                     ?.translate(it.first)
-                    ?.let { stringResource(it) }
                     ?: it.first.toString(),
                 content = it.second,
                 modifier = if (index == attributes.lastIndex) {

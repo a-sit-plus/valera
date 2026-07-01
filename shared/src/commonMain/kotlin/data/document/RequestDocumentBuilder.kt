@@ -10,9 +10,7 @@ import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme
 import at.asitplus.wallet.mdl.MDL_DOCTYPE
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
-import data.credentials.EuPidCredentialAttributeTranslator
-import data.credentials.MobileDrivingLicenceCredentialAttributeTranslator
-import org.jetbrains.compose.resources.StringResource
+import data.credentials.CredentialAttributeTranslator
 
 // Age Verification (ISO mdoc) and Health ID (SD-JWT) are resolved from remote type metadata; their
 // claim names are kept here as constants for the verifier request presets, instead of compiled-in scheme objects.
@@ -71,12 +69,6 @@ object RequestDocumentBuilder {
             SelectableRequestType.HIID to healthIdScheme,
         )
 
-    // EU PID / mDL keep their bespoke translators; AV / Health ID are labelled generically (path name) for now.
-    private val translatorByDocType: Map<String, (NormalizedJsonPath) -> StringResource?> = mapOf(
-        MDL_DOCTYPE to MobileDrivingLicenceCredentialAttributeTranslator()::translate,
-        EU_PID_DOCTYPE to EuPidCredentialAttributeTranslator()::translate,
-    )
-
     private val preselectionByDocType: Map<String, () -> Set<String>> = mapOf(
         MDL_DOCTYPE to { MobileDrivingLicenceDataElements.MANDATORY_ELEMENTS.toSet() },
         EU_PID_DOCTYPE to { euPidMandatoryElements.toSet() },
@@ -97,7 +89,7 @@ object RequestDocumentBuilder {
             docType to DocTypeConfig(
                 scheme = scheme,
                 preselection = preselectionByDocType[docType] ?: { emptySet() },
-                translator = translatorByDocType[docType] ?: { _: NormalizedJsonPath -> null },
+                translator = { path -> CredentialAttributeTranslator[scheme]?.translate(path) },
             )
         }
 
@@ -143,7 +135,7 @@ object SelectableDocTypes {
 data class DocTypeConfig(
     val scheme: CredentialScheme,
     val preselection: () -> Set<String>,
-    val translator: (NormalizedJsonPath) -> StringResource?
+    val translator: (NormalizedJsonPath) -> String?
 )
 
 enum class SelectableAge(val value: Int, val mdlElement: String?, val avElement: String?) {

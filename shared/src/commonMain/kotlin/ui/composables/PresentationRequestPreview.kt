@@ -131,8 +131,8 @@ fun RequestedCredentialPreview(
         }
         otherClaims to singleClaimReferences.mapKeys { (path, _) ->
             catchingUnwrapped {
-                (scheme.getLocalization(path) ?: representation.getMetadataLocalization(path))
-                    ?.let { stringResource(it) }
+                scheme.getLocalization(path)
+                    ?: representation.getMetadataLocalization(path)?.let { stringResource(it) }
                     ?: path.toString()
             }.getOrElse { path.toString() }
         }

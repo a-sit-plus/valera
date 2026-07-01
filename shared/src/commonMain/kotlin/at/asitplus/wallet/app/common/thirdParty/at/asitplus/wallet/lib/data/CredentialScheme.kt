@@ -10,15 +10,12 @@ import at.asitplus.valera.resources.credential_scheme_label_eu_pid_sdjwt
 import at.asitplus.valera.resources.credential_scheme_label_mdl
 import at.asitplus.wallet.app.common.CredentialMetadataDisplayNames
 import at.asitplus.wallet.lib.data.CredentialScheme
-import data.credentials.EuPidCredentialAttributeTranslator
-import data.credentials.MobileDrivingLicenceCredentialAttributeTranslator
+import data.credentials.CredentialAttributeTranslator
 import data.credentials.SingleClaimReference
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
-// EU PID / mDL keep a bespoke label + attribute translator. Everything else resolves from remote type metadata and
-// is labelled generically (see CredentialScheme.metadataLabel / GenericMetadataCredentialView).
+// Claim labels come from resolved type metadata; only scheme-level labels remain local resources for known cards.
 
 /** Display name from resolved type metadata, falling back to the identifier (vct/docType). */
 private val CredentialScheme?.metadataDisplayName: String?
@@ -50,14 +47,8 @@ fun CredentialScheme?.iconLabel(): String = when {
         ?.ifEmpty { null } ?: "?"
 }
 
-fun CredentialScheme.getLocalization(path: NormalizedJsonPath): StringResource? = when {
-    isEuPid -> EuPidCredentialAttributeTranslator().translate(path)
-    isMdl -> MobileDrivingLicenceCredentialAttributeTranslator().translate(path)
-    else -> null
-}
+fun CredentialScheme.getLocalization(path: NormalizedJsonPath): String? =
+    CredentialAttributeTranslator[this]?.translate(path)
 
-fun CredentialScheme.getLocalization(claimReference: SingleClaimReference): StringResource? = when {
-    isEuPid -> EuPidCredentialAttributeTranslator().translateSingleClaimReference(claimReference)
-    isMdl -> MobileDrivingLicenceCredentialAttributeTranslator().translateSingleClaimReference(claimReference)
-    else -> null
-}
+fun CredentialScheme.getLocalization(claimReference: SingleClaimReference): String? =
+    CredentialAttributeTranslator[this]?.translateSingleClaimReference(claimReference)
