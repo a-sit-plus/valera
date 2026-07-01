@@ -7,6 +7,7 @@ import at.asitplus.openid.OpenId4VciClaimsPathPointer
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.jwt_claim_label_exp
 import at.asitplus.valera.resources.jwt_claim_label_iss
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.eupid.EU_PID_DOCTYPE
 import at.asitplus.wallet.eupid.EuPidDataElements as EuPidMdocElements
 import at.asitplus.wallet.eupidsdjwt.EU_PID_SD_JWT_VCT
@@ -20,23 +21,23 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-class CredentialAttributeTranslatorTest {
+class MetadataCredentialRenderingTest {
     @Test
     fun mapsMdlClaimLabelsFromMetadata() {
-        val translator = CredentialAttributeTranslator[mdlScheme()]!!
+        val scheme = mdlScheme()
 
         assertEquals(
             "Family name",
-            translator.translateSingleClaimReference(
+            scheme.getLocalization(
                 MdocClaimReference(MDL_NAMESPACE, MobileDrivingLicenceDataElements.FAMILY_NAME)
             )
         )
         assertEquals(
             "Family name",
-            translator.translate(NormalizedJsonPath() + MobileDrivingLicenceDataElements.FAMILY_NAME)
+            scheme.metadataLabel(NormalizedJsonPath() + MobileDrivingLicenceDataElements.FAMILY_NAME)
         )
         assertNull(
-            translator.translateSingleClaimReference(
+            scheme.getLocalization(
                 MdocClaimReference("other", MobileDrivingLicenceDataElements.FAMILY_NAME)
             )
         )
@@ -44,17 +45,17 @@ class CredentialAttributeTranslatorTest {
 
     @Test
     fun mapsEuPidMdocClaimLabelsFromMetadata() {
-        val translator = CredentialAttributeTranslator[euPidIsoScheme()]!!
+        val scheme = euPidIsoScheme()
 
         assertEquals(
             "Given name",
-            translator.translateSingleClaimReference(
+            scheme.getLocalization(
                 MdocClaimReference(EU_PID_DOCTYPE, EuPidMdocElements.GIVEN_NAME)
             )
         )
-        assertEquals("Given name", translator.translate(NormalizedJsonPath() + EuPidMdocElements.GIVEN_NAME))
+        assertEquals("Given name", scheme.metadataLabel(NormalizedJsonPath() + EuPidMdocElements.GIVEN_NAME))
         assertNull(
-            translator.translateSingleClaimReference(
+            scheme.getLocalization(
                 MdocClaimReference("other", EuPidMdocElements.GIVEN_NAME)
             )
         )
@@ -62,11 +63,11 @@ class CredentialAttributeTranslatorTest {
 
     @Test
     fun mapsEuPidSdJwtNestedAndFlatClaimLabelsFromMetadata() {
-        val translator = CredentialAttributeTranslator[euPidSdJwtScheme()]!!
+        val scheme = euPidSdJwtScheme()
 
         assertEquals(
             "Resident country",
-            translator.translateSingleClaimReference(
+            scheme.getLocalization(
                 JsonClaimReference(
                     NormalizedJsonPath() + EuPidSdJwtElements.PREFIX_ADDRESS + EuPidSdJwtElements.Address.COUNTRY
                 )
@@ -74,13 +75,13 @@ class CredentialAttributeTranslatorTest {
         )
         assertEquals(
             "Resident country",
-            translator.translateSingleClaimReference(
+            scheme.getLocalization(
                 JsonClaimReference(NormalizedJsonPath() + EuPidSdJwtElements.ADDRESS_COUNTRY)
             )
         )
         assertEquals(
             "Birth country",
-            translator.translateSingleClaimReference(
+            scheme.getLocalization(
                 JsonClaimReference(
                     NormalizedJsonPath() + EuPidSdJwtElements.PREFIX_PLACE_OF_BIRTH + EuPidSdJwtElements.PlaceOfBirth.COUNTRY
                 )

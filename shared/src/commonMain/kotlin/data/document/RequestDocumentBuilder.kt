@@ -10,7 +10,7 @@ import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme
 import at.asitplus.wallet.mdl.MDL_DOCTYPE
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
-import data.credentials.CredentialAttributeTranslator
+import data.credentials.metadataLabel
 
 // Age Verification (ISO mdoc) and Health ID (SD-JWT) are resolved from remote type metadata; their
 // claim names are kept here as constants for the verifier request presets, instead of compiled-in scheme objects.
@@ -89,7 +89,7 @@ object RequestDocumentBuilder {
             docType to DocTypeConfig(
                 scheme = scheme,
                 preselection = preselectionByDocType[docType] ?: { emptySet() },
-                translator = { path -> CredentialAttributeTranslator[scheme]?.translate(path) },
+                translator = { path -> scheme.metadataLabel(path) },
             )
         }
 
