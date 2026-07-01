@@ -23,8 +23,7 @@ import at.asitplus.wallet.lib.data.CredentialScheme
 import data.credentials.MdocClaimReference
 import org.jetbrains.compose.resources.stringResource
 import data.credentials.JsonClaimReference
-import data.credentials.JwtClaimDefinition
-import data.credentials.JwtClaimDefinitionTranslator
+import data.credentials.jwtClaimLabel
 import org.jetbrains.compose.resources.StringResource
 
 @Composable
@@ -148,6 +147,5 @@ fun ConstantIndex.CredentialRepresentation.getMetadataLocalization(path: Normali
     val firstSegment = path.segments.firstOrNull()?.let {
         it as? NormalizedJsonPathSegment.NameSegment
     } ?: return null
-    val jwtClaimDefinition = JwtClaimDefinition.valueOfClaimNameOrNull(firstSegment.memberName) ?: return null
-    return JwtClaimDefinitionTranslator().translate(jwtClaimDefinition)
+    return if (this == ConstantIndex.CredentialRepresentation.ISO_MDOC) null else jwtClaimLabel(firstSegment.memberName)
 }

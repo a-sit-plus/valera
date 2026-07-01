@@ -35,10 +35,9 @@ import at.asitplus.wallet.lib.data.dif.PresentationExchangeInputEvaluator
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.lib.oidvci.toFormat
 import data.credentials.JsonClaimReference
-import data.credentials.JwtClaimDefinition
-import data.credentials.JwtClaimDefinitionTranslator
 import data.credentials.MdocClaimReference
 import data.credentials.SingleClaimReference
+import data.credentials.jwtClaimLabel
 import kotlinx.serialization.json.*
 import org.jetbrains.compose.resources.stringResource
 import ui.presentation.DCQLCredentialQueryUiModel
@@ -314,11 +313,9 @@ fun ConstantIndex.CredentialRepresentation.getMetadataLocalization(
     claimReference: SingleClaimReference
 ) = when (claimReference) {
     is JsonClaimReference -> claimReference.normalizedJsonPath.segments.filterIsInstance<NameSegment>()
-        .firstOrNull()?.let {
-            JwtClaimDefinition.valueOfClaimNameOrNull(it.memberName)?.let { claimDefinition ->
-                JwtClaimDefinitionTranslator().translate(claimDefinition)
-            }
-        }
+        .firstOrNull()
+        ?.takeIf { this != ISO_MDOC }
+        ?.let { jwtClaimLabel(it.memberName) }
 
     is MdocClaimReference -> null
 }

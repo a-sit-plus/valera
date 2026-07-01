@@ -1,21 +1,8 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.attribute_friendly_name_administrative_number
-import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_12
-import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_13
-import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_14
-import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_16
-import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_18
-import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_21
-import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_25
-import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_60
-import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_62
-import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_65
-import at.asitplus.valera.resources.attribute_friendly_name_age_at_least_68
-import at.asitplus.valera.resources.attribute_friendly_name_age_birth_year
-import at.asitplus.valera.resources.attribute_friendly_name_age_in_years
 import at.asitplus.valera.resources.attribute_friendly_name_birth_city
 import at.asitplus.valera.resources.attribute_friendly_name_birth_country
 import at.asitplus.valera.resources.attribute_friendly_name_birth_place
@@ -45,69 +32,126 @@ import at.asitplus.valera.resources.attribute_friendly_name_nationality
 import at.asitplus.valera.resources.attribute_friendly_name_personal_administrative_number
 import at.asitplus.valera.resources.attribute_friendly_name_place_of_birth
 import at.asitplus.valera.resources.attribute_friendly_name_portrait
-import at.asitplus.valera.resources.attribute_friendly_name_portrait_capture_date
 import at.asitplus.valera.resources.attribute_friendly_name_sex
 import at.asitplus.valera.resources.attribute_friendly_name_trust_anchor
 import at.asitplus.wallet.app.common.memberName
 import at.asitplus.wallet.app.common.minus
 import at.asitplus.wallet.eupid.EU_PID_DOCTYPE
+import at.asitplus.wallet.eupid.EuPidDataElements as Attributes
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements.Address
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements.PlaceOfBirth
 import org.jetbrains.compose.resources.StringResource
 
 
 class EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {
     override fun translateSingleClaimReference(claimReference: SingleClaimReference) = when (claimReference) {
-        is JsonClaimReference -> EuPidCredentialSdJwtClaimDefinitionResolver().resolveOrNull(
-            claimReference.normalizedJsonPath
-        )?.stringResourceOrNull()
+        is JsonClaimReference -> sdJwtPathLabel(claimReference.normalizedJsonPath)
 
-        is MdocClaimReference -> EuPidCredentialMdocClaimDefinitionResolver().resolveOrNull(
-            namespace = claimReference.namespace,
-            claimName = claimReference.claimName
-        )?.stringResourceOrNull()
+        is MdocClaimReference -> mdocClaimLabel(claimReference.namespace, claimReference.claimName)
     }
 
     override fun translate(attributeName: NormalizedJsonPath): StringResource? =
         attributeName.minus(EU_PID_DOCTYPE).let {
             it.memberName(0)?.let { claim ->
-                EuPidCredentialMdocClaimDefinitionResolver().resolveOrNull(EU_PID_DOCTYPE, claim)
-                    ?.stringResourceOrNull()
-                    ?: EuPidCredentialSdJwtClaimDefinitionResolver().resolveOrNull(it)?.stringResourceOrNull()
-            } ?: EuPidCredentialSdJwtClaimDefinitionResolver().resolveOrNull(it)?.stringResourceOrNull()
+                mdocClaimLabel(EU_PID_DOCTYPE, claim) ?: sdJwtPathLabel(it)
+            } ?: sdJwtPathLabel(it)
         }
 
+    @Suppress("DEPRECATION")
+    private fun mdocClaimLabel(namespace: String, claimName: String): StringResource? =
+        if (namespace != EU_PID_DOCTYPE) null else with(Attributes) {
+            when (claimName) {
+                FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
+                GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
+                BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
+                PORTRAIT -> Res.string.attribute_friendly_name_portrait
+                FAMILY_NAME_BIRTH -> Res.string.attribute_friendly_name_family_name_birth
+                GIVEN_NAME_BIRTH -> Res.string.attribute_friendly_name_given_name_birth
+                PLACE_OF_BIRTH -> Res.string.attribute_friendly_name_place_of_birth
+                RESIDENT_ADDRESS -> Res.string.attribute_friendly_name_main_address
+                RESIDENT_COUNTRY -> Res.string.attribute_friendly_name_main_residence_country
+                RESIDENT_STATE -> Res.string.attribute_friendly_name_main_residence_state
+                RESIDENT_CITY -> Res.string.attribute_friendly_name_main_residence_city
+                RESIDENT_POSTAL_CODE -> Res.string.attribute_friendly_name_main_residence_postal_code
+                RESIDENT_STREET -> Res.string.attribute_friendly_name_main_residence_street
+                RESIDENT_HOUSE_NUMBER -> Res.string.attribute_friendly_name_main_residence_house_number
+                SEX -> Res.string.attribute_friendly_name_sex
+                NATIONALITY -> Res.string.attribute_friendly_name_nationality
+                ISSUANCE_DATE -> Res.string.attribute_friendly_name_issue_date
+                EXPIRY_DATE -> Res.string.attribute_friendly_name_expiry_date
+                ISSUING_AUTHORITY -> Res.string.attribute_friendly_name_issuing_authority
+                DOCUMENT_NUMBER -> Res.string.attribute_friendly_name_document_number
+                ISSUING_COUNTRY -> Res.string.attribute_friendly_name_issuing_country
+                ISSUING_JURISDICTION -> Res.string.attribute_friendly_name_issuing_jurisdiction
+                PERSONAL_ADMINISTRATIVE_NUMBER -> Res.string.attribute_friendly_name_personal_administrative_number
+                EMAIL_ADDRESS -> Res.string.attribute_friendly_name_email_address
+                MOBILE_PHONE_NUMBER -> Res.string.attribute_friendly_name_mobile_phone_number
+                TRUST_ANCHOR -> Res.string.attribute_friendly_name_trust_anchor
+                LOCATION_STATUS -> Res.string.attribute_friendly_name_location_status
+                else -> null
+            }
+        }
 
-    private fun EuPidCredentialClaimDefinition.stringResourceOrNull() = when (this) {
-        EuPidCredentialClaimDefinition.FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
-        EuPidCredentialClaimDefinition.GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
-        EuPidCredentialClaimDefinition.BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
-        EuPidCredentialClaimDefinition.PORTRAIT -> Res.string.attribute_friendly_name_portrait
-        EuPidCredentialClaimDefinition.FAMILY_NAME_BIRTH -> Res.string.attribute_friendly_name_family_name_birth
-        EuPidCredentialClaimDefinition.GIVEN_NAME_BIRTH -> Res.string.attribute_friendly_name_given_name_birth
-        EuPidCredentialClaimDefinition.PLACE_OF_BIRTH -> Res.string.attribute_friendly_name_place_of_birth
-        EuPidCredentialClaimDefinition.PLACE_OF_BIRTH_CONTAINER -> Res.string.attribute_friendly_name_birth_place
-        EuPidCredentialClaimDefinition.PLACE_OF_BIRTH_COUNTRY -> Res.string.attribute_friendly_name_birth_country
-        EuPidCredentialClaimDefinition.PLACE_OF_BIRTH_REGION -> Res.string.attribute_friendly_name_birth_state
-        EuPidCredentialClaimDefinition.PLACE_OF_BIRTH_LOCALITY -> Res.string.attribute_friendly_name_birth_city
-        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_CONTAINER -> Res.string.attribute_friendly_name_main_address
-        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_FORMATTED -> Res.string.attribute_friendly_name_main_address
-        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_COUNTRY -> Res.string.attribute_friendly_name_main_residence_country
-        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_REGION -> Res.string.attribute_friendly_name_main_residence_state
-        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_LOCALITY -> Res.string.attribute_friendly_name_main_residence_city
-        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_POSTAL_CODE -> Res.string.attribute_friendly_name_main_residence_postal_code
-        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_STREET -> Res.string.attribute_friendly_name_main_residence_street
-        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_HOUSE_NUMBER -> Res.string.attribute_friendly_name_main_residence_house_number
-        EuPidCredentialClaimDefinition.SEX -> Res.string.attribute_friendly_name_sex
-        EuPidCredentialClaimDefinition.NATIONALITIES -> Res.string.attribute_friendly_name_nationality
-        EuPidCredentialClaimDefinition.ISSUANCE_DATE -> Res.string.attribute_friendly_name_issue_date
-        EuPidCredentialClaimDefinition.EXPIRY_DATE -> Res.string.attribute_friendly_name_expiry_date
-        EuPidCredentialClaimDefinition.ISSUING_AUTHORITY -> Res.string.attribute_friendly_name_issuing_authority
-        EuPidCredentialClaimDefinition.DOCUMENT_NUMBER -> Res.string.attribute_friendly_name_document_number
-        EuPidCredentialClaimDefinition.ISSUING_COUNTRY -> Res.string.attribute_friendly_name_issuing_country
-        EuPidCredentialClaimDefinition.ISSUING_JURISDICTION -> Res.string.attribute_friendly_name_issuing_jurisdiction
-        EuPidCredentialClaimDefinition.PERSONAL_ADMINISTRATIVE_NUMBER -> Res.string.attribute_friendly_name_personal_administrative_number
-        EuPidCredentialClaimDefinition.EMAIL_ADDRESS -> Res.string.attribute_friendly_name_email_address
-        EuPidCredentialClaimDefinition.MOBILE_PHONE_NUMBER -> Res.string.attribute_friendly_name_mobile_phone_number
-        EuPidCredentialClaimDefinition.TRUST_ANCHOR -> Res.string.attribute_friendly_name_trust_anchor
-        EuPidCredentialClaimDefinition.LOCATION_STATUS -> Res.string.attribute_friendly_name_location_status
+    private fun sdJwtPathLabel(path: NormalizedJsonPath): StringResource? = with(EuPidSdJwtDataElements) {
+        when (val first = path.segments.firstOrNull()) {
+            is NormalizedJsonPathSegment.NameSegment -> when (first.memberName) {
+                FAMILY_NAME -> Res.string.attribute_friendly_name_lastname
+                GIVEN_NAME -> Res.string.attribute_friendly_name_firstname
+                BIRTH_DATE -> Res.string.attribute_friendly_name_date_of_birth
+                PORTRAIT -> Res.string.attribute_friendly_name_portrait
+                FAMILY_NAME_BIRTH -> Res.string.attribute_friendly_name_family_name_birth
+                GIVEN_NAME_BIRTH -> Res.string.attribute_friendly_name_given_name_birth
+                PREFIX_PLACE_OF_BIRTH -> placeOfBirthLabel(path)
+                PLACE_OF_BIRTH_COUNTRY -> Res.string.attribute_friendly_name_birth_country
+                PLACE_OF_BIRTH_REGION -> Res.string.attribute_friendly_name_birth_state
+                PLACE_OF_BIRTH_LOCALITY -> Res.string.attribute_friendly_name_birth_city
+                PREFIX_ADDRESS -> addressLabel(path)
+                ADDRESS_FORMATTED -> Res.string.attribute_friendly_name_main_address
+                ADDRESS_COUNTRY -> Res.string.attribute_friendly_name_main_residence_country
+                ADDRESS_REGION -> Res.string.attribute_friendly_name_main_residence_state
+                ADDRESS_LOCALITY -> Res.string.attribute_friendly_name_main_residence_city
+                ADDRESS_POSTAL_CODE -> Res.string.attribute_friendly_name_main_residence_postal_code
+                ADDRESS_STREET -> Res.string.attribute_friendly_name_main_residence_street
+                ADDRESS_HOUSE_NUMBER -> Res.string.attribute_friendly_name_main_residence_house_number
+                SEX -> Res.string.attribute_friendly_name_sex
+                NATIONALITIES -> Res.string.attribute_friendly_name_nationality
+                ISSUANCE_DATE -> Res.string.attribute_friendly_name_issue_date
+                EXPIRY_DATE -> Res.string.attribute_friendly_name_expiry_date
+                ISSUING_AUTHORITY -> Res.string.attribute_friendly_name_issuing_authority
+                DOCUMENT_NUMBER -> Res.string.attribute_friendly_name_document_number
+                ISSUING_COUNTRY -> Res.string.attribute_friendly_name_issuing_country
+                ISSUING_JURISDICTION -> Res.string.attribute_friendly_name_issuing_jurisdiction
+                PERSONAL_ADMINISTRATIVE_NUMBER -> Res.string.attribute_friendly_name_personal_administrative_number
+                EMAIL -> Res.string.attribute_friendly_name_email_address
+                PHONE_NUMBER -> Res.string.attribute_friendly_name_mobile_phone_number
+                TRUST_ANCHOR -> Res.string.attribute_friendly_name_trust_anchor
+                else -> null
+            }
+
+            else -> null
+        }
     }
+
+    private fun placeOfBirthLabel(path: NormalizedJsonPath): StringResource? =
+        when (path.memberName(1)) {
+            PlaceOfBirth.COUNTRY -> Res.string.attribute_friendly_name_birth_country
+            PlaceOfBirth.REGION -> Res.string.attribute_friendly_name_birth_state
+            PlaceOfBirth.LOCALITY -> Res.string.attribute_friendly_name_birth_city
+            null -> Res.string.attribute_friendly_name_birth_place
+            else -> null
+        }
+
+    private fun addressLabel(path: NormalizedJsonPath): StringResource? =
+        when (path.memberName(1)) {
+            Address.FORMATTED -> Res.string.attribute_friendly_name_main_address
+            Address.COUNTRY -> Res.string.attribute_friendly_name_main_residence_country
+            Address.REGION -> Res.string.attribute_friendly_name_main_residence_state
+            Address.LOCALITY -> Res.string.attribute_friendly_name_main_residence_city
+            Address.POSTAL_CODE -> Res.string.attribute_friendly_name_main_residence_postal_code
+            Address.STREET -> Res.string.attribute_friendly_name_main_residence_street
+            Address.HOUSE_NUMBER -> Res.string.attribute_friendly_name_main_residence_house_number
+            null -> Res.string.attribute_friendly_name_main_address
+            else -> null
+        }
 }

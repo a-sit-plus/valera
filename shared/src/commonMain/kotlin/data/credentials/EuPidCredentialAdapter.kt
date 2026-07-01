@@ -14,6 +14,8 @@ import at.asitplus.wallet.eupid.EuPidDataElements as Attributes
 import at.asitplus.wallet.eupid.IsoIec5218Gender
 import at.asitplus.wallet.eupid.PlaceOfBirth
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements as SdJwtAttributes
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements.Address as SdJwtAddress
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements.PlaceOfBirth as SdJwtPlaceOfBirth
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.wallet.lib.data.CredentialScheme
@@ -39,11 +41,8 @@ sealed class EuPidCredentialAdapter(
     override fun getAttribute(path: NormalizedJsonPath) =
         path.minus(EU_PID_DOCTYPE).let {
             it.memberName(0)?.let { claim ->
-                EuPidCredentialMdocClaimDefinitionResolver().resolveOrNull(EU_PID_DOCTYPE, claim)
-                    ?.toAttribute()
-                    ?: EuPidCredentialSdJwtClaimDefinitionResolver().resolveOrNull(it)
-                        ?.toAttribute()
-            }
+                mdocClaimToAttribute(EU_PID_DOCTYPE, claim) ?: sdJwtPathToAttribute(it)
+            } ?: sdJwtPathToAttribute(it)
         }
 
     abstract val givenName: String?
@@ -108,42 +107,95 @@ sealed class EuPidCredentialAdapter(
         }
     }
 
-    private fun EuPidCredentialClaimDefinition.toAttribute() = when (this) {
-        EuPidCredentialClaimDefinition.GIVEN_NAME -> Attribute.fromValue(givenName)
-        EuPidCredentialClaimDefinition.FAMILY_NAME -> Attribute.fromValue(familyName)
-        EuPidCredentialClaimDefinition.BIRTH_DATE -> Attribute.fromValue(birthDate)
-        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_CONTAINER -> null
-        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_FORMATTED -> Attribute.fromValue(residentAddress)
-        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_STREET -> Attribute.fromValue(residentStreet)
-        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_LOCALITY -> Attribute.fromValue(residentCity)
-        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_POSTAL_CODE -> Attribute.fromValue(residentPostalCode)
-        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_HOUSE_NUMBER -> Attribute.fromValue(residentHouseNumber)
-        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_COUNTRY -> Attribute.fromValue(residentCountry)
-        EuPidCredentialClaimDefinition.RESIDENT_ADDRESS_REGION -> Attribute.fromValue(residentState)
-        EuPidCredentialClaimDefinition.SEX -> Attribute.fromValue(sex)
-        EuPidCredentialClaimDefinition.NATIONALITIES -> Attribute.fromValue(nationalities)
-        EuPidCredentialClaimDefinition.FAMILY_NAME_BIRTH -> Attribute.fromValue(familyNameBirth)
-        EuPidCredentialClaimDefinition.GIVEN_NAME_BIRTH -> Attribute.fromValue(givenNameBirth)
-        EuPidCredentialClaimDefinition.PLACE_OF_BIRTH -> Attribute.fromValue(placeOfBirth)
-        EuPidCredentialClaimDefinition.PLACE_OF_BIRTH_CONTAINER -> null
-        EuPidCredentialClaimDefinition.PLACE_OF_BIRTH_COUNTRY -> Attribute.fromValue(placeOfBirth?.country)
-        EuPidCredentialClaimDefinition.PLACE_OF_BIRTH_REGION -> Attribute.fromValue(placeOfBirth?.region)
-        EuPidCredentialClaimDefinition.PLACE_OF_BIRTH_LOCALITY -> Attribute.fromValue(placeOfBirth?.locality)
-        EuPidCredentialClaimDefinition.ISSUANCE_DATE -> Attribute.fromValue(issuanceDate)
-        EuPidCredentialClaimDefinition.EXPIRY_DATE -> Attribute.fromValue(expiryDate)
-        EuPidCredentialClaimDefinition.ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
-        EuPidCredentialClaimDefinition.DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
-        EuPidCredentialClaimDefinition.ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
-        EuPidCredentialClaimDefinition.ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
-        EuPidCredentialClaimDefinition.PERSONAL_ADMINISTRATIVE_NUMBER -> Attribute.fromValue(
-            personalAdministrativeNumber
-        )
-        EuPidCredentialClaimDefinition.PORTRAIT -> Attribute.fromValue(portraitBitmap)
-        EuPidCredentialClaimDefinition.EMAIL_ADDRESS -> Attribute.fromValue(emailAddress)
-        EuPidCredentialClaimDefinition.MOBILE_PHONE_NUMBER -> Attribute.fromValue(mobilePhoneNumber)
-        EuPidCredentialClaimDefinition.TRUST_ANCHOR -> Attribute.fromValue(trustAnchor)
-        EuPidCredentialClaimDefinition.LOCATION_STATUS -> Attribute.fromValue(locationStatus)
+    private fun mdocClaimToAttribute(namespace: String, claimName: String): Attribute? =
+        if (namespace != EU_PID_DOCTYPE) null else with(Attributes) {
+            when (claimName) {
+                GIVEN_NAME -> Attribute.fromValue(givenName)
+                FAMILY_NAME -> Attribute.fromValue(familyName)
+                BIRTH_DATE -> Attribute.fromValue(birthDate)
+                RESIDENT_ADDRESS -> null
+                RESIDENT_STREET -> Attribute.fromValue(residentStreet)
+                RESIDENT_CITY -> Attribute.fromValue(residentCity)
+                RESIDENT_POSTAL_CODE -> Attribute.fromValue(residentPostalCode)
+                RESIDENT_HOUSE_NUMBER -> Attribute.fromValue(residentHouseNumber)
+                RESIDENT_COUNTRY -> Attribute.fromValue(residentCountry)
+                RESIDENT_STATE -> Attribute.fromValue(residentState)
+                SEX -> Attribute.fromValue(sex)
+                NATIONALITY -> Attribute.fromValue(nationalities)
+                FAMILY_NAME_BIRTH -> Attribute.fromValue(familyNameBirth)
+                GIVEN_NAME_BIRTH -> Attribute.fromValue(givenNameBirth)
+                PLACE_OF_BIRTH -> Attribute.fromValue(placeOfBirth)
+                ISSUANCE_DATE -> Attribute.fromValue(issuanceDate)
+                EXPIRY_DATE -> Attribute.fromValue(expiryDate)
+                ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
+                DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
+                ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
+                ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
+                PERSONAL_ADMINISTRATIVE_NUMBER -> Attribute.fromValue(personalAdministrativeNumber)
+                PORTRAIT -> Attribute.fromValue(portraitBitmap)
+                EMAIL_ADDRESS -> Attribute.fromValue(emailAddress)
+                MOBILE_PHONE_NUMBER -> Attribute.fromValue(mobilePhoneNumber)
+                TRUST_ANCHOR -> Attribute.fromValue(trustAnchor)
+                LOCATION_STATUS -> Attribute.fromValue(locationStatus)
+                else -> null
+            }
+        }
+
+    private fun sdJwtPathToAttribute(path: NormalizedJsonPath): Attribute? = with(SdJwtAttributes) {
+        when (path.memberName(0)) {
+            GIVEN_NAME -> Attribute.fromValue(givenName)
+            FAMILY_NAME -> Attribute.fromValue(familyName)
+            BIRTH_DATE -> Attribute.fromValue(birthDate)
+            PREFIX_ADDRESS -> sdJwtAddressAttribute(path)
+            ADDRESS_FORMATTED -> Attribute.fromValue(residentAddress)
+            ADDRESS_STREET -> Attribute.fromValue(residentStreet)
+            ADDRESS_LOCALITY -> Attribute.fromValue(residentCity)
+            ADDRESS_POSTAL_CODE -> Attribute.fromValue(residentPostalCode)
+            ADDRESS_HOUSE_NUMBER -> Attribute.fromValue(residentHouseNumber)
+            ADDRESS_COUNTRY -> Attribute.fromValue(residentCountry)
+            ADDRESS_REGION -> Attribute.fromValue(residentState)
+            SEX -> Attribute.fromValue(sex)
+            NATIONALITIES -> Attribute.fromValue(nationalities)
+            FAMILY_NAME_BIRTH -> Attribute.fromValue(familyNameBirth)
+            GIVEN_NAME_BIRTH -> Attribute.fromValue(givenNameBirth)
+            PREFIX_PLACE_OF_BIRTH -> sdJwtPlaceOfBirthAttribute(path)
+            PLACE_OF_BIRTH_COUNTRY -> Attribute.fromValue(placeOfBirth?.country)
+            PLACE_OF_BIRTH_REGION -> Attribute.fromValue(placeOfBirth?.region)
+            PLACE_OF_BIRTH_LOCALITY -> Attribute.fromValue(placeOfBirth?.locality)
+            ISSUANCE_DATE -> Attribute.fromValue(issuanceDate)
+            EXPIRY_DATE -> Attribute.fromValue(expiryDate)
+            ISSUING_AUTHORITY -> Attribute.fromValue(issuingAuthority)
+            DOCUMENT_NUMBER -> Attribute.fromValue(documentNumber)
+            ISSUING_COUNTRY -> Attribute.fromValue(issuingCountry)
+            ISSUING_JURISDICTION -> Attribute.fromValue(issuingJurisdiction)
+            PERSONAL_ADMINISTRATIVE_NUMBER -> Attribute.fromValue(personalAdministrativeNumber)
+            PORTRAIT -> Attribute.fromValue(portraitBitmap)
+            EMAIL -> Attribute.fromValue(emailAddress)
+            PHONE_NUMBER -> Attribute.fromValue(mobilePhoneNumber)
+            TRUST_ANCHOR -> Attribute.fromValue(trustAnchor)
+            else -> null
+        }
     }
+
+    private fun sdJwtPlaceOfBirthAttribute(path: NormalizedJsonPath): Attribute? =
+        when (path.memberName(1)) {
+            SdJwtPlaceOfBirth.COUNTRY -> Attribute.fromValue(placeOfBirth?.country)
+            SdJwtPlaceOfBirth.REGION -> Attribute.fromValue(placeOfBirth?.region)
+            SdJwtPlaceOfBirth.LOCALITY -> Attribute.fromValue(placeOfBirth?.locality)
+            else -> null
+        }
+
+    private fun sdJwtAddressAttribute(path: NormalizedJsonPath): Attribute? =
+        when (path.memberName(1)) {
+            SdJwtAddress.FORMATTED -> Attribute.fromValue(residentAddress)
+            SdJwtAddress.STREET -> Attribute.fromValue(residentStreet)
+            SdJwtAddress.LOCALITY -> Attribute.fromValue(residentCity)
+            SdJwtAddress.POSTAL_CODE -> Attribute.fromValue(residentPostalCode)
+            SdJwtAddress.HOUSE_NUMBER -> Attribute.fromValue(residentHouseNumber)
+            SdJwtAddress.COUNTRY -> Attribute.fromValue(residentCountry)
+            SdJwtAddress.REGION -> Attribute.fromValue(residentState)
+            else -> null
+        }
 }
 
 @Serializable
