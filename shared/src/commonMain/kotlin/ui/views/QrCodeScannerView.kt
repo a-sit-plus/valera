@@ -5,12 +5,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_subtitle
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_title
 import at.asitplus.valera.resources.heading_label_scan_qr_code
 import at.asitplus.valera.resources.heading_label_sign
+import at.asitplus.wallet.app.common.LoadingMessageKey
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope

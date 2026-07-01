@@ -1,13 +1,9 @@
 package ui.presentation
 
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
-import at.asitplus.openid.dcql.DCQLQuery
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
-import org.koin.compose.viewmodel.koinViewModel
 import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
 import ui.viewmodels.authentication.CredentialPresentationSubmissions
 import ui.views.authentication.AuthenticationSelectionPresentationExchangeView

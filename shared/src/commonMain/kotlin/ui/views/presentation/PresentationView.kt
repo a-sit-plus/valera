@@ -19,9 +19,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.heading_label_select_data
 import at.asitplus.valera.resources.info_text_holder_connecting_to_verifier
 import at.asitplus.valera.resources.presentation_connecting_to_verifier
-import at.asitplus.valera.resources.heading_label_select_data
 import at.asitplus.valera.resources.presentation_initialised
 import at.asitplus.valera.resources.presentation_missing_permission
 import at.asitplus.valera.resources.presentation_permission_required
@@ -37,6 +37,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.multipaz.compose.permissions.rememberBluetoothPermissionState
+import ui.composables.buttons.CancelButton
 import ui.viewmodels.authentication.AuthenticationConsentViewModel
 import ui.viewmodels.authentication.AuthenticationNoCredentialViewModel
 import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
@@ -48,7 +49,6 @@ import ui.views.authentication.AuthenticationConsentView
 import ui.views.authentication.AuthenticationNoCredentialView
 import ui.views.authentication.AuthenticationSelectionPresentationExchangeView
 import ui.views.authentication.AuthenticationSelectionViewScaffold
-import ui.composables.buttons.CancelButton
 import kotlin.time.Duration.Companion.seconds
 
 // Based on the identity-credential sample code

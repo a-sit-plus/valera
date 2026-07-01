@@ -19,8 +19,8 @@ import ui.composables.DelayedComposable
 import ui.viewmodels.authentication.AuthenticationNoCredentialViewModel
 import ui.viewmodels.authentication.CredentialPresentationSubmissions
 import ui.viewmodels.authentication.DCQLCredentialSubmissions
-import ui.views.authentication.AuthenticationNoCredentialView
 import ui.views.LoadingView
+import ui.views.authentication.AuthenticationNoCredentialView
 import kotlin.time.Duration.Companion.seconds
 
 @ExperimentalMaterial3Api

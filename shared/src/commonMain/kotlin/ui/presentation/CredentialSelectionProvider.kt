@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
-import ui.models.CredentialFreshnessSummaryUiModel
 import ui.models.CredentialFreshnessValidationStateUiModel
 import ui.models.toCredentialFreshnessSummaryModel
 

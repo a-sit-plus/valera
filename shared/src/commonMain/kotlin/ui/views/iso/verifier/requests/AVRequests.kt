@@ -3,7 +3,6 @@ package ui.views.iso.verifier.requests
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cake
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -11,12 +10,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_check_age
-import at.asitplus.valera.resources.button_label_check_identity
 import at.asitplus.valera.resources.button_label_check_over_age
 import at.asitplus.valera.resources.section_heading_request_av
-import at.asitplus.valera.resources.section_heading_request_pid
-import at.asitplus.valera.resources.text_label_all_attributes
-import at.asitplus.valera.resources.text_label_mandatory_attributes
 import data.document.SelectableAge
 import data.document.SelectableRequest
 import data.document.SelectableRequestType

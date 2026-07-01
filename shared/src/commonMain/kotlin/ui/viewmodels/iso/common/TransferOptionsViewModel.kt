@@ -1,6 +1,5 @@
 package ui.viewmodels.iso.common
 
-import at.asitplus.KmmResult
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import at.asitplus.wallet.app.common.WalletMain

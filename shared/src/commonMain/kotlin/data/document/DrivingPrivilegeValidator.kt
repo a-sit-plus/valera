@@ -1,9 +1,9 @@
 package data.document
 
 import at.asitplus.wallet.mdl.DrivingPrivilege
-import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 
 object DrivingPrivilegeValidator {
     private val currentDate

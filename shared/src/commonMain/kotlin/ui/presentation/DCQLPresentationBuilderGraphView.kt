@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
@@ -170,11 +169,3 @@ private fun List<DCQLPresentationBuilderGraphViewModelSelection>.toSubmissionInd
         }
     }.toMap()
 
-private fun SnapshotStateList<DCQLPresentationBuilderGraphViewModelSelection>.popUntilConfirmation() {
-    val lastContinue = lastIndexOf(DCQLPresentationBuilderGraphViewModelSelection.ContinueWithSelection)
-    if (lastContinue >= 0) {
-        removeRange(lastContinue, size)
-    } else {
-        clear()
-    }
-}

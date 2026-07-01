@@ -15,8 +15,8 @@ import ui.viewmodels.InitializationViewModel
 import ui.viewmodels.QrCodeScannerViewModel
 import ui.viewmodels.SettingsViewModel
 import ui.viewmodels.authentication.AuthenticationSuccessViewModel
-import ui.viewmodels.iso.holder.HolderViewModel
 import ui.viewmodels.iso.common.TransferOptionsViewModel
+import ui.viewmodels.iso.holder.HolderViewModel
 import ui.viewmodels.iso.verifier.VerifierViewModel
 
 fun uiModule() = module {

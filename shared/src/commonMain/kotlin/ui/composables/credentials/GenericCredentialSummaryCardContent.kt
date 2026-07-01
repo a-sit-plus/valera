@@ -56,7 +56,6 @@ import at.asitplus.wallet.lib.data.rfc.tokenStatusList.StatusListInfo
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import data.credentials.CredentialAdapter.Companion.toComplexJson
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
-import kotlin.time.Instant
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.longOrNull
@@ -66,6 +65,7 @@ import ui.composables.LabeledContent
 import ui.composables.LabeledText
 import ui.composables.PersonAttributeDetailCardHeading
 import kotlin.math.min
+import kotlin.time.Instant
 
 
 @Composable

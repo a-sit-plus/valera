@@ -6,17 +6,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_credential_matching_failed
-import at.asitplus.valera.resources.error_credential_status_invalid
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.agent.representation
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.iconLabel
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.BigErrorText
-import ui.models.CredentialFreshnessValidationStateUiModel
 import ui.composables.LabeledText
 import ui.composables.PersonAttributeDetailCardHeading
 import ui.composables.PersonAttributeDetailCardHeadingIcon
+import ui.models.CredentialFreshnessValidationStateUiModel
 
 
 @Composable

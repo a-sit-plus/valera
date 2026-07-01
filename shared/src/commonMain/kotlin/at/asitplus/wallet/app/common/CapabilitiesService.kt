@@ -3,8 +3,8 @@ package at.asitplus.wallet.app.common
 import at.asitplus.authcheckkit.AuthCheckKit
 import at.asitplus.authcheckkit.BiometricSecurityClass
 import at.asitplus.catchingUnwrapped
-import at.asitplus.wallet.app.common.Configuration.DATASTORE_CAPABILITIES_ATTESTATION
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import at.asitplus.wallet.app.common.Configuration.DATASTORE_CAPABILITIES_ATTESTATION
 import data.storage.DataStoreService
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get

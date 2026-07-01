@@ -4,11 +4,11 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.catchingUnwrapped
 import at.asitplus.dif.DifInputDescriptor
 import at.asitplus.dif.PresentationDefinition
+import at.asitplus.iso.DeviceRequest
+import at.asitplus.iso.SessionTranscript
 import at.asitplus.signum.supreme.UserInitiatedCancellationReason
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.warning_authentication_cancelled
-import at.asitplus.iso.DeviceRequest
-import at.asitplus.iso.SessionTranscript
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.toDifInputDescriptorList
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore

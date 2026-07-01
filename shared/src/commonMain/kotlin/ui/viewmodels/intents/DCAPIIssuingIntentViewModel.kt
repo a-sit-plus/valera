@@ -2,10 +2,10 @@ package ui.viewmodels.intents
 
 import at.asitplus.KmmResult
 import at.asitplus.catching
-import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.dcapi.issuance.DigitalCredentialCreationOptions
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import at.asitplus.wallet.app.common.WalletMain
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers

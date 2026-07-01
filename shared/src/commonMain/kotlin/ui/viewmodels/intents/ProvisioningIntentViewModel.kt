@@ -5,9 +5,9 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_credentials_title
 import at.asitplus.wallet.app.common.WalletMain
 import io.github.aakira.napier.Napier
+import org.jetbrains.compose.resources.getString
 import ui.navigation.routes.Route
 import ui.navigation.routes.TransientFlowIssuingResultRoute
-import org.jetbrains.compose.resources.getString
 
 class ProvisioningIntentViewModel(
     val walletMain: WalletMain,

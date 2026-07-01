@@ -23,8 +23,8 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import ui.models.CredentialFreshnessValidationStateUiModel
 import ui.models.CredentialFreshnessSummaryUiModel
+import ui.models.CredentialFreshnessValidationStateUiModel
 
 @Composable
 fun CredentialSelectionCard(

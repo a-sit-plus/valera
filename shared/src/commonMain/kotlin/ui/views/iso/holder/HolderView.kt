@@ -7,6 +7,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
+import at.asitplus.catchingUnwrapped
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_check_settings
 import at.asitplus.valera.resources.info_text_qr_code_loading
@@ -19,11 +23,8 @@ import at.asitplus.wallet.app.common.iso.transfer.state.evaluateTransferPrecondi
 import at.asitplus.wallet.app.common.iso.transfer.state.rememberTransferSettingsState
 import at.asitplus.wallet.app.common.iso.transfer.state.toEnum
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentBusyException
-import androidx.navigationevent.NavigationEventInfo
-import androidx.navigationevent.compose.NavigationBackHandler
-import androidx.navigationevent.compose.rememberNavigationEventState
-import at.asitplus.catchingUnwrapped
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope
@@ -34,7 +35,6 @@ import ui.viewmodels.iso.holder.HolderViewModel
 import ui.views.LoadingView
 import ui.views.iso.common.MissingPreconditionView
 import kotlin.coroutines.cancellation.CancellationException
-import kotlinx.coroutines.flow.MutableStateFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

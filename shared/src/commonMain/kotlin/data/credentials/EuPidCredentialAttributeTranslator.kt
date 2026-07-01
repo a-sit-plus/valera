@@ -37,11 +37,11 @@ import at.asitplus.valera.resources.attribute_friendly_name_trust_anchor
 import at.asitplus.wallet.app.common.memberName
 import at.asitplus.wallet.app.common.minus
 import at.asitplus.wallet.eupid.EU_PID_DOCTYPE
-import at.asitplus.wallet.eupid.EuPidDataElements as Attributes
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements.Address
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements.PlaceOfBirth
 import org.jetbrains.compose.resources.StringResource
+import at.asitplus.wallet.eupid.EuPidDataElements as Attributes
 
 
 class EuPidCredentialAttributeTranslator : CredentialAttributeTranslator {

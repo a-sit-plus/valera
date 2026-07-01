@@ -34,9 +34,6 @@ class FallbackCredentialAdapter(
     // trying our best to map the values to attributes
     private val mapping = genericAttributeList.toMap()
 
-    /** All claim paths actually present in this credential (for metadata-driven generic rendering). */
-    val attributePaths: List<NormalizedJsonPath> get() = mapping.keys.toList()
-
     override fun getAttribute(path: NormalizedJsonPath): Attribute? = mapping[path]
         ?.let { Attribute.fromValue(it) }
 

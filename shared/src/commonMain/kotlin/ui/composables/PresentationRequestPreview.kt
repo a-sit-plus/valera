@@ -1,12 +1,12 @@
 package ui.composables
 
-import at.asitplus.dif.InputDescriptor
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.catchingUnwrapped
+import at.asitplus.dif.InputDescriptor
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.valera.resources.Res
@@ -20,11 +20,11 @@ import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest.DCQLRequest
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest.PresentationExchangeRequest
 import at.asitplus.wallet.lib.data.CredentialScheme
-import data.credentials.MdocClaimReference
-import org.jetbrains.compose.resources.stringResource
 import data.credentials.JsonClaimReference
+import data.credentials.MdocClaimReference
 import data.credentials.jwtClaimLabel
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PresentationRequestPreview(

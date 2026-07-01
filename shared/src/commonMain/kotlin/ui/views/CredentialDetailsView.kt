@@ -39,7 +39,10 @@ import ui.composables.PersonAttributeDetailCardHeading
 import ui.composables.PersonAttributeDetailCardHeadingIcon
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
-import ui.composables.credentials.*
+import ui.composables.credentials.EuPidCredentialView
+import ui.composables.credentials.GenericCredentialSummaryCardContent
+import ui.composables.credentials.GenericMetadataCredentialView
+import ui.composables.credentials.MobileDrivingLicenceCredentialView
 import ui.models.CredentialFreshnessSummaryUiModel
 import ui.viewmodels.CredentialDetailsViewModel
 

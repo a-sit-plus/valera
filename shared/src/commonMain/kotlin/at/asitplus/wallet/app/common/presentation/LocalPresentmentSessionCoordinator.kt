@@ -1,11 +1,11 @@
 package at.asitplus.wallet.app.common.presentation
 
 import at.asitplus.catchingUnwrapped
+import at.asitplus.wallet.app.common.ErrorService
+import at.asitplus.wallet.app.common.createErrorReportingScope
 import io.github.aakira.napier.Napier
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
-import at.asitplus.wallet.app.common.ErrorService
-import at.asitplus.wallet.app.common.createErrorReportingScope
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -13,8 +13,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import ui.viewmodels.authentication.PresentationStateModel
 import org.multipaz.util.UUID
+import ui.viewmodels.authentication.PresentationStateModel
 import kotlin.time.Duration.Companion.milliseconds
 
 enum class LocalPresentmentSource {
@@ -128,14 +128,6 @@ class LocalPresentmentSessionCoordinator {
 
     fun activeSessionId(): String? = synchronized(stateLock) {
         activeSession?.snapshot?.sessionId
-    }
-
-    fun currentPresentationStateModel(): PresentationStateModel? = synchronized(stateLock) {
-        activeSession?.snapshot?.presentationStateModel
-    }
-
-    fun currentPresentationStateModel(source: LocalPresentmentSource): PresentationStateModel? = synchronized(stateLock) {
-        activeSession?.takeIf { it.snapshot.source == source }?.snapshot?.presentationStateModel
     }
 
     fun isSessionActive(sessionId: String): Boolean = synchronized(stateLock) {

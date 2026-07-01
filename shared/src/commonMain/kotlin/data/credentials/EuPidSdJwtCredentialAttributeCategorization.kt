@@ -1,8 +1,8 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements as SdJwtAttributes
 import data.PersonalDataCategory
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements as SdJwtAttributes
 
 object EuPidSdJwtCredentialAttributeCategorization : CredentialAttributeCategorization.Template(
     mapOf(

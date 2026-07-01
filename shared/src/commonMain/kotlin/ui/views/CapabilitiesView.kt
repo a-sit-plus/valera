@@ -5,8 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.lifecycle.Lifecycle
@@ -25,8 +25,8 @@ import at.asitplus.valera.resources.info_text_capabilities_no_camera
 import at.asitplus.valera.resources.info_text_capabilities_no_device_lock_set
 import at.asitplus.valera.resources.info_text_capabilities_no_internet
 import at.asitplus.valera.resources.info_text_capabilities_no_signing
-import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.CapabilitiesData
+import at.asitplus.wallet.app.common.LoadingMessageKey
 import getPlatformName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO

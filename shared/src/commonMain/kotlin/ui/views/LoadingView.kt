@@ -15,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_loading_screen
 import at.asitplus.valera.resources.loading_message_app_initialization
@@ -30,6 +29,7 @@ import at.asitplus.valera.resources.loading_message_issuing_credential
 import at.asitplus.valera.resources.loading_message_requesting_camera_permission
 import at.asitplus.valera.resources.loading_message_scanning_qr_content
 import at.asitplus.valera.resources.loading_message_storing_credential
+import at.asitplus.wallet.app.common.LoadingMessageKey
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ScreenHeading

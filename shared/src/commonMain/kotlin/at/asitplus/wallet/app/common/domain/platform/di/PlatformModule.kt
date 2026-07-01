@@ -4,9 +4,8 @@ import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.SessionService
-import at.asitplus.wallet.app.common.WalletSessionBindings
 import at.asitplus.wallet.app.common.WalletKeyMaterial
-import at.asitplus.wallet.app.common.attestation.AttestationService
+import at.asitplus.wallet.app.common.WalletSessionBindings
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
@@ -19,8 +18,8 @@ import data.storage.WalletSubjectCredentialStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import org.koin.core.qualifier.named
 import org.koin.core.module.dsl.scopedOf
+import org.koin.core.qualifier.named
 import org.koin.dsl.binds
 import org.koin.dsl.module
 import org.multipaz.prompt.PromptModel

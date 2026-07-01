@@ -1,8 +1,8 @@
 package data.storage
 
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.ErrorService
-import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import io.ktor.client.plugins.cookies.CookiesStorage
 import io.ktor.http.Cookie
 import io.ktor.http.CookieEncoding
@@ -18,11 +18,10 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlin.time.Instant
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlin.jvm.JvmName
 import kotlin.math.min
+import kotlin.time.Instant
 
 // Modified from io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 class PersistentCookieStorage(

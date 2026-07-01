@@ -1,8 +1,8 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.catchingUnwrapped
-import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import at.asitplus.wallet.app.common.data.SettingsRepository
 import data.storage.DataStoreService
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CompletionHandler

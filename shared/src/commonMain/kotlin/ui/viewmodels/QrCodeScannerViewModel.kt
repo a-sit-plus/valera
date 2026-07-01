@@ -2,7 +2,6 @@ package ui.viewmodels
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.WalletMain

@@ -15,22 +15,6 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun StatefulCredentialIdentifierInputField(
     value: CredentialIdentifierInfo,
-    onValueChange: ((CredentialIdentifierInfo) -> Unit)?,
-    modifier: Modifier = Modifier,
-    availableIdentifiers: Collection<CredentialIdentifierInfo>,
-) {
-    StatefulCredentialIdentifierInputField(
-        value = value,
-        onValueChange = onValueChange ?: {},
-        enabled = onValueChange != null,
-        modifier = modifier,
-        availableIdentifiers = availableIdentifiers,
-    )
-}
-
-@Composable
-fun StatefulCredentialIdentifierInputField(
-    value: CredentialIdentifierInfo,
     onValueChange: (CredentialIdentifierInfo) -> Unit,
     enabled: Boolean = true,
     modifier: Modifier = Modifier,

@@ -1,6 +1,7 @@
 package at.asitplus.wallet.app.common
 
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import at.asitplus.wallet.app.common.CredentialMetadataDisplayNames.get
 
 /**
  * In-memory lookup of human-readable credential type names taken from resolved SD-JWT VC Type Metadata, keyed by the

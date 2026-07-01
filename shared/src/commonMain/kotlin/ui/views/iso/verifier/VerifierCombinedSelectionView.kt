@@ -42,8 +42,8 @@ import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.icon
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.data.ConstantIndex
 import data.document.RequestDocumentBuilder
-import data.document.SelectableRequestType
 import data.document.SelectableRequest
+import data.document.SelectableRequestType
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.LabeledText
 import ui.composables.Logo

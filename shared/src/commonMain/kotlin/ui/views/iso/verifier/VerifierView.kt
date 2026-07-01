@@ -8,11 +8,11 @@ import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.heading_label_nfc_transfer
 import at.asitplus.valera.resources.info_text_check_response
 import at.asitplus.valera.resources.info_text_check_settings
 import at.asitplus.valera.resources.info_text_qr_nfc_data_transfer_tap
 import at.asitplus.valera.resources.info_text_waiting_for_response
-import at.asitplus.valera.resources.heading_label_nfc_transfer
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberAppSettings
 import at.asitplus.wallet.app.common.iso.transfer.method.rememberNfcEnabledState
 import at.asitplus.wallet.app.common.iso.transfer.state.TransferPrecondition

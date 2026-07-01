@@ -1,8 +1,8 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.eupid.EuPidDataElements as Attributes
 import data.PersonalDataCategory
+import at.asitplus.wallet.eupid.EuPidDataElements as Attributes
 
 @Suppress("DEPRECATION")
 object EuPidCredentialAttributeCategorization : CredentialAttributeCategorization.Template(

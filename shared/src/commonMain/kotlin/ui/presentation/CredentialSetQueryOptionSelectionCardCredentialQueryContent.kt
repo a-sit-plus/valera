@@ -2,24 +2,16 @@ package ui.presentation
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.additional_text_other_untranslated_claims
 import at.asitplus.valera.resources.text_label_all_claims_requested
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.LabeledText
-import ui.presentation.CredentialSetQueryOptionSelectionCardCredentialQueryContent
 
 @Composable
 fun ColumnScope.CredentialSetQueryOptionSelectionCardCredentialQueryContent(

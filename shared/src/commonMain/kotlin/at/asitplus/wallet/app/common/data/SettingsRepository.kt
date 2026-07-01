@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.common.data
 
-import at.asitplus.KmmResult
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.flow.Flow

@@ -1,11 +1,11 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.catchingUnwrapped
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.wallet.lib.data.CredentialMetadataRegistry
 import at.asitplus.wallet.lib.data.ResolvedCredentialMetadata
 import at.asitplus.wallet.lib.data.toCredentialScheme
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.sdjwt.SdJwtTypeMetadata
 import data.storage.DataStoreService
 import io.github.aakira.napier.Napier
@@ -13,8 +13,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.time.Clock
 import kotlin.time.Duration

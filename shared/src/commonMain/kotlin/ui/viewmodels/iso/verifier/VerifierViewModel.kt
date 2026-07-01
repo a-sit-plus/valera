@@ -6,6 +6,7 @@ import at.asitplus.iso.Document
 import at.asitplus.iso.MobileSecurityObject
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.presentation_canceled
 import at.asitplus.valera.resources.snackbar_nfc_tag_lost_retrying
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
@@ -33,7 +34,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromByteArray
 import org.jetbrains.compose.resources.getString
-import at.asitplus.valera.resources.presentation_canceled
 import ui.viewmodels.iso.common.TransferOptionsViewModel
 
 class VerifierViewModel(

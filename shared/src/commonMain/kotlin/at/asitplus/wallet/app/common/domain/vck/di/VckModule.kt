@@ -1,9 +1,9 @@
 package at.asitplus.wallet.app.common.domain.vck.di
 
 import at.asitplus.wallet.app.common.SESSION_NAME
-import at.asitplus.wallet.app.common.domain.vck.tokenStatusList.StatusListTokenResolver
 import at.asitplus.wallet.app.common.domain.vck.JsonWebKeySetResolver
 import at.asitplus.wallet.app.common.domain.vck.PublicKeyResolver
+import at.asitplus.wallet.app.common.domain.vck.tokenStatusList.StatusListTokenResolver
 import at.asitplus.wallet.app.common.domain.vck.tokenStatusList.di.tokenStatusListModule
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
