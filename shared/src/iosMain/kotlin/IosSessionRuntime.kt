@@ -9,9 +9,11 @@ import at.asitplus.wallet.app.common.di.appModule
 import at.asitplus.wallet.app.dcapi.IosDcApiPreRequestData
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
 import androidx.compose.material3.SnackbarDuration
+import data.storage.AntilogAdapter
 import data.storage.RealDataStoreService
-import io.github.aakira.napier.Antilog
 import data.storage.createDataStore
+import io.github.aakira.napier.Antilog
+import io.github.aakira.napier.LogLevel
 import io.github.aakira.napier.Napier
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
@@ -55,7 +57,7 @@ private object IosSessionRuntime {
                 return
             }
 
-            initializeLogging(antilog)
+            initializeLogging(buildContext, antilog)
             startKoin {
                 modules(appModule(), module { single { buildContext } })
             }
@@ -270,9 +272,28 @@ private object IosSessionRuntime {
         }
     }
 
-    private fun initializeLogging(antilog: Antilog) {
+    private fun initializeLogging(buildContext: BuildContext, systemAntilog: Antilog) {
         Napier.takeLogarithm()
-        Napier.base(antilog)
+        Napier.base(
+            CompositeAntilog(
+                listOf(
+                    systemAntilog,
+                    AntilogAdapter(
+                        platformAdapter = IosPlatformAdapter(IntentState()),
+                        defaultTag = "",
+                        buildType = buildContext.buildType,
+                    )
+                )
+            )
+        )
+    }
+}
+
+private class CompositeAntilog(
+    private val antilogs: List<Antilog>
+) : Antilog() {
+    override fun performLog(priority: LogLevel, tag: String?, throwable: Throwable?, message: String?) {
+        antilogs.forEach { it.log(priority, tag, throwable, message) }
     }
 }
 

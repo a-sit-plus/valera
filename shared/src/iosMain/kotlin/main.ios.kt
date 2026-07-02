@@ -234,11 +234,31 @@ class IosPlatformAdapter(
         }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     override fun shareLog() {
         val baseUrl = getBaseUrl() ?: return
 
         val folderUrl = baseUrl.URLByAppendingPathComponent("logs")
+        val folderPath = folderUrl?.path ?: return
+        val fileManager = NSFileManager.defaultManager
+        if (!fileManager.fileExistsAtPath(folderPath)) {
+            fileManager.createDirectoryAtPath(
+                path = folderPath,
+                withIntermediateDirectories = true,
+                attributes = null,
+                error = null
+            )
+        }
+
         val fileUrl = folderUrl?.URLByAppendingPathComponent("log.txt") ?: return
+        val filePath = fileUrl.path ?: return
+        if (!fileManager.fileExistsAtPath(filePath)) {
+            fileManager.createFileAtPath(
+                path = filePath,
+                contents = NSData(),
+                attributes = null
+            )
+        }
 
         dispatch_async(dispatch_get_main_queue()) {
             val connectedScenes = UIApplication.sharedApplication.connectedScenes
