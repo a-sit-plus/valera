@@ -17,12 +17,15 @@ import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.dcapi.IosParsedMdocRequestSummary
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
 import at.asitplus.wallet.app.common.*
+import at.asitplus.wallet.app.common.AV_DOC_TYPE
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_digital_credentials_store_failed
 import io.github.aakira.napier.Napier
 import at.asitplus.wallet.app.ios.DigitalCredentials
+import at.asitplus.wallet.eupid.EU_PID_DOCTYPE
+import at.asitplus.wallet.mdl.MDL_DOCTYPE
 import kotlinx.cinterop.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -46,10 +49,10 @@ import kotlin.collections.mapValues
 actual fun getPlatformName(): String = "iOS"
 
 private val SUPPORTED_DOC_TYPES = listOf(
-    "eu.europa.ec.av.1",
-    "eu.europa.ec.eudi.pid.1",
+    AV_DOC_TYPE,
+    EU_PID_DOCTYPE,
     "org.iso.23220.photoid.1",
-    "org.iso.18013.5.1.mDL"
+    MDL_DOCTYPE
 )
 
 @Composable

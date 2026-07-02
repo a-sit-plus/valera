@@ -27,15 +27,36 @@ import kotlin.time.ExperimentalTime
 private const val CREDENTIALS_COLLECTION_BASE =
     "https://raw.githubusercontent.com/a-sit-plus/credentials-collection/main/"
 
+/** `urn:eudi:ehic:1` */
+const val EHIC_VCT = "urn:eudi:ehic:1"
+
+/** `urn:eu.europa.ec.eudi:tax:1` */
+const val TAX_ID_VCT = "urn:eu.europa.ec.eudi:tax:1"
+
+/** `eu.europa.ec.eudi.cor.1` */
+const val COR_VCT = "eu.europa.ec.eudi.cor.1"
+
+/** `urn:eu.europa.ec.eudi:cr:1` */
+const val COMPANY_REGISTRATION_VCT = "urn:eu.europa.ec.eudi:cr:1"
+
+/** `urn:eu.europa.ec.eudi:por:1` */
+const val POR_VCT = "urn:eu.europa.ec.eudi:por:1"
+
+/** `urn:eu.europa.ec.eudi:hiid:1` */
+const val HEALTH_ID_VCT = "urn:eu.europa.ec.eudi:hiid:1"
+
+/** `eu.europa.ec.av.1` */
+const val AV_DOC_TYPE = "eu.europa.ec.av.1"
+
 /** vct -> hosted document URL for the remotely-resolved credentials. */
 private val remoteCredentialDocumentUrls: Map<SdJwtVcType, String> = mapOf(
-    SdJwtVcType("urn:eudi:ehic:1") to "${CREDENTIALS_COLLECTION_BASE}ehic.json",
-    SdJwtVcType("urn:eu.europa.ec.eudi:tax:1") to "${CREDENTIALS_COLLECTION_BASE}tax-id-credential.json",
-    SdJwtVcType("eu.europa.ec.eudi.cor.1") to "${CREDENTIALS_COLLECTION_BASE}certificate-of-residence.json",
-    SdJwtVcType("urn:eu.europa.ec.eudi:cr:1") to "${CREDENTIALS_COLLECTION_BASE}company-registration.json",
-    SdJwtVcType("urn:eu.europa.ec.eudi:por:1") to "${CREDENTIALS_COLLECTION_BASE}power-of-representation.json",
-    SdJwtVcType("urn:eu.europa.ec.eudi:hiid:1") to "${CREDENTIALS_COLLECTION_BASE}healthid.json",
-    SdJwtVcType("eu.europa.ec.av.1") to "${CREDENTIALS_COLLECTION_BASE}age-verification.json",
+    SdJwtVcType(EHIC_VCT) to "${CREDENTIALS_COLLECTION_BASE}ehic.json",
+    SdJwtVcType(TAX_ID_VCT) to "${CREDENTIALS_COLLECTION_BASE}tax-id-credential.json",
+    SdJwtVcType(COR_VCT) to "${CREDENTIALS_COLLECTION_BASE}certificate-of-residence.json",
+    SdJwtVcType(COMPANY_REGISTRATION_VCT) to "${CREDENTIALS_COLLECTION_BASE}company-registration.json",
+    SdJwtVcType(POR_VCT) to "${CREDENTIALS_COLLECTION_BASE}power-of-representation.json",
+    SdJwtVcType(HEALTH_ID_VCT) to "${CREDENTIALS_COLLECTION_BASE}healthid.json",
+    SdJwtVcType(AV_DOC_TYPE) to "${CREDENTIALS_COLLECTION_BASE}age-verification.json",
 )
 
 private val credentialMetadataRegistrationLock = SynchronizedObject()
@@ -84,7 +105,7 @@ private fun registerRemoteCredentialMetadata(buildContext: BuildContext, dataSto
         documentUrls = remoteCredentialDocumentUrls.toMutableMap(),
         // age-verification is ISO mdoc: its docType (== vct) must be aliased to the document's vct.
         aliases = mapOf(
-            CredentialMetadataLookup(ISO_MDOC, "eu.europa.ec.av.1") to SdJwtVcType("eu.europa.ec.av.1"),
+            CredentialMetadataLookup(ISO_MDOC, AV_DOC_TYPE) to SdJwtVcType(AV_DOC_TYPE),
         ),
     )
     // Persist resolved metadata so each scheme is fetched from the network only once (also across restarts).

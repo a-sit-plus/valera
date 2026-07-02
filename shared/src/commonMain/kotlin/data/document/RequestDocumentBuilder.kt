@@ -1,6 +1,8 @@
 package data.document
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.wallet.app.common.AV_DOC_TYPE
+import at.asitplus.wallet.app.common.HEALTH_ID_VCT
 import at.asitplus.wallet.eupid.EU_PID_DOCTYPE
 import at.asitplus.wallet.eupid.EuPidDataElements
 import at.asitplus.wallet.lib.data.AttributeIndex
@@ -12,10 +14,9 @@ import data.credentials.EuPidCredentialAttributeTranslator
 import data.credentials.MobileDrivingLicenceCredentialAttributeTranslator
 import org.jetbrains.compose.resources.StringResource
 
-// Age Verification (ISO mdoc) and Health ID (SD-JWT) are resolved from remote type metadata; their docTypes and
+// Age Verification (ISO mdoc) and Health ID (SD-JWT) are resolved from remote type metadata; their
 // claim names are kept here as constants for the verifier request presets, instead of compiled-in scheme objects.
-private const val AV_DOCTYPE = "eu.europa.ec.av.1"
-private const val HEALTH_ID_DOCTYPE = "urn:eu.europa.ec.eudi:hiid:1"
+
 private val ageVerificationElements = listOf(
     "age_over_12", "age_over_13", "age_over_14", "age_over_16", "age_over_18",
     "age_over_21", "age_over_25", "age_over_60", "age_over_62", "age_over_65", "age_over_68",
@@ -53,8 +54,8 @@ object RequestDocumentBuilder {
 
     private val mdlScheme: CredentialScheme get() = schemeFor(MDL_DOCTYPE)
     private val euPidScheme: CredentialScheme get() = schemeFor(EU_PID_DOCTYPE)
-    private val ageVerificationScheme: CredentialScheme get() = schemeFor(AV_DOCTYPE)
-    private val healthIdScheme: CredentialScheme get() = schemeFor(HEALTH_ID_DOCTYPE)
+    private val ageVerificationScheme: CredentialScheme get() = schemeFor(AV_DOC_TYPE)
+    private val healthIdScheme: CredentialScheme get() = schemeFor(HEALTH_ID_VCT)
 
     val schemes: List<CredentialScheme>
         get() = listOf(mdlScheme, euPidScheme, healthIdScheme, ageVerificationScheme)
@@ -79,15 +80,15 @@ object RequestDocumentBuilder {
     private val preselectionByDocType: Map<String, () -> Set<String>> = mapOf(
         MDL_DOCTYPE to { MobileDrivingLicenceDataElements.MANDATORY_ELEMENTS.toSet() },
         EU_PID_DOCTYPE to { euPidMandatoryElements.toSet() },
-        HEALTH_ID_DOCTYPE to { healthIdRequiredElements.toSet() },
-        AV_DOCTYPE to { setOf("age_over_18") },
+        HEALTH_ID_VCT to { healthIdRequiredElements.toSet() },
+        AV_DOC_TYPE to { setOf("age_over_18") },
     )
 
     private val allElementsByDocType: Map<String, List<String>> = mapOf(
         MDL_DOCTYPE to MobileDrivingLicenceDataElements.ALL_ELEMENTS,
         EU_PID_DOCTYPE to euPidAllElements,
-        HEALTH_ID_DOCTYPE to healthIdElements,
-        AV_DOCTYPE to ageVerificationElements,
+        HEALTH_ID_VCT to healthIdElements,
+        AV_DOC_TYPE to ageVerificationElements,
     )
 
     private val docTypeConfigs: Map<String, DocTypeConfig>
