@@ -22,11 +22,11 @@ import at.asitplus.openid.dcql.DCQLIsoMdocCredentialQuery
 import at.asitplus.openid.dcql.DCQLJsonClaimsQuery
 import at.asitplus.openid.dcql.DCQLJwtVcCredentialQuery
 import at.asitplus.openid.dcql.DCQLSdJwtCredentialQuery
-import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import at.asitplus.openid.OpenId4VciClaimsPathPointer
+import at.asitplus.openid.OpenId4VciClaimsPathPointerSegmentIndex
+import at.asitplus.openid.OpenId4VciClaimsPathPointerSegmentString
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPidSdJwt
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
-import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
@@ -43,12 +43,13 @@ import data.credentials.JsonClaimReference
 import data.credentials.MdocClaimReference
 import data.credentials.SingleClaimReference
 import data.credentials.jwtClaimLabel
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.put
 import org.jetbrains.compose.resources.stringResource
 import ui.presentation.DCQLCredentialQueryUiModel
@@ -88,7 +89,7 @@ suspend fun InputDescriptor.extractConsentData(): PresentationExchangeConsentDat
 
     val constraintsMap = PresentationExchangeInputEvaluator.evaluateInputDescriptorAgainstCredential(
         inputDescriptor = this,
-        credentialClaimStructure = scheme.toJsonElement(credentialRepresentation, requestedElements),
+        credentialClaimStructure = scheme.toCredentialClaimStructure(credentialRepresentation, requestedElements),
         credentialFormat = credentialRepresentation.toFormat(),
         credentialScheme = matchedCredentialIdentifier,
         fallbackFormatHolder = this.format,
@@ -174,54 +175,84 @@ suspend fun DCQLCredentialQuery.extractConsentData(): DcqlConsentData {
     return Triple(representation, scheme, singleReferenceClaimsQueries?.values)
 }
 
-fun CredentialScheme.toJsonElement(
+private fun CredentialScheme.toCredentialClaimStructure(
     representation: CredentialRepresentation,
     requestedElements: Collection<String>? = null
 ): JsonElement {
-    val dataElements = this.claimNames
-    // TODO move this to credentials libraries
-    val complexElements = when {
-        isEuPidSdJwt -> buildJsonObject {
-            put(EuPidSdJwtDataElements.PREFIX_ADDRESS, buildJsonObject {
-                with(EuPidSdJwtDataElements.Address) {
-                    put(FORMATTED, JsonPrimitive(""))
-                    put(COUNTRY, JsonPrimitive(""))
-                    put(REGION, JsonPrimitive(""))
-                    put(LOCALITY, JsonPrimitive(""))
-                    put(POSTAL_CODE, JsonPrimitive(""))
-                    put(STREET, JsonPrimitive(""))
-                    put(HOUSE_NUMBER, JsonPrimitive(""))
-                }
-            })
-            put(EuPidSdJwtDataElements.PREFIX_PLACE_OF_BIRTH, buildJsonObject {
-                with(EuPidSdJwtDataElements.PlaceOfBirth) {
-                    put(COUNTRY, JsonPrimitive(""))
-                    put(REGION, JsonPrimitive(""))
-                    put(LOCALITY, JsonPrimitive(""))
-                }
-            })
-            put(EuPidSdJwtDataElements.NATIONALITIES, buildJsonArray { })
-        }
-
-        else -> buildJsonObject {
+    val claimPaths = claimPaths(requestedElements).let { paths ->
+        when (representation) {
+            PLAIN_JWT, SD_JWT -> paths
+            ISO_MDOC -> paths.map { it.qualifiedWithIsoNamespace(isoNamespace) }
         }
     }
 
-    return (dataElements + (requestedElements ?: listOf())).associateWith { "" }.let { attributes ->
-        when (representation) {
-            PLAIN_JWT -> joseCompliantSerializer.encodeToJsonElement(attributes + ("type" to this.vcType))
-            SD_JWT -> buildJsonObject {
-                addSdJwtDummyMetadata()
-                attributes.forEach {
-                    put(it.key, JsonPrimitive(it.value))
-                }
-                put("vct", sdJwtType)
-                complexElements.forEach {
-                    put(it.key, it.value)
-                }
-            }
+    return when (representation) {
+        PLAIN_JWT -> buildJsonObject {
+            putClaimPaths(claimPaths)
+            put("type", vcType ?: "")
+        }
 
-            ISO_MDOC -> joseCompliantSerializer.encodeToJsonElement(mapOf(this.isoNamespace to attributes))
+        SD_JWT -> buildJsonObject {
+            addSdJwtDummyMetadata()
+            putClaimPaths(claimPaths)
+            put("vct", sdJwtType ?: "")
+        }
+
+        ISO_MDOC -> JsonObject(emptyMap()).withClaimPaths(claimPaths)
+    }
+}
+
+private sealed interface ClaimPathSegment {
+    data class Name(val value: String) : ClaimPathSegment
+    data class Index(val value: Int) : ClaimPathSegment
+}
+
+private fun CredentialScheme.claimPaths(requestedElements: Collection<String>?): List<List<ClaimPathSegment>> =
+    claimDescriptions.map { it.path.toClaimPath() } +
+            requestedElements.orEmpty().map { listOf(ClaimPathSegment.Name(it)) }
+
+private fun OpenId4VciClaimsPathPointer.toClaimPath(): List<ClaimPathSegment> = mapNotNull {
+    when (it) {
+        is OpenId4VciClaimsPathPointerSegmentString -> ClaimPathSegment.Name(it.string)
+        is OpenId4VciClaimsPathPointerSegmentIndex -> it.uint
+            .takeIf { index -> index <= Int.MAX_VALUE.toUInt() }
+            ?.let { index -> ClaimPathSegment.Index(index.toInt()) }
+
+        null -> null
+    }
+}
+
+private fun List<ClaimPathSegment>.qualifiedWithIsoNamespace(isoNamespace: String?): List<ClaimPathSegment> =
+    if (isoNamespace == null || firstOrNull() == ClaimPathSegment.Name(isoNamespace)) this
+    else listOf(ClaimPathSegment.Name(isoNamespace)) + this
+
+private fun JsonObjectBuilder.putClaimPaths(paths: Collection<List<ClaimPathSegment>>) {
+    withClaimPaths(paths).forEach { put(it.key, it.value) }
+}
+
+private fun JsonObjectBuilder.withClaimPaths(paths: Collection<List<ClaimPathSegment>>): JsonObject =
+    JsonObject(emptyMap()).withClaimPaths(paths)
+
+private fun JsonObject.withClaimPaths(paths: Collection<List<ClaimPathSegment>>): JsonObject =
+    paths.fold(this as JsonElement) { current, path -> current.withClaimPath(path) } as JsonObject
+
+private fun JsonElement.withClaimPath(path: List<ClaimPathSegment>): JsonElement {
+    if (path.isEmpty()) return JsonPrimitive("")
+
+    return when (val segment = path.first()) {
+        is ClaimPathSegment.Name -> {
+            val entries = (this as? JsonObject)?.toMutableMap() ?: mutableMapOf()
+            entries[segment.value] = (entries[segment.value] ?: JsonObject(emptyMap())).withClaimPath(path.drop(1))
+            JsonObject(entries)
+        }
+
+        is ClaimPathSegment.Index -> {
+            val entries = (this as? JsonArray)?.toMutableList() ?: mutableListOf()
+            while (entries.size <= segment.value) {
+                entries.add(JsonNull)
+            }
+            entries[segment.value] = entries[segment.value].withClaimPath(path.drop(1))
+            JsonArray(entries)
         }
     }
 }
