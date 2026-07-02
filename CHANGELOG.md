@@ -2,6 +2,7 @@
  * Update to VC-K 7.0.0-SNAPSHOT
  * Rework resolving credential schemes
  * Drop support for PID in VC JWT (which was never officially specified anyway)
+ * Update DCAPI matching implementation for Android
 
 # Release 5.8.0
  * Update to VC-K 6.0.0
@@ -26,7 +27,7 @@
  * Add: Support refreshing of credentials
  * Add: Support presentation for general DCQL queries
  * Add: Debug version allows for localhost cleartext transmissions, supporting local test environments
- 
+
 # Release 5.7.5
  * Update to VC-K 5.10.1
  * Provide self-signed key attestation on issuing
@@ -66,7 +67,7 @@
  * Add FallBackKeyMaterial to catch startup exceptions
  * Remove `getMatchingCredentials` (move to VC-K)
 
-# Release 5.7.2 
+# Release 5.7.2
  * Proximity: Use fixed IACA key and certificate for reader authentication
  * Credentials: Show technical metadata (validity, status)
 

@@ -15,11 +15,11 @@ import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEu
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import data.credentials.CredentialAdapter.Companion.toAttributeMap
 import data.credentials.CredentialAdapter.Companion.toNamespaceAttributeMap
 import data.credentials.EuPidCredentialAdapter
 import data.credentials.MobileDrivingLicenceCredentialAdapter
 import data.credentials.metadataLabel
+import data.credentials.toGenericAttributeList
 import data.storage.StoreContainer
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
@@ -76,7 +76,7 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
         return SdJwtEntry(
             jwtId = getDcApiId(),
             verifiableCredentialType = schemeIdentifier ?: sdJwt.verifiableCredentialType,
-            claims = SdJwtEntry.fromAttributeMap(toAttributeMap()) { path -> scheme.metadataLabel(path) }
+            claims = SdJwtEntry.fromAttributeList(toGenericAttributeList()) { path -> scheme.metadataLabel(path) }
         )
     }
 

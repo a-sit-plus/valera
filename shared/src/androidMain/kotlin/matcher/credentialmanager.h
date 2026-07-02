@@ -1,5 +1,3 @@
-// based on identity-credential[https://github.com/openwallet-foundation-labs/identity-credential] implementation
-
 #ifndef CREDENTIALMANAGER_H
 #define CREDENTIALMANAGER_H
 

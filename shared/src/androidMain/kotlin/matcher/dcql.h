@@ -1,4 +1,3 @@
-// based on identity-credential[https://github.com/openwallet-foundation-labs/identity-credential] implementation
 
 #pragma once
 
@@ -67,7 +66,7 @@ struct DcqlQuery {
 
     void log();
 
-    std::optional<DcqlResponse> execute(CredentialDatabase* credentialDatabase);
+    std::optional<DcqlResponse> execute(CredentialDatabase* credentialDatabase, const std::string& protocol);
 
     static DcqlQuery parse(cJSON* dcqlQuery);
 };

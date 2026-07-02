@@ -3,7 +3,6 @@ package at.asitplus.wallet.app.common.dcapi.data.export
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonPrimitive
 
 @Serializable
 data class SdJwtEntry(
@@ -15,11 +14,12 @@ data class SdJwtEntry(
     val claims: Map<String, ExportedElements>
 ) {
     companion object {
-        suspend fun fromAttributeMap(
-            attributeMap: Map<String, JsonPrimitive>,
+        suspend fun fromAttributeList(
+            attributeList: List<Pair<NormalizedJsonPath, Any>>,
             attributeLabel: (NormalizedJsonPath) -> String?,
-        ): Map<String, ExportedElements> = attributeMap.map { (name, value) ->
-            val displayName = attributeLabel(name.toJsonPath()) ?: name
+        ): Map<String, ExportedElements> = attributeList.map { (path, value) ->
+            val name = path.toDcqlPathKey()
+            val displayName = attributeLabel(path) ?: name
             val truncatedValue = value.toCustomString().safeSubstring(128)
             name to ExportedElements(displayName, truncatedValue, truncatedValue)
         }.toMap()
