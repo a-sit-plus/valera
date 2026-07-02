@@ -35,9 +35,9 @@ import at.asitplus.wallet.mdl.MDL_NAMESPACE
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
 import data.credentials.EuPidCredentialIsoMdocAdapter
 import data.credentials.MobileDrivingLicenceCredentialIsoMdocAdapter
+import data.credentials.schemeForIsoDocType
 import data.document.DrivingPrivilegeValidator
 import data.document.DrivingPrivilegeValidator.getDrivingPrivilegeStatus
-import data.document.RequestDocumentBuilder
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.BigSuccessText
@@ -124,7 +124,7 @@ fun IsoMdocCredentialView(
                 .sortedBy { it.value.elementIdentifier }
                 .associate { it.value.elementIdentifier to it.value.elementValue }
             val namespaces = mapOf(namespaceKey to sortedEntries)
-            val scheme = RequestDocumentBuilder.getDocTypeConfig(isoDocParsed.document.docType)?.scheme
+            val scheme = schemeForIsoDocType(isoDocParsed.document.docType)
 
             PersonAttributeDetailCardHeading(
                 icon = { PersonAttributeDetailCardHeadingIcon(scheme.iconLabel()) },
@@ -139,7 +139,7 @@ fun IsoMdocCredentialView(
             when {
                 scheme.isMdl -> {
                     MobileDrivingLicenceCredentialViewFromAdapter(
-                        MobileDrivingLicenceCredentialIsoMdocAdapter(namespaces, decodeImage, scheme!!)
+                        MobileDrivingLicenceCredentialIsoMdocAdapter(namespaces, decodeImage, scheme)
                     )
                     val namespace = namespaces[MDL_NAMESPACE]
                     @Suppress("UNCHECKED_CAST")
@@ -156,7 +156,7 @@ fun IsoMdocCredentialView(
                     }
                 }
                 scheme.isEuPid -> EuPidCredentialViewFromAdapter(
-                    EuPidCredentialIsoMdocAdapter(namespaces, decodeImage, scheme!!)
+                    EuPidCredentialIsoMdocAdapter(namespaces, decodeImage, scheme)
                 )
                 // Credentials without a bespoke verifier view (resolved from remote type metadata) are listed generically.
                 else -> namespaces.values.forEach { entries ->

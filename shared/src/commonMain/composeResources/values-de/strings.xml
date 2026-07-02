@@ -378,7 +378,6 @@
     <string name="section_heading_request_mdl">mDL Anfragen</string>
     <string name="section_heading_request_pid">PID Anfragen</string>
     <string name="section_heading_request_av">AV Anfragen</string>
-    <string name="section_heading_request_hid">HealthID Anfrage</string>
     <string name="section_heading_request_combined">Kombinierte Credential-Anfrage</string>
     <string name="section_heading_request_custom">Individuelle Anfrage</string>
     <string name="section_heading_select_document_type">Dokument Typ</string>
@@ -391,7 +390,6 @@
     <string name="button_label_check_combined">Kombinierte Credential-Anfrage</string>
     <string name="button_label_check_custom">Individuelle Anfrage</string>
     <string name="button_label_check_over_age">Über %1$s</string>
-    <string name="button_label_check_health_id">HealthID Prüfen</string>
     <string name="button_add_request">Anfrage hinzufügen</string>
     <string name="text_label_all_attributes">Alle Attribute</string>
     <string name="text_label_mandatory_attributes">Notwendige Attribute</string>

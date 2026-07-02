@@ -53,7 +53,6 @@ import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.iso.verifier.VerifierViewModel
 import ui.views.iso.verifier.requests.AVRequests
-import ui.views.iso.verifier.requests.HIIDRequest
 import ui.views.iso.verifier.requests.MDLRequests
 import ui.views.iso.verifier.requests.PIDRequests
 
@@ -74,7 +73,6 @@ fun VerifierCombinedSelectionView(
     var isMdlSelectable by remember { mutableStateOf(true) }
     var isPidSelectable by remember { mutableStateOf(true) }
     var isAvSelectable by remember { mutableStateOf(true) }
-    var isHiidSelectable by remember { mutableStateOf(true) }
 
     val handleRequest: (SelectableRequest) -> Unit = { request ->
         selectedRequests.add(request)
@@ -84,11 +82,10 @@ fun VerifierCombinedSelectionView(
             SelectableRequestType.MDL_AGE_VERIFICATION -> isMdlSelectable = false
             SelectableRequestType.PID_MANDATORY,
             SelectableRequestType.PID_FULL -> isPidSelectable = false
-            SelectableRequestType.HIID -> isHiidSelectable = false
             SelectableRequestType.AGE_VERIFICATION -> isAvSelectable = false
         }
         showRequestTypes = false
-        if (isMdlSelectable || isPidSelectable || isHiidSelectable || isAvSelectable) {
+        if (isMdlSelectable || isPidSelectable || isAvSelectable) {
             showAddButton = true
         }
     }
@@ -197,13 +194,6 @@ fun VerifierCombinedSelectionView(
                                     }
                                     if (isAvSelectable) {
                                         AVRequests(
-                                            layoutSpacingModifier,
-                                            listSpacingModifier,
-                                            handleRequest
-                                        )
-                                    }
-                                    if (isHiidSelectable) {
-                                        HIIDRequest(
                                             layoutSpacingModifier,
                                             listSpacingModifier,
                                             handleRequest

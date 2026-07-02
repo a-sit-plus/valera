@@ -35,7 +35,6 @@ import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
 import ui.viewmodels.iso.verifier.VerifierViewModel
 import ui.views.iso.verifier.requests.AVRequests
-import ui.views.iso.verifier.requests.HIIDRequest
 import ui.views.iso.verifier.requests.MDLRequests
 import ui.views.iso.verifier.requests.PIDRequests
 import ui.views.iso.verifier.requests.RequestItem
@@ -84,7 +83,6 @@ fun VerifierDocumentSelectionView(
                     MDLRequests(Modifier, listSpacingModifier, handleRequest)
                     PIDRequests(layoutSpacingModifier, listSpacingModifier, handleRequest)
                     AVRequests(layoutSpacingModifier, listSpacingModifier, handleRequest)
-                    HIIDRequest(layoutSpacingModifier, listSpacingModifier, handleRequest)
                 }
                 Column(modifier = layoutSpacingModifier) {
                     Text(
