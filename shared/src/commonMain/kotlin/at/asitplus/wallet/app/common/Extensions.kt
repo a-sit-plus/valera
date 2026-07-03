@@ -312,12 +312,19 @@ fun Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimRef
                     catchingUnwrapped {
                         scheme.getLocalization(path)
                             ?: representation.getMetadataLocalization(path)?.let { stringResource(it) }
-                            ?: path.toString()
-                    }.getOrElse { path.toString() }
+                            ?: path.displayPath()
+                    }.getOrElse { path.displayPath() }
                 }
             )
         },
     )
+}
+
+// Last-resort label when no metadata localization exists: render the claim path itself,
+// not the value-class wrapper (path.toString() would print "JsonClaimReference(normalizedJsonPath=$['family_name'])").
+fun SingleClaimReference.displayPath(): String = when (this) {
+    is JsonClaimReference -> normalizedJsonPath.toString()
+    is MdocClaimReference -> NormalizedJsonPath(NameSegment(namespace), NameSegment(claimName)).toString()
 }
 
 fun ConstantIndex.CredentialRepresentation.getMetadataLocalization(
