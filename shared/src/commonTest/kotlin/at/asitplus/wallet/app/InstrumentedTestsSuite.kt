@@ -45,6 +45,7 @@ import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.WalletSessionBindings
 import at.asitplus.wallet.app.common.di.appModule
+import at.asitplus.wallet.eupidsdjwt.EU_PID_SD_JWT_VCT
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements
 import at.asitplus.wallet.lib.RequestOptionsCredential
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
@@ -56,8 +57,10 @@ import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
 import at.asitplus.wallet.lib.data.AttributeIndex
+import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.SD_JWT
 import at.asitplus.wallet.lib.data.SdJwtCredentialScheme
+import at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme
 import at.asitplus.wallet.lib.data.rfc3986.toUri
 import at.asitplus.wallet.lib.openid.ClientIdScheme
 import at.asitplus.wallet.lib.openid.CredentialPresentationRequestBuilder
@@ -329,9 +332,9 @@ private fun createWalletDependencyProvider(platformAdapter: PlatformAdapter): Wa
     )
 }
 // Scheme is resolved from remote type metadata registered at boot, not the removed library scheme object.
-private fun pidSdJwtScheme() =
-    AttributeIndex.resolveSdJwtAttributeType("urn:eudi:pid:1") as? SdJwtCredentialScheme
-        ?: error("SD-JWT scheme not resolved: urn:eudi:pid:1")
+private suspend fun pidSdJwtScheme() =
+    AttributeIndex.resolveIdentifier(EU_PID_SD_JWT_VCT, SD_JWT) as? SdJwtCredentialScheme
+        ?: SdJwtFallbackCredentialScheme(EU_PID_SD_JWT_VCT)
 
 class TestLifecycleOwner : LifecycleOwner {
     private val _lifecycle = LifecycleRegistry(this)
