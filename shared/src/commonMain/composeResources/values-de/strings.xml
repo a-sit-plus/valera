@@ -461,4 +461,10 @@
     <string name="text_label_attestation_storage_type">Schlüsselspeicher</string>
     <string name="text_label_attestation_user_authentication">Authentifizierung</string>
 
+    <!-- Trust Evaluation -->
+    <string name="trust_status_trusted">Vertrauenswürdiger Aussteller</string>
+    <string name="trust_status_untrusted">Nicht vertrauenswürdiger Aussteller</string>
+    <string name="trust_status_unknown">Vertrauensstatus unbekannt</string>
+    <string name="trust_status_evaluating">Vertrauensstatus wird geprüft…</string>
+
 </resources>

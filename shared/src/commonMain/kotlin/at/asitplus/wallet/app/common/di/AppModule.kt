@@ -59,7 +59,8 @@ fun appModule(): Module = module {
         scoped {
             TrustListService(
                 persistentTrustListStore = get(),
-                httpService = get()
+                httpService = get(),
+                sessionCoroutineScope = get()
             )
         }
 

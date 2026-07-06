@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import ui.composables.TrustState
+import ui.models.ResolvedCredential
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
@@ -51,13 +52,13 @@ val asitRootPem = "-----BEGIN CERTIFICATE-----\n" +
 class TrustListService(
     private val persistentTrustListStore: PersistentTrustListStore,
     httpService: HttpService,
+    private val sessionCoroutineScope: CoroutineScope,
     private val verifyJwsObject: VerifyJwsObjectFun = VerifyJwsObjectJades(),
 ) {
     private var job: Job? = null
-    val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val client = httpService.buildHttpClient()
     // A-SIT trust list
-    val aistIssuerCert = X509Certificate.decodeFromPem(asitRootPem).getOrThrow()
+    private val aistIssuerCert = X509Certificate.decodeFromPem(asitRootPem).getOrThrow()
     private val loTeFilterService: LoTEFilterService = LoTEFilterService()
 
 
@@ -66,25 +67,31 @@ class TrustListService(
         "https://acceptance.trust.tech.ec.europa.eu/lists/eudiw/wallet-providers.json",
         "https://acceptance.trust.tech.ec.europa.eu/lists/eudiw/wrpac-providers.json",
         "https://acceptance.trust.tech.ec.europa.eu/lists/eudiw/mdl-providers.json",
-        "https://trust.tech.ec.europa.eu/lists/eudiw/pub-eaa-providers.json"
+        "https://acceptance.trust.tech.ec.europa.eu/lists/eudiw/pub-eaa-providers.json"
     )
 
     fun observeTrustStateForEntry(
-        storeEntryFlow: Flow<SubjectCredentialStore.StoreEntry?>
-    ): Flow<TrustState> {
-        return combine(
+        storeEntryFlow: Flow<ResolvedCredential?>
+    ): Flow<TrustState> =
+        combine(
             storeEntryFlow,
             persistentTrustListStore.observeTrustContainer()
-        ) { entry, trustContainerMap ->
-            if (entry == null) return@combine TrustState.EVALUATING
+        ) { credential, trustContainerMap ->
+            val entry = credential?.entry ?: return@combine TrustState.EVALUATING
 
             val issuerBytes = entry.issuer ?: return@combine TrustState.UNKNOWN
             val allLoTes = trustContainerMap.values.toList()
-            val serviceType = entry.schemaUri
+            val scheme = entry.resolveScheme()
+
+            val serviceType = scheme.vcType
+                ?: scheme.sdJwtType
+                ?: scheme.isoDocType
+
+            if (serviceType.isNullOrBlank()) return@combine TrustState.UNKNOWN
 
             evaluateIssuer(issuerBytes, allLoTes, serviceType)
         }
-    }
+
 
     /**
      * Evaluates if a given issuer is trusted based on the internal root cert and LoTEs.
@@ -93,8 +100,7 @@ class TrustListService(
         issuer: X509Certificate,
         trustLists: List<ListOfTrustedEntities>,
         serviceType: String
-    ): TrustState {
-        return try {
+    ): TrustState = try {
             if (issuer.isTrustedBy(listOf(aistIssuerCert)).isSuccess) {
                 return TrustState.TRUSTED
             }
@@ -111,10 +117,11 @@ class TrustListService(
             val validationResult = issuer.isTrustedBy(certificateList)
 
             if (validationResult.isSuccess) TrustState.TRUSTED else TrustState.UNTRUSTED
-        } catch (_: Exception) {
-            TrustState.UNTRUSTED
+        } catch (e: Exception) {
+            Napier.e("Failed to evaluate issuer trust status due to unexpected error", e)
+            TrustState.UNKNOWN
         }
-    }
+
 
     /**
      * Starts the periodic background loop.
@@ -123,7 +130,7 @@ class TrustListService(
     fun startChecking(interval: Duration = 1.hours) {
         job?.cancel()
 
-        job = scope.launch {
+        job = sessionCoroutineScope.launch {
             delay(5.seconds)
             while (isActive) {
                 refreshAll()
@@ -132,7 +139,7 @@ class TrustListService(
         }
     }
 
-    fun refreshAll(): Job = scope.launch {
+    fun refreshAll(): Job = sessionCoroutineScope.launch {
         defaultUrls.forEach { url ->
             syncSingleUrl(url)
         }
@@ -158,15 +165,10 @@ class TrustListService(
         val response = client.get(url) {
             accept(ContentType.Application.Json)
         }
-
         val responseBody = response.bodyAsText()
-
         val jws = JwsCompact.parse<TrustListPayload>(responseBody).getOrThrow()
-
         verifyJwsObject(jws.first).getOrThrow()
-
         Napier.i("Successfully validated Trust List signature from $url")
-
         TrustListResult(
             rawJwsText = responseBody,
             loTe = jws.second.loTe

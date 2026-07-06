@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -40,8 +41,7 @@ import ui.models.CredentialFreshnessValidationStateUiModel
 import ui.models.ResolvedCredential
 import ui.models.toFallbackResolvedCredential
 import ui.models.toResolvedCredential
-import ui.views.TrustState
-import ui.views.TrustStatusBanner
+
 
 
 @Composable
@@ -64,7 +64,7 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
     val displayCredential = resolvedCredential ?: return
 
     val trustState by trustListService
-        .observeTrustStateForEntry(flowOf(credential))
+        .observeTrustStateForEntry(flowOf(resolvedCredential))
         .collectAsState(initial = TrustState.EVALUATING)
 
     val genericAttributeList: List<Pair<NormalizedJsonPath, Any>> =

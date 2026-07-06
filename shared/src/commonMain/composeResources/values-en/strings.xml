@@ -454,4 +454,10 @@
     <string name="text_label_attestation_storage_type">Key storage</string>
     <string name="text_label_attestation_user_authentication">User authentication</string>
 
+    <!-- Trust Evaluation -->
+    <string name="trust_status_trusted">Trusted Issuer</string>
+    <string name="trust_status_untrusted">Untrusted Issuer</string>
+    <string name="trust_status_unknown">Trust Status Unknown</string>
+    <string name="trust_status_evaluating">Evaluating Trust…</string>
+
 </resources>

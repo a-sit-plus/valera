@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,25 +20,32 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.trust_status_evaluating
+import at.asitplus.valera.resources.trust_status_trusted
+import at.asitplus.valera.resources.trust_status_unknown
+import at.asitplus.valera.resources.trust_status_untrusted
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun TrustStatusBanner(trustState: TrustState, modifier: Modifier = Modifier) {
     val (backgroundColor, contentColor, icon, text) = when (trustState) {
         TrustState.TRUSTED -> listOf(
-            Color(0xFFE8F5E9), Color(0xFF2E7D32),
-            Icons.Filled.CheckCircle, "Trusted Issuer"
+            colorScheme.primaryContainer, colorScheme.onPrimaryContainer,
+            Icons.Filled.CheckCircle, Res.string.trust_status_trusted
         )
         TrustState.UNTRUSTED -> listOf(
-            Color(0xFFFFEBEE), Color(0xFFC62828),
-            Icons.Filled.Warning, "Untrusted Issuer"
+            colorScheme.errorContainer, colorScheme.onErrorContainer,
+            Icons.Filled.Warning, Res.string.trust_status_untrusted
         )
         TrustState.UNKNOWN -> listOf(
-            Color(0xFFFFF8E1), Color(0xFFF57F17),
-            Icons.Filled.Warning, "Trust Status Unknown"
+            colorScheme.tertiaryContainer, colorScheme.onTertiaryContainer,
+            Icons.Filled.Warning, Res.string.trust_status_unknown
         )
         TrustState.EVALUATING -> listOf(
-            MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant,
-            Icons.Filled.Warning, "Evaluating Trust..."
+            colorScheme.surfaceVariant, colorScheme.onSurfaceVariant,
+            Icons.Filled.Warning, Res.string.trust_status_evaluating
         )
     }
 
@@ -56,7 +64,7 @@ fun TrustStatusBanner(trustState: TrustState, modifier: Modifier = Modifier) {
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = text as String,
+            text = stringResource(text as StringResource),
             color = contentColor,
             style = MaterialTheme.typography.bodyMedium
         )

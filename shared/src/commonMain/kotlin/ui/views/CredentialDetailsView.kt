@@ -11,10 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -34,7 +30,6 @@ import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.icon
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPid
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.CredentialCardActionMenu
 import ui.composables.LabeledText
@@ -43,13 +38,12 @@ import ui.composables.PersonAttributeDetailCardHeading
 import ui.composables.PersonAttributeDetailCardHeadingIcon
 import ui.composables.ScreenHeading
 import ui.composables.TrustState
+import ui.composables.TrustStatusBanner
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.EuPidCredentialView
 import ui.composables.credentials.GenericCredentialSummaryCardContent
 import ui.composables.credentials.GenericMetadataCredentialView
 import ui.composables.credentials.MobileDrivingLicenceCredentialView
-import ui.composables.TrustStatusBanner
-import ui.composables.credentials.*
 import ui.models.CredentialFreshnessSummaryUiModel
 import ui.models.ResolvedCredential
 import ui.viewmodels.CredentialDetailsViewModel
@@ -154,6 +148,12 @@ fun CredentialDetailsSummaryView(
     imageDecoder: (ByteArray) -> Result<ImageBitmap>,
 ) {
     Column(modifier = Modifier.padding(horizontal = 8.dp)) {
+
+        TrustStatusBanner(
+            trustState = trustState,
+            modifier = Modifier.padding(vertical = 12.dp)
+        )
+
         PersonAttributeDetailCardHeading(
             icon = { PersonAttributeDetailCardHeadingIcon(credential.scheme.iconLabel()) },
             title = {
