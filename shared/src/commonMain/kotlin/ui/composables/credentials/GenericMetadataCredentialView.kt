@@ -11,6 +11,8 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.wallet.app.common.memberName
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import data.Attribute
+import data.credentials.HIDDEN_TOP_LEVEL_CLAIMS
+import data.credentials.genericLabel
 import data.credentials.metadataLabel
 import data.credentials.toGenericAttributeList
 import ui.composables.AttributeRepresentation
@@ -59,9 +61,3 @@ fun GenericMetadataCredentialView(
         }
     }
 }
-
-private fun NormalizedJsonPath.genericLabel(): String =
-    (0 until segments.size).mapNotNull { memberName(it) }.joinToString(".").ifEmpty { toString() }
-
-/** Registered JWT claims rendered in their own dedicated cards rather than the attribute list. */
-private val HIDDEN_TOP_LEVEL_CLAIMS = setOf("status", "cnf", "vct", "iat", "iss", "nbf", "exp", "sub")

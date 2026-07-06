@@ -124,6 +124,7 @@ kotlin {
             implementation(libs.koin.test)
             implementation(libs.testballoon)
             implementation(libs.testballoon.framework.core)
+            implementation(ktor("client-mock"))
         }
 
         androidMain.dependencies {

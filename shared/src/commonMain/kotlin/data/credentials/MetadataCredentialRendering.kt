@@ -20,6 +20,13 @@ fun OpenId4VciClaimsPathPointer.toNormalizedJsonPathOrNull(): NormalizedJsonPath
 fun CredentialScheme.metadataLabel(path: NormalizedJsonPath, locale: String = "en"): String? =
     metadataLabelCandidatePaths(path).firstNotNullOfOrNull { metadataLabelExact(it, locale) }
 
+/** Last-resort claim label when no metadata localization exists: the dot-joined claim path itself. */
+fun NormalizedJsonPath.genericLabel(): String =
+    (0 until segments.size).mapNotNull { memberName(it) }.joinToString(".").ifEmpty { toString() }
+
+/** Registered JWT claims rendered in dedicated cards (or not at all) rather than in attribute lists. */
+val HIDDEN_TOP_LEVEL_CLAIMS = setOf("status", "cnf", "vct", "iat", "iss", "nbf", "exp", "sub")
+
 private fun CredentialScheme.metadataLabelExact(path: NormalizedJsonPath, locale: String): String? {
     val key = path.toString()
     val claim = claimDescriptions.firstOrNull {

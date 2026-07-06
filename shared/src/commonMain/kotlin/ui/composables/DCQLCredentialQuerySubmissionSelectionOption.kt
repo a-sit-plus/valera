@@ -21,14 +21,15 @@ import at.asitplus.openid.dcql.DCQLClaimsQueryResult
 import at.asitplus.openid.dcql.DCQLCredentialQueryMatchingResult
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.app.common.thirdParty.kotlinx.serialization.json.leafNodeList
 import at.asitplus.wallet.lib.agent.SdJwtDecoded
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialToJsonConverter.toJsonElement
 import at.asitplus.wallet.lib.jws.SdJwtSigned
+import data.credentials.labeledPresentationAttributes
 import data.credentials.toCredentialAdapter
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToJsonElement
 import org.koin.compose.koinInject
@@ -66,6 +67,12 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
                 it.normalizedJsonPath to it.value
             }
 
+            // only claims that are not selectively disclosable will be presented
+            DCQLCredentialQueryMatchingResult.AllMandatoryClaimsMatchingResult ->
+                credential.mandatoryClaims().leafNodeList().map {
+                    it.normalizedJsonPath to it.value
+                }
+
             is DCQLCredentialQueryMatchingResult.ClaimsQueryResults -> matchingResult.claimsQueryResults.flatMap {
                 when (it) {
                     is DCQLClaimsQueryResult.IsoMdocResult -> listOf(
@@ -81,19 +88,7 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
 
     val credentialAdapter = credential.toCredentialAdapter(displayCredential.scheme) { decodeToBitmap(it) }
 
-    val labeledAttributes = genericAttributeList.mapNotNull { (key, value) ->
-        try {
-            credentialAdapter.getAttribute(key)
-        } catch (_: Throwable) {
-            null
-        }?.let { attribute ->
-            key.segments.lastOrNull()?.let {
-                displayCredential.scheme.getLocalization(key) ?: displayCredential.scheme.getLocalization(NormalizedJsonPath(it))
-            }?.let { it to attribute }
-        }
-    }.sortedBy {
-        it.first
-    }
+    val labeledAttributes = credentialAdapter.labeledPresentationAttributes(genericAttributeList)
 
     CredentialSelectionCardLayout(
         isError = matchingResult.isFailure || when (val it = credentialFreshnessValidationState) {
@@ -144,6 +139,24 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
         }
     }
 }
+
+/** Claims that are presented even without being requested, because they are not selectively disclosable. */
+private fun SubjectCredentialStore.StoreEntry.mandatoryClaims() = when (this) {
+    // every mdoc data element is selectively disclosable
+    is SubjectCredentialStore.StoreEntry.Iso -> buildJsonObject { }
+
+    is SubjectCredentialStore.StoreEntry.SdJwt -> SdJwtSigned.parseCatching(vcSerialized).getOrNull()
+        ?.jws?.getPayload<JsonObject>()?.getOrNull()?.withoutSdMachinery()
+        ?: buildJsonObject { }
+
+    is SubjectCredentialStore.StoreEntry.Vc -> allClaims()
+}
+
+private fun JsonObject.withoutSdMachinery(): JsonObject = JsonObject(
+    filterKeys { it != "_sd" && it != "_sd_alg" }.mapValues { (_, value) ->
+        (value as? JsonObject)?.withoutSdMachinery() ?: value
+    }
+)
 
 private fun SubjectCredentialStore.StoreEntry.allClaims() = when (this) {
     is SubjectCredentialStore.StoreEntry.Iso -> buildJsonObject {
