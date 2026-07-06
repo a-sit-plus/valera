@@ -5,10 +5,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
+import at.asitplus.catchingUnwrapped
 import at.asitplus.data.NonEmptyList.Companion.toNonEmptyList
 import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.openid.dcql.DCQLQuery
+import at.asitplus.wallet.app.common.DcqlConsentData
 import at.asitplus.wallet.app.common.extractConsentData
 import at.asitplus.wallet.app.common.toCredentialQueryUiModel
 
@@ -82,15 +86,16 @@ fun DCQLPresentationBuilderGraphViewContent(
         } ?: listOf()
     }.flatten()
 
-    val credentialQueryUiModels = dcqlQuery.credentials.associate {
-        it.id to try { // TODO: improve on this by storing it somewhere?
-            it.extractConsentData()
-        } catch (e: Throwable) {
-            return LaunchedEffect(Unit) {
-                onError(e)
-            }
-        }.toCredentialQueryUiModel()
+    // Resolved in a coroutine: scheme resolution may fetch type metadata when the in-memory
+    // scheme index is still cold (fresh process); the progress indicator above bridges the gap.
+    val consentData by produceState<Map<DCQLCredentialQueryIdentifier, DcqlConsentData>?>(null, dcqlQuery) {
+        value = catchingUnwrapped {
+            dcqlQuery.credentials.associate { it.id to it.extractConsentData() }
+        }.onFailure(onError).getOrNull()
     }
+    val credentialQueryUiModels = consentData?.mapValues {
+        it.value.toCredentialQueryUiModel()
+    } ?: return
 
     requestedCredentialQueries.firstOrNull {
         confirmedSubmissionIndices[it]?.isEmpty() ?: true

@@ -54,7 +54,10 @@ import org.jetbrains.compose.resources.stringResource
 import ui.presentation.DCQLCredentialQueryUiModel
 import ui.presentation.DCQLCredentialQueryUiModelAttributeLabels
 
-fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, CredentialScheme, Map<NormalizedJsonPath, Boolean>> {
+typealias PresentationExchangeConsentData = Triple<CredentialRepresentation, CredentialScheme, Map<NormalizedJsonPath, Boolean>>
+typealias DcqlConsentData = Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimReference?>?>
+
+suspend fun InputDescriptor.extractConsentData(): PresentationExchangeConsentData {
     @Suppress("DEPRECATION")
     val credentialRepresentation = when {
         this.format == null -> throw IllegalStateException("Format of input descriptor must be set")
@@ -71,14 +74,7 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Crede
         "Presentation definition input descriptor '$id' does not declare any credential identifier"
     }
 
-    // TODO: How to properly handle the case with multiple applicable schemes?
-    val scheme = AttributeIndex.schemeSet.firstOrNull {
-        it.matchAgainstIdentifier(credentialRepresentation, credentialIdentifiers)
-    } ?: when (credentialRepresentation) {
-        PLAIN_JWT -> VcFallbackCredentialScheme(vcType = credentialIdentifiers.first())
-        SD_JWT -> SdJwtFallbackCredentialScheme(sdJwtType = credentialIdentifiers.first())
-        ISO_MDOC -> IsoMdocFallbackCredentialScheme(isoDocType = credentialIdentifiers.first())
-    }
+    val scheme = resolveConsentScheme(credentialRepresentation, credentialIdentifiers)
 
     val matchedCredentialIdentifier = when (credentialRepresentation) {
         PLAIN_JWT -> throw Throwable("PLAIN_JWT not implemented")
@@ -108,14 +104,24 @@ fun InputDescriptor.extractConsentData(): Triple<CredentialRepresentation, Crede
     return Triple(credentialRepresentation, scheme, attributes)
 }
 
-private fun CredentialScheme.matchAgainstIdentifier(
+/**
+ * Resolves the first identifier yielding a scheme with known type metadata, triggering (cached)
+ * remote type-metadata retrieval where needed. Unlike a lookup in [AttributeIndex.schemeSet],
+ * this also works in a freshly started process whose in-memory scheme index is still cold
+ * (e.g. the iOS identity provider extension answering a DC API request).
+ */
+private suspend fun resolveConsentScheme(
     representation: CredentialRepresentation,
-    identifiers: Collection<String>
-) = when (representation) {
-    PLAIN_JWT -> throw Throwable("PLAIN_JWT not implemented")
-    SD_JWT -> sdJwtType in identifiers
-    ISO_MDOC -> isoDocType in identifiers
+    identifiers: Collection<String>,
+): CredentialScheme {
+    require(identifiers.isNotEmpty()) { "No credential identifier to resolve a scheme from" }
+    val schemes = identifiers.map { AttributeIndex.resolveIdentifier(it, representation) }
+    return schemes.firstOrNull { !it.isFallback() } ?: schemes.first()
 }
+
+private fun CredentialScheme.isFallback() = this is VcFallbackCredentialScheme
+        || this is SdJwtFallbackCredentialScheme
+        || this is IsoMdocFallbackCredentialScheme
 
 private fun InputDescriptor.vctConstraint() =
     constraints?.fields?.firstOrNull { it.path.toString().contains("vct") }
@@ -127,7 +133,7 @@ private fun ConstraintFilter.referenceValues() =
  * assumes json claim path pointers don't contain `null`, otherwise only the prefix is shown
  */
 @Throws(Throwable::class)
-fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimReference?>?> {
+suspend fun DCQLCredentialQuery.extractConsentData(): DcqlConsentData {
     val representation = when (format) {
         CredentialFormatEnum.DC_SD_JWT -> SD_JWT
         CredentialFormatEnum.MSO_MDOC -> ISO_MDOC
@@ -135,24 +141,15 @@ fun DCQLCredentialQuery.extractConsentData(): Triple<CredentialRepresentation, C
     }
 
     val scheme = when (this) {
-        is DCQLIsoMdocCredentialQuery -> meta.doctypeValue
-            .let { AttributeIndex.resolveIsoDoctype(it) }
+        is DCQLIsoMdocCredentialQuery -> resolveConsentScheme(ISO_MDOC, listOf(meta.doctypeValue))
 
-        is DCQLSdJwtCredentialQuery -> meta.vctValues
-            .firstNotNullOfOrNull { AttributeIndex.resolveSdJwtAttributeType(it) }
+        is DCQLSdJwtCredentialQuery -> resolveConsentScheme(SD_JWT, meta.vctValues)
 
-        is DCQLJwtVcCredentialQuery -> meta.typeValues.list.flatten()
-            .filterNot { it == VERIFIABLE_CREDENTIAL }
-            .firstNotNullOfOrNull { AttributeIndex.resolveAttributeType(it) }
-    } ?: when (this) {
-        is DCQLIsoMdocCredentialQuery -> IsoMdocFallbackCredentialScheme(isoDocType = meta.doctypeValue)
-        is DCQLSdJwtCredentialQuery -> meta.vctValues
-            .firstNotNullOfOrNull { SdJwtFallbackCredentialScheme(sdJwtType = it) }
-
-        is DCQLJwtVcCredentialQuery -> meta.typeValues.list.flatten()
-            .filterNot { it == VERIFIABLE_CREDENTIAL }
-            .firstNotNullOfOrNull { VcFallbackCredentialScheme(vcType = it) }
-    } ?: throw Throwable("No matching scheme for $meta")
+        is DCQLJwtVcCredentialQuery -> resolveConsentScheme(
+            PLAIN_JWT,
+            meta.typeValues.list.flatten().filterNot { it == VERIFIABLE_CREDENTIAL },
+        )
+    }
 
     // assuming all claims path pointers are single claim references
     val singleReferenceClaimsQueries = this.claims?.associateWith {

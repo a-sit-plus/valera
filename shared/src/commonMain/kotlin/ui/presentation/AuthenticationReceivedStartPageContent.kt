@@ -13,7 +13,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
@@ -27,6 +28,8 @@ import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
 import at.asitplus.valera.resources.heading_label_show_data_third_party
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
+import at.asitplus.catchingUnwrapped
+import at.asitplus.wallet.app.common.DcqlConsentData
 import at.asitplus.wallet.app.common.extractConsentData
 import at.asitplus.wallet.app.common.toCredentialQueryUiModel
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
@@ -101,15 +104,15 @@ fun AuthenticationReceivedStartPageContent(
                         is CredentialPresentationRequest.DCQLRequest -> Column(
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            presentationRequest.dcqlQuery.credentials.associate {
-                                it.id to try { // TODO: improve on this by storing it somewhere?
-                                    it.extractConsentData()
-                                } catch (e: Throwable) {
-                                    return@Box LaunchedEffect(Unit) {
-                                        onError(e)
-                                    }
-                                }.toCredentialQueryUiModel()
-                            }.forEach { (_, credentialQueryUiModel) ->
+                            // Resolved in a coroutine: scheme resolution may fetch type metadata
+                            // when the in-memory scheme index is still cold (fresh process).
+                            val consentData by produceState<List<DcqlConsentData>?>(null, presentationRequest) {
+                                value = catchingUnwrapped {
+                                    presentationRequest.dcqlQuery.credentials.map { it.extractConsentData() }
+                                }.onFailure(onError).getOrNull()
+                            }
+                            consentData?.forEach { data ->
+                                val credentialQueryUiModel = data.toCredentialQueryUiModel()
                                 CredentialSetQueryOptionSelectionCard(
                                     credentialRepresentationLocalized = credentialQueryUiModel.credentialRepresentationLocalized,
                                     credentialSchemeLocalized = credentialQueryUiModel.credentialSchemeLocalized,
