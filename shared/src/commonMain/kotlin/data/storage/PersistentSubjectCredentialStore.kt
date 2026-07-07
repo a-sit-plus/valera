@@ -4,6 +4,7 @@ import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
 import at.asitplus.iso.IssuerSigned
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
@@ -45,7 +46,8 @@ class PersistentSubjectCredentialStore(
         vc: VerifiableCredentialJws,
         vcSerialized: String,
         scheme: VcJwtCredentialScheme,
-        renewalInfo: CredentialRenewalInfo?
+        renewalInfo: CredentialRenewalInfo?,
+        issuer: X509Certificate?
     ) = SubjectCredentialStore.StoreEntry.Vc(
         vcSerialized,
         vc,
@@ -61,7 +63,8 @@ class PersistentSubjectCredentialStore(
         vcSerialized: String,
         disclosures: Map<String, SelectiveDisclosureItem?>,
         scheme: SdJwtCredentialScheme,
-        renewalInfo: CredentialRenewalInfo?
+        renewalInfo: CredentialRenewalInfo?,
+        issuer: X509Certificate?
     ) = SubjectCredentialStore.StoreEntry.SdJwt(
         vcSerialized,
         vc,
@@ -75,7 +78,8 @@ class PersistentSubjectCredentialStore(
     override suspend fun storeCredential(
         issuerSigned: IssuerSigned,
         scheme: IsoMdocCredentialScheme,
-        renewalInfo: CredentialRenewalInfo?
+        renewalInfo: CredentialRenewalInfo?,
+        issuer: X509Certificate?
     ) = SubjectCredentialStore.StoreEntry.Iso(
         issuerSigned,
         renewalInfo = renewalInfo,
