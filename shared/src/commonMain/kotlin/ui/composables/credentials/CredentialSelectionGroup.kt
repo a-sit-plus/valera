@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeListEntry
+import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import org.koin.compose.koinInject
@@ -21,6 +22,7 @@ fun CredentialSelectionGroup(
     credentialSelection: MutableState<SubjectCredentialStore.StoreEntry>,
     imageDecoder: ImageDecoder = koinInject(),
     checkCredentialFreshness: CredentialFreshnessSummaryModelEvaluator = koinInject(),
+    trustListService: TrustListService
 ) {
     matchingCredentials.forEach { credential ->
         CredentialSelectionCard(
@@ -33,6 +35,7 @@ fun CredentialSelectionGroup(
             checkCredentialFreshness = {
                 checkCredentialFreshness(credential.key)
             },
+            trustListService = trustListService
         )
         Spacer(modifier = Modifier.height(16.dp))
     }

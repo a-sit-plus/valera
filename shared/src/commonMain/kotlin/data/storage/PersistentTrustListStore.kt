@@ -10,10 +10,8 @@ import kotlinx.coroutines.flow.map
 class PersistentTrustListStore(
     private val dataStoreService: DataStoreService,
 ) {
-    private val prefix = "lote_cache_"
-
     suspend fun persistTrustList(url: String, rawJwsText: String) =
-        dataStoreService.setPreference(rawJwsText, "$prefix$url")
+        dataStoreService.setPreference(rawJwsText, url)
 
 
     fun observeTrustContainer(urls: List<String>): Flow<Map<String, ListOfTrustedEntities>> {

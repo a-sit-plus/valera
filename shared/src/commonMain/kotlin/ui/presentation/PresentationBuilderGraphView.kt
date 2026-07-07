@@ -150,6 +150,7 @@ fun PresentationBuilderGraphView(
                         onError = onError,
                         onNavigateUp = onNavigateToPresentationStart,
                         onSubmit = onSubmit,
+                        trustListService = trustListService
                     )
                 }
             }

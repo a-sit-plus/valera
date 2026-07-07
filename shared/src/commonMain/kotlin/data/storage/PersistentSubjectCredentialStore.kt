@@ -111,6 +111,7 @@ class PersistentSubjectCredentialStore(
                         issuerSigned = storeEntry.issuerSigned,
                         renewalInfo = storeEntry.renewalInfo,
                         schemeIdentifier = storeEntry.schemeIdentifier,
+                        issuer = storeEntry.issuer
                     )
                 }
 
@@ -121,6 +122,7 @@ class PersistentSubjectCredentialStore(
                         disclosures = storeEntry.disclosures,
                         renewalInfo = storeEntry.renewalInfo,
                         schemeIdentifier = storeEntry.schemeIdentifier,
+                        issuer = storeEntry.issuer
                     )
                 }
 
@@ -130,6 +132,7 @@ class PersistentSubjectCredentialStore(
                         vc = storeEntry.vc,
                         renewalInfo = storeEntry.renewalInfo,
                         schemeIdentifier = storeEntry.schemeIdentifier,
+                        issuer = storeEntry.issuer
                     )
                 }
             }

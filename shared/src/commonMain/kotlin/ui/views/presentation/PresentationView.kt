@@ -27,6 +27,7 @@ import at.asitplus.valera.resources.presentation_missing_permission
 import at.asitplus.valera.resources.presentation_permission_required
 import at.asitplus.valera.resources.presentation_waiting_for_request
 import at.asitplus.wallet.app.common.SnackbarService
+import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
 import at.asitplus.wallet.lib.openid.DCQLMatchingResult
 import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
@@ -70,7 +71,8 @@ fun PresentationView(
     onPresentmentComplete: () -> Unit,
     coroutineScope: CoroutineScope,
     snackbarService: SnackbarService,
-    onError: (Throwable) -> Unit
+    onError: (Throwable) -> Unit,
+    trustListService: TrustListService
 ) {
     val presentationStateModel = presentationViewModel.presentationStateModel
     DisposableEffect(presentationViewModel) {
@@ -177,6 +179,7 @@ fun PresentationView(
                                 ),
                                 onError = onError,
                                 onClickLogo = presentationViewModel.onClickLogo,
+                                trustListService = trustListService
                             )
                         }
                     }
