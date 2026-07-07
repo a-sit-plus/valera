@@ -28,6 +28,7 @@ import platform.posix.close
 import platform.posix.fcntl
 import platform.posix.open
 import platform.posix.posix_errno
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val LOCK_FILE_PERMISSIONS = 0x180 // 0600
 private const val UPDATE_POLL_INTERVAL_MS = 250L
@@ -47,12 +48,13 @@ internal class DarwinInterProcessCoordinator(
     private val inMemoryMutex = Mutex()
     private val lockPath = "$dataPath.lock".toPath()
     private val versionPath = "$dataPath.version".toPath()
+    private val versionTempPath = "$dataPath.version.tmp".toPath()
 
     override val updateNotifications: Flow<Unit> = flow {
         emit(Unit)
         var lastStamp = dataFileStamp()
         while (currentCoroutineContext().isActive) {
-            delay(UPDATE_POLL_INTERVAL_MS)
+            delay(UPDATE_POLL_INTERVAL_MS.milliseconds)
             val currentStamp = dataFileStamp()
             if (currentStamp != lastStamp) {
                 lastStamp = currentStamp
@@ -83,7 +85,7 @@ internal class DarwinInterProcessCoordinator(
 
     override suspend fun incrementAndGetVersion(): Int {
         val next = when (val current = readVersion()) {
-            Int.MAX_VALUE -> 1
+            Int.MAX_VALUE -> throw IOException("DataStore version counter overflow for $versionPath")
             else -> current + 1
         }
         writeVersion(next)
@@ -100,7 +102,9 @@ internal class DarwinInterProcessCoordinator(
         }
         return try {
             fileSystem.read(versionPath) {
-                readUtf8().trim().toIntOrNull() ?: 0
+                val rawVersion = readUtf8().trim()
+                rawVersion.toIntOrNull()
+                    ?: throw IOException("Malformed DataStore version sidecar $versionPath: ${rawVersion.take(64)}")
             }
         } catch (e: IOException) {
             if (fileSystem.exists(versionPath)) throw e else 0
@@ -109,9 +113,10 @@ internal class DarwinInterProcessCoordinator(
 
     private fun writeVersion(version: Int) {
         ensureParentDirectory()
-        fileSystem.write(versionPath, mustCreate = false) {
+        fileSystem.write(versionTempPath, mustCreate = false) {
             writeUtf8(version.toString())
         }
+        fileSystem.atomicMove(versionTempPath, versionPath)
     }
 
     private suspend fun <T> withFileLock(wait: Boolean, block: suspend (Boolean) -> T): T {
