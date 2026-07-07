@@ -6,7 +6,6 @@ import at.asitplus.etsi.ListOfTrustedEntities
 import at.asitplus.etsi.TrustListPayload
 import at.asitplus.signum.indispensable.josef.JwsCompact
 import at.asitplus.signum.indispensable.pki.X509Certificate
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.etsi.LoTEFilterCriteria
 import at.asitplus.wallet.lib.etsi.LoTEFilterService
 import at.asitplus.wallet.lib.etsi.isTrustedBy
@@ -19,10 +18,8 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable.isActive
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -75,11 +72,11 @@ class TrustListService(
     ): Flow<TrustState> =
         combine(
             storeEntryFlow,
-            persistentTrustListStore.observeTrustContainer()
+            persistentTrustListStore.observeTrustContainer(defaultUrls)
         ) { credential, trustContainerMap ->
             val entry = credential?.entry ?: return@combine TrustState.EVALUATING
 
-            val issuerBytes = entry.issuer ?: return@combine TrustState.UNKNOWN
+            val issuer = entry.issuer ?: return@combine TrustState.UNKNOWN
             val allLoTes = trustContainerMap.values.toList()
             val scheme = entry.resolveScheme()
 
@@ -89,7 +86,7 @@ class TrustListService(
 
             if (serviceType.isNullOrBlank()) return@combine TrustState.UNKNOWN
 
-            evaluateIssuer(issuerBytes, allLoTes, serviceType)
+            evaluateIssuer(issuer, allLoTes, serviceType)
         }
 
 
