@@ -177,11 +177,10 @@ exportXCFramework(
     freeCompilerArgs += listOf("-Xoverride-konan-properties=minVersion.ios=18.5;minVersionSinceXcode15.ios=18.5")
 }
 
-if ("true" != disableAppleTargets) {
-    tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).configure {
-        device.set("iPhone 16")
-    }
-}
+// Device is intentionally left unset here: KotlinNativeSimulatorTest.device falls back to
+// Kotlin's own convention, which queries `xcrun simctl list devices available` and picks
+// whatever the runner actually has installed. Hardcoding a device name (e.g. "iPhone 16")
+// breaks as soon as a machine's Xcode/simulator runtimes no longer ship that exact device.
 
 tasks.register("findDependency") {
     group = "help"
@@ -206,8 +205,11 @@ tasks.register("findDependency") {
 //work no stand-alone needs manual booting and we manually shutdown
 val shutdownIosSimulator by tasks.registering {
     doLast {
+        // Shut down whichever device iosSimulatorArm64Test actually booted (see below),
+        // not a hardcoded name that may not exist on this machine/runner.
+        val device = tasks.named("iosSimulatorArm64Test", KotlinNativeSimulatorTest::class.java).get().device.get()
         providers.exec {
-            commandLine("xcrun", "simctl", "shutdown", "iPhone 16")
+            commandLine("xcrun", "simctl", "shutdown", device)
             isIgnoreExitValue = true
         }.result.get()
     }
