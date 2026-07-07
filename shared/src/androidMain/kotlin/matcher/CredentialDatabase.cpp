@@ -156,12 +156,13 @@ void Combination::addToCredmanPicker(const Request& request) const {
                 memcpy(icon, credential->bitmap.data(), credential->bitmap.size());
             }
             if (credmanRuntimeVersion >= 2) {
+                std::string subtitle = credential->subtitle + " (via " + request.protocol + ")";
                 ::AddEntryToSet(
                         entryId,
                         (char *) icon,
                         credential->bitmap.size(),
                         (char *) strdup(credential->title.c_str()),
-                        (char *) strdup(credential->subtitle.c_str()),
+                        (char *) strdup(subtitle.c_str()),
                         nullptr,
                         nullptr,
                         nullptr,
