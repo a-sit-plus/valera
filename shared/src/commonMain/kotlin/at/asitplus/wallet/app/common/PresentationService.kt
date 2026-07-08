@@ -73,7 +73,6 @@ class PresentationService(
         platformAdapter.prepareDCAPICredentialResponse(response)
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     suspend fun finalizeLocalPresentation(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
         finishFunction: (ByteArray) -> Unit,
