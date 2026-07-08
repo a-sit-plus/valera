@@ -476,4 +476,29 @@
     <string name="text_label_thumbprint">Fingerprint</string>
     <string name="text_label_trust_list_urls">Trust List URLs</string>
 
+    <!-- Access / Registration Certificate -->
+    <string name="label_registration_cert_request">Request</string>
+    <string name="label_registration_cert_valid">Valid</string>
+    <string name="label_registration_cert_invalid">Invalid</string>
+    <string name="label_registration_cert">Certificate</string>
+    <string name="label_registration_cert_credential_typ">Credential type</string>
+    <string name="label_registration_cert_attributes">Attributes</string>
+    <string name="label_registration_cert_identifier">Identifier</string>
+    <string name="label_registration_cert_details_trade_name">Trade name</string>
+    <string name="label_registration_cert_details_purpose">Purpose</string>
+    <string name="label_registration_cert_details_country">Country</string>
+    <string name="label_registration_cert_details_service_description">Service description</string>
+    <string name="label_registration_cert_more_details">More details</string>
+    <string name="label_registration_cert_info_uri">Info uri</string>
+    <string name="label_registration_cert_support_uri">Support uri</string>
+
+    <string name="info_text_registration_cert_missing">No registration certificate has been provided in the request.</string>
+    <string name="info_text_registration_cert_valid">The certificate of the service provider is valid</string>
+    <string name="info_text_registration_cert_invalid">The certificate of the service provider is invalid!</string>
+    <string name="info_text_registration_cert_typ_valid">The requested credential types are valid</string>
+    <string name="info_text_registration_cert_typ_invalid">The requested credential types are invalid</string>
+    <string name="info_text_registration_cert_identifier_invalid">The service provider uses a different identifier than registered!</string>
+    <string name="info_text_registration_cert_identifier_valid">The identifier of the service provider is correct</string>
+    <string name="info_text_registration_cert_requested_claim_invalid">The service provider requests more attributes than registered!</string>
+    <string name="info_text_registration_cert_requested_claim_valid">The requested attributes are correct</string>
 </resources>

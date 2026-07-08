@@ -39,6 +39,8 @@ import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_locat
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_name
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
 import at.asitplus.valera.resources.heading_label_show_data_third_party
+import at.asitplus.valera.resources.info_text_registration_cert_missing
+import at.asitplus.valera.resources.label_registration_cert_request
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
 import at.asitplus.valera.resources.section_heading_requested_data
@@ -50,6 +52,8 @@ import at.asitplus.valera.resources.trust_status_title
 import at.asitplus.wallet.app.common.DcqlConsentData
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.extractConsentData
+import at.asitplus.wallet.app.common.relyingParty.ui.WrprcRequestValidation
+import at.asitplus.wallet.app.common.relyingParty.validation.WrpValidationResult
 import at.asitplus.wallet.app.common.toCredentialQueryUiModel
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import kotlinx.coroutines.Dispatchers
@@ -78,7 +82,8 @@ fun AuthenticationReceivedStartPageContent(
     credentialQueryIdsSelectedForPresentation: Set<DCQLCredentialQueryIdentifier> = emptySet(),
     onError: (Throwable) -> Unit,
     trustListService: TrustListService,
-    request: RequestParametersFrom<*>? = null
+    request: RequestParametersFrom<*>? = null,
+    wrpValidationResult: WrpValidationResult? = null,
 ) {
     val relyingPartyTrustState by trustListService
         .observeTrustStateForRelyingParty(flowOf(request))
@@ -110,12 +115,12 @@ fun AuthenticationReceivedStartPageContent(
                         .padding(bottom = 8.dp),
                 ) {
                     if (serviceProviderLogo != null) {
-                        Box(Modifier.Companion.fillMaxWidth(), contentAlignment = Alignment.Companion.Center) {
+                        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                             Image(
                                 bitmap = serviceProviderLogo,
                                 contentDescription = null,
-                                contentScale = ContentScale.Companion.Fit,
-                                modifier = Modifier.Companion.height(64.dp),
+                                contentScale = ContentScale.Fit,
+                                modifier = Modifier.height(64.dp),
                             )
                         }
                     }
@@ -132,6 +137,18 @@ fun AuthenticationReceivedStartPageContent(
                             stringResource(Res.string.trust_status_title) to stringResource(relyingPartyTrustState.displayVerifierText)
                         ),
                     )
+
+                    wrpValidationResult?.let {
+                        DataDisplaySection(
+                            title = stringResource(Res.string.label_registration_cert_request),
+                        ) {
+                            WrprcRequestValidation(it)
+                        }
+                    } ?: run {
+                        Column(modifier = Modifier.padding(vertical = 20.dp)) {
+                            Text(stringResource(Res.string.info_text_registration_cert_missing), fontWeight = FontWeight.Bold)
+                        }
+                    }
 
                     DataDisplaySection(
                         title = stringResource(Res.string.section_heading_requested_data),

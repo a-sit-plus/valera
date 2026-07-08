@@ -4,11 +4,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.lib.agent.DCQLMatchingResult
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope
 
+@OptIn(ExperimentalComposeUiApi::class)
 @ExperimentalMaterial3Api
 @Composable
 fun DCAPIPresentationGraphView(
@@ -81,6 +83,7 @@ fun DCAPIPresentationGraphView(
         showStartRoute = showStartRoute,
         fixedCredentialSelection = dcApiRequest.credentialIds?.isNotEmpty() == true,
         trustListService = viewModel.trustListService,
-        request = dcApiRequest
+        request = dcApiRequest,
+        wrpValidationResult = viewModel.wrpValidationResult,
     )
 }

@@ -19,6 +19,7 @@ import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.lib.agent.DCQLMatchingResult
 import at.asitplus.wallet.lib.agent.IsoDeviceRetrievalMatchingResult
+import at.asitplus.wallet.app.common.relyingParty.validation.WrpValidationResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.compose.resources.stringResource
@@ -53,6 +54,7 @@ fun PresentationBuilderGraphView(
     trustListService: TrustListService,
     request: RequestParametersFrom<*>,
     fixedCredentialSelection: Boolean = false,
+    wrpValidationResult: WrpValidationResult? = null,
 ) {
     when (selectionProvider) {
         is UiStateError -> CommonPresentationPageScaffold(
@@ -160,7 +162,8 @@ fun PresentationBuilderGraphView(
                                 onSubmit(DCQLCredentialSubmissions(submissions))
                             },
                             trustListService = trustListService,
-                            request = request
+                            request = request,
+                            wrpValidationResult = wrpValidationResult,
                         )
                     }
                 }

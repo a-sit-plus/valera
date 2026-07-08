@@ -93,14 +93,12 @@ Recommended GitHub Actions secret names for iOS release signing:
 * `APPLE_API_ISSUER_ID`
 * `APPLE_ID`
 
-## Request Certificate Trust Anchors (demo)
+## WRPAC & WRPRC Trust Anchors (demo)
 
-For request certificate validation in demo mode, Android loads trust anchors from:
-
-`shared/src/androidMain/assets/trust/msca-root.pem`
+For certificate validation modify `WrpChainValidator.requestCertificateTrustAnchors`.
 
 Notes:
-- This file is a local trust store input and may contain one or more root certificates.
+- This list contains one or more root certificates.
 - Trust anchors are used for chain anchoring only and are not expected in transported `x5c` values.
 
 ## Deployments

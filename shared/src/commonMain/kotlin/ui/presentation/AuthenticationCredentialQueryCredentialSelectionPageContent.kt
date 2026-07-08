@@ -58,6 +58,7 @@ fun AuthenticationCredentialQueryCredentialSelectionPageContent(
                 credentialAttributesLocalized = credentialQueryUiModel.requestedAttributesLocalized?.let {
                     it.attributesLocalized to it.otherAttributes
                 },
+                credentialAllowedAttributes = credentialQueryUiModel.requestedAttributesLocalized?.allowedAttributes,
                 colors = if (selectableCredentialSubmissionCards.all { it.matchingException != null }) {
                     CardDefaults.elevatedCardColors(
                         containerColor = MaterialTheme.colorScheme.errorContainer,
