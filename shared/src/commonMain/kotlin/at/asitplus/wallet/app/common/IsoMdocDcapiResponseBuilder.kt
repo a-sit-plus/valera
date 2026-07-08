@@ -11,10 +11,11 @@ import at.asitplus.iso.serializeOrigin
 import at.asitplus.iso.sha256
 import at.asitplus.iso.wrapInCborTag
 import at.asitplus.openid.RequestParametersFrom
-import at.asitplus.signum.indispensable.cosef.CoseKeyParams
+import at.asitplus.signum.indispensable.CryptoPublicKey
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.signum.indispensable.io.Base64UrlStrict
+import at.asitplus.signum.supreme.asymmetric.HPKE
 import at.asitplus.wallet.lib.agent.CreatePresentationResult
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.PresentationException
@@ -27,11 +28,14 @@ import io.github.aakira.napier.Napier
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.encodeToByteArray
-import org.multipaz.crypto.EcCurve
-import org.multipaz.crypto.EcPublicKeyDoubleCoordinate
-import org.multipaz.crypto.Hpke
 
 internal object IsoMdocDcapiResponseBuilder {
+
+    private val hpke = HPKE(
+        HPKE.KEM.DHKEM_P256_HKDF_SHA256,
+        HPKE.KDF.HKDF_SHA256,
+        HPKE.AEAD.AES_128_GCM,
+    )
 
     fun sessionTranscriptFor(isoMdocWalletRequest: RequestParametersFrom.IsoMdocDcApi): SessionTranscript {
         val isoMdocRequest = isoMdocWalletRequest.parameters.isoMdocRequest
@@ -97,25 +101,21 @@ internal object IsoMdocDcapiResponseBuilder {
         val encryptionParameters = isoMdocRequest.encryptionInfo.encryptionParameters
 
         val publicKey = try {
-            val keyParams = encryptionParameters.recipientPublicKey.keyParams as CoseKeyParams.EcKeyParams<*>
-            EcPublicKeyDoubleCoordinate(EcCurve.P256, keyParams.x!!, keyParams.y as ByteArray)
+            encryptionParameters.recipientPublicKey.toCryptoPublicKey().getOrThrow() as CryptoPublicKey.EC
         } catch (e: Throwable) {
             Napier.e("Could not extract public key", e)
             throw IllegalArgumentException("Could not extract public key")
         }
         val encodedSessionTranscript = coseCompliantSerializer.encodeToByteArray(sessionTranscript)
-        val encrypter = Hpke.getEncrypter(
-            cipherSuite = Hpke.CipherSuite.DHKEM_P256_HKDF_SHA256_HKDF_SHA256_AES_128_GCM,
-            receiverPublicKey = publicKey,
-            info = encodedSessionTranscript
-        )
-        val ciphertext = encrypter.encrypt(
-            plaintext = deviceResponseSerialized,
+        val sealed = hpke.SealBase(
+            pkR = publicKey,
+            info = encodedSessionTranscript,
             aad = ByteArray(0),
+            pt = deviceResponseSerialized,
         )
         val encryptedResponseData = EncryptedResponseData(
-            enc = encrypter.encapsulatedKey.toByteArray(),
-            cipherText = ciphertext
+            enc = sealed.encapsulatedSecret,
+            cipherText = sealed.ciphertext
         )
         return EncryptedResponse(TYPE_DCAPI, encryptedResponseData)
     }

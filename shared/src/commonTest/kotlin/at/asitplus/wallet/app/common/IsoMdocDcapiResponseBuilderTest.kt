@@ -15,12 +15,12 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.openid.dcql.DCQLClaimsPathPointer
 import at.asitplus.openid.dcql.toIso180137AnnexCDeviceRequest
 import at.asitplus.signum.indispensable.CryptoPrivateKey
-import at.asitplus.signum.indispensable.ECCurve
+import at.asitplus.signum.indispensable.CryptoPublicKey
 import at.asitplus.signum.indispensable.SecretExposure
-import at.asitplus.signum.indispensable.cosef.CoseKeyParams
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import at.asitplus.signum.supreme.asymmetric.HPKE
 import at.asitplus.wallet.lib.RequestOptionsCredential
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
@@ -36,12 +36,6 @@ import at.asitplus.wallet.lib.iso.Iso180137AnnexCVerifier
 import at.asitplus.wallet.lib.openid.CredentialPresentationRequestBuilder
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.encodeToByteArray
-import org.multipaz.crypto.AsymmetricKey
-import org.multipaz.crypto.EcCurve
-import org.multipaz.crypto.EcPrivateKeyDoubleCoordinate
-import org.multipaz.crypto.EcPublicKey
-import org.multipaz.crypto.EcPublicKeyDoubleCoordinate
-import org.multipaz.crypto.Hpke
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -84,18 +78,19 @@ class IsoMdocDcapiResponseBuilderTest {
         )
         val plaintext = "device-response".encodeToByteArray()
 
-        val encrypter = Hpke.getEncrypter(
-            cipherSuite = Hpke.CipherSuite.DHKEM_P256_HKDF_SHA256_HKDF_SHA256_AES_128_GCM,
-            receiverPublicKey = fixture.walletRequest.parameters.isoMdocRequest.encryptionInfo.encryptionParameters.recipientMultipazPublicKey(),
-            info = encodedTranscript
+        val sealed = hpke.SealBase(
+            pkR = fixture.walletRequest.parameters.isoMdocRequest.encryptionInfo.encryptionParameters
+                .recipientPublicKey.toCryptoPublicKey().getOrThrow() as CryptoPublicKey.EC,
+            info = encodedTranscript,
+            aad = ByteArray(0),
+            pt = plaintext,
         )
-        val ciphertext = encrypter.encrypt(plaintext, aad = ByteArray(0))
 
         assertContentEquals(
             plaintext,
             decryptHpke(
-                enc = encrypter.encapsulatedKey.toByteArray(),
-                ciphertext = ciphertext,
+                enc = sealed.encapsulatedSecret,
+                ciphertext = sealed.ciphertext,
                 responseEncryptionKeySignum = fixture.verifierKey.exportPrivateKey().getOrThrow()
                     as CryptoPrivateKey.EC.WithPublicKey,
                 cborEncodedSessionTranscript = encodedTranscript,
@@ -104,8 +99,8 @@ class IsoMdocDcapiResponseBuilderTest {
 
         assertFailsWith<Throwable> {
             decryptHpke(
-                enc = encrypter.encapsulatedKey.toByteArray(),
-                ciphertext = ciphertext,
+                enc = sealed.encapsulatedSecret,
+                ciphertext = sealed.ciphertext,
                 responseEncryptionKeySignum = fixture.verifierKey.exportPrivateKey().getOrThrow()
                     as CryptoPrivateKey.EC.WithPublicKey,
                 cborEncodedSessionTranscript = encodedTranscript + byteArrayOf(0x00),
@@ -236,46 +231,23 @@ class IsoMdocDcapiResponseBuilderTest {
     }
 }
 
-private fun at.asitplus.iso.EncryptionParameters.recipientMultipazPublicKey(): EcPublicKey {
-    val keyParams = recipientPublicKey.keyParams as CoseKeyParams.EcKeyParams<*>
-    return EcPublicKeyDoubleCoordinate(EcCurve.P256, keyParams.x!!, keyParams.y as ByteArray)
-}
-
 @OptIn(SecretExposure::class)
 private suspend fun decryptHpke(
     enc: ByteArray,
     ciphertext: ByteArray,
     responseEncryptionKeySignum: CryptoPrivateKey.EC.WithPublicKey,
     cborEncodedSessionTranscript: ByteArray,
-): ByteArray {
-    val ecCurve = when (responseEncryptionKeySignum.curve) {
-        ECCurve.SECP_256_R_1 -> EcCurve.P256
-        ECCurve.SECP_384_R_1 -> EcCurve.P384
-        ECCurve.SECP_521_R_1 -> EcCurve.P521
-    }
-
-    val coordinateLength = (ecCurve.bitSize + 7) / 8
-    val publicKeyBytes = responseEncryptionKeySignum.publicKey.iosEncoded
-    val ecPrivateKey = EcPrivateKeyDoubleCoordinate(
-        curve = ecCurve,
-        d = responseEncryptionKeySignum.privateKeyBytes,
-        x = publicKeyBytes.copyOfRange(1, 1 + coordinateLength),
-        y = publicKeyBytes.copyOfRange(1 + coordinateLength, 1 + 2 * coordinateLength),
-    )
-
-    val responseEncryptionKey = AsymmetricKey.anonymous(
-        privateKey = ecPrivateKey,
-        algorithm = ecCurve.defaultKeyAgreementAlgorithm
-    )
-
-    val decrypter = Hpke.getDecrypter(
-        cipherSuite = Hpke.CipherSuite.DHKEM_P256_HKDF_SHA256_HKDF_SHA256_AES_128_GCM,
-        receiverPrivateKey = responseEncryptionKey,
-        encapsulatedKey = enc,
+): ByteArray =
+    hpke.OpenBase(
+        enc = enc,
+        skR = responseEncryptionKeySignum,
         info = cborEncodedSessionTranscript,
-    )
-    return decrypter.decrypt(
-        ciphertext = ciphertext,
         aad = ByteArray(0),
+        ct = ciphertext,
     )
-}
+
+private val hpke = HPKE(
+    HPKE.KEM.DHKEM_P256_HKDF_SHA256,
+    HPKE.KDF.HKDF_SHA256,
+    HPKE.AEAD.AES_128_GCM,
+)
