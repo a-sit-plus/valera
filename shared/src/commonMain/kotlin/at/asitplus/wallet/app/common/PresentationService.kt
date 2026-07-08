@@ -18,7 +18,6 @@ import at.asitplus.wallet.lib.cbor.SignCoseDetached
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
-import at.asitplus.wallet.lib.openid.IsoMdocDcapiResponseBuilder
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import kotlinx.serialization.builtins.ByteArraySerializer
@@ -47,6 +46,10 @@ class PresentationService(
         preparationState: AuthorizationResponsePreparationState
     ) = presentationService.getMatchingCredentials(preparationState)
 
+    suspend fun getMatchingCredentials(
+        request: RequestParametersFrom.IsoMdocDcApi
+    ) = presentationService.getMatchingCredentials(request)
+
     suspend fun finalizeAuthorizationResponse(
         credentialPresentation: CredentialPresentation,
         preparationState: AuthorizationResponsePreparationState,
@@ -61,12 +64,10 @@ class PresentationService(
         isoMdocWalletRequest: RequestParametersFrom.IsoMdocDcApi
     ): OpenId4VpWallet.AuthenticationSuccess {
         Napier.d("Finalizing DCAPI response")
-        val encryptedResponse = IsoMdocDcapiResponseBuilder.buildEncryptedResponse(
+        val encryptedResponse = presentationService.finalizeIso180137AnnexCResponse(
+            request = isoMdocWalletRequest,
             credentialPresentation = credentialPresentation,
-            isoMdocWalletRequest = isoMdocWalletRequest,
-            keyMaterial = keyMaterial,
-            holder = holderAgent,
-        )
+        ).getOrThrow()
         platformAdapter.prepareIsoMdocDCAPICredentialResponse(encryptedResponse, true)
         return OpenId4VpWallet.AuthenticationSuccess()
     }

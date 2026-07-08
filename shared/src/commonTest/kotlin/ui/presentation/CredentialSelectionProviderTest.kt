@@ -44,7 +44,6 @@ class CredentialSelectionProviderTest {
                         state = "state",
                         vpToken = JsonPrimitive("vp-token"),
                     ),
-                    origin = "https://wallet.example",
                 )
             )
         )
@@ -64,7 +63,6 @@ class CredentialSelectionProviderTest {
                     data = AuthenticationResponseParameters(
                         response = "header.payload.signature.encrypted.tag",
                     ),
-                    origin = "https://wallet.example",
                 )
             )
         )

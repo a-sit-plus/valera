@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import at.asitplus.catching
-import at.asitplus.dif.PresentationDefinition
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.signum.supreme.UserInitiatedCancellationReason
@@ -13,12 +12,10 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
 import at.asitplus.valera.resources.warning_authentication_cancelled
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.toDifInputDescriptorList
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
-import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -46,26 +43,11 @@ class DCAPIPresentationGraphViewModel(
         viewModelScope.launch {
             value = try {
                 val unwrappedDcApiWalletRequest = dcApiWalletRequest.getOrThrow()
-                val descriptors =
-                    unwrappedDcApiWalletRequest.parameters.isoMdocRequest.deviceRequest.docRequests.toDifInputDescriptorList()
-                val presentationRequest = CredentialPresentationRequest.PresentationExchangeRequest(
-                    presentationDefinition = PresentationDefinition(
-                        inputDescriptors = descriptors
-                    )
-                )
+                val matchingResult = walletMain.presentationService.getMatchingCredentials(
+                    unwrappedDcApiWalletRequest
+                ).getOrThrow()
                 UiStateSuccess(
-                    unwrappedDcApiWalletRequest to PresentationExchangeMatchingResult(
-                        presentationRequest = CredentialPresentationRequest.PresentationExchangeRequest(
-                            presentationDefinition = PresentationDefinition(
-                                inputDescriptors = presentationRequest.presentationDefinition.inputDescriptors,
-                            )
-                        ),
-                        matchingResult = walletMain.holderAgent.matchInputDescriptorsAgainstCredentialStoreV2(
-                            inputDescriptors = presentationRequest.presentationDefinition.inputDescriptors,
-                            fallbackFormatHolder = null,
-                            filterByIds = unwrappedDcApiWalletRequest.credentialIds
-                        ).getOrThrow(),
-                    ).toCredentialSelectionProvider(viewModelScope) {
+                    unwrappedDcApiWalletRequest to matchingResult.toCredentialSelectionProvider(viewModelScope) {
                         walletMain.checkCredentialFreshness(it)
                     }
                 )
