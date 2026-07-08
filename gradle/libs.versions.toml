@@ -23,6 +23,8 @@ multipaz = "0.99.0"
 navigation-compose = "2.9.2"
 navigationevent-compose = "1.0.1" # Check if issuing a credential works on iOS after upgrading this. 1.1.0 has an issue, possibly just requires a compose update
 semver = "2.1.0"
+signum = "3.24.0"
+supreme = "0.15.0"
 
 atomicfu = "0.32.1"
 qrose = "1.1.2"
@@ -83,6 +85,10 @@ compose-ui-test = { module = "org.jetbrains.compose.ui:ui-test", version.ref = "
 vck = {group= "at.asitplus.wallet", name="vck", version.ref = "vck"}
 vck-openid = {group= "at.asitplus.wallet", name="vck-openid", version.ref = "vck"}
 vck-openid-ktor = {group= "at.asitplus.wallet", name="vck-openid-ktor", version.ref = "vck"}
+signum-indispensable = { module = "at.asitplus.signum:indispensable", version.ref = "signum" }
+signum-indispensable-cosef = { module = "at.asitplus.signum:indispensable-cosef", version.ref = "signum" }
+signum-indispensable-josef = { module = "at.asitplus.signum:indispensable-josef", version.ref = "signum" }
+signum-supreme = { module = "at.asitplus.signum:supreme", version.ref = "supreme" }
 warden-supreme = { module = "at.asitplus.warden:supreme-client", version.ref = "warden-supreme" }
 
 #multipazz workaround
