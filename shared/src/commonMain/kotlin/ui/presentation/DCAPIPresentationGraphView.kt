@@ -60,6 +60,7 @@ fun DCAPIPresentationGraphView(
         presentationRequest = (matchingResult as? UiStateSuccess)?.value?.second
             ?.queryMatchingResult?.presentationRequest,
         showStartRoute = showStartRoute,
+        fixedCredentialSelection = isoMdocRequest.credentialIds?.isNotEmpty() == true,
         trustListService = viewModel.trustListService
     )
 }

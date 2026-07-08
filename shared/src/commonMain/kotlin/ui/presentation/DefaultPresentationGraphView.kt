@@ -76,8 +76,9 @@ fun DefaultPresentationGraphView(
             }
             null
         },
-        trustListService = viewModel.trustListService
-    )
+        trustListService = viewModel.trustListService,
+        fixedCredentialSelection = dcApiRequest?.credentialIds?.isNotEmpty() == true,
+        )
 }
 
 

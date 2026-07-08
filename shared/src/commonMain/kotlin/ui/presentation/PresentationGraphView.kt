@@ -48,7 +48,8 @@ fun PresentationGraphView(
     presentationRequest: CredentialPresentationRequest?,
     navigateUpIsClose: Boolean = false,
     showStartRoute: Boolean = true,
-    trustListService: TrustListService
+    trustListService: TrustListService,
+    fixedCredentialSelection: Boolean = false,
 ) {
     LaunchedEffect(selectionProvider) {
         selectionProvider.let {
@@ -152,7 +153,8 @@ fun PresentationGraphView(
                         }
                     }
                 },
-                trustListService = trustListService
+                trustListService = trustListService,
+                fixedCredentialSelection = fixedCredentialSelection,
             )
         }
 
