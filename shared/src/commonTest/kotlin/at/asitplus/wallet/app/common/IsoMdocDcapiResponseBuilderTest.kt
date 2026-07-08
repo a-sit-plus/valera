@@ -12,6 +12,7 @@ import at.asitplus.iso.serializeOrigin
 import at.asitplus.iso.sha256
 import at.asitplus.iso.wrapInCborTag
 import at.asitplus.openid.RequestParametersFrom
+import at.asitplus.openid.dcql.DCQLClaimsPathPointer
 import at.asitplus.signum.indispensable.CryptoPrivateKey
 import at.asitplus.signum.indispensable.ECCurve
 import at.asitplus.signum.indispensable.SecretExposure
@@ -180,7 +181,7 @@ class IsoMdocDcapiResponseBuilderTest {
                 RequestOptionsCredential(
                     credentialScheme = ConstantIndex.AtomicAttribute2023,
                     representation = ConstantIndex.CredentialRepresentation.ISO_MDOC,
-                    requestedAttributes = setOf(ConstantIndex.AtomicAttribute2023.CLAIM_GIVEN_NAME),
+                    attributePaths = setOf(DCQLClaimsPathPointer(ConstantIndex.AtomicAttribute2023.CLAIM_GIVEN_NAME)),
                 )
             )
         )

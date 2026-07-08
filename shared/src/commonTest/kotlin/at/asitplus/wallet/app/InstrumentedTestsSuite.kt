@@ -24,6 +24,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.OidcUserInfo
 import at.asitplus.openid.OidcUserInfoExtended
+import at.asitplus.openid.dcql.DCQLClaimsPathPointer
 import at.asitplus.signum.indispensable.io.Base64Strict
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
@@ -264,11 +265,11 @@ private suspend fun createLocalPresentationRequest(): LocalPresentationRequest {
                 RequestOptionsCredential(
                     credentialScheme = pidSdJwtScheme(),
                     representation = SD_JWT,
-                    requestedAttributes = setOf(
-                        EuPidSdJwtDataElements.GIVEN_NAME,
-                        EuPidSdJwtDataElements.FAMILY_NAME,
-                        EuPidSdJwtDataElements.BIRTH_DATE,
-                        EuPidSdJwtDataElements.PORTRAIT,
+                    attributePaths = setOf(
+                        DCQLClaimsPathPointer(EuPidSdJwtDataElements.GIVEN_NAME),
+                        DCQLClaimsPathPointer(EuPidSdJwtDataElements.FAMILY_NAME),
+                        DCQLClaimsPathPointer(EuPidSdJwtDataElements.BIRTH_DATE),
+                        DCQLClaimsPathPointer(EuPidSdJwtDataElements.PORTRAIT),
                     ),
                 )
             )

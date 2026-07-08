@@ -5,6 +5,7 @@ import at.asitplus.iso.IssuerSignedItem
 import at.asitplus.openid.OidcUserInfo
 import at.asitplus.openid.OidcUserInfoExtended
 import at.asitplus.openid.OpenIdConstants.ResponseMode
+import at.asitplus.openid.dcql.DCQLClaimsPathPointer
 import at.asitplus.openid.dcql.DCQLCredentialSubmissionOption
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.lib.RequestOptionsCredential
@@ -126,7 +127,7 @@ class UnknownSchemeDcqlPresentationTest {
                         RequestOptionsCredential(
                             credentialScheme = scheme,
                             representation = representation,
-                            requestedAttributes = requestedAttributes,
+                            attributePaths = requestedAttributes?.map { DCQLClaimsPathPointer(it) }?.toSet(),
                         )
                     ),
                 ).toDCQLRequest(),
