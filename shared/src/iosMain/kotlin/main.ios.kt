@@ -16,7 +16,6 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
-import at.asitplus.wallet.app.common.*
 import at.asitplus.wallet.app.common.AV_DOC_TYPE
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
