@@ -1,10 +1,7 @@
 package ui.viewmodels.intents
 
-import at.asitplus.KmmResult
 import at.asitplus.catching
-import at.asitplus.dcapi.issuance.DigitalCredentialCreationOptions
-import at.asitplus.openid.CredentialOffer
-import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import at.asitplus.dcapi.issuance.decodeSingleDigitalCredentialOffer
 import at.asitplus.wallet.app.common.WalletMain
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -27,18 +24,8 @@ class DCAPIIssuingIntentViewModel(
     fun process() = walletMain.scope.launch(Dispatchers.Default + coroutineExceptionHandler) {
         catching {
             val issuingData = walletMain.platformAdapter.getCurrentDCAPIIssuingData().getOrThrow()
-            val credentialOffer = parseCredentialOffer(issuingData.requestJson).getOrThrow()
+            val credentialOffer = issuingData.requestJson.decodeSingleDigitalCredentialOffer()
             onSuccess(AddCredentialDcApiRoute(credentialOffer))
         }.onFailure { onFailure(it) }
-    }
-
-    private fun parseCredentialOffer(requestJson: String): KmmResult<CredentialOffer> = catching {
-        val creationOptions =
-            joseCompliantSerializer.decodeFromString<DigitalCredentialCreationOptions>(requestJson)
-        // TODO specification does not yet define what to do with multiple requests
-        // TODO parse and check origin once its sent by the web platform ("… will send the credential offer along with the Origin of the Issuer to the End-User's chosen Wallet.")
-        require(creationOptions.requests.count() == 1) { "Only one request supported for now" }
-        creationOptions.requests.firstOrNull()?.data
-            ?: throw IllegalArgumentException("DC API: No supported issuance request found")
     }
 }

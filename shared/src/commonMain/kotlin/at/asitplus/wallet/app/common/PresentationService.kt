@@ -18,6 +18,7 @@ import at.asitplus.wallet.lib.cbor.SignCoseDetached
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
+import at.asitplus.wallet.lib.openid.IsoMdocDcapiResponseBuilder
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import kotlinx.serialization.builtins.ByteArraySerializer
@@ -64,7 +65,7 @@ class PresentationService(
             credentialPresentation = credentialPresentation,
             isoMdocWalletRequest = isoMdocWalletRequest,
             keyMaterial = keyMaterial,
-            holderAgent = holderAgent,
+            holder = holderAgent,
         )
         platformAdapter.prepareIsoMdocDCAPICredentialResponse(encryptedResponse, true)
         return OpenId4VpWallet.AuthenticationSuccess()

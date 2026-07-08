@@ -7,14 +7,14 @@ import androidx.compose.ui.window.ComposeUIViewController
 import at.asitplus.catching
 import at.asitplus.KmmResult
 import at.asitplus.dcapi.EncryptedResponse
+import at.asitplus.dcapi.ios.IosDcApiMdocPreRequestSummary
 import at.asitplus.dcapi.request.IsoMdocRequest
+import at.asitplus.dcapi.request.toRequestParametersFrom
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
-import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.PlatformAdapter
-import at.asitplus.wallet.app.dcapi.IosParsedMdocRequestSummary
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
 import at.asitplus.wallet.app.common.*
 import at.asitplus.wallet.app.common.AV_DOC_TYPE
@@ -387,18 +387,16 @@ class IosPlatformAdapter(
                 Napier.d("getCurrentDCAPIVerificationData: rawRequest namespaces=${isoMdocRequest.deviceRequest.docRequests.map { req -> req.itemsRequest.value.namespaces.mapValues { (_, items) -> items.entries.map { item -> "${item.dataElementIdentifier}→retain=${item.intentToRetain}" } } }}")
 
                 val parsedRequestSummary = it.parsedRequestSummary?.let { summary ->
-                    Json.decodeFromString<IosParsedMdocRequestSummary>(summary)
+                    Json.decodeFromString<IosDcApiMdocPreRequestSummary>(summary)
                 } ?: throw IllegalStateException("No parsed request summary available")
                 Napier.d("getCurrentDCAPIVerificationData: parsedSummary docTypes=${parsedRequestSummary.documentRequests.map { req -> req.docType }}")
                 Napier.d("getCurrentDCAPIVerificationData: parsedSummary namespaces=${parsedRequestSummary.documentRequests.map { req -> req.namespaces.mapValues { (_, elems) -> elems.map { (id, retain) -> "$id→retain=$retain" } } }}")
                 require(parsedRequestSummary.isConsistentWith(isoMdocRequest)) {
                     "Parsed ISO18013 mobile document pre-request is inconsistent with rawRequest"
                 }
-                val walletRequest = RequestParametersFrom.IsoMdocDcApi(
-                    parameters = RequestParametersFrom.IsoMdocDcApi.IsoMdocRequestWrapper(isoMdocRequest),
-                    jsonString = joseCompliantSerializer.encodeToString(isoMdocRequest),
+                val walletRequest = isoMdocRequest.toRequestParametersFrom(
                     callingOrigin = it.origin ?: throw IllegalStateException("No origin received"),
-                    credentialIds = null
+                    credentialIds = null,
                 )
                 KmmResult.success(walletRequest)
             } catch (e: Throwable) {
