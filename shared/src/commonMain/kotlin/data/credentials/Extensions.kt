@@ -25,7 +25,11 @@ fun SubjectCredentialStore.StoreEntry.toCredentialAdapter(
 ): CredentialAdapter = scheme.let { s ->
     when {
         s.isEuPid -> EuPidCredentialAdapter.createFromStoreEntry(this, scheme, decodePortrait = decodeImage)
-        s.isMdl -> MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(this, scheme, decodePortrait = decodeImage)
+        s.isMdl -> MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(
+            this,
+            scheme,
+            decodePortrait = decodeImage
+        )
         // No bespoke renderer (e.g. a scheme resolved from remote type metadata): render generically.
         else -> FallbackCredentialAdapter(toGenericAttributeList(), this, scheme)
     }
@@ -65,6 +69,7 @@ fun CredentialAdapter.labeledPresentationAttributes(
             ?: path.genericLabel()
         label to attribute
     }
+    .distinctBy { it.first }
     .sortedBy { it.first }
 
 /**

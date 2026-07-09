@@ -14,6 +14,9 @@ import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.IndexSegment
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.NameSegment
 import at.asitplus.openid.CredentialFormatEnum
+import at.asitplus.openid.OpenId4VciClaimsPathPointer
+import at.asitplus.openid.OpenId4VciClaimsPathPointerSegmentIndex
+import at.asitplus.openid.OpenId4VciClaimsPathPointerSegmentString
 import at.asitplus.openid.dcql.DCQLAmbiguousClaimsQuery
 import at.asitplus.openid.dcql.DCQLClaimsPathPointerSegment
 import at.asitplus.openid.dcql.DCQLCredentialQuery
@@ -22,9 +25,6 @@ import at.asitplus.openid.dcql.DCQLIsoMdocCredentialQuery
 import at.asitplus.openid.dcql.DCQLJsonClaimsQuery
 import at.asitplus.openid.dcql.DCQLJwtVcCredentialQuery
 import at.asitplus.openid.dcql.DCQLSdJwtCredentialQuery
-import at.asitplus.openid.OpenId4VciClaimsPathPointer
-import at.asitplus.openid.OpenId4VciClaimsPathPointerSegmentIndex
-import at.asitplus.openid.OpenId4VciClaimsPathPointerSegmentString
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.data.AttributeIndex
@@ -351,8 +351,11 @@ fun Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimRef
 // Last-resort label when no metadata localization exists: render the claim path itself,
 // not the value-class wrapper (path.toString() would print "JsonClaimReference(normalizedJsonPath=$['family_name'])").
 fun SingleClaimReference.displayPath(): String = when (this) {
-    is JsonClaimReference -> normalizedJsonPath.toString()
-    is MdocClaimReference -> NormalizedJsonPath(NameSegment(namespace), NameSegment(claimName)).toString()
+    is JsonClaimReference -> normalizedJsonPath.toShorthandNameSegmentNotationWherePossible().removePrefix("$.")
+    is MdocClaimReference -> NormalizedJsonPath(
+        NameSegment(namespace),
+        NameSegment(claimName)
+    ).toShorthandNameSegmentNotationWherePossible().removePrefix("$.")
 }
 
 fun ConstantIndex.CredentialRepresentation.getMetadataLocalization(

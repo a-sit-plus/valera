@@ -19,7 +19,7 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.openid.dcql.DCQLClaimsQueryResult
 import at.asitplus.openid.dcql.DCQLCredentialQueryMatchingResult
-import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import at.asitplus.openid.dcql.DCQLCredentialQueryMatchingResult.*
 import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
 import at.asitplus.wallet.app.common.thirdParty.kotlinx.serialization.json.leafNodeList
 import at.asitplus.wallet.lib.agent.SdJwtDecoded
@@ -31,7 +31,6 @@ import data.credentials.toCredentialAdapter
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.encodeToJsonElement
 import org.koin.compose.koinInject
 import ui.composables.credentials.CredentialSelectionCardHeader
 import ui.composables.credentials.CredentialSelectionCardLayout
@@ -63,17 +62,16 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
     val genericAttributeList: List<Pair<NormalizedJsonPath, Any>> =
         when (val matchingResult = matchingResult.getOrNull()) {
             null,
-            DCQLCredentialQueryMatchingResult.AllClaimsMatchingResult -> credential.allClaims().leafNodeList().map {
+            AllClaimsMatchingResult -> credential.allClaims().leafNodeList().map {
                 it.normalizedJsonPath to it.value
             }
 
             // only claims that are not selectively disclosable will be presented
-            DCQLCredentialQueryMatchingResult.AllMandatoryClaimsMatchingResult ->
-                credential.mandatoryClaims().leafNodeList().map {
-                    it.normalizedJsonPath to it.value
-                }
+            AllMandatoryClaimsMatchingResult -> credential.mandatoryClaims().leafNodeList().map {
+                it.normalizedJsonPath to it.value
+            }
 
-            is DCQLCredentialQueryMatchingResult.ClaimsQueryResults -> matchingResult.claimsQueryResults.flatMap {
+            is ClaimsQueryResults -> matchingResult.claimsQueryResults.flatMap {
                 when (it) {
                     is DCQLClaimsQueryResult.IsoMdocResult -> listOf(
                         NormalizedJsonPath() + it.namespace + it.claimName to it.claimValue,
@@ -176,5 +174,5 @@ private fun SubjectCredentialStore.StoreEntry.allClaims() = when (this) {
         }
     }
 
-    is SubjectCredentialStore.StoreEntry.Vc -> joseCompliantSerializer.encodeToJsonElement(vc)
+    is SubjectCredentialStore.StoreEntry.Vc -> vc.vc.credentialSubject
 }

@@ -141,8 +141,8 @@ fun RequestedCredentialPreview(
             catchingUnwrapped {
                 scheme.getLocalization(path)
                     ?: representation.getMetadataLocalization(path)?.let { stringResource(it) }
-                    ?: path.toString()
-            }.getOrElse { path.toString() }
+                    ?: path.toShorthandNameSegmentNotationWherePossible().removePrefix("$.")
+            }.getOrElse { path.toShorthandNameSegmentNotationWherePossible().removePrefix("$.") }
         }
     }
     ConsentAttributesSection(

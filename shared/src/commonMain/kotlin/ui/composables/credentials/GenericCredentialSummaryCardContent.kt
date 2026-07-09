@@ -51,8 +51,8 @@ import at.asitplus.valera.resources.text_label_status_uri
 import at.asitplus.valera.resources.text_label_valid_from
 import at.asitplus.valera.resources.text_label_valid_to
 import at.asitplus.valera.resources.text_label_vcType
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore.StoreEntry
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.identifier
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore.StoreEntry
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.StatusListInfo
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import data.credentials.CredentialAdapter.Companion.toComplexJson
@@ -147,11 +147,21 @@ private fun SingleVcCredentialCardContent(
     }
     (credential.vc.vc.credentialStatus as? StatusListInfo)?.let { StatusCard(it, modifier) }
     CredentialContentsCard {
-        Text(
-            credential.vc.vc.credentialSubject.toString().replace("""\[.+]""".toRegex(), "[...]")
-                .replace(", ", "\n"),
-            modifier = modifier,
-        )
+        when (val subject = credential.vc.vc.credentialSubject) {
+            is JsonObject -> subject.mapWithPrefix().sortedBy { it.first }.toSet().forEach {
+                LabeledText(
+                    label = it.first,
+                    text = it.second.run { slice(0..min(lastIndex, 100)) },
+                    modifier = modifier,
+                    fontWeight = FontWeight.Normal,
+                )
+            }
+            else -> Text(
+                credential.vc.vc.credentialSubject.toString().replace("""\[.+]""".toRegex(), "[...]")
+                    .replace(", ", "\n"),
+                modifier = modifier,
+            )
+        }
     }
 }
 
