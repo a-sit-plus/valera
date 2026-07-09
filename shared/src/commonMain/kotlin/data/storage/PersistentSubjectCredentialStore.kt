@@ -49,11 +49,11 @@ class PersistentSubjectCredentialStore(
         renewalInfo: CredentialRenewalInfo?,
         issuer: X509Certificate?
     ) = SubjectCredentialStore.StoreEntry.Vc(
-        vcSerialized,
-        vc,
-        scheme.identifier,
-        renewalInfo,
-        issuer
+        vcSerialized = vcSerialized,
+        vc = vc,
+        renewalInfo = renewalInfo,
+        issuer = issuer,
+        schemeIdentifier = scheme.identifier,
     ).also {
         addStoreEntry(it)
     }
@@ -67,12 +67,12 @@ class PersistentSubjectCredentialStore(
         renewalInfo: CredentialRenewalInfo?,
         issuer: X509Certificate?
     ) = SubjectCredentialStore.StoreEntry.SdJwt(
-        vcSerialized,
-        vc,
-        disclosures,
-        scheme.identifier,
-        renewalInfo,
-        issuer
+        vcSerialized = vcSerialized,
+        sdJwt = vc,
+        disclosures = disclosures,
+        renewalInfo = renewalInfo,
+        issuer = issuer,
+        schemeIdentifier = scheme.identifier,
     ).also {
         addStoreEntry(it)
     }
@@ -83,10 +83,10 @@ class PersistentSubjectCredentialStore(
         renewalInfo: CredentialRenewalInfo?,
         issuer: X509Certificate?
     ) = SubjectCredentialStore.StoreEntry.Iso(
-        issuerSigned,
-        scheme.identifier,
-        renewalInfo,
-        issuer
+        issuerSigned = issuerSigned,
+        renewalInfo = renewalInfo,
+        issuer = issuer,
+        schemeIdentifier = scheme.identifier,
     ).also {
         addStoreEntry(it)
     }

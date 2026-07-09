@@ -34,25 +34,3 @@ class PersistentTrustListStore(
         }.getOrNull()
     }
 }
-
-object TrustListStorageKeys {
-    private const val PREFIX = "lote_cache_"
-
-    val PID_PROVIDERS = "${PREFIX}pid_providers"
-    val WALLET_PROVIDERS = "${PREFIX}wallet_providers"
-    val WRPAC_PROVIDERS = "${PREFIX}wrpac_providers"
-    val MDL_PROVIDERS = "${PREFIX}mdl_providers"
-    val PUB_EAA_PROVIDERS = "${PREFIX}pub_eaa_providers"
-    val ASIT_PLUS_PROVIDERS = "${PREFIX}asit_plus_providers"
-
-
-    fun mapUrlToKey(url: String): String? = when {
-        url.contains("pid-providers") -> PID_PROVIDERS
-        url.contains("wallet-providers") -> WALLET_PROVIDERS
-        url.contains("wrpac-providers") -> WRPAC_PROVIDERS
-        url.contains("mdl-providers") -> MDL_PROVIDERS
-        url.contains("pub-eaa-providers") -> PUB_EAA_PROVIDERS
-        url.contains("asitplus") -> ASIT_PLUS_PROVIDERS
-        else -> null
-    }
-}
