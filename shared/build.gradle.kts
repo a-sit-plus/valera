@@ -100,10 +100,6 @@ kotlin {
             implementation(ktor("client-logging"))
             implementation(ktor("client-content-negotiation"))
             implementation(ktor("serialization-kotlinx-json"))
-            implementation(libs.signum.indispensable)
-            implementation(libs.signum.indispensable.cosef)
-            implementation(libs.signum.indispensable.josef)
-            implementation(libs.signum.supreme)
             implementation(libs.datastore.preferences.core)
             implementation(libs.datastore.core.okio)
             implementation(libs.multipaz) // This is the library bringing in Bouncy Castle
