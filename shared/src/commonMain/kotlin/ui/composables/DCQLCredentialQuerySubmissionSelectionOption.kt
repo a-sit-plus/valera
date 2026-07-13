@@ -19,6 +19,7 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.openid.dcql.DCQLClaimsQueryResult
 import at.asitplus.openid.dcql.DCQLCredentialQueryMatchingResult
+import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.openid.dcql.DCQLCredentialQueryMatchingResult.*
 import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
 import at.asitplus.wallet.app.common.thirdParty.kotlinx.serialization.json.leafNodeList
@@ -30,6 +31,7 @@ import data.credentials.labeledPresentationAttributes
 import data.credentials.toCredentialAdapter
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.json.JsonObject
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.serialization.json.buildJsonObject
 import org.koin.compose.koinInject
 import ui.composables.credentials.CredentialSelectionCardHeader
@@ -39,6 +41,7 @@ import ui.models.CredentialFreshnessValidationStateUiModel
 import ui.models.ResolvedCredential
 import ui.models.toFallbackResolvedCredential
 import ui.models.toResolvedCredential
+
 
 
 @Composable
@@ -51,6 +54,7 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
     credential: SubjectCredentialStore.StoreEntry,
     matchingResult: KmmResult<DCQLCredentialQueryMatchingResult>,
     freshnessState: StateFlow<CredentialFreshnessValidationStateUiModel>,
+    trustListService: TrustListService,
 ) {
     val credentialFreshnessValidationState by freshnessState.collectAsState()
     val resolvedCredential by produceState<ResolvedCredential?>(null, credential) {
@@ -58,6 +62,10 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
             .getOrElse { credential.toFallbackResolvedCredential() }
     }
     val displayCredential = resolvedCredential ?: return
+
+    val trustState by trustListService
+        .observeTrustStateForEntry(flowOf(resolvedCredential))
+        .collectAsState(initial = TrustState.EVALUATING)
 
     val genericAttributeList: List<Pair<NormalizedJsonPath, Any>> =
         when (val matchingResult = matchingResult.getOrNull()) {
@@ -108,6 +116,12 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
             modifier = Modifier.fillMaxWidth(),
             allowMultiSelection = allowMultiSelection,
         )
+
+        TrustStatusBanner(
+            trustState = trustState,
+            modifier = Modifier.padding(vertical = 12.dp)
+        )
+
         CredentialSummaryCardContent(
             credential = displayCredential,
             decodeToBitmap = {

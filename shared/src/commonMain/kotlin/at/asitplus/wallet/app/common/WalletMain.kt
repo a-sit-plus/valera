@@ -18,6 +18,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import data.storage.DataStoreService
+import data.storage.PersistentTrustListStore
 import data.storage.WalletSubjectCredentialStore
 import io.github.aakira.napier.Napier
 import io.ktor.client.call.body
@@ -68,6 +69,7 @@ class WalletMain(
     val credentialValidityService: CredentialValidityService,
     val attestationService: AttestationService,
     sessionCoroutineScope: CoroutineScope,
+    val trustListService: TrustListService,
 ) {
     val appReady = MutableStateFlow<Boolean?>(null)
 
@@ -86,6 +88,7 @@ class WalletMain(
     init {
         resolveUnknownCredentialSchemes()
         credentialValidityService.startChecking()
+        trustListService.startChecking()
         if (keyMaterial.keyMaterial is FallBackKeyMaterial) {
             Napier.e("FallBackKeyMaterial: ${keyMaterial.keyMaterial.reason}")
         }

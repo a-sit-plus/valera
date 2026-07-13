@@ -14,6 +14,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import data.storage.DataStoreService
 import data.storage.HotWalletSubjectCredentialStore
 import data.storage.PersistentSubjectCredentialStore
+import data.storage.PersistentTrustListStore
 import data.storage.WalletSubjectCredentialStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,6 +39,7 @@ fun platformModule() = module {
         scoped<at.asitplus.wallet.app.common.KeystoreService> { get<WalletSessionBindings>().keystoreService }
         scoped<CoroutineScope> { get<WalletSessionBindings>().sessionCoroutineScope }
         scopedOf(::PersistentSubjectCredentialStore)
+        scopedOf(::PersistentTrustListStore)
 
         scoped<WalletKeyMaterial> {
             WalletKeyMaterial(get<at.asitplus.wallet.app.common.KeystoreService>().getSignerBlocking())

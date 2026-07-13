@@ -8,8 +8,10 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -23,7 +25,11 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.catchingUnwrapped
 import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeList
+import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import kotlinx.coroutines.flow.flowOf
+import ui.composables.TrustState
+import ui.composables.TrustStatusBanner
 import ui.models.CredentialFreshnessSummaryUiModel
 import ui.models.CredentialFreshnessValidationStateUiModel
 import ui.models.ResolvedCredential
@@ -36,7 +42,8 @@ fun CredentialSelectionCard(
     checkCredentialFreshness: suspend () -> CredentialFreshnessSummaryUiModel,
     imageDecoder: (ByteArray) -> Result<ImageBitmap>,
     attributeSelection: SnapshotStateMap<String, Boolean>,
-    credentialSelection: MutableState<SubjectCredentialStore.StoreEntry>
+    credentialSelection: MutableState<SubjectCredentialStore.StoreEntry>,
+    trustListService: TrustListService
 ) {
     val selected = remember { mutableStateOf(false) }
     selected.value = credentialSelection.value == credential.key
@@ -53,6 +60,10 @@ fun CredentialSelectionCard(
         value = CredentialFreshnessValidationStateUiModel.Done(checkCredentialFreshness())
     }
 
+    val trustState by trustListService
+        .observeTrustStateForEntry(flowOf(resolvedCredential))
+        .collectAsState(initial = TrustState.EVALUATING)
+
     CredentialSelectionCardLayout(
         onClick = {
             attributeSelection.clear()
@@ -66,6 +77,12 @@ fun CredentialSelectionCard(
         },
     ) {
         val displayCredential = resolvedCredential ?: return@CredentialSelectionCardLayout
+
+        TrustStatusBanner(
+            trustState = trustState,
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        )
+
         CredentialSelectionCardHeader(
             credentialFreshnessValidationState = credentialFreshnessValidationState,
             credential = displayCredential,

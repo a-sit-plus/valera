@@ -4,6 +4,8 @@
  * Drop support for PID in VC JWT (which was never officially specified anyway)
  * Update DCAPI matching implementation for Android
  * Fix opening second provisioning flow after aborting the first one
+ * Add `TrustListService` for loading LoTE regularly in the background
+ * Display trust evaluation in Consent Screen and in `CredentialsDetailsView`
 
 # Release 5.8.0
  * Update to VC-K 6.0.0

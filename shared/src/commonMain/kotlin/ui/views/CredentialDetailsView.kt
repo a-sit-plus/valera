@@ -30,7 +30,6 @@ import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.icon
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPid
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.CredentialCardActionMenu
 import ui.composables.LabeledText
@@ -38,6 +37,8 @@ import ui.composables.Logo
 import ui.composables.PersonAttributeDetailCardHeading
 import ui.composables.PersonAttributeDetailCardHeadingIcon
 import ui.composables.ScreenHeading
+import ui.composables.TrustState
+import ui.composables.TrustStatusBanner
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.EuPidCredentialView
 import ui.composables.credentials.GenericCredentialSummaryCardContent
@@ -54,6 +55,8 @@ fun CredentialDetailsView(
     val storeEntry by vm.storeEntry.collectAsState(null)
     val credentialTimelinessesStates by vm.credentialTimelinessesStates.collectAsState()
     val credentialFreshnessSummary = credentialTimelinessesStates[vm.storeEntryId]
+
+    val trustState by vm.trustState.collectAsState()
 
     CredentialDetailsScaffold(
         isStoreEntryAvailable = storeEntry != null,
@@ -73,6 +76,7 @@ fun CredentialDetailsView(
     ) {
         storeEntry?.let {
             CredentialDetailsSummaryView(
+                trustState = trustState,
                 credential = it,
                 imageDecoder = vm.imageDecoder,
             )
@@ -140,9 +144,16 @@ fun CredentialDetailsScaffold(
 @Composable
 fun CredentialDetailsSummaryView(
     credential: ResolvedCredential,
+    trustState: TrustState,
     imageDecoder: (ByteArray) -> Result<ImageBitmap>,
 ) {
     Column(modifier = Modifier.padding(horizontal = 8.dp)) {
+
+        TrustStatusBanner(
+            trustState = trustState,
+            modifier = Modifier.padding(vertical = 12.dp)
+        )
+
         PersonAttributeDetailCardHeading(
             icon = { PersonAttributeDetailCardHeadingIcon(credential.scheme.iconLabel()) },
             title = {

@@ -30,6 +30,7 @@ class DefaultPresentationGraphViewModel(
     private val validator: Validator,
 ) : ViewModel() {
     val route = savedStateHandle.toRoute<AuthenticationViewRoute>()
+    val trustListService = walletMain.trustListService
     val preparationState = catching {
         route.authorizationResponsePreparationState
     }

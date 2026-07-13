@@ -542,7 +542,8 @@ private fun WalletNavHost(
                         if (e !is PresentmentCanceled) {
                             walletMain.errorService.emit(e)
                         }
-                    }
+                    },
+                    trustListService = walletMain.trustListService
                 )
             }
         }

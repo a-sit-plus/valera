@@ -2,6 +2,7 @@ package data.storage
 
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
+import at.asitplus.csc.serializers.Base64X509CertificateSerializer
 import at.asitplus.iso.IssuerSigned
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.signum.indispensable.pki.X509Certificate
@@ -25,7 +26,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.random.Random
 
@@ -49,9 +49,10 @@ class PersistentSubjectCredentialStore(
         renewalInfo: CredentialRenewalInfo?,
         issuer: X509Certificate?
     ) = SubjectCredentialStore.StoreEntry.Vc(
-        vcSerialized,
-        vc,
+        vcSerialized = vcSerialized,
+        vc = vc,
         renewalInfo = renewalInfo,
+        issuer = issuer,
         schemeIdentifier = scheme.identifier,
     ).also {
         addStoreEntry(it)
@@ -66,10 +67,11 @@ class PersistentSubjectCredentialStore(
         renewalInfo: CredentialRenewalInfo?,
         issuer: X509Certificate?
     ) = SubjectCredentialStore.StoreEntry.SdJwt(
-        vcSerialized,
-        vc,
-        disclosures,
+        vcSerialized = vcSerialized,
+        sdJwt = vc,
+        disclosures = disclosures,
         renewalInfo = renewalInfo,
+        issuer = issuer,
         schemeIdentifier = scheme.identifier,
     ).also {
         addStoreEntry(it)
@@ -81,8 +83,9 @@ class PersistentSubjectCredentialStore(
         renewalInfo: CredentialRenewalInfo?,
         issuer: X509Certificate?
     ) = SubjectCredentialStore.StoreEntry.Iso(
-        issuerSigned,
+        issuerSigned = issuerSigned,
         renewalInfo = renewalInfo,
+        issuer = issuer,
         schemeIdentifier = scheme.identifier,
     ).also {
         addStoreEntry(it)
@@ -108,6 +111,7 @@ class PersistentSubjectCredentialStore(
                         issuerSigned = storeEntry.issuerSigned,
                         renewalInfo = storeEntry.renewalInfo,
                         schemeIdentifier = storeEntry.schemeIdentifier,
+                        issuer = storeEntry.issuer
                     )
                 }
 
@@ -118,6 +122,7 @@ class PersistentSubjectCredentialStore(
                         disclosures = storeEntry.disclosures,
                         renewalInfo = storeEntry.renewalInfo,
                         schemeIdentifier = storeEntry.schemeIdentifier,
+                        issuer = storeEntry.issuer
                     )
                 }
 
@@ -127,6 +132,7 @@ class PersistentSubjectCredentialStore(
                         vc = storeEntry.vc,
                         renewalInfo = storeEntry.renewalInfo,
                         schemeIdentifier = storeEntry.schemeIdentifier,
+                        issuer = storeEntry.issuer
                     )
                 }
             }
@@ -182,6 +188,7 @@ class PersistentSubjectCredentialStore(
                             schemaUri = "not relevant",
                             renewalInfo = storeEntry.renewalInfo,
                             schemeIdentifier = storeEntry.schemeIdentifier,
+                            issuer = storeEntry.issuer
                         )
                     }
 
@@ -193,6 +200,7 @@ class PersistentSubjectCredentialStore(
                             schemaUri = "not relevant",
                             renewalInfo = storeEntry.renewalInfo,
                             schemeIdentifier = storeEntry.schemeIdentifier,
+                            issuer = storeEntry.issuer
                         )
                     }
 
@@ -203,6 +211,7 @@ class PersistentSubjectCredentialStore(
                             schemaUri = "not relevant",
                             renewalInfo = storeEntry.renewalInfo,
                             schemeIdentifier = storeEntry.schemeIdentifier,
+                            issuer = storeEntry.issuer
                         )
                     }
                 }
@@ -272,12 +281,15 @@ private sealed interface ExportableStoreEntry {
     val renewalInfo: CredentialRenewalInfo?
     // has been added nullable to not break de-serializing existing store entries
     val schemeIdentifier: String?
+    val issuer: X509Certificate?
     @Serializable
     data class Vc(
         val vcSerialized: String,
         val vc: VerifiableCredentialJws,
         override val renewalInfo: CredentialRenewalInfo? = null,
         override val schemeIdentifier: String? = null,
+        @Serializable(with = Base64X509CertificateSerializer::class)
+        override val issuer: X509Certificate? = null
     ) : ExportableStoreEntry
 
     @Serializable
@@ -290,6 +302,8 @@ private sealed interface ExportableStoreEntry {
         val disclosures: Map<String, SelectiveDisclosureItem?>,
         override val renewalInfo: CredentialRenewalInfo? = null,
         override val schemeIdentifier: String? = null,
+        @Serializable(with = Base64X509CertificateSerializer::class)
+        override val issuer: X509Certificate? = null
     ) : ExportableStoreEntry
 
     @Serializable
@@ -297,5 +311,7 @@ private sealed interface ExportableStoreEntry {
         val issuerSigned: IssuerSigned,
         override val renewalInfo: CredentialRenewalInfo? = null,
         override val schemeIdentifier: String? = null,
+        @Serializable(with = Base64X509CertificateSerializer::class)
+        override val issuer: X509Certificate? = null
     ) : ExportableStoreEntry
 }

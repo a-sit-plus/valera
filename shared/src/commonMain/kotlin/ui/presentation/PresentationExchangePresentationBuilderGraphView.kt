@@ -2,6 +2,7 @@ package ui.presentation
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
 import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
@@ -23,6 +24,7 @@ fun PresentationExchangePresentationBuilderGraphView(
     onError: (Throwable) -> Unit,
     onNavigateUp: () -> Unit,
     onSubmit: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>) -> Unit,
+    trustListService: TrustListService
 ) {
     AuthenticationSelectionPresentationExchangeView(
         onClickLogo = onClickLogo,
@@ -32,5 +34,6 @@ fun PresentationExchangePresentationBuilderGraphView(
             credentialMatchingResult = matchingResult
         ),
         onError = onError,
+        trustListService = trustListService
     )
 }
