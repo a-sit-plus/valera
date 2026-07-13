@@ -55,33 +55,38 @@ class TrustListService(
 ) {
     private var job: Job? = null
     private val client = httpService.buildHttpClient()
-
     // A-SIT trust list
     private val aistIssuerCert = X509Certificate.decodeFromPem(asitRootPem).getOrThrow()
     private val loTeFilterService: LoTEFilterService = LoTEFilterService()
 
+
+    private val defaultUrls = listOf(
+        "https://acceptance.trust.tech.ec.europa.eu/lists/eudiw/pid-providers.json",
+        "https://acceptance.trust.tech.ec.europa.eu/lists/eudiw/wallet-providers.json",
+        "https://acceptance.trust.tech.ec.europa.eu/lists/eudiw/wrpac-providers.json",
+        "https://acceptance.trust.tech.ec.europa.eu/lists/eudiw/mdl-providers.json",
+        "https://acceptance.trust.tech.ec.europa.eu/lists/eudiw/pub-eaa-providers.json"
+    )
 
     fun observeTrustStateForEntry(
         storeEntryFlow: Flow<ResolvedCredential?>
     ): Flow<TrustState> =
         combine(
             storeEntryFlow,
-            persistentTrustListStore.observeTrustContainer(LoTEServiceType.defaultUrls)
+            persistentTrustListStore.observeTrustContainer(defaultUrls)
         ) { credential, trustLists ->
-            val entry = credential?.entry
-                ?: return@combine TrustState.EVALUATING
-            val issuer = entry.issuer
-                ?: return@combine TrustState.UNKNOWN
+            val entry = credential?.entry ?: return@combine TrustState.EVALUATING
+
+            val issuer = entry.issuer ?: return@combine TrustState.UNKNOWN
             val scheme = entry.resolveScheme()
-            val schemeIdentifier = entry.schemeIdentifier
-                ?: scheme.vcType
+
+            val schemeType = scheme.vcType
                 ?: scheme.sdJwtType
                 ?: scheme.isoDocType
+            val serviceType = LoTEServiceType.fromSchemeType(schemeType) ?: return@combine TrustState.UNKNOWN
 
-            if (schemeIdentifier.isNullOrBlank())
-                return@combine TrustState.UNKNOWN
+            evaluateIssuer(issuer, trustLists, serviceType)
 
-            evaluateIssuer(issuer, trustLists, LoTEServiceType.fromSchemeIdentifier(schemeIdentifier))
         }
 
 
@@ -93,25 +98,26 @@ class TrustListService(
         trustLists: Map<String, ListOfTrustedEntities>,
         serviceType: LoTEServiceType
     ): TrustState = try {
-        if (issuer.isTrustedBy(listOf(aistIssuerCert)).isSuccess) {
-            return TrustState.TRUSTED
+            if (issuer.isTrustedBy(listOf(aistIssuerCert)).isSuccess) {
+                return TrustState.TRUSTED
+            }
+
+            val criteria = LoTEFilterCriteria(expectedServiceType = serviceType)
+            val certificateList: List<X509Certificate> = trustLists
+                .flatMap { lote -> loTeFilterService.extractTrustedCertificates(lote.key, lote.value, criteria) }
+                .mapNotNull { it.certificate }
+
+            if (certificateList.isEmpty()) {
+                return TrustState.UNTRUSTED
+            }
+
+            val validationResult = issuer.isTrustedBy(certificateList)
+
+            if (validationResult.isSuccess) TrustState.TRUSTED else TrustState.UNTRUSTED
+        } catch (e: Exception) {
+            Napier.e("Failed to evaluate issuer trust status due to unexpected error", e)
+            TrustState.UNKNOWN
         }
-        val criteria = LoTEFilterCriteria(expectedServiceType = serviceType)
-        val certificateList: List<X509Certificate> = trustLists
-            .flatMap { lote -> loTeFilterService.extractTrustedCertificates(lote.key, lote.value, criteria) }
-            .mapNotNull { it.certificate }
-
-        if (certificateList.isEmpty()) {
-            return TrustState.UNTRUSTED
-        }
-
-        val validationResult = issuer.isTrustedBy(certificateList)
-
-        if (validationResult.isSuccess) TrustState.TRUSTED else TrustState.UNTRUSTED
-    } catch (e: Exception) {
-        Napier.e("Failed to evaluate issuer trust status due to unexpected error", e)
-        TrustState.UNKNOWN
-    }
 
 
     /**
@@ -131,7 +137,7 @@ class TrustListService(
     }
 
     fun refreshAll(): Job = sessionCoroutineScope.launch {
-        LoTEServiceType.defaultUrls.forEach { url ->
+        defaultUrls.forEach { url ->
             syncSingleUrl(url)
         }
     }
