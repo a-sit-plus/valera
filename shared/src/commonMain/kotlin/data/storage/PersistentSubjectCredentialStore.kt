@@ -1,6 +1,5 @@
 package data.storage
 
-import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
 import at.asitplus.csc.serializers.Base64X509CertificateSerializer
 import at.asitplus.iso.IssuerSigned
@@ -11,27 +10,32 @@ import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.iden
 import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
-import at.asitplus.wallet.lib.agent.validation.CredentialFreshnessSummary
-import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.data.IsoMdocCredentialScheme
 import at.asitplus.wallet.lib.data.SdJwtCredentialScheme
 import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
 import at.asitplus.wallet.lib.data.VcJwtCredentialScheme
 import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
-import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatusValidationResult
 import io.github.aakira.napier.Napier
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlin.random.Random
 
+/**
+ * Serializing the credential container is CPU-intensive (in particular for ISO credentials whose
+ * issuer-signed items contain byte arrays and nested CBOR). Keep it away from UI dispatchers and
+ * serialize only one container at a time per process so multiple wallet sessions cannot saturate
+ * all available cores with duplicate work.
+ */
+private val credentialStoreSerializationDispatcher = Dispatchers.Default
+
 class PersistentSubjectCredentialStore(
     private val dataStore: DataStoreService,
-    private val validator: Validator
+    override val validator: Validator,
 ) : SubjectCredentialStore, WalletSubjectCredentialStore {
     private val container = this.observeStoreContainer()
 
@@ -91,56 +95,42 @@ class PersistentSubjectCredentialStore(
         addStoreEntry(it)
     }
 
-    override suspend fun getCredentials(
-        credentialSchemes: Collection<CredentialScheme>?,
-    ): KmmResult<List<SubjectCredentialStore.StoreEntry>> {
-        val latestCredentials = container.first().credentials.map { it.second }
-        return credentialSchemes?.let { schemes ->
-            KmmResult.success(latestCredentials.filter {
-                it.resolveScheme() in schemes
-            }.toList())
-        } ?: KmmResult.success(latestCredentials)
-    }
-
     private suspend fun exportToDataStore(newContainer: StoreContainer) {
-        val exportableCredentials = newContainer.credentials.map {
-            val storeEntry = it.second
-            it.first to when (storeEntry) {
-                is SubjectCredentialStore.StoreEntry.Iso -> {
-                    ExportableStoreEntry.Iso(
-                        issuerSigned = storeEntry.issuerSigned,
-                        renewalInfo = storeEntry.renewalInfo,
-                        schemeIdentifier = storeEntry.schemeIdentifier,
-                        issuer = storeEntry.issuer
-                    )
-                }
+        val json = withContext(credentialStoreSerializationDispatcher) {
+            val exportableCredentials = newContainer.credentials.map {
+                val storeEntry = it.second
+                it.first to when (storeEntry) {
+                    is SubjectCredentialStore.StoreEntry.Iso -> {
+                        ExportableStoreEntry.Iso(
+                            issuerSigned = storeEntry.issuerSigned,
+                            renewalInfo = storeEntry.renewalInfo,
+                            schemeIdentifier = storeEntry.schemeIdentifier,
+                        issuer = storeEntry.issuer)
+                    }
 
-                is SubjectCredentialStore.StoreEntry.SdJwt -> {
-                    ExportableStoreEntry.SdJwt(
-                        vcSerialized = storeEntry.vcSerialized,
-                        sdJwt = storeEntry.sdJwt,
-                        disclosures = storeEntry.disclosures,
-                        renewalInfo = storeEntry.renewalInfo,
-                        schemeIdentifier = storeEntry.schemeIdentifier,
-                        issuer = storeEntry.issuer
-                    )
-                }
+                    is SubjectCredentialStore.StoreEntry.SdJwt -> {
+                        ExportableStoreEntry.SdJwt(
+                            vcSerialized = storeEntry.vcSerialized,
+                            sdJwt = storeEntry.sdJwt,
+                            disclosures = storeEntry.disclosures,
+                            renewalInfo = storeEntry.renewalInfo,
+                            schemeIdentifier = storeEntry.schemeIdentifier,
+                        issuer = storeEntry.issuer)
+                    }
 
-                is SubjectCredentialStore.StoreEntry.Vc -> {
-                    ExportableStoreEntry.Vc(
-                        vcSerialized = storeEntry.vcSerialized,
-                        vc = storeEntry.vc,
-                        renewalInfo = storeEntry.renewalInfo,
-                        schemeIdentifier = storeEntry.schemeIdentifier,
-                        issuer = storeEntry.issuer
-                    )
+                    is SubjectCredentialStore.StoreEntry.Vc -> {
+                        ExportableStoreEntry.Vc(
+                            vcSerialized = storeEntry.vcSerialized,
+                            vc = storeEntry.vc,
+                            renewalInfo = storeEntry.renewalInfo,
+                            schemeIdentifier = storeEntry.schemeIdentifier,
+                        issuer = storeEntry.issuer)
+                    }
                 }
             }
+
+            joseCompliantSerializer.encodeToString(ExportableStoreContainer(exportableCredentials))
         }
-
-        val exportableContainer = ExportableStoreContainer(exportableCredentials)
-
-        val json = joseCompliantSerializer.encodeToString(exportableContainer)
         dataStore.setPreference(key = Configuration.DATASTORE_KEY_VCS, value = json)
     }
 
@@ -222,39 +212,13 @@ class PersistentSubjectCredentialStore(
 
     override fun observeStoreContainer(): Flow<StoreContainer> {
         return dataStore.getPreference(Configuration.DATASTORE_KEY_VCS).map {
-            dataStoreValueToStoreContainer(it)
-        }
-    }
-
-    /**
-     * Checks all stored credentials and returns a list of those that are no longer fresh.
-     * Returns a list of Pairs containing the unique StoreEntryId and the Entry itself.
-     */
-    override suspend fun getInvalidCredentials(): List<Pair<StoreEntryId, SubjectCredentialStore.StoreEntry>> {
-        val availableCredentials = container.first().credentials
-        if (availableCredentials.isEmpty()) return emptyList()
-
-        return coroutineScope {
-            val deferredStatus = availableCredentials.map { (id, entry) ->
-                (id to entry) to async {
-                    validator.checkCredentialFreshness(entry)
-                }
-            }
-
-            deferredStatus.map { (pair, deferred) ->
-                pair to deferred.await()
-            }.filter { (pair, freshness) ->
-                pair.second.renewalInfo != null && freshness.needsRefresh
-            }.map { (pair, _) ->
-                pair
+            withContext(credentialStoreSerializationDispatcher) {
+                dataStoreValueToStoreContainer(it)
             }
         }
     }
+
 }
-
-private val CredentialFreshnessSummary.needsRefresh: Boolean
-    get() = timelinessValidationSummary.isExpired ||
-            tokenStatusValidationResult is TokenStatusValidationResult.Invalid
 
 typealias StoreEntryId = Long
 
