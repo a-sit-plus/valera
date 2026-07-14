@@ -25,6 +25,14 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlin.random.Random
 
+/**
+ * Serializing the credential container is CPU-intensive (in particular for ISO credentials whose
+ * issuer-signed items contain byte arrays and nested CBOR). Keep it away from UI dispatchers and
+ * serialize only one container at a time per process so multiple wallet sessions cannot saturate
+ * all available cores with duplicate work.
+ */
+private val credentialStoreSerializationDispatcher = Dispatchers.Default
+
 class PersistentSubjectCredentialStore(
     private val dataStore: DataStoreService,
     override val validator: Validator,
