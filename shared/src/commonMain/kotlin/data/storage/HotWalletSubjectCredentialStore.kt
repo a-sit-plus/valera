@@ -1,6 +1,7 @@
 package data.storage
 
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.CredentialScheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,6 +28,9 @@ class HotWalletSubjectCredentialStore(
     )
 
     override fun observeStoreContainer(): Flow<StoreContainer> = hotStoreContainer.filterNotNull()
+
+    override suspend fun getCredentials(credentialSchemes: Collection<CredentialScheme>?) =
+        super<WalletSubjectCredentialStore>.getCredentials(credentialSchemes)
 
     override suspend fun removeStoreEntryById(
         storeEntryId: StoreEntryId,
