@@ -59,21 +59,12 @@ class TrustListService(
     private val aistIssuerCert = X509Certificate.decodeFromPem(asitRootPem).getOrThrow()
     private val loTeFilterService: LoTEFilterService = LoTEFilterService()
 
-
-    private val defaultUrls = listOf(
-        "https://acceptance.trust.tech.ec.europa.eu/lists/eudiw/pid-providers.json",
-        "https://acceptance.trust.tech.ec.europa.eu/lists/eudiw/wallet-providers.json",
-        "https://acceptance.trust.tech.ec.europa.eu/lists/eudiw/wrpac-providers.json",
-        "https://acceptance.trust.tech.ec.europa.eu/lists/eudiw/mdl-providers.json",
-        "https://acceptance.trust.tech.ec.europa.eu/lists/eudiw/pub-eaa-providers.json"
-    )
-
     fun observeTrustStateForEntry(
         storeEntryFlow: Flow<ResolvedCredential?>
     ): Flow<TrustState> =
         combine(
             storeEntryFlow,
-            persistentTrustListStore.observeTrustContainer(defaultUrls)
+            persistentTrustListStore.observeTrustContainer(LoTEServiceType.defaultUrls)
         ) { credential, trustLists ->
             val entry = credential?.entry ?: return@combine TrustState.EVALUATING
 
@@ -83,7 +74,7 @@ class TrustListService(
             val schemeType = scheme.vcType
                 ?: scheme.sdJwtType
                 ?: scheme.isoDocType
-            val serviceType = LoTEServiceType.fromSchemeType(schemeType) ?: return@combine TrustState.UNKNOWN
+            val serviceType = LoTEServiceType.fromSchemeType(schemeType)
 
             evaluateIssuer(issuer, trustLists, serviceType)
 
@@ -137,7 +128,7 @@ class TrustListService(
     }
 
     fun refreshAll(): Job = sessionCoroutineScope.launch {
-        defaultUrls.forEach { url ->
+        LoTEServiceType.defaultUrls.forEach { url ->
             syncSingleUrl(url)
         }
     }
