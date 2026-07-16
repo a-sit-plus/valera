@@ -1,6 +1,7 @@
 package ui.navigation
 
 import ErrorHandlingOverrideException
+import getPlatformName
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
@@ -217,7 +218,7 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
             onClickLogo = onClickLogo,
             koinScope = koinScope,
             onNavigateUp = navigator::invocationAwareBack,
-            showStartRoute = flow == SharedDestinationFlow.Wallet,
+            showStartRoute = shouldShowDcApiStartRoute(flow),
         )
     }
 
@@ -599,6 +600,11 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
         )
     }
 }
+
+internal fun shouldShowDcApiStartRoute(
+    flow: SharedDestinationFlow,
+    platformName: String = getPlatformName(),
+): Boolean = flow == SharedDestinationFlow.Wallet || platformName != "iOS"
 
 @Composable
 private fun LoadCredentialFromUrlContent(
