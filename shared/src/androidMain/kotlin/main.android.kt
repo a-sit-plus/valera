@@ -382,23 +382,25 @@ public class AndroidPlatformAdapter(
         } ?: throw IllegalStateException("DCAPIInvocationData not set")
     }
 
-    override fun prepareDCAPICredentialResponse(response: String, success: Boolean) {
+    override fun prepareDCAPICredentialResponse(response: DigitalCredentialInterface) {
         (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
-            sendCredentialResponseToInvoker(response, success)
-            intentState.dcapiInvocationData.value = null
+            val serializedResponse = response.toAndroidDcApiResponseJson()
+            Napier.d("Returning response $serializedResponse")
+            try {
+                sendCredentialResponseToInvoker(serializedResponse, true)
+            } finally {
+                intentState.dcapiInvocationData.value = null
+            }
         } ?: throw IllegalStateException("Callback for response not found")
     }
 
-    override fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean) {
+    override fun prepareDCAPICredentialError(error: String) {
         (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
-            intentState.dcapiInvocationData.value = null
-            Napier.d("Returning response $response to digital credentials API invoker")
-            val dcApiResponse = DCAPIResponse(response)
-            // Needs to be cast to DigitalCredentialInterface so that protocol member is serialized
-            val isoMdocResponse: DigitalCredentialInterface = IsoMdocResponse(dcApiResponse)
-            val serializedResponse = joseCompliantSerializer.encodeToString(isoMdocResponse)
-            Napier.d("Returning response $serializedResponse")
-            sendCredentialResponseToInvoker(serializedResponse, success)
+            try {
+                sendCredentialResponseToInvoker(error, false)
+            } finally {
+                intentState.dcapiInvocationData.value = null
+            }
         } ?: throw IllegalStateException("Callback for response not found")
     }
 

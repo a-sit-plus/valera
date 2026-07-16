@@ -4,6 +4,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import at.asitplus.openid.RequestParametersFrom
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope
 
@@ -17,14 +18,14 @@ fun DCAPIPresentationGraphView(
     showStartRoute: Boolean = true,
     viewModel: DCAPIPresentationGraphViewModel = koinViewModel(scope = koinScope),
 ) {
-    val isoMdocRequest = try {
+    val dcApiRequest = try {
         viewModel.dcApiWalletRequest.getOrThrow()
     } catch (it: Throwable) {
         return onError(it)
     }
 
-    val spName = isoMdocRequest.callingPackageName
-    val spLocation = isoMdocRequest.callingOrigin
+    val spName = dcApiRequest.callingPackageName
+    val spLocation = dcApiRequest.callingOrigin
 
     val authenticateAtRelyingParty = spLocation != "Local Presentation"
 
@@ -40,7 +41,7 @@ fun DCAPIPresentationGraphView(
         onClickLogo = onClickLogo,
         navigateUpIsClose = true,
         selectionProvider = matchingResult.map {
-            it.second
+            it.selectionProvider
         },
         submitPresentation = { it, navigate ->
             viewModel.confirmSelection(
@@ -49,15 +50,21 @@ fun DCAPIPresentationGraphView(
                 onSuccess = {
                     navigate(
                         PresentationSuccessRoute(
-                            redirectUrl = it.redirectUri,
+                            redirectUrl = null,
                             isCrossDeviceFlow = false,
                         )
                     )
                 }
             )
         },
-        transactionData = null,
-        presentationRequest = (matchingResult as? UiStateSuccess)?.value?.second
+        transactionData = when (dcApiRequest) {
+            is RequestParametersFrom.OpenId4VpDcApiUnsigned,
+            is RequestParametersFrom.OpenId4VpDcApiSigned,
+            is RequestParametersFrom.OpenId4VpDcApiMultiSigned -> dcApiRequest.parameters.transactionData?.firstOrNull()
+
+            is RequestParametersFrom.IsoMdocDcApi -> null
+        },
+        presentationRequest = (matchingResult as? UiStateSuccess)?.value?.selectionProvider
             ?.queryMatchingResult?.presentationRequest,
         showStartRoute = showStartRoute,
         fixedCredentialSelection = isoMdocRequest.credentialIds?.isNotEmpty() == true,

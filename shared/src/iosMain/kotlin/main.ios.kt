@@ -6,12 +6,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.window.ComposeUIViewController
 import at.asitplus.catching
 import at.asitplus.KmmResult
-import at.asitplus.dcapi.EncryptedResponse
+import at.asitplus.dcapi.DigitalCredentialInterface
+import at.asitplus.dcapi.toIosIsoMdocResponseBytes
 import at.asitplus.dcapi.ios.IosDcApiMdocPreRequestSummary
 import at.asitplus.dcapi.request.IsoMdocRequest
 import at.asitplus.dcapi.request.toRequestParametersFrom
 import at.asitplus.openid.RequestParametersFrom
-import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.PlatformAdapter
@@ -34,7 +34,6 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.encodeToByteArray
 import kotlin.coroutines.resume
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
@@ -410,19 +409,31 @@ class IosPlatformAdapter(
         throw IllegalStateException("Not supported by iOS")
     }
 
-    override fun prepareDCAPICredentialResponse(response: String, success: Boolean) {
-        Napier.w("Got error response: $response")
-        (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.onCancel()
+    override fun prepareDCAPICredentialResponse(response: DigitalCredentialInterface) {
+        val invocation = (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)
             ?: throw IllegalStateException("Callback for response not found")
+        try {
+            Napier.d("prepareDCAPICredentialResponse called with $response")
+            val encodedResponse = response.toIosIsoMdocResponseBytes()
+            invocation.sendCredentialResponse.invoke(encodedResponse.toNSData())
+        } catch (throwable: Throwable) {
+            invocation.onCancel()
+            throw throwable
+        } finally {
+            IosSessionBridge.clearDcapiInvocation()
+        }
     }
 
-    override fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean) =
-        (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let {
-            Napier.d("prepareDCAPICredentialResponse called with $response")
-            val encodedResponse = coseCompliantSerializer.encodeToByteArray(response)
-            it.sendCredentialResponse.invoke(encodedResponse.toNSData())
+    override fun prepareDCAPICredentialError(error: String) {
+        Napier.w("Got error response: $error")
+        val invocation = (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)
+            ?: throw IllegalStateException("Callback for response not found")
+        try {
+            invocation.onCancel()
+        } finally {
             IosSessionBridge.clearDcapiInvocation()
-        } ?: throw IllegalStateException("Callback for response not found")
+        }
+    }
 
     override fun prepareDCAPIIssuingResponse(response: String, success: Boolean) {
         Napier.w("DC API issuing not supported by iOS")

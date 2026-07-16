@@ -18,6 +18,7 @@ import at.asitplus.wallet.lib.cbor.SignCoseDetached
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
+import at.asitplus.wallet.lib.openid.DcApiPreparationState
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import kotlinx.serialization.builtins.ByteArraySerializer
@@ -46,9 +47,11 @@ class PresentationService(
         preparationState: AuthorizationResponsePreparationState
     ) = presentationService.getMatchingCredentials(preparationState)
 
-    suspend fun getMatchingCredentials(
-        request: RequestParametersFrom.IsoMdocDcApi
-    ) = presentationService.getMatchingCredentials(request)
+    suspend fun prepareDcApiRequest(request: RequestParametersFrom.DcApiRequest) =
+        presentationService.prepareDcApiRequest(request)
+
+    suspend fun getMatchingCredentials(preparationState: DcApiPreparationState) =
+        presentationService.getMatchingCredentials(preparationState)
 
     suspend fun finalizeAuthorizationResponse(
         credentialPresentation: CredentialPresentation,
@@ -58,22 +61,17 @@ class PresentationService(
         preparationState = preparationState
     ).getOrThrow()
 
-    @OptIn(ExperimentalStdlibApi::class)
-    suspend fun finalizeIsoMdocDCAPIPresentation(
-        credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
-        isoMdocWalletRequest: RequestParametersFrom.IsoMdocDcApi
-    ): OpenId4VpWallet.AuthenticationSuccess {
+    suspend fun finalizeDcApiPresentation(
+        credentialPresentation: CredentialPresentation,
+        preparationState: DcApiPreparationState,
+    ) {
         Napier.d("Finalizing DCAPI response")
-        val encryptedResponse = presentationService.finalizeIso180137AnnexCResponse(
-            request = isoMdocWalletRequest,
+        val response = presentationService.finalizeDcApiResponse(
+            state = preparationState,
             credentialPresentation = credentialPresentation,
         ).getOrThrow()
-        platformAdapter.prepareIsoMdocDCAPICredentialResponse(encryptedResponse, true)
-        return OpenId4VpWallet.AuthenticationSuccess()
+        platformAdapter.prepareDCAPICredentialResponse(response)
     }
-
-    fun finalizeOpenId4VpDCAPIPresentation(response: String) =
-        platformAdapter.prepareDCAPICredentialResponse(response, true)
 
     @OptIn(ExperimentalStdlibApi::class)
     suspend fun finalizeLocalPresentation(

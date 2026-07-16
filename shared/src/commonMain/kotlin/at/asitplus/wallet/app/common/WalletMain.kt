@@ -2,7 +2,7 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
-import at.asitplus.dcapi.EncryptedResponse
+import at.asitplus.dcapi.DigitalCredentialInterface
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
@@ -283,21 +283,11 @@ interface PlatformAdapter {
      */
     fun getCurrentDCAPIIssuingData(): KmmResult<DCAPIIssuingRequest>
 
-    /**
-     * Returns a Digital Credentials API credential response (OpenID4VP / generic) to the invoker.
-     *
-     * @param response serialized response payload
-     * @param success whether the request completed successfully
-     */
-    fun prepareDCAPICredentialResponse(response: String, success: Boolean)
+    /** Returns a successful Digital Credentials API response to the invoker. */
+    fun prepareDCAPICredentialResponse(response: DigitalCredentialInterface)
 
-    /**
-     * Returns an ISO mdoc Digital Credentials API response to the invoker.
-     *
-     * @param response encrypted ISO mdoc response payload
-     * @param success whether the request completed successfully
-     */
-    fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean)
+    /** Returns a Digital Credentials API error to the invoker. */
+    fun prepareDCAPICredentialError(error: String)
 
     /**
      * Returns a Digital Credentials API issuing response to the invoker.
@@ -354,10 +344,10 @@ class DummyPlatformAdapter : PlatformAdapter {
         return KmmResult.failure(IllegalStateException("Using dummy platform adapter"))
     }
 
-    override fun prepareDCAPICredentialResponse(response: String, success: Boolean) {
+    override fun prepareDCAPICredentialResponse(response: DigitalCredentialInterface) {
     }
 
-    override fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean) {
+    override fun prepareDCAPICredentialError(error: String) {
     }
 
     override fun prepareDCAPIIssuingResponse(response: String, success: Boolean) {

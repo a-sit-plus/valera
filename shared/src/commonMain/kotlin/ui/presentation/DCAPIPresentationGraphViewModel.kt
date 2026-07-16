@@ -5,8 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import at.asitplus.catching
-import at.asitplus.openid.RequestParametersFrom
-import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.signum.supreme.UserInitiatedCancellationReason
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
@@ -15,7 +13,7 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
+import at.asitplus.wallet.lib.openid.DcApiPreparationState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -30,26 +28,29 @@ class DCAPIPresentationGraphViewModel(
 ) : ViewModel() {
     val route = savedStateHandle.toRoute<DCAPIPresentationViewRoute>()
 
+    val dcApiWalletRequest = catching { route.request }
+
     val trustListService = walletMain.trustListService
-    val apiRequestSerialized = route.apiRequestSerialized
 
-    val dcApiWalletRequest = catching {
-        joseCompliantSerializer.decodeFromString<RequestParametersFrom.IsoMdocDcApi>(apiRequestSerialized)
-    }
-
-    val selectionProvider = MutableStateFlow<UiState<Pair<RequestParametersFrom.IsoMdocDcApi, CredentialSelectionProvider<SubjectCredentialStore.StoreEntry>>>>(
+    val selectionProvider = MutableStateFlow<UiState<DcApiPresentationUiState>>(
         UiStateLoading
     ).apply {
         viewModelScope.launch {
             value = try {
                 val unwrappedDcApiWalletRequest = dcApiWalletRequest.getOrThrow()
-                val matchingResult = walletMain.presentationService.getMatchingCredentials(
+                val preparationState = walletMain.presentationService.prepareDcApiRequest(
                     unwrappedDcApiWalletRequest
                 ).getOrThrow()
+                val matchingResult = walletMain.presentationService.getMatchingCredentials(
+                    preparationState
+                ).getOrThrow()
                 UiStateSuccess(
-                    unwrappedDcApiWalletRequest to matchingResult.toCredentialSelectionProvider(viewModelScope) {
-                        walletMain.checkCredentialFreshness(it)
-                    }
+                    DcApiPresentationUiState(
+                        preparationState = preparationState,
+                        selectionProvider = matchingResult.toCredentialSelectionProvider(viewModelScope) {
+                            walletMain.checkCredentialFreshness(it)
+                        },
+                    )
                 )
             } catch (it: Throwable) {
                 UiStateError(it)
@@ -59,11 +60,11 @@ class DCAPIPresentationGraphViewModel(
 
     fun confirmSelection(
         credentialPresentationSubmissions: CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>,
-        onSuccess: (OpenId4VpWallet.AuthenticationSuccess) -> Unit,
+        onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-        val (request, matchingResult) = (selectionProvider.value as? UiStateSuccess)?.value ?: return
-        val presentationRequest = matchingResult.queryMatchingResult.presentationRequest
+        val uiState = (selectionProvider.value as? UiStateSuccess)?.value ?: return
+        val presentationRequest = uiState.selectionProvider.queryMatchingResult.presentationRequest
         val presentation = try {
             when (credentialPresentationSubmissions) {
                 is DCQLCredentialSubmissions -> CredentialPresentation.DCQLPresentation(
@@ -81,11 +82,11 @@ class DCAPIPresentationGraphViewModel(
         }
         viewModelScope.launch {
             try {
-                val result = finalizeAuthorization(
+                finalizeAuthorization(
                     credentialPresentation = presentation,
-                    request = request,
+                    preparationState = uiState.preparationState,
                 )
-                onSuccess(result)
+                onSuccess()
             } catch (_: UserInitiatedCancellationReason) {
                 walletMain.snackbarService.showSnackbar(
                     getString(Res.string.warning_authentication_cancelled)
@@ -98,24 +99,18 @@ class DCAPIPresentationGraphViewModel(
 
     private suspend fun finalizeAuthorization(
         credentialPresentation: CredentialPresentation,
-        request: RequestParametersFrom.IsoMdocDcApi
-    ): OpenId4VpWallet.AuthenticationSuccess {
+        preparationState: DcApiPreparationState,
+    ) {
         walletMain.keyMaterial.promptText =
             getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
-        return finalizationMethod(
-            credentialPresentation,
-            request = request,
+        walletMain.presentationService.finalizeDcApiPresentation(
+            credentialPresentation = credentialPresentation,
+            preparationState = preparationState,
         )
     }
-
-    private suspend fun finalizationMethod(
-        credentialPresentation: CredentialPresentation,
-        request: RequestParametersFrom.IsoMdocDcApi
-    ): OpenId4VpWallet.AuthenticationSuccess = walletMain.presentationService.finalizeIsoMdocDCAPIPresentation(
-        credentialPresentation = when (credentialPresentation) {
-            is CredentialPresentation.PresentationExchangePresentation -> credentialPresentation
-            else -> throw IllegalArgumentException()
-        },
-        isoMdocWalletRequest = request,
-    )
 }
+
+data class DcApiPresentationUiState(
+    val preparationState: DcApiPreparationState,
+    val selectionProvider: CredentialSelectionProvider<SubjectCredentialStore.StoreEntry>,
+)
