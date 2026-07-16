@@ -55,9 +55,11 @@ class TrustListService(
 ) {
     private var job: Job? = null
     private val client = httpService.buildHttpClient()
+
     // A-SIT trust list
     private val aistIssuerCert = X509Certificate.decodeFromPem(asitRootPem).getOrThrow()
     private val loTeFilterService: LoTEFilterService = LoTEFilterService()
+
 
     fun observeTrustStateForEntry(
         storeEntryFlow: Flow<ResolvedCredential?>
@@ -67,17 +69,14 @@ class TrustListService(
             persistentTrustListStore.observeTrustContainer(LoTEServiceType.defaultUrls)
         ) { credential, trustLists ->
             val entry = credential?.entry ?: return@combine TrustState.EVALUATING
-
             val issuer = entry.issuer ?: return@combine TrustState.UNKNOWN
             val scheme = entry.resolveScheme()
-
-            val schemeType = scheme.vcType
+            val schemeIdentifier = scheme.vcType
                 ?: scheme.sdJwtType
                 ?: scheme.isoDocType
-            val serviceType = LoTEServiceType.fromSchemeType(schemeType)
+            val serviceType = LoTEServiceType.fromSchemeIdentifier(schemeIdentifier)
 
             evaluateIssuer(issuer, trustLists, serviceType)
-
         }
 
 
@@ -103,7 +102,6 @@ class TrustListService(
             }
 
             val validationResult = issuer.isTrustedBy(certificateList)
-
             if (validationResult.isSuccess) TrustState.TRUSTED else TrustState.UNTRUSTED
         } catch (e: Exception) {
             Napier.e("Failed to evaluate issuer trust status due to unexpected error", e)
