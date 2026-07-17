@@ -469,4 +469,12 @@
     <string name="trust_status_unknown">Vertrauensstatus unbekannt</string>
     <string name="trust_status_evaluating">Vertrauensstatus wird geprüft…</string>
 
+    <string name="section_heading_issuer_trust">Issuer Trust Details</string>
+    <string name="section_heading_issuer_trust_icon_text">🛡️</string>
+    <string name="text_label_issued_by">Issuer</string>
+    <string name="text_label_trust_status">Status</string>
+    <string name="text_label_thumbprint">SHA-256 Fingerprint</string>
+    <string name="text_label_serial_number">Serial Number</string>
+    <string name="text_label_signature_algorithm">Signature Algorithm</string>
+
 </resources>
