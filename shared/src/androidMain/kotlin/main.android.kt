@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
+import android.util.Base64
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,6 +56,7 @@ import org.multipaz.prompt.PromptModel
 import ui.theme.darkScheme
 import ui.theme.lightScheme
 import java.io.File
+import java.security.MessageDigest
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 
@@ -305,11 +307,29 @@ public class AndroidPlatformAdapter(
     private fun resolveCallingAppMetadata(callingAppInfo: CallingAppInfo): CallingAppMetadata {
         val privilegedUserAgents = loadPrivilegedUserAgents()
         val callingOrigin = callingAppInfo.getOrigin(privilegedUserAgents)
-            ?: throw IllegalArgumentException("DC API: Calling app origin unknown")
+            ?: callingAppInfo.toAndroidAppOrigin()
         return CallingAppMetadata(
             packageName = callingAppInfo.packageName,
             origin = callingOrigin
         )
+    }
+
+    private fun CallingAppInfo.toAndroidAppOrigin(): String {
+        val currentSignatures = if (signingInfoCompat.hasMultipleSigners) {
+            signingInfoCompat.apkContentsSigners
+        } else {
+            signingInfoCompat.signingCertificateHistory.take(1)
+        }
+        require(currentSignatures.size == 1) {
+            "DC API: Calling app must have exactly one current signing certificate"
+        }
+        val certificateHash = MessageDigest.getInstance("SHA-256")
+            .digest(currentSignatures.single().toByteArray())
+        val encodedHash = Base64.encodeToString(
+            certificateHash,
+            Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP
+        )
+        return "android:apk-key-hash:$encodedHash"
     }
 
     @OptIn(ExperimentalDigitalCredentialApi::class, ExperimentalEncodingApi::class)
