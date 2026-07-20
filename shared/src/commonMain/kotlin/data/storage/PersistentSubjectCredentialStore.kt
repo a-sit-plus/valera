@@ -25,14 +25,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlin.random.Random
 
-/**
- * Serializing the credential container is CPU-intensive (in particular for ISO credentials whose
- * issuer-signed items contain byte arrays and nested CBOR). Keep it away from UI dispatchers and
- * serialize only one container at a time per process so multiple wallet sessions cannot saturate
- * all available cores with duplicate work.
- */
-private val credentialStoreSerializationDispatcher = Dispatchers.Default
-
 class PersistentSubjectCredentialStore(
     private val dataStore: DataStoreService,
     override val validator: Validator,
@@ -96,7 +88,7 @@ class PersistentSubjectCredentialStore(
     }
 
     private suspend fun exportToDataStore(newContainer: StoreContainer) {
-        val json = withContext(credentialStoreSerializationDispatcher) {
+        val json = withContext(Dispatchers.Default) {
             val exportableCredentials = newContainer.credentials.map {
                 val storeEntry = it.second
                 it.first to when (storeEntry) {
@@ -105,7 +97,8 @@ class PersistentSubjectCredentialStore(
                             issuerSigned = storeEntry.issuerSigned,
                             renewalInfo = storeEntry.renewalInfo,
                             schemeIdentifier = storeEntry.schemeIdentifier,
-                        issuer = storeEntry.issuer)
+                            issuer = storeEntry.issuer
+                        )
                     }
 
                     is SubjectCredentialStore.StoreEntry.SdJwt -> {
@@ -115,7 +108,8 @@ class PersistentSubjectCredentialStore(
                             disclosures = storeEntry.disclosures,
                             renewalInfo = storeEntry.renewalInfo,
                             schemeIdentifier = storeEntry.schemeIdentifier,
-                        issuer = storeEntry.issuer)
+                            issuer = storeEntry.issuer
+                        )
                     }
 
                     is SubjectCredentialStore.StoreEntry.Vc -> {
@@ -124,7 +118,8 @@ class PersistentSubjectCredentialStore(
                             vc = storeEntry.vc,
                             renewalInfo = storeEntry.renewalInfo,
                             schemeIdentifier = storeEntry.schemeIdentifier,
-                        issuer = storeEntry.issuer)
+                            issuer = storeEntry.issuer
+                        )
                     }
                 }
             }
@@ -212,7 +207,7 @@ class PersistentSubjectCredentialStore(
 
     override fun observeStoreContainer(): Flow<StoreContainer> {
         return dataStore.getPreference(Configuration.DATASTORE_KEY_VCS).map {
-            withContext(credentialStoreSerializationDispatcher) {
+            withContext(Dispatchers.Default) {
                 dataStoreValueToStoreContainer(it)
             }
         }
@@ -243,9 +238,11 @@ private data class OldExportableStoreContainer(
 @Serializable
 private sealed interface ExportableStoreEntry {
     val renewalInfo: CredentialRenewalInfo?
+
     // has been added nullable to not break de-serializing existing store entries
     val schemeIdentifier: String?
     val issuer: X509Certificate?
+
     @Serializable
     data class Vc(
         val vcSerialized: String,
