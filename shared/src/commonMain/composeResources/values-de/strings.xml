@@ -474,5 +474,6 @@
     <string name="text_label_issued_by">Aussteller</string>
     <string name="text_label_trust_status">Status</string>
     <string name="text_label_thumbprint">SHA-256-Fingerabdruck</string>
+    <string name="text_label_trust_list_urls">Vertrauenslisten-URLs</string>
 
 </resources>

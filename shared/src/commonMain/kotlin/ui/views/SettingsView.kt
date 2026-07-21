@@ -42,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -69,8 +70,10 @@ import at.asitplus.valera.resources.text_label_build
 import at.asitplus.valera.resources.text_label_client_identifier
 import at.asitplus.valera.resources.text_label_openid4vp_allowed_origin_schemes
 import at.asitplus.valera.resources.text_supporting_openid4vp_allowed_origin_schemes
+import at.asitplus.valera.resources.text_label_trust_list_urls
 import at.asitplus.valera.resources.warning
 import at.asitplus.wallet.app.common.BuildType
+import at.asitplus.wallet.lib.etsi.LoTEServiceType
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -78,6 +81,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope
 import ui.composables.CircularProgressIndicatorOverlay
 import ui.composables.DelayedComposable
+import ui.composables.LabeledText
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
@@ -269,6 +273,26 @@ fun SettingsView(
                                 )
                             },
                         )
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 12.dp)
+                        ) {
+                            Text(
+                                text = stringResource(Res.string.text_label_trust_list_urls),
+                                style = MaterialTheme.typography.titleSmall,
+                                modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
+                            )
+                            LoTEServiceType.defaultUrls.forEach { url ->
+                                Text(
+                                    text = url,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(start = 32.dp, top = 2.dp, bottom = 2.dp)
+                                )
+                            }
+                        }
                     }
 
                     Column(
