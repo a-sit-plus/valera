@@ -30,17 +30,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import at.asitplus.catching
 import at.asitplus.signum.indispensable.Digest
-import at.asitplus.signum.indispensable.X509SignatureAlgorithm
-import at.asitplus.signum.indispensable.asn1.KnownOIDs
-import at.asitplus.signum.indispensable.asn1.commonName
 import at.asitplus.signum.indispensable.asn1.encoding.decodeToString
-import at.asitplus.signum.indispensable.asn1.encoding.encodeToAsn1ContentBytes
-import at.asitplus.signum.indispensable.asn1.organizationName
 import at.asitplus.signum.indispensable.pki.AttributeTypeAndValue
 import at.asitplus.signum.indispensable.pki.X509Certificate
-import at.asitplus.signum.indispensable.requireSupported
 import at.asitplus.signum.supreme.hash.digest
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_hide_technical_details
@@ -48,7 +41,6 @@ import at.asitplus.valera.resources.button_label_show_technical_details
 import at.asitplus.valera.resources.section_heading_issuer_trust
 import at.asitplus.valera.resources.section_heading_issuer_trust_icon_text
 import at.asitplus.valera.resources.text_label_issued_by
-import at.asitplus.valera.resources.text_label_serial_number
 import at.asitplus.valera.resources.text_label_thumbprint
 import at.asitplus.valera.resources.text_label_trust_status
 import at.asitplus.valera.resources.text_label_valid_from
@@ -134,7 +126,7 @@ fun IssuerTrustDetailsCard(
                             label = stringResource(Res.string.text_label_thumbprint),
                             content = {
                                 Text(
-                                    text = digest.toString(),
+                                    text = digest,
                                     softWrap = true,
                                 )
                             },
