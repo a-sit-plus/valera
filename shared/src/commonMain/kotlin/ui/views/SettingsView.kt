@@ -70,7 +70,6 @@ import at.asitplus.valera.resources.text_label_build
 import at.asitplus.valera.resources.text_label_client_identifier
 import at.asitplus.valera.resources.text_label_openid4vp_allowed_origin_schemes
 import at.asitplus.valera.resources.text_supporting_openid4vp_allowed_origin_schemes
-import at.asitplus.valera.resources.text_label_trust_list_urls
 import at.asitplus.valera.resources.warning
 import at.asitplus.wallet.app.common.BuildType
 import at.asitplus.wallet.lib.etsi.LoTEServiceType
