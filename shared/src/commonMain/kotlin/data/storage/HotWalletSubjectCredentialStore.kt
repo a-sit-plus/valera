@@ -30,7 +30,7 @@ class HotWalletSubjectCredentialStore(
     override fun observeStoreContainer(): Flow<StoreContainer> = hotStoreContainer.filterNotNull()
 
     override suspend fun getCredentials(credentialSchemes: Collection<CredentialScheme>?) =
-        super<WalletSubjectCredentialStore>.getCredentials(credentialSchemes)
+        super.getCredentials(credentialSchemes)
 
     override suspend fun removeStoreEntryById(
         storeEntryId: StoreEntryId,

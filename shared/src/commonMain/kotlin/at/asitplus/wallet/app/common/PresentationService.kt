@@ -120,10 +120,12 @@ class PresentationService(
         val presentation =
             presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
 
-        val deviceResponse = when (val firstResult = presentation.presentationResults.firstOrNull()
-            ?: throw PresentationException(IllegalStateException("Presentation did not return any device response"))) {
+        val deviceResponse = when (val result = presentation.presentationResults.singleOrNull()
+            ?: throw PresentationException(
+                IllegalStateException("Local presentation must return exactly one device response")
+            )) {
             is CreatePresentationResult.DeviceResponse -> coseCompliantSerializer.encodeToByteArray(
-                firstResult.deviceResponse
+                result.deviceResponse
             )
 
             else -> throw PresentationException(IllegalStateException("Must be a device response"))
