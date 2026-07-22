@@ -1,0 +1,37 @@
+iOS ISO 18013-7 Annex C error handling
+=======================================
+
+iOS uses ISO 18013-7 Annex C, not OpenID4VP. Errors in this flow must not be
+serialized as OAuth/OpenID4VP invalid_request responses.
+
+Desired handling:
+
+- Call ISO18013MobileDocumentRequestContext.cancel() when the user rejects or
+  exits the presentation.
+- If parsing, parsed/raw request consistency, origin, reader authentication, or
+  another security validation fails after the raw request is released, throw
+  from the async-throwing sendResponse closure and terminate the transaction.
+- If a successfully processed request requires a protocol-level negative
+  response, return a valid ISO DeviceResponse with the applicable ISO 18013-5
+  response status or document/data error. Never return OAuth JSON or empty
+  response bytes.
+
+Current gap:
+
+- IosDCAPIInvocationData only supports sending response bytes or calling
+  onCancel.
+- DocumentProviderExtension waits for response bytes with a non-throwing
+  continuation.
+- Kotlin's prepareDCAPICredentialError() treats every error as cancellation.
+
+TODO:
+
+- Replace the iOS bridge's response-only callback with a completion path that
+  can return either ISO response bytes or a validation failure.
+- Use a throwing continuation in DocumentProviderExtension and resume it by
+  throwing when Kotlin reports a late validation/security failure.
+- Keep explicit user cancellation separate from validation failure.
+- Map protocol-level ISO failures to a valid DeviceResponse where appropriate.
+- Ensure every continuation is resumed exactly once and transient invocation
+  state is cleared on success, validation failure, cancellation, and framework
+  failure.
