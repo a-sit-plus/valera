@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import ui.models.CredentialFreshnessValidationStateUiModel
+import ui.models.CredentialFreshnessValidationStateUiModel.Done
+import ui.models.CredentialFreshnessValidationStateUiModel.Loading
 import ui.models.toCredentialFreshnessSummaryModel
 
 data class CredentialSelectionProvider<Credential : Any>(
@@ -22,16 +24,12 @@ fun <Credential : Any> CredentialMatchingResult<Credential>.toCredentialSelectio
     queryMatchingResult = this,
     credentialFreshnessProviders = this.matchingResult.credentials.map {
         flow {
-            emit(CredentialFreshnessValidationStateUiModel.Loading)
-            emit(
-                CredentialFreshnessValidationStateUiModel.Done(
-                    checkCredentialFreshness(it).toCredentialFreshnessSummaryModel()
-                )
-            )
+            emit(Loading)
+            emit(Done(checkCredentialFreshness(it).toCredentialFreshnessSummaryModel()))
         }.stateIn(
             scope = scope,
             started = SharingStarted.WhileSubscribed(60_000),
-            initialValue = CredentialFreshnessValidationStateUiModel.Loading,
+            initialValue = Loading,
         )
     }
 )
