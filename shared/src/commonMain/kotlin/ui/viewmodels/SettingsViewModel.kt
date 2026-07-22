@@ -33,6 +33,13 @@ class SettingsViewModel(
     private val clientIdInput = MutableStateFlow(SettingsRepository.DEFAULT_CLIENT_ID)
     val clientIdInputState = clientIdInput.asStateFlow()
 
+    val defaultOpenId4VpAllowedOriginSchemes =
+        walletMain.settingsRepository.defaultOpenId4VpAllowedOriginSchemes
+    private val openId4VpAllowedOriginSchemesInput = MutableStateFlow(
+        defaultOpenId4VpAllowedOriginSchemes.toInputString()
+    )
+    val openId4VpAllowedOriginSchemesInputState = openId4VpAllowedOriginSchemesInput.asStateFlow()
+
     init {
         viewModelScope.launch {
             clientId.collectLatest { value ->
@@ -49,6 +56,24 @@ class SettingsViewModel(
                     walletMain.settingsRepository.set(clientId = value)
                 }
         }
+        viewModelScope.launch {
+            walletMain.settingsRepository.openId4VpAllowedOriginSchemes.collectLatest { value ->
+                val input = value.toInputString()
+                if (openId4VpAllowedOriginSchemesInput.value != input) {
+                    openId4VpAllowedOriginSchemesInput.value = input
+                }
+            }
+        }
+        viewModelScope.launch {
+            openId4VpAllowedOriginSchemesInput
+                .debounce(400)
+                .distinctUntilChanged()
+                .collectLatest { value ->
+                    walletMain.settingsRepository.set(
+                        openId4VpAllowedOriginSchemes = value.toOriginSchemeSet()
+                    )
+                }
+        }
     }
 
     fun updateClientIdInput(value: String) {
@@ -57,6 +82,14 @@ class SettingsViewModel(
 
     fun resetClientIdToDefault() {
         clientIdInput.value = SettingsRepository.DEFAULT_CLIENT_ID
+    }
+
+    fun updateOpenId4VpAllowedOriginSchemesInput(value: String) {
+        openId4VpAllowedOriginSchemesInput.value = value
+    }
+
+    fun resetOpenId4VpAllowedOriginSchemesToDefault() {
+        openId4VpAllowedOriginSchemesInput.value = defaultOpenId4VpAllowedOriginSchemes.toInputString()
     }
 
     fun showGlobalSnackbar(
@@ -93,3 +126,12 @@ class SettingsViewModel(
         }
     }
 }
+
+private fun Set<String>.toInputString(): String = sorted().joinToString(",")
+
+private fun String.toOriginSchemeSet(): Set<String> =
+    filterNot { it.isWhitespace() }
+        .split(',', '\n')
+        .map { it.trimEnd(':').lowercase() }
+        .filter { it.isNotEmpty() }
+        .toSet()

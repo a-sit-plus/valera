@@ -3,6 +3,7 @@ package at.asitplus.wallet.app.common
 import at.asitplus.catchingUnwrapped
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.data.SettingsRepository
+import at.asitplus.wallet.lib.openid.OpenId4VpHolder
 import data.storage.DataStoreService
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CompletionHandler
@@ -21,7 +22,8 @@ import kotlin.time.Duration.Companion.seconds
  */
 class WalletConfig(
     val dataStoreService: DataStoreService,
-    val errorService: ErrorService
+    val errorService: ErrorService,
+    buildType: BuildType = BuildType.RELEASE,
 ) : SettingsRepository {
     private val configMutex = Mutex()
 
@@ -51,6 +53,13 @@ class WalletConfig(
     override val presentmentAllowMultipleRequests: Flow<Boolean> = config.map { it.presentmentAllowMultipleRequests }
     override val readerAutomaticallySelectTransport: Flow<Boolean> = config.map { it.readerAutomaticallySelectTransport }
     override val connectionTimeout: Flow<Duration> = config.map { it.connectionTimeout }
+    override val defaultOpenId4VpAllowedOriginSchemes: Set<String> = buildSet {
+        addAll(OpenId4VpHolder.DEFAULT_ALLOWED_DC_API_ORIGIN_SCHEMES)
+        if (buildType == BuildType.DEBUG) add(HTTP_ORIGIN_SCHEME)
+    }
+    override val openId4VpAllowedOriginSchemes: Flow<Set<String>> = config.map {
+        it.openId4VpAllowedOriginSchemes ?: defaultOpenId4VpAllowedOriginSchemes
+    }
 
     override fun setPresentmentBleEnabled(enabled: Boolean): Result<Unit> =
         updateConfig { current ->
@@ -115,6 +124,7 @@ class WalletConfig(
         presentmentAllowMultipleRequests: Boolean?,
         readerAutomaticallySelectTransport: Boolean?,
         connectionTimeout: Duration?,
+        openId4VpAllowedOriginSchemes: Set<String>?,
         completionHandler: CompletionHandler
     ): Result<Unit> =
         updateConfig { current ->
@@ -158,6 +168,8 @@ class WalletConfig(
                 readerAutomaticallySelectTransport = readerAutomaticallySelectTransport
                     ?: current.readerAutomaticallySelectTransport,
                 connectionTimeout = connectionTimeout ?: current.connectionTimeout,
+                openId4VpAllowedOriginSchemes = openId4VpAllowedOriginSchemes
+                    ?: current.openId4VpAllowedOriginSchemes,
             )
         }
 
@@ -208,6 +220,7 @@ class WalletConfig(
         private const val BLE_CENTRAL_CLIENT_MODE = "ble:central_client_mode:"
         private const val BLE_PERIPHERAL_SERVER_MODE = "ble:peripheral_server_mode:"
         private const val NFC_DATA_TRANSFER = "nfc:"
+        private const val HTTP_ORIGIN_SCHEME = "http"
     }
 }
 
@@ -233,4 +246,5 @@ private data class ConfigData(
     val presentmentAllowMultipleRequests: Boolean = false,
     val readerAutomaticallySelectTransport: Boolean = true,
     val connectionTimeout: Duration = 30.seconds, // ISO 18013-5 9.4: "the time-out should be no less than 30 seconds"
+    val openId4VpAllowedOriginSchemes: Set<String>? = null,
 )

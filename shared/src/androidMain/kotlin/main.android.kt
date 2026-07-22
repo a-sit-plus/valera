@@ -40,6 +40,7 @@ import at.asitplus.wallet.app.android.dcapi.CustomRegistry
 import at.asitplus.wallet.app.common.*
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
+import at.asitplus.wallet.lib.openid.OpenId4VpHolder
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -329,7 +330,7 @@ public class AndroidPlatformAdapter(
             certificateHash,
             Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP
         )
-        return "android:apk-key-hash:$encodedHash"
+        return "${OpenId4VpHolder.ANDROID_APK_KEY_HASH_ORIGIN_SCHEME}:$encodedHash"
     }
 
     @OptIn(ExperimentalDigitalCredentialApi::class)
