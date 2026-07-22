@@ -31,6 +31,7 @@ import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthnResponseResult
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import at.asitplus.wallet.lib.openid.ClientIdScheme
+import at.asitplus.wallet.lib.openid.CreationOptions
 import at.asitplus.wallet.lib.openid.CredentialPresentationRequestBuilder
 import at.asitplus.wallet.lib.openid.DCQLMatchingResult
 import at.asitplus.wallet.lib.openid.OpenId4VpRequestOptions
@@ -134,7 +135,7 @@ class UnknownSchemeDcqlPresentationTest {
                 responseMode = ResponseMode.DirectPost,
                 responseUrl = RESPONSE_URL,
             ),
-            OpenId4VpVerifier.CreationOptions.Query("http://wallet.example.com/"),
+            CreationOptions.Query("http://wallet.example.com/"),
         ).getOrThrow().url
 
         var responseValidation: KmmResult<AuthnResponseResult>? = null

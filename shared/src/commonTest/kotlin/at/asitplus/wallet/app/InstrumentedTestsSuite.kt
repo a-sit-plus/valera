@@ -58,12 +58,12 @@ import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
 import at.asitplus.wallet.lib.data.AttributeIndex
-import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.SD_JWT
 import at.asitplus.wallet.lib.data.SdJwtCredentialScheme
 import at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme
 import at.asitplus.wallet.lib.data.rfc3986.toUri
 import at.asitplus.wallet.lib.openid.ClientIdScheme
+import at.asitplus.wallet.lib.openid.CreationOptions
 import at.asitplus.wallet.lib.openid.CredentialPresentationRequestBuilder
 import at.asitplus.wallet.lib.openid.OpenId4VpRequestOptions
 import at.asitplus.wallet.lib.openid.OpenId4VpVerifier
@@ -279,7 +279,7 @@ private suspend fun createLocalPresentationRequest(): LocalPresentationRequest {
     return LocalPresentationRequest(
         url = verifier.createAuthnRequest(
             requestOptions = requestOptions,
-            creationOptions = OpenId4VpVerifier.CreationOptions.Query("https://wallet.example.org/authorize"),
+            creationOptions = CreationOptions.Query("https://wallet.example.org/authorize"),
         ).getOrThrow().url,
         verifier = verifier,
     )

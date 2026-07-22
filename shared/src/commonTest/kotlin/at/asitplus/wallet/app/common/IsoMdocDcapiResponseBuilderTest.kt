@@ -13,6 +13,7 @@ import at.asitplus.iso.sha256
 import at.asitplus.iso.wrapInCborTag
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.openid.dcql.DCQLClaimsPathPointer
+import at.asitplus.openid.dcql.toIso180137AnnexCDeviceRequest
 import at.asitplus.signum.indispensable.CryptoPrivateKey
 import at.asitplus.signum.indispensable.ECCurve
 import at.asitplus.signum.indispensable.SecretExposure
@@ -187,7 +188,7 @@ class IsoMdocDcapiResponseBuilderTest {
         )
         val isoRequest = verifier.createRequest(
             Iso180137AnnexCRequestOptions(
-                deviceRequest = presentationRequestBuilder.toIso180137AnnexCDeviceRequest(),
+                deviceRequest = presentationRequestBuilder.toDCQLRequest()!!.dcqlQuery.toIso180137AnnexCDeviceRequest(),
                 state = STATE,
             )
         )
