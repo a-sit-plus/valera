@@ -1,5 +1,4 @@
 import android.Manifest
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -153,38 +152,36 @@ private fun TransientFlowRootView(
 }
 
 public class AndroidPlatformAdapter(
-    private val context: Context,
+    context: Context,
     private val intentState: IntentState
 ) : PlatformAdapter {
+    private val applicationContext = context.applicationContext
 
     override fun getCameraPermission(): Boolean? {
-        (context as? Activity)?.let { activity ->
-            val permission = Manifest.permission.CAMERA
-            return ContextCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED
-        }
-        return null
+        val permission = Manifest.permission.CAMERA
+        return ContextCompat.checkSelfPermission(applicationContext, permission) == PackageManager.PERMISSION_GRANTED
     }
 
     override fun openUrl(url: String) {
         Napier.d("Open URL: ${url.toUri()}")
         val uri = url.toUri()
         val customTabsIntent = CustomTabsIntent.Builder().build().apply {
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         try {
-            customTabsIntent.launchUrl(context, uri)
+            customTabsIntent.launchUrl(applicationContext, uri)
         } catch (e: Throwable) {
             Napier.w("Custom tab failed, falling back to browser intent", e)
-            context.startActivity(
+            applicationContext.startActivity(
                 Intent(Intent.ACTION_VIEW, uri).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+                    addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
             )
         }
     }
 
     override fun writeToFile(text: String, fileName: String, folderName: String) {
-        val folder = File(context.filesDir, folderName)
+        val folder = File(applicationContext.filesDir, folderName)
         if (!folder.exists()) {
             folder.mkdir()
         }
@@ -198,7 +195,7 @@ public class AndroidPlatformAdapter(
     }
 
     override fun readFromFile(fileName: String, folderName: String): String? {
-        val folder = File(context.filesDir, folderName)
+        val folder = File(applicationContext.filesDir, folderName)
         if (!folder.exists()) {
             folder.mkdir()
         }
@@ -206,7 +203,7 @@ public class AndroidPlatformAdapter(
     }
 
     override fun clearFile(fileName: String, folderName: String) {
-        val folder = File(context.filesDir, folderName)
+        val folder = File(applicationContext.filesDir, folderName)
         if (!folder.exists()) {
             folder.mkdir()
         }
@@ -214,16 +211,22 @@ public class AndroidPlatformAdapter(
     }
 
     override fun shareLog() {
-        val folder = File(context.filesDir, "logs")
+        val folder = File(applicationContext.filesDir, "logs")
         val file = File(folder, "log.txt")
-        val fileUri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+        val fileUri = FileProvider.getUriForFile(
+            applicationContext,
+            "${applicationContext.packageName}.fileprovider",
+            file,
+        )
 
         val intent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_STREAM, fileUri)
             type = "application/text"
         }
-        context.startActivity(Intent.createChooser(intent, null))
+        applicationContext.startActivity(
+            Intent.createChooser(intent, null).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
     }
 
     @OptIn(ExperimentalDigitalCredentialApi::class)
@@ -231,19 +234,19 @@ public class AndroidPlatformAdapter(
         withContext(Dispatchers.Default) {
             catching {
                 val credentialsListCbor = coseCompliantSerializer.encodeToByteArray(entries)
-                val customRegistry = CustomRegistry(credentialsListCbor, context)
-                val registryManager = RegistryManager.create(context)
+                val customRegistry = CustomRegistry(credentialsListCbor, applicationContext)
+                val registryManager = RegistryManager.create(applicationContext)
                 registryManager.clearCredentialRegistry(
                     ClearCredentialRegistryRequest(
                         ClearCredentialRegistryRequest.PerTypeConfig(
                             isDeleteAll = false,
                             type = DigitalCredential.TYPE_DIGITAL_CREDENTIAL,
-                            registryIds = listOf(context.packageName),
+                            registryIds = listOf(applicationContext.packageName),
                         )
                     )
                 )
                 registryManager.registerCredentials(customRegistry)
-                CustomRegistry.registerIssuance(context)
+                CustomRegistry.registerIssuance(applicationContext)
             }.onSuccess { Napier.i("DC API: Credential Manager registration succeeded") }
                 .onFailure { Napier.w("DC API: Credential Manager registration failed", it) }
         }
@@ -296,7 +299,7 @@ public class AndroidPlatformAdapter(
     )
 
     private fun loadPrivilegedUserAgents(): String =
-        context.assets.open("privileged_apps.json").use { stream ->
+        applicationContext.assets.open("privileged_apps.json").use { stream ->
             val data = ByteArray(stream.available()).apply { stream.read(this) }
             data.decodeToString()
         }
@@ -421,10 +424,10 @@ public class AndroidPlatformAdapter(
 
     override fun openDeviceSettings() {
         Napier.d("Open Device settings")
-        context.startActivity(
+        applicationContext.startActivity(
             Intent(
                 Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                Uri.fromParts("package", context.packageName, null)
+                Uri.fromParts("package", applicationContext.packageName, null)
             ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         )
     }
