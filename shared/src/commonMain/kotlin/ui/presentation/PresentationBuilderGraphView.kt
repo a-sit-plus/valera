@@ -165,6 +165,7 @@ fun PresentationBuilderGraphView(
                             matchingResult = queryMatchingResult,
                             credentialFreshnessProviders = selectionProvider.value.credentialFreshnessProviders,
                             inputDescriptorSubmissions = fixedSubmissions,
+                            trustListService = trustListService,
                             authenticateAtRelyingParty = authenticateAtRelyingParty,
                             serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
                             serviceProviderLocalizedName = serviceProviderLocalizedName,
