@@ -7,6 +7,7 @@ data class IosDCAPIInvocationData(
     val rawRequest: String?,
     val parsedRequestSummary: String?,
     val origin: String?,
-    val sendCredentialResponse: (NSData?) -> Unit,
+    val sendCredentialResponse: (NSData) -> Unit,
+    val sendCredentialError: (String) -> Unit,
     val onCancel: () -> Unit,
 ) : DCAPIInvocationData

@@ -49,6 +49,13 @@ private object IosSessionRuntime {
         data class PreRequest(val data: IosDcApiPreRequestData) : PendingTransientState()
         data class Invocation(val data: IosDCAPIInvocationData) : PendingTransientState()
     }
+
+    private fun PendingTransientState.finishCallback(): () -> Unit = when (this) {
+        is PendingTransientState.UrlLink -> onFinish
+        is PendingTransientState.PreRequest -> data.onCancel
+        is PendingTransientState.Invocation -> data.onCancel
+    }
+
     private var pendingTransientState: PendingTransientState? = null
 
     fun bootstrap(buildContext: BuildContext, antilog: Antilog) {
@@ -139,9 +146,19 @@ private object IosSessionRuntime {
     // Called when SessionService.newScope() triggers the scope factory (i.e. on app reset).
     // Clears stale pending state and wipes the intentState so navigation recomposes cleanly.
     private fun onSessionReset(sessionKind: IosSessionKind, intentState: IntentState) {
-        synchronized(stateLock) {
-            if (sessionKind == IosSessionKind.TRANSIENT_FLOW) pendingTransientState = null
+        val finishActiveFlow = synchronized(stateLock) {
+            val finish = if (sessionKind == IosSessionKind.TRANSIENT_FLOW) {
+                pendingTransientState = null
+                intentState.finishApp
+            } else {
+                null
+            }
             intentState.reset()
+            finish
+        }
+        finishActiveFlow?.let { finish ->
+            runCatching { finish() }
+                .onFailure { Napier.e("IosSessionRuntime could not finish flow during session reset", it) }
         }
     }
 
@@ -221,12 +238,22 @@ private object IosSessionRuntime {
     }
 
     fun closeTransientFlowSession() {
-        val handleToClose = synchronized(stateLock) {
-            pendingTransientState = null
-            transientFlowHandle?.also { handle ->
-                transientFlowHandle = null
-                handle.intentState.reset()
+        val (handleToClose, finishActiveFlows) = synchronized(stateLock) {
+            val finishCallbacks = buildList {
+                pendingTransientState?.finishCallback()?.let(::add)
+                transientFlowHandle?.intentState?.finishApp?.let(::add)
             }
+            pendingTransientState = null
+            val handle = transientFlowHandle
+            handle?.also {
+                transientFlowHandle = null
+                it.intentState.reset()
+            }
+            handle to finishCallbacks
+        }
+        finishActiveFlows.forEach { finish ->
+            runCatching { finish() }
+                .onFailure { Napier.e("IosSessionRuntime could not finish flow during session close", it) }
         }
         handleToClose?.sessionService?.close()
     }
