@@ -3,6 +3,7 @@ package ui.presentation
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,6 +41,42 @@ fun DCQLPresentationFinalizationPageContent(
     onAbort: () -> Unit,
     onSubmit: () -> Unit,
     serviceProviderLogo: ImageBitmap? = null,
+) {
+    PresentationFinalizationPageContent(
+        authenticateAtRelyingParty = authenticateAtRelyingParty,
+        serviceProviderLocalizedName = serviceProviderLocalizedName,
+        serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
+        onAbort = onAbort,
+        onSubmit = onSubmit,
+        serviceProviderLogo = serviceProviderLogo,
+    ) {
+        selections.entries.sortedBy {
+            it.key.string
+        }.flatMap {
+            it.value
+        }.forEach { card ->
+            Spacer(modifier = Modifier.height(8.dp))
+            // TODO: good enough or should we have separate cards for final submissions?
+            //  - if these cards should be reused, then allowMultiSelection shouldn't be relevant with (isSelected, onToggleSelection) = (true, null)
+            //  - Cards should therefore implicitly handle the case (true, *, null) to show the card without any selection specific semantics UI
+            card(
+                isSelected = true,
+                allowMultiSelection = false,
+                onToggleSelection = null
+            )
+        }
+    }
+}
+
+@Composable
+fun PresentationFinalizationPageContent(
+    authenticateAtRelyingParty: Boolean,
+    serviceProviderLocalizedName: String?,
+    serviceProviderLocalizedLocation: String,
+    onAbort: () -> Unit,
+    onSubmit: () -> Unit,
+    serviceProviderLogo: ImageBitmap? = null,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     Scaffold(
         bottomBar = {
@@ -86,21 +123,7 @@ fun DCQLPresentationFinalizationPageContent(
                     ),
                 )
 
-                selections.entries.sortedBy {
-                    it.key.string
-                }.flatMap {
-                    it.value
-                }.forEachIndexed { index, card ->
-                    Spacer(modifier = Modifier.height(8.dp))
-                    // TODO: good enough or should we have separate cards for final submissions?
-                    //  - if these cards should be reused, then allowMultiSelection shouldn't be relevant with (isSelected, onToggleSelection) = (true, null)
-                    //  - Cards should therefore implicitly handle the case (true, *, null) to show the card without any selection specific semantics UI
-                    card(
-                        isSelected = true,
-                        allowMultiSelection = false,
-                        onToggleSelection = null
-                    )
-                }
+                content()
             }
         }
     }
