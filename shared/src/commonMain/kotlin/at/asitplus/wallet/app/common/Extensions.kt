@@ -2,14 +2,9 @@ package at.asitplus.wallet.app.common
 
 import androidx.compose.runtime.Composable
 import at.asitplus.catchingUnwrapped
-import at.asitplus.dif.Constraint
 import at.asitplus.dif.ConstraintField
 import at.asitplus.dif.ConstraintFilter
-import at.asitplus.dif.DifInputDescriptor
-import at.asitplus.dif.FormatContainerJwt
-import at.asitplus.dif.FormatHolder
 import at.asitplus.dif.InputDescriptor
-import at.asitplus.iso.DocRequest
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.IndexSegment
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.NameSegment
@@ -306,26 +301,6 @@ fun NormalizedJsonPath.memberName(id: Int) =
 // Removes NameSegments whose name matches [name]; IndexSegments are passed through unchanged.
 fun NormalizedJsonPath.minus(name: String) =
     NormalizedJsonPath(this.segments.filter { it !is NameSegment || it.memberName != name })
-
-fun Array<DocRequest>.toDifInputDescriptorList() = this.map {
-    val itemsRequest = it.itemsRequest.value
-    DifInputDescriptor(
-        id = itemsRequest.docType,
-        format = FormatHolder(msoMdoc = FormatContainerJwt()),
-        constraints = Constraint(fields = itemsRequest.namespaces.flatMap { requestedNamespace ->
-            requestedNamespace.value.entries.map { requestedAttribute ->
-                ConstraintField(
-                    path = listOf(
-                        NormalizedJsonPath(
-                            NameSegment(requestedNamespace.key),
-                            NameSegment(requestedAttribute.dataElementIdentifier),
-                        ).toString()
-                    ), intentToRetain = requestedAttribute.intentToRetain
-                )
-            }
-        }.toSet())
-    )
-}
 
 @Composable
 fun Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimReference?>?>.toCredentialQueryUiModel(): DCQLCredentialQueryUiModel {

@@ -1,5 +1,7 @@
 package ui.navigation.routes
 
+import at.asitplus.openid.AuthenticationRequestParameters
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.LoadingMessageKey
 import kotlin.test.Test
@@ -45,5 +47,21 @@ class WalletRoutesTest {
 
         assertEquals(LoadingMessageKey.IssuerMetadata.name, deserialized.message)
         assertEquals(LoadingMessageKey.IssuerMetadata, deserialized.messageKey)
+    }
+
+    @Test
+    fun dcApiPresentationRoutePreservesGenericRequest() {
+        val parameters = AuthenticationRequestParameters(nonce = "test-nonce")
+        val request = RequestParametersFrom.OpenId4VpDcApiUnsigned(
+            parameters = parameters,
+            jsonString = joseCompliantSerializer.encodeToString(parameters),
+            credentialIds = listOf("test-credential"),
+            callingPackageName = "com.example.verifier",
+            callingOrigin = "https://verifier.example.com",
+        )
+
+        val route = DCAPIPresentationViewRoute(request)
+
+        assertEquals(request, route.request)
     }
 }

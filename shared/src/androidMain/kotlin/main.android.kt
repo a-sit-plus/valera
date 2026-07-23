@@ -31,13 +31,11 @@ import androidx.credentials.registry.provider.selectedEntryId
 import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.dcapi.*
-import at.asitplus.dcapi.request.ExchangeProtocolIdentifier
-import at.asitplus.dcapi.request.verifier.DigitalCredentialGetRequest
 import at.asitplus.dcapi.request.verifier.DigitalCredentialRequestOptions
+import at.asitplus.dcapi.request.verifier.toRequestParametersFrom
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
-import at.asitplus.signum.indispensable.josef.typed
 import at.asitplus.wallet.app.android.dcapi.AndroidDCAPIInvocationData
 import at.asitplus.wallet.app.android.dcapi.CustomRegistry
 import at.asitplus.wallet.app.common.*
@@ -57,7 +55,6 @@ import ui.theme.darkScheme
 import ui.theme.lightScheme
 import java.io.File
 import java.security.MessageDigest
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 
 actual fun getPlatformName(): String = "Android"
@@ -332,7 +329,7 @@ public class AndroidPlatformAdapter(
         return "android:apk-key-hash:$encodedHash"
     }
 
-    @OptIn(ExperimentalDigitalCredentialApi::class, ExperimentalEncodingApi::class)
+    @OptIn(ExperimentalDigitalCredentialApi::class)
     override fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest> = catching {
         (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (intent, _) ->
             // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
@@ -345,63 +342,25 @@ public class AndroidPlatformAdapter(
                 ?: throw IllegalArgumentException("Expected GetDigitalCredentialOption object not received")
 
             Napier.d("DC API: Got request ${option.requestJson}")
-            // Android's Bundle-to-JSON conversion serializes arrays as numerically-indexed objects
-            // (e.g. ["a","b"] becomes {"0":"a","1":"b"}), which breaks deserialization of list
-            // properties such as `redirect_uris` in client_metadata.
-            val rawRequest = joseCompliantSerializer.parseToJsonElement(option.requestJson)
-                .coerceIndexedObjectsToArrays()
+            // Android's Bundle-to-JSON conversion currently serializes arrays as numerically-indexed objects
+            // (e.g. ["a","b"] becomes {"0":"a","1":"b"}), which breaks deserialization of list properties.
             val dcRequestOptions = joseCompliantSerializer.decodeFromJsonElement(
                 DigitalCredentialRequestOptions.serializer(),
-                rawRequest,
+                joseCompliantSerializer.parseToJsonElement(option.requestJson).coerceIndexedObjectsToArrays(),
             )
 
             val selectionInfo = getSetSelection(credentialRequest)
                 ?: getSelection(credentialRequest)
 
-            val digitalCredentialGetRequest =
-                dcRequestOptions.requests.find { it.protocol == ExchangeProtocolIdentifier(selectionInfo.protocol) }
-                    ?: throw IllegalStateException("Unable to find suitable DC API request. Protocol may not be supported.")
-
             Napier.d("DC API: Selection $selectionInfo")
 
             val credentialIds = selectionInfo.documentIds
-
-            when (digitalCredentialGetRequest) {
-                is DigitalCredentialGetRequest.OpenId4VpSigned -> {
-                    Napier.d("Using OpenID4VP Signed, got request $digitalCredentialGetRequest for credential IDs $credentialIds")
-                    RequestParametersFrom.OpenId4VpDcApiSigned(
-                        jwsTyped = digitalCredentialGetRequest.data.request.typed(),
-                        credentialIds = credentialIds,
-                        callingPackageName = callingPackageName,
-                        callingOrigin = callingOrigin
-                    )
-                }
-                is DigitalCredentialGetRequest.OpenId4VpMultiSigned -> {
-                    TODO("OpenID4VP multisigned DC API requests are not supported yet")
-                }
-                is DigitalCredentialGetRequest.OpenId4VpUnsigned -> {
-                    Napier.d("Using OpenID4VP Unsigned, got request $digitalCredentialGetRequest for credential IDs $credentialIds")
-                    RequestParametersFrom.OpenId4VpDcApiUnsigned(
-                        parameters = digitalCredentialGetRequest.data,
-                        jsonString = joseCompliantSerializer.encodeToString(digitalCredentialGetRequest.data),
-                        credentialIds = credentialIds,
-                        callingPackageName = callingPackageName,
-                        callingOrigin = callingOrigin
-                    )
-                }
-                is DigitalCredentialGetRequest.IsoMdoc -> {
-                    Napier.d("Using Iso 18013-7 Annex C, got request $digitalCredentialGetRequest for credential IDs $credentialIds")
-                    RequestParametersFrom.IsoMdocDcApi(
-                        parameters = RequestParametersFrom.IsoMdocDcApi.IsoMdocRequestWrapper(
-                            digitalCredentialGetRequest.data
-                        ),
-                        jsonString = joseCompliantSerializer.encodeToString(digitalCredentialGetRequest.data),
-                        credentialIds = credentialIds,
-                        callingPackageName = callingPackageName,
-                        callingOrigin = callingOrigin
-                    )
-                }
-            }
+            dcRequestOptions.toRequestParametersFrom(
+                selectedProtocol = selectionInfo.protocol,
+                credentialIds = credentialIds,
+                callingPackageName = callingPackageName,
+                callingOrigin = callingOrigin,
+            )
         } ?: throw IllegalStateException("DCAPIInvocationData not set")
     }
 
@@ -423,23 +382,25 @@ public class AndroidPlatformAdapter(
         } ?: throw IllegalStateException("DCAPIInvocationData not set")
     }
 
-    override fun prepareDCAPICredentialResponse(response: String, success: Boolean) {
+    override fun prepareDCAPICredentialResponse(response: DigitalCredentialInterface) {
         (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
-            sendCredentialResponseToInvoker(response, success)
-            intentState.dcapiInvocationData.value = null
+            val serializedResponse = response.toAndroidDcApiResponseJson()
+            Napier.d("Returning response $serializedResponse")
+            try {
+                sendCredentialResponseToInvoker(serializedResponse, true)
+            } finally {
+                intentState.dcapiInvocationData.value = null
+            }
         } ?: throw IllegalStateException("Callback for response not found")
     }
 
-    override fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean) {
+    override fun prepareDCAPICredentialError(error: String) {
         (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
-            intentState.dcapiInvocationData.value = null
-            Napier.d("Returning response $response to digital credentials API invoker")
-            val dcApiResponse = DCAPIResponse(response)
-            // Needs to be cast to DigitalCredentialInterface so that protocol member is serialized
-            val isoMdocResponse: DigitalCredentialInterface = IsoMdocResponse(dcApiResponse)
-            val serializedResponse = joseCompliantSerializer.encodeToString(isoMdocResponse)
-            Napier.d("Returning response $serializedResponse")
-            sendCredentialResponseToInvoker(serializedResponse, success)
+            try {
+                sendCredentialResponseToInvoker(error, false)
+            } finally {
+                intentState.dcapiInvocationData.value = null
+            }
         } ?: throw IllegalStateException("Callback for response not found")
     }
 
@@ -503,6 +464,7 @@ public class AndroidPlatformAdapter(
                 JsonObject(fixedChildren)
             }
         }
+
         is JsonArray -> JsonArray(map { it.coerceIndexedObjectsToArrays() })
         else -> this
     }
