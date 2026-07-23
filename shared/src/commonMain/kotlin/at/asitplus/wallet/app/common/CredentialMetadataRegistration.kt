@@ -63,13 +63,20 @@ private val remoteCredentialDocumentUrls: Map<SdJwtVcType, String> = mapOf(
 private val credentialMetadataRegistrationLock = SynchronizedObject()
 private var credentialMetadataRegistered = false
 
-fun registerCredentialMetadata(buildContext: BuildContext, dataStoreService: DataStoreService) {
+fun registerCredentialMetadata(
+    buildContext: BuildContext,
+    dataStoreService: DataStoreService,
+    httpService: HttpService? = null,
+) {
     synchronized(credentialMetadataRegistrationLock) {
         if (credentialMetadataRegistered) return
         credentialMetadataRegistered = true
     }
     registerBundledCredentialMetadata()
-    registerRemoteCredentialMetadata(buildContext, dataStoreService)
+    registerRemoteCredentialMetadata(
+        dataStoreService,
+        httpService ?: HttpService(buildContext),
+    )
 }
 
 /** EU PID, EU PID SD-JWT and mDL serializers ship bundled in vck core. Metadata labels come from remote documents. */
@@ -85,9 +92,9 @@ private fun registerBundledCredentialMetadata() {
 }
 
 @OptIn(ExperimentalTime::class)
-private fun registerRemoteCredentialMetadata(buildContext: BuildContext, dataStoreService: DataStoreService) {
+private fun registerRemoteCredentialMetadata(dataStoreService: DataStoreService, httpService: HttpService) {
     val remote = RemoteCredentialMetadataRegistry(
-        httpClient = HttpService(buildContext).buildHttpClient(),
+        httpClient = httpService.cachedResourceClient(dataStoreService, revalidate = true),
         clock = Clock.System,
         documentUrls = remoteCredentialDocumentUrls.toMutableMap(),
         // ISO mdoc lookups use docType identifiers; alias them to the vct keys used by the remote documents.
@@ -97,8 +104,12 @@ private fun registerRemoteCredentialMetadata(buildContext: BuildContext, dataSto
             CredentialMetadataLookup(ISO_MDOC, AV_DOC_TYPE) to SdJwtVcType(AV_DOC_TYPE),
         ),
     )
-    // Persist resolved metadata so each scheme is fetched from the network only once (also across restarts).
+    // Persist resolved metadata so each scheme is fetched at most once per cache period, also across restarts.
     LibraryInitializer.registerCredentialMetadataRegistry(
-        PersistentCachingCredentialMetadataRegistry(delegate = remote, dataStore = dataStoreService)
+        PersistentCachingCredentialMetadataRegistry(
+            delegate = remote,
+            dataStore = dataStoreService,
+            ttl = Configuration.CACHE_TTL_CREDENTIAL_METADATA,
+        )
     )
 }

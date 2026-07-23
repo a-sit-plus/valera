@@ -60,6 +60,7 @@ fun appModule(): Module = module {
             TrustListService(
                 persistentTrustListStore = get(),
                 httpService = get(),
+                dataStoreService = get(),
                 sessionCoroutineScope = get()
             )
         }

@@ -1,6 +1,8 @@
 package at.asitplus.wallet.app.common
 
 
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.seconds
 
 object Configuration {
@@ -9,6 +11,16 @@ object Configuration {
     const val DATASTORE_KEY_CONFIG = "config"
     const val DATASTORE_KEY_VCS = "VCs"
     const val DATASTORE_KEY_CREDENTIAL_METADATA_CACHE = "credential_metadata_cache"
+    const val DATASTORE_KEY_TOKEN_STATUS_LIST_CACHE = "token_status_list_cache"
+    const val MAX_PERSISTENT_CACHE_ENTRIES = 64
+
+    // Raw HTTP responses (validators + body) shared by all public remote resources.
+    const val DATASTORE_KEY_HTTP_CACHE = "http_cache"
+
+    // Offline-TTL per remote resource: how long a cached copy is served before a network refresh is required.
+    val CACHE_TTL_CREDENTIAL_METADATA: Duration = 7.days
+    val CACHE_TTL_TOKEN_STATUS: Duration = 1.days
+    val CACHE_TTL_TRUST_LIST: Duration = 7.days
     const val DATASTORE_KEY_REFRESH_SUPPRESSED_CREDENTIALS = "refresh_suppressed_credentials"
     const val DATASTORE_KEY_PROVISIONING_CONTEXT_BY_STATE = "provisioning_context_by_state"
     const val DATASTORE_KEY_PROVISIONING_INSTANCE_ATTESTATION_BY_STATE = "provisioning_instance_attestation_by_state"

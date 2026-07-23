@@ -12,6 +12,7 @@ import at.asitplus.wallet.lib.etsi.LoTEServiceType
 import at.asitplus.wallet.lib.etsi.isTrustedBy
 import at.asitplus.wallet.lib.jws.VerifyJwsObjectFun
 import at.asitplus.wallet.lib.jws.VerifyJwsObjectJades
+import data.storage.DataStoreService
 import data.storage.PersistentTrustListStore
 import io.github.aakira.napier.Napier
 import io.ktor.client.request.accept
@@ -20,16 +21,18 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.NonCancellable.isActive
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import ui.composables.TrustState
 import ui.models.ResolvedCredential
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 
 val asitRootPem = "-----BEGIN CERTIFICATE-----\n" +
@@ -50,11 +53,13 @@ val asitRootPem = "-----BEGIN CERTIFICATE-----\n" +
 class TrustListService(
     private val persistentTrustListStore: PersistentTrustListStore,
     httpService: HttpService,
+    dataStoreService: DataStoreService,
     private val sessionCoroutineScope: CoroutineScope,
     private val verifyJwsObject: VerifyJwsObjectFun = VerifyJwsObjectJades(),
+    private val clock: Clock = Clock.System,
 ) {
     private var job: Job? = null
-    private val client = httpService.buildHttpClient()
+    private val client = httpService.cachedResourceClient(dataStoreService, revalidate = true)
 
     // A-SIT trust list
     private val aistIssuerCert = X509Certificate.decodeFromPem(asitRootPem).getOrThrow()
@@ -81,7 +86,9 @@ class TrustListService(
             if (schemeIdentifier.isNullOrBlank())
                 return@combine TrustState.UNKNOWN
 
-            evaluateIssuer(issuer, trustLists, LoTEServiceType.fromSchemeIdentifier(schemeIdentifier))
+            // Drop lists older than the offline-TTL so a long-stale trust list no longer confers trust.
+            val freshTrustLists = trustLists.filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
+            evaluateIssuer(issuer, freshTrustLists, LoTEServiceType.fromSchemeIdentifier(schemeIdentifier))
         }
 
 
@@ -114,44 +121,55 @@ class TrustListService(
     }
 
 
-    /**
-     * Starts the periodic background loop.
-     * Default interval is 1 hour as configured.
-     */
-    fun startChecking(interval: Duration = 1.hours) {
+    /** Refreshes missing or expired lists, then sleeps until the earliest cached list expires. */
+    fun startChecking(retryInterval: Duration = 1.hours) {
         job?.cancel()
 
         job = sessionCoroutineScope.launch {
             delay(5.seconds)
             while (isActive) {
-                refreshAll()
-                delay(interval)
+                val failed = refreshStaleEntries()
+                val cachedAt = LoTEServiceType.defaultUrls
+                    .mapNotNull { persistentTrustListStore.getCachedAt(it) }
+                delay(
+                    if (failed || cachedAt.size != LoTEServiceType.defaultUrls.size) retryInterval
+                    else maxOf(
+                        1.seconds,
+                        cachedAt.nextRefreshIn(clock.now(), Configuration.CACHE_TTL_TRUST_LIST),
+                    )
+                )
             }
         }
     }
 
     fun refreshAll(): Job = sessionCoroutineScope.launch {
-        LoTEServiceType.defaultUrls.forEach { url ->
-            syncSingleUrl(url)
-        }
+        LoTEServiceType.defaultUrls.forEach { syncSingleUrl(it) }
     }
 
-    private suspend fun syncSingleUrl(url: String) {
-        fetchTrustList(url)
-            .onSuccess { result ->
-                persistentTrustListStore.persistTrustList(url, result.rawJwsText)
-                Napier.i("Successfully synced and persisted Trust List: $url")
+    private suspend fun refreshStaleEntries(): Boolean {
+        val now = clock.now()
+        return LoTEServiceType.defaultUrls
+            .filter { url ->
+                val cachedAt = persistentTrustListStore.getCachedAt(url)
+                cachedAt == null || now - cachedAt >= Configuration.CACHE_TTL_TRUST_LIST
             }
-            .onFailure { e ->
-                Napier.e("Background sync failed for Trust List: $url", e)
-            }
+            .map { syncSingleUrl(it) }
+            .any { !it }
     }
+
+    private suspend fun syncSingleUrl(url: String): Boolean = catching {
+        val rawJwsText = fetchTrustList(url).getOrThrow()
+        persistentTrustListStore.persistTrustList(url, rawJwsText, clock.now())
+        Napier.i("Successfully synced and persisted Trust List: $url")
+    }.onFailure { e ->
+        Napier.e("Background sync failed for Trust List: $url", e)
+    }.isSuccess
 
     /**
      * Fetches the signed List of Trusted Entities (LoTE)
-     * Returns a [KmmResult] wrapping a [TrustListResult] containing both raw and parsed data.
+     * Returns the raw signed payload after parsing and signature verification.
      */
-    suspend fun fetchTrustList(url: String): KmmResult<TrustListResult> = catching {
+    suspend fun fetchTrustList(url: String): KmmResult<String> = catching {
         Napier.i("Fetching Trust List from: $url")
         val response = client.get(url) {
             accept(ContentType.Application.Json)
@@ -160,18 +178,13 @@ class TrustListService(
         val jws = JwsCompact.parse<TrustListPayload>(responseBody).getOrThrow()
         verifyJwsObject(jws.first).getOrThrow()
         Napier.i("Successfully validated Trust List signature from $url")
-        TrustListResult(
-            rawJwsText = responseBody,
-            loTe = jws.second.loTe
-        )
+        responseBody
     }
 }
 
-/**
- * Data container wrapping both the raw string representation for persistent caching
- * and the verified domain object.
- */
-data class TrustListResult(
-    val rawJwsText: String,
-    val loTe: ListOfTrustedEntities
-)
+/** Keeps only cache entries younger than [ttl], dropping the timestamp. Generic so it is trivially testable. */
+internal fun <T> Map<String, Pair<T, Instant>>.filterFresh(now: Instant, ttl: Duration): Map<String, T> =
+    filterValues { now - it.second < ttl }.mapValues { it.value.first }
+
+internal fun Collection<Instant>.nextRefreshIn(now: Instant, ttl: Duration): Duration =
+    minOfOrNull { it + ttl - now }?.let { maxOf(Duration.ZERO, it) } ?: Duration.ZERO
