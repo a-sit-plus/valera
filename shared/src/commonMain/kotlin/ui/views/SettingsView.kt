@@ -67,6 +67,8 @@ import at.asitplus.valera.resources.section_heading_general
 import at.asitplus.valera.resources.section_heading_information
 import at.asitplus.valera.resources.text_label_build
 import at.asitplus.valera.resources.text_label_client_identifier
+import at.asitplus.valera.resources.text_label_openid4vp_allowed_origin_schemes
+import at.asitplus.valera.resources.text_supporting_openid4vp_allowed_origin_schemes
 import at.asitplus.valera.resources.warning
 import at.asitplus.wallet.app.common.BuildType
 import org.jetbrains.compose.resources.getString
@@ -107,6 +109,16 @@ fun SettingsView(
     LaunchedEffect(clientIdInputValue) {
         if (clientIdInputValue != clientIdInput.text) {
             clientIdInput = TextFieldValue(clientIdInputValue)
+        }
+    }
+
+    val originSchemesInputValue by settingsViewModel.openId4VpAllowedOriginSchemesInputState.collectAsState()
+    var originSchemesInput by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(originSchemesInputValue))
+    }
+    LaunchedEffect(originSchemesInputValue) {
+        if (originSchemesInputValue != originSchemesInput.text) {
+            originSchemesInput = TextFieldValue(originSchemesInputValue)
         }
     }
 
@@ -195,6 +207,36 @@ fun SettingsView(
                             TextButton(
                                 onClick = {
                                     settingsViewModel.resetClientIdToDefault()
+                                }
+                            ) {
+                                Text(stringResource(Res.string.button_label_default))
+                            }
+                        }
+                        Row(
+                            modifier = listSpacingModifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            OutlinedTextField(
+                                value = originSchemesInput,
+                                onValueChange = {
+                                    originSchemesInput = it
+                                    settingsViewModel.updateOpenId4VpAllowedOriginSchemesInput(it.text)
+                                },
+                                label = {
+                                    Text(stringResource(Res.string.text_label_openid4vp_allowed_origin_schemes))
+                                },
+                                supportingText = {
+                                    Text(stringResource(Res.string.text_supporting_openid4vp_allowed_origin_schemes))
+                                },
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Uri,
+                                ),
+                                modifier = Modifier.weight(1f),
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            TextButton(
+                                onClick = {
+                                    settingsViewModel.resetOpenId4VpAllowedOriginSchemesToDefault()
                                 }
                             ) {
                                 Text(stringResource(Res.string.button_label_default))

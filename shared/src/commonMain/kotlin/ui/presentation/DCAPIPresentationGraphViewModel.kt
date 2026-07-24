@@ -1,5 +1,6 @@
 package ui.presentation
 
+import ErrorHandlingOverrideException
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,6 +15,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.openid.DcApiPreparationState
+import at.asitplus.wallet.lib.oidvci.OAuth2Exception
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -53,7 +55,18 @@ class DCAPIPresentationGraphViewModel(
                     )
                 )
             } catch (it: Throwable) {
-                UiStateError(it)
+                val response = when (it) {
+                    is OAuth2Exception -> it
+                    else -> OAuth2Exception.InvalidRequest(it.message)
+                }.serialize()
+                UiStateError(
+                    ErrorHandlingOverrideException(
+                        onAcknowledge = {
+                            walletMain.platformAdapter.prepareDCAPICredentialError(response)
+                        },
+                        cause = it,
+                    )
+                )
             }
         }
     }

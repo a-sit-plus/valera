@@ -116,6 +116,8 @@
 
     <string name="text_label_issuing_service">Issuing Service</string>
     <string name="text_label_client_identifier">Client identifier</string>
+    <string name="text_label_openid4vp_allowed_origin_schemes">Allowed OpenID4VP origin schemes</string>
+    <string name="text_supporting_openid4vp_allowed_origin_schemes">Comma-separated, for example https,android:apk-key-hash. Spaces are ignored; clear to disable all.</string>
     <string name="text_label_wallet_provider_attestation">Use Wallet Attestation</string>
     <string name="text_label_id_identifier">Identifier</string>
     <string name="text_label_id_format">Representation</string>

@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(FlowPreview::class)
 class SettingsViewModel(
@@ -33,6 +34,13 @@ class SettingsViewModel(
     private val clientIdInput = MutableStateFlow(SettingsRepository.DEFAULT_CLIENT_ID)
     val clientIdInputState = clientIdInput.asStateFlow()
 
+    val defaultOpenId4VpAllowedOriginSchemes =
+        walletMain.settingsRepository.defaultOpenId4VpAllowedOriginSchemes
+    private val openId4VpAllowedOriginSchemesInput = MutableStateFlow(
+        defaultOpenId4VpAllowedOriginSchemes.toInputString()
+    )
+    val openId4VpAllowedOriginSchemesInputState = openId4VpAllowedOriginSchemesInput.asStateFlow()
+
     init {
         viewModelScope.launch {
             clientId.collectLatest { value ->
@@ -43,10 +51,28 @@ class SettingsViewModel(
         }
         viewModelScope.launch {
             clientIdInput
-                .debounce(400)
+                .debounce(400.milliseconds)
                 .distinctUntilChanged()
                 .collectLatest { value ->
                     walletMain.settingsRepository.set(clientId = value)
+                }
+        }
+        viewModelScope.launch {
+            walletMain.settingsRepository.openId4VpAllowedOriginSchemes.collectLatest { value ->
+                val input = value.toInputString()
+                if (openId4VpAllowedOriginSchemesInput.value != input) {
+                    openId4VpAllowedOriginSchemesInput.value = input
+                }
+            }
+        }
+        viewModelScope.launch {
+            openId4VpAllowedOriginSchemesInput
+                .debounce(400.milliseconds)
+                .distinctUntilChanged()
+                .collectLatest { value ->
+                    walletMain.settingsRepository.set(
+                        openId4VpAllowedOriginSchemes = value.toOriginSchemeSet()
+                    )
                 }
         }
     }
@@ -57,6 +83,14 @@ class SettingsViewModel(
 
     fun resetClientIdToDefault() {
         clientIdInput.value = SettingsRepository.DEFAULT_CLIENT_ID
+    }
+
+    fun updateOpenId4VpAllowedOriginSchemesInput(value: String) {
+        openId4VpAllowedOriginSchemesInput.value = value
+    }
+
+    fun resetOpenId4VpAllowedOriginSchemesToDefault() {
+        openId4VpAllowedOriginSchemesInput.value = defaultOpenId4VpAllowedOriginSchemes.toInputString()
     }
 
     fun showGlobalSnackbar(
@@ -93,3 +127,13 @@ class SettingsViewModel(
         }
     }
 }
+
+internal fun Set<String>.toInputString(): String = sorted().joinToString(",")
+
+internal fun String.toOriginSchemeSet(): Set<String> =
+    filterNot { it.isWhitespace() }
+        .split(',')
+        .filter { it.isNotEmpty() }
+        .map { it.trimEnd(':').lowercase() }
+        .filter { it.isNotEmpty() }
+        .toSet()

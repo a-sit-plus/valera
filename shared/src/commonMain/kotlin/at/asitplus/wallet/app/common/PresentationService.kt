@@ -8,6 +8,7 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.signum.supreme.UserInitiatedCancellationReason
+import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.lib.agent.CreatePresentationResult
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.PresentationException
@@ -21,6 +22,7 @@ import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import at.asitplus.wallet.lib.openid.DcApiPreparationState
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.flow.first
 import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.encodeToByteArray
 
@@ -29,12 +31,14 @@ class PresentationService(
     val keyMaterial: WalletKeyMaterial,
     val holderAgent: HolderAgent,
     httpService: HttpService,
+    settingsRepository: SettingsRepository,
 ) {
     private val presentationService = OpenId4VpWallet(
         engine = HttpClient().engine,
         httpClientConfig = httpService.loggingConfig,
         keyMaterial = keyMaterial,
-        holderAgent = holderAgent
+        holderAgent = holderAgent,
+        allowedDcApiOriginSchemes = { settingsRepository.openId4VpAllowedOriginSchemes.first() },
     )
 
     suspend fun startAuthorizationResponsePreparation(input: String) =
@@ -73,7 +77,6 @@ class PresentationService(
         platformAdapter.prepareDCAPICredentialResponse(response)
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     suspend fun finalizeLocalPresentation(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
         finishFunction: (ByteArray) -> Unit,
@@ -117,10 +120,12 @@ class PresentationService(
         val presentation =
             presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
 
-        val deviceResponse = when (val firstResult = presentation.presentationResults.firstOrNull()
-            ?: throw PresentationException(IllegalStateException("Presentation did not return any device response"))) {
+        val deviceResponse = when (val result = presentation.presentationResults.singleOrNull()
+            ?: throw PresentationException(
+                IllegalStateException("Local presentation must return exactly one device response")
+            )) {
             is CreatePresentationResult.DeviceResponse -> coseCompliantSerializer.encodeToByteArray(
-                firstResult.deviceResponse
+                result.deviceResponse
             )
 
             else -> throw PresentationException(IllegalStateException("Must be a device response"))
