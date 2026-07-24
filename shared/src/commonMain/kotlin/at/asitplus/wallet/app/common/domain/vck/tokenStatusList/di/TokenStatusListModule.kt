@@ -50,6 +50,8 @@ fun tokenStatusListModule() = module {
                         // Keep expired entries until a fresh token replaces them.
                     },
                 ),
+                // Failure backoff for broken status endpoints (404/503) is handled at the HTTP layer by the
+                // HttpFailureCache plugin on the shared cached client (see HttpService.buildHttpClient).
                 statusListTokenResolver = {
                     val httpResponse = client.get(it.string) {
                         headers[HttpHeaders.Accept] = MediaTypes.Application.STATUSLIST_JWT

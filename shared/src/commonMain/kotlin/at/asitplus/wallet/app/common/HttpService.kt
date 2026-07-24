@@ -21,6 +21,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
+import kotlin.time.Duration
 
 /**
  * Central place to build [HttpClient]
@@ -34,6 +35,7 @@ class HttpService(private val buildContext: BuildContext) {
         cookieStorage: CookiesStorage? = null,
         cacheStorage: CacheStorage? = null,
         revalidateCachedResponses: Boolean = false,
+        failureCooldown: Duration? = null,
     ) = HttpClient {
         followRedirects = false
         install(ContentNegotiation) {
@@ -59,6 +61,10 @@ class HttpService(private val buildContext: BuildContext) {
                 publicStorage(storage)
                 privateStorage(CacheStorage.Disabled)
             }
+        }
+        // Negative cache: after an error status, stop re-fetching that URL until the cooldown elapses.
+        failureCooldown?.let { cooldown ->
+            install(HttpFailureCache) { this.cooldown = cooldown }
         }
     }
 
@@ -87,6 +93,7 @@ class HttpService(private val buildContext: BuildContext) {
                 Configuration.DATASTORE_KEY_HTTP_CACHE,
             ),
             revalidateCachedResponses = revalidate,
+            failureCooldown = Configuration.HTTP_FAILURE_COOLDOWN,
         )
 
     val loggingConfig: HttpClientConfig<*>.() -> Unit
