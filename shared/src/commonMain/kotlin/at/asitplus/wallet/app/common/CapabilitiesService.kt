@@ -6,8 +6,8 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.Configuration.DATASTORE_CAPABILITIES_ATTESTATION
 import data.storage.DataStoreService
-import io.ktor.client.HttpClient
 import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsBytes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -32,6 +32,7 @@ class RealCapabilitiesService(
     private val keyStoreService: KeystoreService,
     private val dataStoreService: DataStoreService,
     private val platformAdapter: PlatformAdapter,
+    private val httpService: HttpService,
     sessionCoroutineScope: CoroutineScope,
 ) : CapabilitiesService {
     private val refreshTrigger = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
@@ -91,7 +92,10 @@ class RealCapabilitiesService(
     }
 
     private suspend fun getOnlineStatus() = catchingUnwrapped {
-        HttpClient().get("https://wallet.a-sit.plus/check.json")
+        httpService.buildHttpClient().use { client ->
+            // Consume the body so the response stream is (hopefully) released before cancellation or client shutdown.
+            client.get("https://wallet.a-sit.plus/check.json").bodyAsBytes()
+        }
     }.isSuccess
 
     private suspend fun getSignerStatus() = keyStoreService.testSigner()
