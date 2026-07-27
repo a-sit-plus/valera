@@ -21,6 +21,7 @@
     <string name="snackbar_nfc_tag_lost_retrying">NFC-Verbindung verloren. Bitte das andere Gerät erneut nahe halten.</string>
     <string name="snackbar_local_presentment_busy">Eine Präsentation läuft bereits.</string>
     <string name="snackbar_local_presentment_cancel_action">Abbrechen</string>
+    <string name="snackbar_cross_device_qr_code_use_system_camera">Dieser geräteübergreifende QR-Code wird von Valera nicht unterstützt. Bitte scannen Sie ihn stattdessen mit der Systemkamera-App.</string>
 
     <string name="button_label_use_device_credential">Passwort</string>
     <string name="button_label_confirm">Bestätigen</string>

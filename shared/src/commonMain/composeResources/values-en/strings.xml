@@ -21,6 +21,7 @@
     <string name="snackbar_nfc_tag_lost_retrying">NFC connection lost. Hold the other device close again.</string>
     <string name="snackbar_local_presentment_busy">A presentation is already in progress.</string>
     <string name="snackbar_local_presentment_cancel_action">Cancel</string>
+    <string name="snackbar_cross_device_qr_code_use_system_camera">This cross-device QR code is not supported by Valera. Scan it with the system camera app instead.</string>
 
     <string name="button_label_use_device_credential">Passcode</string>
     <string name="button_label_confirm">Confirm</string>

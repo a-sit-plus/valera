@@ -63,6 +63,13 @@ fun QrCodeScannerView(
                         onError(it)
                         isLoading = false
                     },
+                    onCrossDeviceQrCode = { forwarded ->
+                        if (forwarded) {
+                            onNavigateUp()
+                        } else {
+                            isLoading = false
+                        }
+                    },
                 )
             },
             onClickLogo = onClickLogo,

@@ -130,6 +130,8 @@ class IosPlatformAdapter(
         }
     }
 
+    override fun tryOpenCrossDeviceQrCode(uri: String): Boolean = false
+
     @OptIn(ExperimentalForeignApi::class)
     override fun writeToFile(text: String, fileName: String, folderName: String) {
         val baseUrl = getBaseUrl() ?: return
