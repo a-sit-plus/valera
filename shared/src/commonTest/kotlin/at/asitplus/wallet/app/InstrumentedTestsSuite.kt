@@ -289,8 +289,9 @@ private class RecordingPlatformAdapter(
     private val delegate: PlatformAdapter,
     private val onOpenUrl: (String) -> Unit,
 ) : PlatformAdapter by delegate {
-    override fun openUrl(url: String) {
+    override fun openUrl(url: String): Boolean {
         onOpenUrl(url)
+        return true
     }
 }
 

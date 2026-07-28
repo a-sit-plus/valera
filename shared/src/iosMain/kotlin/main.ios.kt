@@ -121,16 +121,19 @@ class IosPlatformAdapter(
         }
     }
 
-    override fun openUrl(url: String) {
-        dispatch_async(dispatch_get_main_queue()) {
-            val url = NSURL(string = url)
-            if (UIApplication.sharedApplication.canOpenURL(url)) {
-                UIApplication.sharedApplication.openURL(url, mapOf<Any?, Any?>(), null)
-            }
+    override fun openUrl(url: String): Boolean {
+        val url = NSURL(string = url)
+        if (!UIApplication.sharedApplication.canOpenURL(url)) {
+            return false
         }
+        dispatch_async(dispatch_get_main_queue()) {
+            UIApplication.sharedApplication.openURL(url, mapOf<Any?, Any?>(), null)
+        }
+        return true
     }
 
-    override fun tryOpenCrossDeviceQrCode(uri: String): Boolean = false
+    override fun tryOpenCrossDeviceQrCode(uri: String): Boolean = openUrl(uri)
+
 
     @OptIn(ExperimentalForeignApi::class)
     override fun writeToFile(text: String, fileName: String, folderName: String) {

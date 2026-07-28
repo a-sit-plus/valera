@@ -235,8 +235,10 @@ fun PlatformAdapter.decodeImage(image: ByteArray) = catchingUnwrapped {
 interface PlatformAdapter {
     /**
      * Opens a specified resource (Intent, Associated Domain)
+     *
+     * @return whether the platform accepted the request to open the resource
      */
-    fun openUrl(url: String)
+    fun openUrl(url: String): Boolean
 
     /**
      * Tries to hand a FIDO hybrid-transport QR-code URI to a system component.
@@ -324,8 +326,7 @@ interface PlatformAdapter {
 }
 
 class DummyPlatformAdapter : PlatformAdapter {
-    override fun openUrl(url: String) {
-    }
+    override fun openUrl(url: String): Boolean = false
 
     override fun tryOpenCrossDeviceQrCode(uri: String): Boolean = false
 
