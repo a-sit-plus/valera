@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app
 
+import IosPlatformAdapter
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
 import kotlin.test.Test
