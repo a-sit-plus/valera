@@ -462,4 +462,11 @@
     <string name="trust_status_unknown">Trust Status Unknown</string>
     <string name="trust_status_evaluating">Evaluating Trust…</string>
 
+    <string name="section_heading_issuer_trust">Issuer Trust Details</string>
+    <string name="section_heading_issuer_trust_icon_text">ITD</string>
+    <string name="text_label_issued_by">Issuer</string>
+    <string name="text_label_trust_status">Status</string>
+    <string name="text_label_thumbprint">Fingerprint</string>
+    <string name="text_label_trust_list_urls">Trust List URLs</string>
+
 </resources>

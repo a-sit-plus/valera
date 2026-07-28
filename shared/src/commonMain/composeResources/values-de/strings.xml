@@ -469,4 +469,11 @@
     <string name="trust_status_unknown">Vertrauensstatus unbekannt</string>
     <string name="trust_status_evaluating">Vertrauensstatus wird geprüft…</string>
 
+    <string name="section_heading_issuer_trust">Aussteller-Vertrauensdetails</string>
+    <string name="section_heading_issuer_trust_icon_text">ITD</string>
+    <string name="text_label_issued_by">Aussteller</string>
+    <string name="text_label_trust_status">Status</string>
+    <string name="text_label_thumbprint">Fingerabdruck</string>
+    <string name="text_label_trust_list_urls">Vertrauenslisten-URLs</string>
+
 </resources>

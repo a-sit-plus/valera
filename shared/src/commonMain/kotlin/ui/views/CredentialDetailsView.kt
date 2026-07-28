@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -32,6 +33,7 @@ import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMd
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.CredentialCardActionMenu
+import ui.composables.IssuerTrustDetailsCard
 import ui.composables.LabeledText
 import ui.composables.Logo
 import ui.composables.PersonAttributeDetailCardHeading
@@ -173,5 +175,15 @@ fun CredentialDetailsSummaryView(
         // No extra horizontal padding here: the enclosing Column already applies it, otherwise the cards
         // (technical data, status, contents, cnf) would be indented twice.
         GenericCredentialSummaryCardContent(credential = credential)
+
+        Spacer(modifier = Modifier.height(16.dp))
+        credential.entry.issuer?.let { issuerCert ->
+            IssuerTrustDetailsCard(
+                certificate = issuerCert,
+                trustState = trustState,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
