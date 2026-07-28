@@ -1,4 +1,5 @@
 import android.Manifest
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -180,6 +181,22 @@ public class AndroidPlatformAdapter(
             )
         }
     }
+
+    override fun tryOpenCrossDeviceQrCode(uri: String): Boolean =
+        try {
+            applicationContext.startActivity(
+                Intent(Intent.ACTION_VIEW, uri.toUri()).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+            )
+            true
+        } catch (e: ActivityNotFoundException) {
+            Napier.i("No system handler is available for cross-device QR codes", e)
+            false
+        } catch (e: SecurityException) {
+            Napier.w("System handler rejected the cross-device QR code intent", e)
+            false
+        }
 
     override fun writeToFile(text: String, fileName: String, folderName: String) {
         val folder = File(applicationContext.filesDir, folderName)

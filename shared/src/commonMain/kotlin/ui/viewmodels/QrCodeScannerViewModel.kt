@@ -4,11 +4,14 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.navigation.toRoute
 import at.asitplus.catchingUnwrapped
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.snackbar_cross_device_qr_code_use_system_camera
 import at.asitplus.wallet.app.common.WalletMain
 import domain.BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import org.jetbrains.compose.resources.getString
 import ui.navigation.routes.AddCredentialPreAuthnRoute
 import ui.navigation.routes.AuthenticationViewRoute
 import ui.navigation.routes.QrCodeScannerRoute
@@ -31,7 +34,19 @@ class QrCodeScannerViewModel(
         link: String,
         onSuccess: (Route) -> Unit,
         onFailure: (Throwable) -> Unit,
+        onCrossDeviceQrCode: (forwarded: Boolean) -> Unit,
     ) = walletMain.scope.launch {
+        if (link.isFidoCrossDeviceQrCode()) {
+            val forwarded = walletMain.platformAdapter.tryOpenCrossDeviceQrCode(link)
+            if (!forwarded) {
+                walletMain.snackbarService.showSnackbar(
+                    getString(Res.string.snackbar_cross_device_qr_code_use_system_camera)
+                )
+            }
+            onCrossDeviceQrCode(forwarded)
+            return@launch
+        }
+
         Napier.d("onQrScanned: $link")
         val orderedModes = listOf(mode).plus(QrCodeScannerMode.entries.filter { it != mode })
         val failures = mutableListOf<Throwable>()
@@ -81,3 +96,9 @@ enum class QrCodeScannerMode() {
     AUTHENTICATION,
     PROVISIONING
 }
+
+internal fun String.isFidoCrossDeviceQrCode(): Boolean =
+    startsWith(FIDO_CROSS_DEVICE_QR_PREFIX, ignoreCase = true) &&
+            getOrNull(FIDO_CROSS_DEVICE_QR_PREFIX.length) in '0'..'9'
+
+private const val FIDO_CROSS_DEVICE_QR_PREFIX = "FIDO:/"

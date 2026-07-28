@@ -239,6 +239,13 @@ interface PlatformAdapter {
     fun openUrl(url: String)
 
     /**
+     * Tries to hand a FIDO hybrid-transport QR-code URI to a system component.
+     *
+     * @return whether a platform handler was started
+     */
+    fun tryOpenCrossDeviceQrCode(uri: String): Boolean
+
+    /**
      * Writes a user defined string to a file in a specific folder
      * @param text is the content of the new file or the content which gets append to an existing file
      * @param fileName the name of the file
@@ -319,6 +326,8 @@ interface PlatformAdapter {
 class DummyPlatformAdapter : PlatformAdapter {
     override fun openUrl(url: String) {
     }
+
+    override fun tryOpenCrossDeviceQrCode(uri: String): Boolean = false
 
     override fun writeToFile(text: String, fileName: String, folderName: String) {
     }
