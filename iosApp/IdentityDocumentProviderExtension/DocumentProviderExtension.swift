@@ -1,4 +1,5 @@
 import ExtensionKit
+import Foundation
 import IdentityDocumentServicesUI
 import IdentityDocumentServices
 import SwiftUI
@@ -46,6 +47,46 @@ private struct ParsedRequestSummary: Encodable {
 private struct ParsedDocumentRequest: Encodable {
     let docType: String
     let namespaces: [String: [String: Bool]]
+}
+
+private struct DcApiValidationError: LocalizedError {
+    let message: String
+
+    var errorDescription: String? {
+        message
+    }
+}
+
+// Kotlin completes a presentment asynchronously after the sendResponse closure has returned
+// control to the shared UI. This gate makes all response, validation-error, and cancellation
+// callbacks idempotent so the checked continuation is resumed at most once.
+private final class DcApiResponseCompletion: @unchecked Sendable {
+    private let lock = NSLock()
+    private var continuation: CheckedContinuation<Data, Error>?
+
+    init(_ continuation: CheckedContinuation<Data, Error>) {
+        self.continuation = continuation
+    }
+
+    func returnResponse(_ data: Data) {
+        takeContinuation()?.resume(returning: data)
+    }
+
+    func failValidation(_ message: String) {
+        takeContinuation()?.resume(throwing: DcApiValidationError(message: message))
+    }
+
+    func cancel() {
+        takeContinuation()?.resume(throwing: CancellationError())
+    }
+
+    private func takeContinuation() -> CheckedContinuation<Data, Error>? {
+        lock.lock()
+        defer { lock.unlock() }
+        let value = continuation
+        continuation = nil
+        return value
+    }
 }
 
 // The extension process can be reused across requests, so we need a stable fingerprint for
@@ -173,7 +214,7 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
             let originString: String? = requestContext.requestingWebsiteOrigin?.absoluteString
             let parsedRequestSummary = buildParsedRequestSummaryData(from: requestContext)
 
-            let onCancel: () -> Void = {
+            let cancelRequest: () -> Void = {
                 Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onCancel called")
                 // Clear Kotlin-side transient state before cancelling the system request so the next
                 // external flow starts from a clean bridge state.
@@ -195,39 +236,51 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                 IosSessionBridge.shared.clearDcapiPreRequest()
                 Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "onContinue called")
                 Task {
+                    defer {
+                        markRequestFinished(context: context)
+                        IosSessionBridge.shared.clearDcapiInvocation()
+                    }
                     do {
                         try await requestContext.sendResponse { rawRequest in
                             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse handler started")
                             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "rawRequest: \(String(decoding: rawRequest.requestData, as: UTF8.self))")
-                            let finalResponseData = await withCheckedContinuation { continuation in
-                                Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "withCheckedContinuation started")
-                                let sendCredentialResponse: (Data?) -> Void = { data in
-                                    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "sendCredentialResponse called \(String(decoding: data ?? Data(), as: UTF8.self))")
-                                    continuation.resume(returning: data ?? Data())
+                            let finalResponseData = try await withCheckedThrowingContinuation { continuation in
+                                Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "withCheckedThrowingContinuation started")
+                                let completion = DcApiResponseCompletion(continuation)
+                                let sendCredentialResponse: (Data) -> Void = { data in
+                                    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "sendCredentialResponse called with \(data.count) bytes")
+                                    completion.returnResponse(data)
+                                }
+                                let sendCredentialError: (String) -> Void = { message in
+                                    Napier.shared.log(priority: LogLevel.error, tag: "DocumentProviderExtension", throwable: nil, message: "sendCredentialError called: \(message)")
+                                    completion.failValidation(message)
+                                }
+                                let cancelInvocation: () -> Void = {
+                                    completion.cancel()
+                                    cancelRequest()
                                 }
 
                                 // Hand the raw verifier request into shared Kotlin code, which drives
                                 // the actual consent/authentication flow and eventually calls back
-                                // into sendCredentialResponse.
+                                // with ISO response bytes, a validation failure, or explicit cancellation.
                                 let invocationData = IosDCAPIInvocationData(
                                     rawRequest: String(decoding: rawRequest.requestData, as: UTF8.self),
                                     parsedRequestSummary: parsedRequestSummary.summaryJson,
                                     origin: originString,
                                     sendCredentialResponse: sendCredentialResponse,
-                                    onCancel: onCancel
+                                    sendCredentialError: sendCredentialError,
+                                    onCancel: cancelInvocation
                                 )
                                 IosSessionBridge.shared.registerDcapiInvocation(data: invocationData)
                             }
 
                             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse handler finished")
-                            markRequestFinished(context: context)
                             return ISO18013MobileDocumentResponse(responseData: finalResponseData)
                         }
+                    } catch is CancellationError {
+                        Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse cancelled")
                     } catch {
                         Napier.shared.log(priority: LogLevel.error, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse failed: \(error)")
-                        markRequestFinished(context: context)
-                        IosSessionBridge.shared.clearDcapiInvocation()
-                        requestContext.cancel()
                     }
                 }
             }
@@ -238,7 +291,7 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                 parsedRequestSummary: parsedRequestSummary.summaryJson,
                 origin: originString,
                 onContinue: onContinue,
-                onCancel: onCancel
+                onCancel: cancelRequest
             )
             IosSessionBridge.shared.registerDcapiPreRequest(data: preRequestData)
 

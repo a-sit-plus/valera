@@ -16,7 +16,6 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
-import at.asitplus.wallet.app.common.*
 import at.asitplus.wallet.app.common.AV_DOC_TYPE
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
@@ -101,6 +100,7 @@ class IosPlatformAdapter(
 ) : PlatformAdapter {
     private companion object {
         const val REGISTERED_DOCUMENT_IDS_DEFAULTS_KEY = "dcapi.registeredDocumentIds"
+        const val ISO_DC_API_VALIDATION_ERROR = "ISO 18013-7 Annex C request validation failed"
         val registeredDocumentIdsLock = Mutex()
         val registeredDocumentIds = mutableSetOf<String>().apply {
             addAll(loadRegisteredDocumentIds())
@@ -417,7 +417,9 @@ class IosPlatformAdapter(
             val encodedResponse = response.toIosIsoMdocResponseBytes()
             invocation.sendCredentialResponse.invoke(encodedResponse.toNSData())
         } catch (throwable: Throwable) {
-            invocation.onCancel()
+            invocation.sendCredentialError(
+                throwable.message ?: "Failed to build ISO 18013-7 Annex C response"
+            )
             throw throwable
         } finally {
             IosSessionBridge.clearDcapiInvocation()
@@ -425,11 +427,14 @@ class IosPlatformAdapter(
     }
 
     override fun prepareDCAPICredentialError(error: String) {
-        Napier.w("Got error response: $error")
+        Napier.w("Got ISO 18013-7 Annex C validation error: $error")
         val invocation = (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)
             ?: throw IllegalStateException("Callback for response not found")
         try {
-            invocation.onCancel()
+            // The common API carries an OAuth-style serialized error for Android. iOS uses
+            // ISO 18013-7 Annex C, so keep that value diagnostic-only and fail the throwing
+            // sendResponse closure with a protocol-neutral validation error.
+            invocation.sendCredentialError(ISO_DC_API_VALIDATION_ERROR)
         } finally {
             IosSessionBridge.clearDcapiInvocation()
         }
