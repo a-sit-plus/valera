@@ -164,28 +164,21 @@ public class AndroidPlatformAdapter(
         return ContextCompat.checkSelfPermission(applicationContext, permission) == PackageManager.PERMISSION_GRANTED
     }
 
-    override fun openUrl(url: String): Boolean {
+    override fun openUrl(url: String) {
         Napier.d("Open URL: ${url.toUri()}")
         val uri = url.toUri()
         val customTabsIntent = CustomTabsIntent.Builder().build().apply {
             intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-        return try {
+        try {
             customTabsIntent.launchUrl(applicationContext, uri)
-            true
         } catch (e: Throwable) {
             Napier.w("Custom tab failed, falling back to browser intent", e)
-            try {
-                applicationContext.startActivity(
-                    Intent(Intent.ACTION_VIEW, uri).apply {
-                        addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_NEW_TASK)
-                    }
-                )
-                true
-            } catch (fallbackError: Throwable) {
-                Napier.w("Browser intent failed to open URL", fallbackError)
-                false
-            }
+            applicationContext.startActivity(
+                Intent(Intent.ACTION_VIEW, uri).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+            )
         }
     }
 
