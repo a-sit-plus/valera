@@ -74,7 +74,10 @@ fun AttributeSelectionGroup(
 
     Card(
         modifier = Modifier,
-        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        ),
         elevation = CardDefaults.elevatedCardElevation(),
     ) {
         Column(

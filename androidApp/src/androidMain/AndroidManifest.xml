@@ -59,7 +59,7 @@
             android:launchMode="singleTask"
             android:taskAffinity="${applicationId}.transientFlow"
             android:excludeFromRecents="true"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
