@@ -22,15 +22,15 @@ import ui.models.toCredentialFreshnessSummaryModel
 fun vckModule() = module {
     singleOf(::JsonWebKeySetResolver)
     singleOf(::PublicKeyResolver)
-    single<Validator> {
-        val statusListTokenResolver: StatusListTokenResolver by inject()
-        Validator(
-            tokenStatusResolver = TokenStatusResolverImpl(
-                resolveStatusListToken = statusListTokenResolver::invoke
-            )
-        )
-    }
     scope(named(SESSION_NAME)) {
+        scoped<Validator> {
+            val statusListTokenResolver: StatusListTokenResolver by inject()
+            Validator(
+                tokenStatusResolver = TokenStatusResolverImpl(
+                    resolveStatusListToken = statusListTokenResolver::invoke
+                )
+            )
+        }
         scoped<HolderAgent> {
             val keyMaterial: KeyMaterial by inject()
             val subjectCredentialStore: SubjectCredentialStore by inject()
@@ -44,13 +44,12 @@ fun vckModule() = module {
                 validatorSdJwt = ValidatorSdJwt(verifyJwsObject = VerifyJwsObject(publicKeyLookup = publicKeyResolver::invoke))
             )
         }
-    }
-    includes(tokenStatusListModule())
-
-    single<CredentialFreshnessSummaryModelEvaluator> {
-        val validator = get<Validator>()
-        CredentialFreshnessSummaryModelEvaluator {
-            validator.checkCredentialFreshness(it).toCredentialFreshnessSummaryModel()
+        scoped<CredentialFreshnessSummaryModelEvaluator> {
+            val validator = get<Validator>()
+            CredentialFreshnessSummaryModelEvaluator {
+                validator.checkCredentialFreshness(it).toCredentialFreshnessSummaryModel()
+            }
         }
     }
+    includes(tokenStatusListModule())
 }

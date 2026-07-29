@@ -191,11 +191,10 @@ class WalletMain(
     fun updateCheck() {
         scope.launch(Dispatchers.IO) {
             catchingUnwrapped {
-                val httpClient = httpService.buildHttpClient()
                 val host = "https://wallet.a-sit.plus/"
                 val url = "${host}check.json"
                 Napier.d("Performing update check with $url")
-                val json = httpClient.get(url).body<JsonObject>()
+                val json = httpService.cachedResourceClient(dataStoreService).get(url).body<JsonObject>()
                 json["apps"]?.jsonObject?.get(buildContext.packageName)?.let {
                     (it as? JsonObject)?.get("latestVersion")?.jsonPrimitive?.content?.let {
                         val latestVersion = SemVer.parse(it)

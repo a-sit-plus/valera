@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.common
 
-import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.wallet.lib.data.CredentialMetadataRegistry
@@ -8,10 +7,8 @@ import at.asitplus.wallet.lib.data.ResolvedCredentialMetadata
 import at.asitplus.wallet.lib.data.toCredentialScheme
 import at.asitplus.wallet.sdjwt.SdJwtTypeMetadata
 import data.storage.DataStoreService
+import data.storage.PersistentSimpleStore
 import io.github.aakira.napier.Napier
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.time.Clock
@@ -21,14 +18,13 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 /**
- * A [CredentialMetadataRegistry] that persists resolved type-metadata to the local data store, so a credential's
- * scheme is fetched from the network only once: on the first lookup it delegates to [delegate] (e.g. the remote
- * registry) and caches the result; on every later lookup — including after an app restart — it answers from the
- * persisted cache without any remote call.
+ * A [CredentialMetadataRegistry] that persists resolved type-metadata to the local data store. Fresh entries avoid
+ * the network, expired entries are refreshed through [delegate], and stale metadata remains available when refresh
+ * fails.
  *
  * [AttributeIndex] only calls [findEntry] when a scheme is not already known synchronously, so wrapping the remote
  * registry here means remote calls happen exactly for schemes that are neither bundled, already resolved this
- * session, nor present in the persisted cache.
+ * session, nor present in the persisted cache as a fresh entry.
  */
 @OptIn(ExperimentalTime::class)
 class PersistentCachingCredentialMetadataRegistry(
@@ -51,47 +47,38 @@ class PersistentCachingCredentialMetadataRegistry(
     private fun CachedMetadata.isFresh(): Boolean =
         clock.now() - Instant.fromEpochSeconds(cachedAtEpochSeconds) < ttl
 
-    private val mutex = Mutex()
-    private var cache: MutableMap<String, CachedMetadata>? = null
+    private val cache = PersistentSimpleStore<String, CachedMetadata>(
+        dataStoreService = dataStore,
+        preferenceKey = Configuration.DATASTORE_KEY_CREDENTIAL_METADATA_CACHE,
+        json = json,
+        maxEntries = Configuration.MAX_PERSISTENT_CACHE_ENTRIES,
+    )
 
     private fun key(identifier: String, representation: CredentialRepresentation) = "$representation|$identifier"
-
-    private suspend fun cache(): MutableMap<String, CachedMetadata> = mutex.withLock {
-        cache ?: loadFromDataStore().also { cache = it }
-    }
-
-    private suspend fun loadFromDataStore(): MutableMap<String, CachedMetadata> = catchingUnwrapped {
-        dataStore.getPreference(Configuration.DATASTORE_KEY_CREDENTIAL_METADATA_CACHE).first()
-            ?.let { json.decodeFromString<Map<String, CachedMetadata>>(it).toMutableMap() }
-    }.getOrNull() ?: mutableMapOf()
 
     override suspend fun findEntry(
         identifier: String,
         representation: CredentialRepresentation,
     ): ResolvedCredentialMetadata? {
         val key = key(identifier, representation)
-        cache()[key]?.takeIf { it.isFresh() }?.let {
+        val cached = cache[key]
+        cached?.takeIf { it.isFresh() }?.let {
             Napier.d("Type metadata cache hit for $identifier ($representation), loaded from ${it.loadedFrom}")
             return it.toResolved().also(::rememberDisplayName)
         }
 
         val resolved = delegate.findEntry(identifier, representation) ?: run {
+            cached?.let {
+                Napier.w("Could not refresh type metadata for $identifier ($representation); using stale cache")
+                return it.toResolved().also(::rememberDisplayName)
+            }
             // Resolution is otherwise swallowed to a fallback scheme (bare vct, no claim labels) with no trace.
             Napier.w("Could not resolve type metadata for $identifier ($representation); using fallback scheme")
             return null
         }
         Napier.d("Resolved type metadata for $identifier from ${resolved.loadedFrom} (name=${resolved.metadata.name})")
         rememberDisplayName(resolved)
-        mutex.withLock {
-            val current = cache ?: loadFromDataStore().also { cache = it }
-            current[key] = resolved.toCached()
-            catchingUnwrapped {
-                dataStore.setPreference(
-                    json.encodeToString<Map<String, CachedMetadata>>(current),
-                    Configuration.DATASTORE_KEY_CREDENTIAL_METADATA_CACHE,
-                )
-            }.onFailure { Napier.w("Could not persist credential metadata cache", it) }
-        }
+        cache[key] = resolved.toCached()
         return resolved
     }
 
