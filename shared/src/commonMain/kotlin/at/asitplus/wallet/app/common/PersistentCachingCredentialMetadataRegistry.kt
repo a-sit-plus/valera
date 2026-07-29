@@ -10,7 +10,6 @@ import data.storage.DataStoreService
 import data.storage.PersistentSimpleStore
 import io.github.aakira.napier.Napier
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -48,11 +47,9 @@ class PersistentCachingCredentialMetadataRegistry(
     private fun CachedMetadata.isFresh(): Boolean =
         clock.now() - Instant.fromEpochSeconds(cachedAtEpochSeconds) < ttl
 
-    private val cache = PersistentSimpleStore(
+    private val cache = PersistentSimpleStore<String, CachedMetadata>(
         dataStoreService = dataStore,
         preferenceKey = Configuration.DATASTORE_KEY_CREDENTIAL_METADATA_CACHE,
-        keySerializer = String.serializer(),
-        valueSerializer = CachedMetadata.serializer(),
         json = json,
         maxEntries = Configuration.MAX_PERSISTENT_CACHE_ENTRIES,
     )

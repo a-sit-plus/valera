@@ -2,7 +2,6 @@ package data.storage
 
 import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.Configuration
-import at.asitplus.wallet.app.common.data.primitives.SimpleStore
 import io.github.aakira.napier.Napier
 import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.client.plugins.cache.storage.CachedResponseData
@@ -15,8 +14,6 @@ import io.ktor.util.toMap
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.serializer
 import kotlin.io.encoding.Base64
 
 private val persistentHttpCacheMutex = Mutex()
@@ -33,11 +30,9 @@ class PersistentHttpCacheStorage(
     // ponytail: the whole cache is one DataStore blob (≤ MAX_TOTAL_BODY_BYTES) re-parsed on every find/store;
     // Ktor calls find per GET and find/findAll/store per 304-refresh. Fine while fetches are TTL-gated and
     // off-main. If cache-parse latency ever shows up, re-key per URL so each op touches only that URL's blob.
-    private val store: SimpleStore<String, List<StoredCacheEntry>> = PersistentSimpleStore(
+    private val store = PersistentSimpleStore<String, List<StoredCacheEntry>>(
         dataStoreService = dataStoreService,
         preferenceKey = preferenceKey,
-        keySerializer = String.serializer(),
-        valueSerializer = ListSerializer(StoredCacheEntry.serializer()),
     )
 
     override suspend fun store(url: Url, data: CachedResponseData): Unit = persistentHttpCacheMutex.withLock {

@@ -11,18 +11,15 @@ import at.asitplus.wallet.lib.data.rfc.tokenStatusList.StatusListTokenPayload
 import at.asitplus.wallet.lib.data.rfc3986.UniformResourceIdentifier
 import io.github.aakira.napier.Napier
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.serializer
 import kotlin.time.Instant
 
 /** Persists the JWT status-list tokens requested by Valera together with their cache timestamps. */
 class PersistentStatusListTokenStore(
     dataStoreService: DataStoreService,
 ) : SimpleStore<UniformResourceIdentifier, CacheStoreEntry<StatusListToken>> {
-    private val store = PersistentSimpleStore(
+    private val store = PersistentSimpleStore<String, StoredStatusListToken>(
         dataStoreService = dataStoreService,
         preferenceKey = Configuration.DATASTORE_KEY_TOKEN_STATUS_LIST_CACHE,
-        keySerializer = String.serializer(),
-        valueSerializer = StoredStatusListToken.serializer(),
         maxEntries = Configuration.MAX_PERSISTENT_CACHE_ENTRIES,
     )
 

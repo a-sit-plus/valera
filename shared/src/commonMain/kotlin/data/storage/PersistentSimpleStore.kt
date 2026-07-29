@@ -10,6 +10,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 
 // ponytail: one process-wide lock keeps separate store instances coherent; split by DataStore only if contention appears.
 private val persistentStoreMutex = Mutex()
@@ -105,5 +106,21 @@ class PersistentSimpleStore<Key : Any, Value : Any>(
         while (maxEntries != null && size > maxEntries) {
             remove(keys.first())
         }
+    }
+
+    companion object {
+        inline operator fun <reified Key : Any, reified Value : Any> invoke(
+            dataStoreService: DataStoreService,
+            preferenceKey: String,
+            json: Json = joseCompliantSerializer,
+            maxEntries: Int? = null,
+        ) = PersistentSimpleStore(
+            dataStoreService = dataStoreService,
+            preferenceKey = preferenceKey,
+            keySerializer = serializer<Key>(),
+            valueSerializer = serializer<Value>(),
+            json = json,
+            maxEntries = maxEntries,
+        )
     }
 }
