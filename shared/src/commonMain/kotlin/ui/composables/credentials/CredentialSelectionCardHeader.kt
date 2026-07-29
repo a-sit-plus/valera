@@ -4,13 +4,9 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.error_credential_matching_failed
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.agent.representation
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.iconLabel
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
-import org.jetbrains.compose.resources.stringResource
-import ui.composables.BigErrorText
 import ui.composables.LabeledText
 import ui.composables.PersonAttributeDetailCardHeading
 import ui.composables.PersonAttributeDetailCardHeadingIcon
@@ -37,11 +33,9 @@ fun ColumnScope.CredentialSelectionCardHeader(
             )
         },
         actionButtons = {
-            when(val it = credentialFreshnessValidationState) {
+            when (val it = credentialFreshnessValidationState) {
                 CredentialFreshnessValidationStateUiModel.Loading -> CircularProgressIndicator()
-                is CredentialFreshnessValidationStateUiModel.Done -> if(matchingException != null) {
-                    BigErrorText(stringResource(Res.string.error_credential_matching_failed))
-                } else {
+                is CredentialFreshnessValidationStateUiModel.Done -> if (matchingException == null) {
                     MainCredentialIssue(it.credentialFreshnessSummary)
                 }
             }
