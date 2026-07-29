@@ -74,6 +74,7 @@ import kotlin.time.Instant
 fun GenericCredentialSummaryCardContent(
     credential: ResolvedCredential,
     modifier: Modifier = Modifier,
+    additionalContent: @Composable ColumnScope.() -> Unit = {},
 ) {
 
     var showContent by remember {
@@ -107,6 +108,7 @@ fun GenericCredentialSummaryCardContent(
                 is StoreEntry.SdJwt -> SingleSdJwtCredentialCardContent(entry)
                 is StoreEntry.Iso -> SingleIsoCredentialCardContent(entry)
             }
+            additionalContent()
         }
     }
     Column(

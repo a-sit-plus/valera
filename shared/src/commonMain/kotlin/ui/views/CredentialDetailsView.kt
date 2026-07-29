@@ -174,15 +174,14 @@ fun CredentialDetailsSummaryView(
         }
         // No extra horizontal padding here: the enclosing Column already applies it, otherwise the cards
         // (technical data, status, contents, cnf) would be indented twice.
-        GenericCredentialSummaryCardContent(credential = credential)
-
-        Spacer(modifier = Modifier.height(16.dp))
-        credential.entry.issuer?.let { issuerCert ->
-            IssuerTrustDetailsCard(
-                certificate = issuerCert,
-                trustState = trustState,
-                modifier = Modifier.fillMaxWidth()
-            )
+        GenericCredentialSummaryCardContent(credential = credential) {
+            credential.entry.issuer?.let { issuerCert ->
+                IssuerTrustDetailsCard(
+                    certificate = issuerCert,
+                    trustState = trustState,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
         Spacer(modifier = Modifier.height(16.dp))
     }
