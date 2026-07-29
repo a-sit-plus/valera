@@ -17,6 +17,7 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.lib.agent.PresentationExchangeCredentialDisclosure
@@ -25,8 +26,11 @@ import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
 import data.Attribute
 import data.credentials.toCredentialAdapter
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flowOf
 import org.koin.compose.koinInject
 import ui.composables.LabeledAttribute
+import ui.composables.TrustState
+import ui.composables.TrustStatusBanner
 import ui.composables.credentials.CredentialSelectionCardHeader
 import ui.composables.credentials.CredentialSelectionCardLayout
 import ui.composables.credentials.CredentialSummaryCardContent
@@ -41,6 +45,7 @@ fun PresentationExchangeFinalizationPageContent(
     matchingResult: PresentationExchangeMatchingResult<SubjectCredentialStore.StoreEntry>,
     credentialFreshnessProviders: List<StateFlow<CredentialFreshnessValidationStateUiModel>>,
     inputDescriptorSubmissions: Map<String, PresentationExchangeCredentialDisclosure<SubjectCredentialStore.StoreEntry>>,
+    trustListService: TrustListService,
     authenticateAtRelyingParty: Boolean,
     serviceProviderLocalizedName: String?,
     serviceProviderLocalizedLocation: String,
@@ -94,6 +99,7 @@ fun PresentationExchangeFinalizationPageContent(
                 disclosure = it.disclosure,
                 inputDescriptorMatching = it.inputDescriptorMatching,
                 freshnessProvider = it.freshnessProvider,
+                trustListService = trustListService,
             )
         }
     }
@@ -110,6 +116,7 @@ private fun PresentationExchangeCredentialSubmissionSummaryCard(
     disclosure: PresentationExchangeCredentialDisclosure<SubjectCredentialStore.StoreEntry>,
     inputDescriptorMatching: Map<ConstraintField, NodeList>,
     freshnessProvider: StateFlow<CredentialFreshnessValidationStateUiModel>,
+    trustListService: TrustListService,
     decodeToBitmap: ImageDecoder = koinInject(),
 ) {
     val credential = disclosure.credential
@@ -119,6 +126,9 @@ private fun PresentationExchangeCredentialSubmissionSummaryCard(
             .getOrElse { credential.toFallbackResolvedCredential() }
     }
     val displayCredential = resolvedCredential ?: return
+    val trustState by trustListService
+        .observeTrustStateForEntry(flowOf(resolvedCredential))
+        .collectAsState(initial = TrustState.EVALUATING)
     val credentialAdapter = credential.toCredentialAdapter(displayCredential.scheme) { decodeToBitmap(it) }
     val disclosedPathStrings = disclosure.disclosedAttributes.map { it.toString() }.toSet()
 
@@ -153,6 +163,10 @@ private fun PresentationExchangeCredentialSubmissionSummaryCard(
             credential = displayCredential,
             modifier = Modifier.fillMaxWidth(),
             allowMultiSelection = false,
+        )
+        TrustStatusBanner(
+            trustState = trustState,
+            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
         )
         CredentialSummaryCardContent(
             credential = displayCredential,
