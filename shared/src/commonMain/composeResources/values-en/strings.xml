@@ -430,7 +430,7 @@
     <string name="button_dismiss">Dismiss</string>
     <string name="button_remove">Remove</string>
     <string name="button_refresh">Refresh</string>
-    <string name="refresh_snackbar_message_single">Update available for \'%1$s\'</string>
+    <string name="refresh_snackbar_message_single">Update available for '%1$s'</string>
     <string name="refresh_snackbar_message_multiple">Updates available for multiple credentials</string>
     <string name="refresh_snackbar_action">Update Now</string>
     <string name="error_no_refresh_token">No refresh token available</string>

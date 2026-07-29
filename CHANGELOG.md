@@ -1,11 +1,14 @@
 # Release 5.8.1 (unreleased):
- * Update to VC-K 7.0.0-SNAPSHOT
+ * Update to VC-K 7.0.0
  * Rework resolving credential schemes
  * Drop support for PID in VC JWT (which was never officially specified anyway)
- * Update DCAPI matching implementation for Android
+ * DCAPI: Update matching implementation, improve iOS state handling
  * Fix opening second provisioning flow after aborting the first one
  * Add `TrustListService` for loading LoTE regularly in the background
- * Display trust evaluation in Consent Screen and in `CredentialsDetailsView`
+ * Display trust evaluation of credentials
+ * Cache remote lookups of trust lists and status lists
+ * Improve dark theme
+ * Improve UI performance
 
 # Release 5.8.0
  * Update to VC-K 6.0.0

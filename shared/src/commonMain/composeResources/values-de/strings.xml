@@ -437,7 +437,7 @@
     <string name="button_dismiss">Verwerfen</string>
     <string name="button_remove">Entfernen</string>
     <string name="button_refresh">Aktualisieren</string>
-    <string name="refresh_snackbar_message_single">Aktualisierung verfügbar für \'%1$s\'</string>
+    <string name="refresh_snackbar_message_single">Aktualisierung verfügbar für '%1$s'</string>
     <string name="refresh_snackbar_message_multiple">Aktualisierungen für mehrere Ausweise verfügbar</string>
     <string name="refresh_snackbar_action">Jetzt aktualisieren</string>
     <string name="error_no_refresh_token">Kein Refresh-Token verfügbar</string>
