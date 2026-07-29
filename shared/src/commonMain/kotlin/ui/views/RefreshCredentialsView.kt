@@ -16,12 +16,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
@@ -39,6 +39,7 @@ import at.asitplus.wallet.app.common.RefreshItem
 import at.asitplus.wallet.app.common.RefreshStatus
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import org.jetbrains.compose.resources.stringResource
+import ui.theme.LocalExtendedColors
 
 @Composable
 fun RefreshCredentialsView(
@@ -97,9 +98,9 @@ fun RefreshItemRow(
             Text(item.scheme.uiLabel(), fontWeight = FontWeight.SemiBold)
             val statusColor = when (item.status) {
                 RefreshStatus.Pending -> LocalContentColor.current
-                RefreshStatus.InProgress -> Color(0xFF1565C0)
-                RefreshStatus.Succeeded -> Color(0xFF2E7D32)
-                RefreshStatus.Failed -> Color(0xFFC62828)
+                RefreshStatus.InProgress -> MaterialTheme.colorScheme.primary
+                RefreshStatus.Succeeded -> LocalExtendedColors.current.success
+                RefreshStatus.Failed -> MaterialTheme.colorScheme.error
             }
 
             val statusText = when (item.status) {
@@ -123,7 +124,7 @@ fun RefreshItemRow(
             }
             else -> {
                 Row {
-                    TextButton(onClick = onRemove) { Text(stringResource(Res.string.button_dismiss), color = Color.Gray) }
+                    TextButton(onClick = onRemove) { Text(stringResource(Res.string.button_dismiss)) }
                     Button(onClick = onRefresh) { Text(stringResource(Res.string.button_refresh)) }
                 }
             }
