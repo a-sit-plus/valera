@@ -61,10 +61,12 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.IssuerTrustDetailsCard
 import ui.composables.Label
 import ui.composables.LabeledContent
 import ui.composables.LabeledText
 import ui.composables.PersonAttributeDetailCardHeading
+import ui.composables.TrustState
 import ui.models.ResolvedCredential
 import kotlin.math.min
 import kotlin.time.Instant
@@ -73,8 +75,8 @@ import kotlin.time.Instant
 @Composable
 fun GenericCredentialSummaryCardContent(
     credential: ResolvedCredential,
+    trustState: TrustState,
     modifier: Modifier = Modifier,
-    additionalContent: @Composable ColumnScope.() -> Unit = {},
 ) {
 
     var showContent by remember {
@@ -104,11 +106,10 @@ fun GenericCredentialSummaryCardContent(
             modifier = modifier
         ) {
             when (val entry = credential.entry) {
-                is StoreEntry.Vc -> SingleVcCredentialCardContent(entry)
-                is StoreEntry.SdJwt -> SingleSdJwtCredentialCardContent(entry)
-                is StoreEntry.Iso -> SingleIsoCredentialCardContent(entry)
+                is StoreEntry.Vc -> SingleVcCredentialCardContent(entry, trustState)
+                is StoreEntry.SdJwt -> SingleSdJwtCredentialCardContent(entry, trustState)
+                is StoreEntry.Iso -> SingleIsoCredentialCardContent(entry, trustState)
             }
-            additionalContent()
         }
     }
     Column(
@@ -136,6 +137,7 @@ fun GenericCredentialSummaryCardContent(
 @Composable
 private fun SingleVcCredentialCardContent(
     credential: StoreEntry.Vc,
+    trustState: TrustState,
 ) {
     val modifier = Modifier.padding(bottom = 16.dp, end = 16.dp, start = 16.dp)
     ElevatedCard(modifier = Modifier.padding(bottom = 16.dp)) {
@@ -148,6 +150,7 @@ private fun SingleVcCredentialCardContent(
         }
     }
     (credential.vc.vc.credentialStatus as? StatusListInfo)?.let { StatusCard(it, modifier) }
+    credential.issuer?.let { IssuerTrustDetailsCard(it, trustState) }
     CredentialContentsCard {
         when (val subject = credential.vc.vc.credentialSubject) {
             is JsonObject -> subject.mapWithPrefix().sortedBy { it.first }.toSet().forEach {
@@ -171,6 +174,7 @@ private fun SingleVcCredentialCardContent(
 @Composable
 private fun SingleSdJwtCredentialCardContent(
     credential: StoreEntry.SdJwt,
+    trustState: TrustState,
 ) {
     val modifier = Modifier.padding(bottom = 16.dp, end = 16.dp, start = 16.dp)
     ElevatedCard(modifier = Modifier.padding(bottom = 16.dp)) {
@@ -189,6 +193,7 @@ private fun SingleSdJwtCredentialCardContent(
         }
     }
     (credential.sdJwt.statusElement as? StatusListInfo)?.let { StatusCard(it, modifier) }
+    credential.issuer?.let { IssuerTrustDetailsCard(it, trustState) }
     (credential.toComplexJson()?.get("cnf") as? JsonObject)?.let { CnfCard(it, modifier) }
     credential.allEntries().takeIf { it.isNotEmpty() }?.let { entries ->
         CredentialContentsCard {
@@ -223,6 +228,7 @@ private fun JsonObject.mapWithPrefix(prefix: String? = null): Collection<Pair<St
 @Composable
 private fun SingleIsoCredentialCardContent(
     credential: StoreEntry.Iso,
+    trustState: TrustState,
 ) {
     val modifier = Modifier.padding(bottom = 16.dp, end = 16.dp, start = 16.dp)
     ElevatedCard(modifier = Modifier.padding(bottom = 16.dp)) {
@@ -238,6 +244,7 @@ private fun SingleIsoCredentialCardContent(
         }
     }
     (credential.issuerSigned.issuerAuth.payload?.status as? StatusListInfo)?.let { StatusCard(it, modifier) }
+    credential.issuer?.let { IssuerTrustDetailsCard(it, trustState) }
     (credential.issuerSigned.namespaces?.mapIt() ?: listOf()).sortedBy { it.first }.takeIf { it.isNotEmpty() }
         ?.let { entries ->
             CredentialContentsCard {

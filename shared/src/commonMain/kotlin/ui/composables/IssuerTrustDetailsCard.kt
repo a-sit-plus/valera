@@ -41,7 +41,7 @@ fun IssuerTrustDetailsCard(
     val rdnAttributes = certificate.tbsCertificate.subjectName.flatMap { it.attrsAndValues }
     val issuerName = rdnAttributes.firstOrNull { it is AttributeTypeAndValue.Organization }?.value?.asPrimitive()?.decodeToString()
         ?: rdnAttributes.firstOrNull { it is AttributeTypeAndValue.CommonName }?.value?.asPrimitive()?.decodeToString()
-        ?: "Unknown Issuer"
+        ?: certificate.tbsCertificate.subjectName.toString()
 
     val validFrom = certificate.tbsCertificate.validFrom.instant.toString()
     val validUntil = certificate.tbsCertificate.validUntil.instant.toString()
