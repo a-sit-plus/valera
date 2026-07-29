@@ -27,9 +27,9 @@ class PersistentStatusListTokenStore(
     )
 
     override suspend fun get(key: UniformResourceIdentifier): CacheStoreEntry<StatusListToken>? =
-        store.get(key.string)?.toCacheEntry(key)
+        store[key.string]?.toCacheEntry(key)
 
-    override suspend fun put(
+    override suspend fun set(
         key: UniformResourceIdentifier,
         value: CacheStoreEntry<StatusListToken>,
     ): CacheStoreEntry<StatusListToken>? {
@@ -37,14 +37,14 @@ class PersistentStatusListTokenStore(
             Napier.w("Only JWT status-list tokens can be persisted; not caching $key")
             return null
         }
-        return store.put(key.string, stored)?.toCacheEntry(key, removeIfInvalid = false)
+        return store.set(key.string, stored)?.toCacheEntry(key, removeIfInvalid = false)
     }
 
     // Not on the hot path: the bulk-store chain drives get()/put() directly. Kept for interface conformance.
     override suspend fun getOrPut(
         key: UniformResourceIdentifier,
         defaultValue: suspend () -> CacheStoreEntry<StatusListToken>,
-    ): CacheStoreEntry<StatusListToken> = get(key) ?: defaultValue().also { put(key, it) }
+    ): CacheStoreEntry<StatusListToken> = get(key) ?: defaultValue().also { set(key, it) }
 
     override suspend fun keys(): Set<UniformResourceIdentifier> =
         store.keys().mapTo(mutableSetOf(), ::UniformResourceIdentifier)

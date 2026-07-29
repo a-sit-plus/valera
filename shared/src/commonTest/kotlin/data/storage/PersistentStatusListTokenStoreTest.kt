@@ -28,14 +28,14 @@ class PersistentStatusListTokenStoreTest {
             resolvedAt = cachedAt,
         )
 
-        cache(dataStore, FixedTimeClock(cachedAt.toEpochMilliseconds())).put(url, token)
+        cache(dataStore, FixedTimeClock(cachedAt.toEpochMilliseconds())).set(url, token)
 
         assertEquals(
             token,
-            cache(dataStore, FixedTimeClock((cachedAt + 4.minutes).toEpochMilliseconds())).get(url),
+            cache(dataStore, FixedTimeClock((cachedAt + 4.minutes).toEpochMilliseconds()))[url],
         )
         assertNull(
-            cache(dataStore, FixedTimeClock((cachedAt + 6.minutes).toEpochMilliseconds())).get(url),
+            cache(dataStore, FixedTimeClock((cachedAt + 6.minutes).toEpochMilliseconds()))[url],
         )
     }
 
@@ -50,8 +50,8 @@ class PersistentStatusListTokenStoreTest {
         )
         val store = PersistentStatusListTokenStore(dataStore)
 
-        assertNull(store.put(url, cwt))
-        assertNull(store.get(url))
+        assertNull(store.set(url, cwt))
+        assertNull(store[url])
     }
 
     @Test
@@ -65,7 +65,7 @@ class PersistentStatusListTokenStoreTest {
         val store = PersistentStatusListTokenStore(dataStore)
 
         repeat(65) {
-            store.put(UniformResourceIdentifier("https://example.test/status/$it"), entry)
+            store[UniformResourceIdentifier("https://example.test/status/$it")] = entry
         }
 
         assertEquals(64, store.keys().size)

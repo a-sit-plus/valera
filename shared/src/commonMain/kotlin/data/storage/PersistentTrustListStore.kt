@@ -1,5 +1,6 @@
 package data.storage
 
+import at.asitplus.catchingUnwrapped
 import at.asitplus.etsi.ListOfTrustedEntities
 import at.asitplus.etsi.TrustListPayload
 import at.asitplus.signum.indispensable.josef.JwsCompact
@@ -40,7 +41,7 @@ class PersistentTrustListStore(
 
     private fun parseStored(stored: String?): Pair<ListOfTrustedEntities, Instant>? {
         if (stored.isNullOrBlank()) return null
-        val (rawJws, cachedAt) = runCatching {
+        val (rawJws, cachedAt) = catchingUnwrapped {
             val dto = joseCompliantSerializer.decodeFromString<StoredTrustList>(stored)
             dto.rawJwsText to Instant.fromEpochMilliseconds(dto.cachedAtEpochMillis)
         }.getOrElse {

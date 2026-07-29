@@ -17,7 +17,8 @@ interface SimpleBulkStore<Key : Any, Value : Any> : SimpleStore<Key, Value> {
      * implementation must ensure that each key in entries is in the resulting map
      */
     suspend fun put(entries: Map<Key, Value>): Map<Key, Value?>
-    override suspend fun put(key: Key, value: Value): Value? = put(mapOf(key to value)).catchingUnwrapped {
+    
+    override suspend fun set(key: Key, value: Value): Value? = put(mapOf(key to value)).catchingUnwrapped {
         getValue(key)
     }.getOrElse {
         throw SimpleBulkStoreImplementationException(it)

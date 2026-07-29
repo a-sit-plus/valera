@@ -64,7 +64,7 @@ class PersistentCachingCredentialMetadataRegistry(
         representation: CredentialRepresentation,
     ): ResolvedCredentialMetadata? {
         val key = key(identifier, representation)
-        val cached = cache.get(key)
+        val cached = cache[key]
         cached?.takeIf { it.isFresh() }?.let {
             Napier.d("Type metadata cache hit for $identifier ($representation), loaded from ${it.loadedFrom}")
             return it.toResolved().also(::rememberDisplayName)
@@ -81,7 +81,7 @@ class PersistentCachingCredentialMetadataRegistry(
         }
         Napier.d("Resolved type metadata for $identifier from ${resolved.loadedFrom} (name=${resolved.metadata.name})")
         rememberDisplayName(resolved)
-        cache.put(key, resolved.toCached())
+        cache[key] = resolved.toCached()
         return resolved
     }
 

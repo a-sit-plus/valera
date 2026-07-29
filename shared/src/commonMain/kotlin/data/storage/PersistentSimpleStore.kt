@@ -31,11 +31,11 @@ class PersistentSimpleStore<Key : Any, Value : Any>(
         require(maxEntries == null || maxEntries > 0)
     }
 
-    override suspend fun get(key: Key): Value? = persistentStoreMutex.withLock {
+    override suspend operator fun get(key: Key): Value? = persistentStoreMutex.withLock {
         loadEntries()[key]
     }
 
-    override suspend fun put(key: Key, value: Value): Value? = persistentStoreMutex.withLock {
+    override suspend fun set(key: Key, value: Value): Value? = persistentStoreMutex.withLock {
         loadEntries().run {
             val previous = remove(key)
             this[key] = value

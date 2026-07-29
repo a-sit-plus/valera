@@ -14,12 +14,12 @@ data class SimpleBootstrappingBulkStore<Key : Any, Value : Any>(
 
     override suspend fun get(keys: Set<Key>): Map<Key, Value?> = mutex.withLock {
         keys.associateWith {
-            simpleStore.get(it)
+            simpleStore[it]
         }
     }
 
     private suspend fun getInsecure(keys: Set<Key>): Map<Key, Value?> = keys.associateWith {
-        simpleStore.get(it)
+        simpleStore[it]
     }
 
     override suspend fun put(entries: Map<Key, Value>): Map<Key, Value?> = mutex.withLock {
@@ -27,7 +27,7 @@ data class SimpleBootstrappingBulkStore<Key : Any, Value : Any>(
     }
 
     private suspend fun putInsecure(entries: Map<Key, Value>): Map<Key, Value?> = entries.mapValues { (key, value) ->
-        simpleStore.put(key, value)
+        simpleStore.set(key, value)
     }
 
     override suspend fun getOrPut(defaultValues: Map<Key, suspend () -> Value>): Map<Key, Value> = mutex.withLock {

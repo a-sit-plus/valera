@@ -42,23 +42,23 @@ class PersistentHttpCacheStorage(
 
     override suspend fun store(url: Url, data: CachedResponseData): Unit = persistentHttpCacheMutex.withLock {
         val key = url.toString()
-        val others = store.get(key).orEmpty().filterNot { it.varyKeys == data.varyKeys }
+        val others = store[key].orEmpty().filterNot { it.varyKeys == data.varyKeys }
         val updated = if (data.body.size <= MAX_ENTRY_BYTES) others + data.toStored() else others
-        if (updated.isEmpty()) store.remove(key) else store.put(key, updated)
+        if (updated.isEmpty()) store.remove(key) else store[key] = updated
         evictLocked()
     }
 
     override suspend fun find(url: Url, varyKeys: Map<String, String>): CachedResponseData? =
-        store.get(url.toString())?.firstOrNull { it.varyKeys == varyKeys }?.toData(url)
+        store[url.toString()]?.firstOrNull { it.varyKeys == varyKeys }?.toData(url)
 
     override suspend fun findAll(url: Url): Set<CachedResponseData> =
-        store.get(url.toString()).orEmpty().mapNotNull { it.toData(url) }.toSet()
+        store[url.toString()].orEmpty().mapNotNull { it.toData(url) }.toSet()
 
     override suspend fun remove(url: Url, varyKeys: Map<String, String>): Unit =
         persistentHttpCacheMutex.withLock {
             val key = url.toString()
-            val remaining = store.get(key).orEmpty().filterNot { it.varyKeys == varyKeys }
-            if (remaining.isEmpty()) store.remove(key) else store.put(key, remaining)
+            val remaining = store[key].orEmpty().filterNot { it.varyKeys == varyKeys }
+            if (remaining.isEmpty()) store.remove(key) else store[key] = remaining
         }
 
     override suspend fun removeAll(url: Url): Unit = persistentHttpCacheMutex.withLock {
@@ -79,7 +79,7 @@ class PersistentHttpCacheStorage(
                 entries.remove(oldest.first)
                 store.remove(oldest.first)
             } else {
-                store.put(oldest.first, remaining)
+                store[oldest.first] = remaining
             }
         }
     }
