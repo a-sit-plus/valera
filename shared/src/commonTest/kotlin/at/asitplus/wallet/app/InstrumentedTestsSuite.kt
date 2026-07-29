@@ -179,8 +179,8 @@ fun ComposeUiTest.endToEndTest() {
                 println("InstrumentedTests: starting credential issuance setup")
                 val issuer = IssuerAgent(
                     keyMaterial = EphemeralKeyWithoutCert(),
-                    statusListBaseUrl = "http://127.0.0.1/credentials/status",
                     identifier = "https://issuer.example.com/".toUri(),
+                    statusListAgent = null,
                 )
                 catchingUnwrapped {
                     holderAgent.storeCredential(
