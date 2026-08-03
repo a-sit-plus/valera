@@ -1,4 +1,4 @@
-# Release 5.8.1 (unreleased):
+# Release 5.8.1:
  * Update to VC-K 7.0.0
  * Rework resolving credential schemes
  * Drop support for PID in VC JWT (which was never officially specified anyway)
