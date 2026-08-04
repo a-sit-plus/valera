@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.common.data
 
-import at.asitplus.KmmResult
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.flow.Flow
@@ -22,6 +21,8 @@ import kotlin.time.Duration
  * @property bleUseL2CAPEnabled set to `true` to use BLE L2CAP if available, `false` otherwise.
  * @property bleUseL2CAPInEngagementEnabled set to `true` to use BLE L2CAP from the engagement, `false` otherwise.
  * @property connectionTimeout the timeout for closing a connection.
+ * @property openId4VpAllowedOriginSchemes the origin scheme names or platform-origin prefixes accepted for
+ * OpenID4VP requests over the Digital Credentials API.
  * @property presentmentNegotiatedHandoverPreferredOrder a list specifying the preferred order of transport methods to use when creating an NFC negotiated handover.
  */
 
@@ -41,6 +42,8 @@ interface SettingsRepository {
     val presentmentAllowMultipleRequests: Flow<Boolean>
     val readerAutomaticallySelectTransport: Flow<Boolean>
     val connectionTimeout: Flow<Duration>
+    val openId4VpAllowedOriginSchemes: Flow<Set<String>>
+    val defaultOpenId4VpAllowedOriginSchemes: Set<String>
 
     val presentmentNegotiatedHandoverPreferredOrder: List<String>
         get() = listOf(
@@ -71,6 +74,7 @@ interface SettingsRepository {
         presentmentAllowMultipleRequests: Boolean? = null,
         readerAutomaticallySelectTransport: Boolean? = null,
         connectionTimeout: Duration? = null,
+        openId4VpAllowedOriginSchemes: Set<String>? = null,
         completionHandler: CompletionHandler = {},
     ): Result<Unit>
 

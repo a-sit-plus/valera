@@ -17,7 +17,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import org.multipaz.cbor.Cbor
-import org.multipaz.cbor.RawCbor
 import org.multipaz.cbor.Simple
 import org.multipaz.crypto.EcPublicKey
 import org.multipaz.mdoc.request.DeviceRequest
@@ -30,7 +29,6 @@ import org.multipaz.mdoc.transport.NfcTransportMdoc
 import org.multipaz.util.Constants
 import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.authentication.PresentationViewModel
-import kotlin.coroutines.coroutineContext
 
 
 // Based on the identity-credential sample code

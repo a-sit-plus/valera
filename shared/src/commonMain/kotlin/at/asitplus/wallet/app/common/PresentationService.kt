@@ -1,26 +1,28 @@
 package at.asitplus.wallet.app.common
 
-import at.asitplus.dcapi.DCAPIHandover
-import at.asitplus.dcapi.DCAPIHandover.Companion.TYPE_DCAPI
-import at.asitplus.dcapi.DCAPIInfo
-import at.asitplus.iso.*
-import at.asitplus.openid.AuthenticationRequestParameters
-import at.asitplus.openid.RequestParametersFrom
-import at.asitplus.signum.supreme.UserInitiatedCancellationReason
 import at.asitplus.iso.DeviceAuthentication
 import at.asitplus.iso.SessionTranscript
 import at.asitplus.iso.wrapInCborTag
+import at.asitplus.openid.AuthenticationRequestParameters
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
-import at.asitplus.wallet.lib.agent.*
+import at.asitplus.signum.supreme.UserInitiatedCancellationReason
+import at.asitplus.wallet.app.common.data.SettingsRepository
+import at.asitplus.wallet.lib.agent.CreatePresentationResult
+import at.asitplus.wallet.lib.agent.HolderAgent
+import at.asitplus.wallet.lib.agent.PresentationException
+import at.asitplus.wallet.lib.agent.PresentationRequestParameters
+import at.asitplus.wallet.lib.agent.PresentationResponseParameters
 import at.asitplus.wallet.lib.cbor.CoseHeaderNone
 import at.asitplus.wallet.lib.cbor.SignCoseDetached
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
+import at.asitplus.wallet.lib.openid.DcApiPreparationState
 import io.github.aakira.napier.Napier
-import io.ktor.client.*
-import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
+import io.ktor.client.HttpClient
+import kotlinx.coroutines.flow.first
 import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.encodeToByteArray
 
@@ -29,12 +31,14 @@ class PresentationService(
     val keyMaterial: WalletKeyMaterial,
     val holderAgent: HolderAgent,
     httpService: HttpService,
+    settingsRepository: SettingsRepository,
 ) {
     private val presentationService = OpenId4VpWallet(
         engine = HttpClient().engine,
         httpClientConfig = httpService.loggingConfig,
         keyMaterial = keyMaterial,
-        holderAgent = holderAgent
+        holderAgent = holderAgent,
+        allowedDcApiOriginSchemes = { settingsRepository.openId4VpAllowedOriginSchemes.first() },
     )
 
     suspend fun startAuthorizationResponsePreparation(input: String) =
@@ -47,6 +51,12 @@ class PresentationService(
         preparationState: AuthorizationResponsePreparationState
     ) = presentationService.getMatchingCredentials(preparationState)
 
+    suspend fun prepareDcApiRequest(request: RequestParametersFrom.DcApiRequest) =
+        presentationService.prepareDcApiRequest(request)
+
+    suspend fun getMatchingCredentials(preparationState: DcApiPreparationState) =
+        presentationService.getMatchingCredentials(preparationState)
+
     suspend fun finalizeAuthorizationResponse(
         credentialPresentation: CredentialPresentation,
         preparationState: AuthorizationResponsePreparationState,
@@ -55,26 +65,18 @@ class PresentationService(
         preparationState = preparationState
     ).getOrThrow()
 
-    @OptIn(ExperimentalStdlibApi::class)
-    suspend fun finalizeIsoMdocDCAPIPresentation(
-        credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
-        isoMdocWalletRequest: RequestParametersFrom.IsoMdocDcApi
-    ): OpenId4VpWallet.AuthenticationSuccess {
+    suspend fun finalizeDcApiPresentation(
+        credentialPresentation: CredentialPresentation,
+        preparationState: DcApiPreparationState,
+    ) {
         Napier.d("Finalizing DCAPI response")
-        val encryptedResponse = IsoMdocDcapiResponseBuilder.buildEncryptedResponse(
+        val response = presentationService.finalizeDcApiResponse(
+            state = preparationState,
             credentialPresentation = credentialPresentation,
-            isoMdocWalletRequest = isoMdocWalletRequest,
-            keyMaterial = keyMaterial,
-            holderAgent = holderAgent,
-        )
-        platformAdapter.prepareIsoMdocDCAPICredentialResponse(encryptedResponse, true)
-        return OpenId4VpWallet.AuthenticationSuccess()
+        ).getOrThrow()
+        platformAdapter.prepareDCAPICredentialResponse(response)
     }
 
-    fun finalizeOpenId4VpDCAPIPresentation(response: String) =
-        platformAdapter.prepareDCAPICredentialResponse(response, true)
-
-    @OptIn(ExperimentalStdlibApi::class)
     suspend fun finalizeLocalPresentation(
         credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
         finishFunction: (ByteArray) -> Unit,
@@ -118,10 +120,12 @@ class PresentationService(
         val presentation =
             presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
 
-        val deviceResponse = when (val firstResult = presentation.presentationResults.firstOrNull()
-            ?: throw PresentationException(IllegalStateException("Presentation did not return any device response"))) {
+        val deviceResponse = when (val result = presentation.presentationResults.singleOrNull()
+            ?: throw PresentationException(
+                IllegalStateException("Local presentation must return exactly one device response")
+            )) {
             is CreatePresentationResult.DeviceResponse -> coseCompliantSerializer.encodeToByteArray(
-                firstResult.deviceResponse
+                result.deviceResponse
             )
 
             else -> throw PresentationException(IllegalStateException("Must be a device response"))

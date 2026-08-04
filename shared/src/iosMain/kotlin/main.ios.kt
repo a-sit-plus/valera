@@ -6,29 +6,33 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.window.ComposeUIViewController
 import at.asitplus.catching
 import at.asitplus.KmmResult
-import at.asitplus.dcapi.EncryptedResponse
+import at.asitplus.dcapi.DigitalCredentialInterface
+import at.asitplus.dcapi.toIosIsoMdocResponseBytes
+import at.asitplus.dcapi.ios.IosDcApiMdocPreRequestSummary
 import at.asitplus.dcapi.request.IsoMdocRequest
+import at.asitplus.dcapi.request.toRequestParametersFrom
 import at.asitplus.openid.RequestParametersFrom
-import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
-import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.PlatformAdapter
-import at.asitplus.wallet.app.dcapi.IosParsedMdocRequestSummary
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
-import at.asitplus.wallet.app.common.*
+import at.asitplus.wallet.app.common.AV_DOC_TYPE
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_digital_credentials_store_failed
 import io.github.aakira.napier.Napier
 import at.asitplus.wallet.app.ios.DigitalCredentials
+import at.asitplus.wallet.eupid.EU_PID_DOCTYPE
+import at.asitplus.wallet.mdl.MDL_DOCTYPE
 import kotlinx.cinterop.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.serialization.encodeToByteArray
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
@@ -46,10 +50,10 @@ import kotlin.collections.mapValues
 actual fun getPlatformName(): String = "iOS"
 
 private val SUPPORTED_DOC_TYPES = listOf(
-    "eu.europa.ec.av.1",
-    "eu.europa.ec.eudi.pid.1",
+    AV_DOC_TYPE,
+    EU_PID_DOCTYPE,
     "org.iso.23220.photoid.1",
-    "org.iso.18013.5.1.mDL"
+    MDL_DOCTYPE
 )
 
 @Composable
@@ -94,6 +98,29 @@ fun TransientFlowMainViewController(
 class IosPlatformAdapter(
     private val intentState: IntentState
 ) : PlatformAdapter {
+    private companion object {
+        const val REGISTERED_DOCUMENT_IDS_DEFAULTS_KEY = "dcapi.registeredDocumentIds"
+        const val ISO_DC_API_VALIDATION_ERROR = "ISO 18013-7 Annex C request validation failed"
+        val registeredDocumentIdsLock = Mutex()
+        val registeredDocumentIds = mutableSetOf<String>().apply {
+            addAll(loadRegisteredDocumentIds())
+        }
+
+        fun loadRegisteredDocumentIds(): Set<String> =
+            NSUserDefaults.standardUserDefaults
+                .stringArrayForKey(REGISTERED_DOCUMENT_IDS_DEFAULTS_KEY)
+                ?.filterIsInstance<String>()
+                ?.toSet()
+                ?: emptySet()
+
+        fun saveRegisteredDocumentIds(ids: Set<String>) {
+            NSUserDefaults.standardUserDefaults.setObject(
+                ids.toList(),
+                forKey = REGISTERED_DOCUMENT_IDS_DEFAULTS_KEY
+            )
+        }
+    }
+
     override fun openUrl(url: String) {
         dispatch_async(dispatch_get_main_queue()) {
             val url = NSURL(string = url)
@@ -102,6 +129,8 @@ class IosPlatformAdapter(
             }
         }
     }
+
+    override fun tryOpenCrossDeviceQrCode(uri: String): Boolean = false
 
     @OptIn(ExperimentalForeignApi::class)
     override fun writeToFile(text: String, fileName: String, folderName: String) {
@@ -206,11 +235,31 @@ class IosPlatformAdapter(
         }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     override fun shareLog() {
         val baseUrl = getBaseUrl() ?: return
 
         val folderUrl = baseUrl.URLByAppendingPathComponent("logs")
+        val folderPath = folderUrl?.path ?: return
+        val fileManager = NSFileManager.defaultManager
+        if (!fileManager.fileExistsAtPath(folderPath)) {
+            fileManager.createDirectoryAtPath(
+                path = folderPath,
+                withIntermediateDirectories = true,
+                attributes = null,
+                error = null
+            )
+        }
+
         val fileUrl = folderUrl?.URLByAppendingPathComponent("log.txt") ?: return
+        val filePath = fileUrl.path ?: return
+        if (!fileManager.fileExistsAtPath(filePath)) {
+            fileManager.createFileAtPath(
+                path = filePath,
+                contents = NSData(),
+                attributes = null
+            )
+        }
 
         dispatch_async(dispatch_get_main_queue()) {
             val connectedScenes = UIApplication.sharedApplication.connectedScenes
@@ -234,16 +283,33 @@ class IosPlatformAdapter(
         }
     }
 
-    override fun registerWithDigitalCredentialsAPI(
+    override suspend fun registerWithDigitalCredentialsAPI(
         entries: CredentialRegistry,
         scope: CoroutineScope
     ) {
-        scope.launch(Dispatchers.Default) {
-            for (entry in entries.credentials) {
-                val id = entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
-                val docType = entry.isoEntry?.docType ?: entry.sdJwtEntry?.verifiableCredentialType
-                if (id != null && docType != null) {
-                    storeDocumentFromSwift(id, docType, scope)
+        withContext(Dispatchers.Default) {
+            // Serialize the whole removal+add process so concurrent snapshots can't interleave.
+            registeredDocumentIdsLock.withLock {
+                val currentIds = entries.credentials.mapNotNull { entry ->
+                    entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
+                }.toSet()
+                val staleIds = registeredDocumentIds - currentIds
+                staleIds.forEach { id ->
+                    if (removeDocumentFromSwift(id, scope)) {
+                        registeredDocumentIds.remove(id)
+                        saveRegisteredDocumentIds(registeredDocumentIds)
+                    }
+                }
+                for (entry in entries.credentials) {
+                    val id = entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
+                    val docType = entry.isoEntry?.docType ?: entry.sdJwtEntry?.verifiableCredentialType
+                    // Only register credentials we haven't registered before.
+                    if (id != null && docType != null && id !in registeredDocumentIds) {
+                        if (storeDocumentFromSwift(id, docType, scope)) {
+                            registeredDocumentIds.add(id)
+                            saveRegisteredDocumentIds(registeredDocumentIds)
+                        }
+                    }
                 }
             }
         }
@@ -268,7 +334,7 @@ class IosPlatformAdapter(
                 if (!success) {
                     scope.launch {
                         val baseMessage = getString(Res.string.snackbar_digital_credentials_store_failed)
-                        val details = errorMessage?.toString()?.takeIf { it.isNotBlank() }
+                        val details = errorMessage.takeIf { it.isNotBlank() }
                         IosSessionBridge.showSnackbar(
                             listOfNotNull(baseMessage, details)
                                 .joinToString(": "),
@@ -285,6 +351,33 @@ class IosPlatformAdapter(
         }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
+    private suspend fun removeDocumentFromSwift(
+        id: String,
+        scope: CoroutineScope
+    ): Boolean = suspendCancellableCoroutine { cont ->
+        try {
+            Napier.d("removeDocumentFromSwift invoked")
+            DigitalCredentials.removeDocumentWithId(id) { errorMessage ->
+                val success = errorMessage == null
+                Napier.d("removeDocumentFromSwift callback with success=$success error=$errorMessage")
+                if (!success) {
+                    scope.launch {
+                        IosSessionBridge.showSnackbar(
+                            errorMessage.takeUnless { it.isNullOrBlank() } ?: "Unable to remove stale document registration",
+                            SnackbarDuration.Long
+                        )
+                    }
+                }
+                if (cont.isActive) cont.resume(success)
+            }
+            Napier.d("removeDocumentFromSwift got back from swift")
+        } catch (e: Throwable) {
+            Napier.e("Error while invoking Swift code", e)
+            if (cont.isActive) cont.resume(false)
+        }
+    }
+
     override fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest> {
         Napier.d("getCurrentDCAPIVerificationData called")
         return (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let {
@@ -295,18 +388,16 @@ class IosPlatformAdapter(
                 Napier.d("getCurrentDCAPIVerificationData: rawRequest namespaces=${isoMdocRequest.deviceRequest.docRequests.map { req -> req.itemsRequest.value.namespaces.mapValues { (_, items) -> items.entries.map { item -> "${item.dataElementIdentifier}→retain=${item.intentToRetain}" } } }}")
 
                 val parsedRequestSummary = it.parsedRequestSummary?.let { summary ->
-                    Json.decodeFromString<IosParsedMdocRequestSummary>(summary)
+                    Json.decodeFromString<IosDcApiMdocPreRequestSummary>(summary)
                 } ?: throw IllegalStateException("No parsed request summary available")
                 Napier.d("getCurrentDCAPIVerificationData: parsedSummary docTypes=${parsedRequestSummary.documentRequests.map { req -> req.docType }}")
                 Napier.d("getCurrentDCAPIVerificationData: parsedSummary namespaces=${parsedRequestSummary.documentRequests.map { req -> req.namespaces.mapValues { (_, elems) -> elems.map { (id, retain) -> "$id→retain=$retain" } } }}")
                 require(parsedRequestSummary.isConsistentWith(isoMdocRequest)) {
                     "Parsed ISO18013 mobile document pre-request is inconsistent with rawRequest"
                 }
-                val walletRequest = RequestParametersFrom.IsoMdocDcApi(
-                    parameters = RequestParametersFrom.IsoMdocDcApi.IsoMdocRequestWrapper(isoMdocRequest),
-                    jsonString = joseCompliantSerializer.encodeToString(isoMdocRequest),
+                val walletRequest = isoMdocRequest.toRequestParametersFrom(
                     callingOrigin = it.origin ?: throw IllegalStateException("No origin received"),
-                    credentialIds = null
+                    credentialIds = null,
                 )
                 KmmResult.success(walletRequest)
             } catch (e: Throwable) {
@@ -320,19 +411,36 @@ class IosPlatformAdapter(
         throw IllegalStateException("Not supported by iOS")
     }
 
-    override fun prepareDCAPICredentialResponse(response: String, success: Boolean) {
-        Napier.w("Got error response: $response")
-        (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.onCancel()
+    override fun prepareDCAPICredentialResponse(response: DigitalCredentialInterface) {
+        val invocation = (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)
             ?: throw IllegalStateException("Callback for response not found")
+        try {
+            Napier.d("prepareDCAPICredentialResponse called with $response")
+            val encodedResponse = response.toIosIsoMdocResponseBytes()
+            invocation.sendCredentialResponse.invoke(encodedResponse.toNSData())
+        } catch (throwable: Throwable) {
+            invocation.sendCredentialError(
+                throwable.message ?: "Failed to build ISO 18013-7 Annex C response"
+            )
+            throw throwable
+        } finally {
+            IosSessionBridge.clearDcapiInvocation()
+        }
     }
 
-    override fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean) =
-        (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let {
-            Napier.d("prepareDCAPICredentialResponse called with $response")
-            val encodedResponse = coseCompliantSerializer.encodeToByteArray(response)
-            it.sendCredentialResponse.invoke(encodedResponse.toNSData())
+    override fun prepareDCAPICredentialError(error: String) {
+        Napier.w("Got ISO 18013-7 Annex C validation error: $error")
+        val invocation = (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)
+            ?: throw IllegalStateException("Callback for response not found")
+        try {
+            // The common API carries an OAuth-style serialized error for Android. iOS uses
+            // ISO 18013-7 Annex C, so keep that value diagnostic-only and fail the throwing
+            // sendResponse closure with a protocol-neutral validation error.
+            invocation.sendCredentialError(ISO_DC_API_VALIDATION_ERROR)
+        } finally {
             IosSessionBridge.clearDcapiInvocation()
-        } ?: throw IllegalStateException("Callback for response not found")
+        }
+    }
 
     override fun prepareDCAPIIssuingResponse(response: String, success: Boolean) {
         Napier.w("DC API issuing not supported by iOS")

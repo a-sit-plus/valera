@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -25,24 +26,27 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_credential_details_screen
-import at.asitplus.wallet.ageverification.AgeVerificationScheme
-import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
-import at.asitplus.wallet.cor.CertificateOfResidenceScheme
-import at.asitplus.wallet.ehic.EhicScheme
-import at.asitplus.wallet.eupid.EuPidScheme
-import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
-import at.asitplus.wallet.healthid.HealthIdScheme
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
-import at.asitplus.wallet.por.PowerOfRepresentationScheme
-import at.asitplus.wallet.taxid.TaxIdScheme
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.agent.representation
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.iconLabel
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPid
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.CredentialCardActionMenu
+import ui.composables.LabeledText
 import ui.composables.Logo
+import ui.composables.PersonAttributeDetailCardHeading
+import ui.composables.PersonAttributeDetailCardHeadingIcon
 import ui.composables.ScreenHeading
+import ui.composables.TrustState
+import ui.composables.TrustStatusBanner
 import ui.composables.buttons.NavigateUpButton
-import ui.composables.credentials.*
+import ui.composables.credentials.EuPidCredentialView
+import ui.composables.credentials.GenericCredentialSummaryCardContent
+import ui.composables.credentials.GenericMetadataCredentialView
+import ui.composables.credentials.MobileDrivingLicenceCredentialView
 import ui.models.CredentialFreshnessSummaryUiModel
+import ui.models.ResolvedCredential
 import ui.viewmodels.CredentialDetailsViewModel
 
 @Composable
@@ -52,6 +56,8 @@ fun CredentialDetailsView(
     val storeEntry by vm.storeEntry.collectAsState(null)
     val credentialTimelinessesStates by vm.credentialTimelinessesStates.collectAsState()
     val credentialFreshnessSummary = credentialTimelinessesStates[vm.storeEntryId]
+
+    val trustState by vm.trustState.collectAsState()
 
     CredentialDetailsScaffold(
         isStoreEntryAvailable = storeEntry != null,
@@ -64,14 +70,15 @@ fun CredentialDetailsView(
         credentialFreshnessSummaryModel = credentialFreshnessSummary,
         onRefresh = {
             storeEntry?.let { entry ->
-                vm.walletMain.credentialValidityService.refreshSingle(entry, vm.storeEntryId)
+                vm.walletMain.credentialValidityService.refreshSingle(entry.entry, vm.storeEntryId)
                 vm.navigateUp()
             }
         }
     ) {
         storeEntry?.let {
             CredentialDetailsSummaryView(
-                storeEntry = it,
+                trustState = trustState,
+                credential = it,
                 imageDecoder = vm.imageDecoder,
             )
         } ?: Column(
@@ -137,27 +144,37 @@ fun CredentialDetailsScaffold(
 
 @Composable
 fun CredentialDetailsSummaryView(
-    storeEntry: SubjectCredentialStore.StoreEntry,
+    credential: ResolvedCredential,
+    trustState: TrustState,
     imageDecoder: (ByteArray) -> Result<ImageBitmap>,
 ) {
     Column(modifier = Modifier.padding(horizontal = 8.dp)) {
-        @Suppress("DEPRECATION")
-        when (storeEntry.scheme) {
-            is EuPidScheme -> EuPidCredentialView(storeEntry, imageDecoder)
-            is EuPidSdJwtScheme -> EuPidCredentialView(storeEntry, imageDecoder)
-            is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialView(storeEntry, imageDecoder)
-            is AgeVerificationScheme -> AgeVerificationCredentialView(storeEntry)
-            is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialView(storeEntry)
-            is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialView(storeEntry)
-            is CompanyRegistrationScheme -> CompanyRegistrationCredentialView(storeEntry)
-            is HealthIdScheme -> HealthIdView(storeEntry)
-            is EhicScheme -> EhicView(storeEntry)
-            is TaxIdScheme -> TaxIdCredentialView(storeEntry)
-            else -> {}
-        }
-        GenericCredentialSummaryCardContent(
-            credential = storeEntry,
-            modifier = Modifier.padding(horizontal = 8.dp)
+        PersonAttributeDetailCardHeading(
+            icon = { PersonAttributeDetailCardHeadingIcon(credential.scheme.iconLabel()) },
+            title = {
+                LabeledText(
+                    label = credential.entry.representation.uiLabel(),
+                    text = credential.scheme.uiLabel(),
+                )
+            },
         )
+        TrustStatusBanner(
+            trustState = trustState,
+            modifier = Modifier.padding(vertical = 12.dp)
+        )
+        credential.scheme.let { s ->
+            when {
+                s.isEuPid -> EuPidCredentialView(credential, imageDecoder)
+                s.isMdl -> MobileDrivingLicenceCredentialView(credential, imageDecoder)
+                else -> GenericMetadataCredentialView(credential)
+            }
+        }
+        // No extra horizontal padding here: the enclosing Column already applies it, otherwise the cards
+        // (technical data, status, contents, cnf) would be indented twice.
+        GenericCredentialSummaryCardContent(
+            credential = credential,
+            trustState = trustState
+        )
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }

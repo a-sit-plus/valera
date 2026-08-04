@@ -24,6 +24,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.OidcUserInfo
 import at.asitplus.openid.OidcUserInfoExtended
+import at.asitplus.openid.dcql.DCQLClaimsPathPointer
 import at.asitplus.signum.indispensable.io.Base64Strict
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
@@ -45,7 +46,8 @@ import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.WalletSessionBindings
 import at.asitplus.wallet.app.common.di.appModule
-import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
+import at.asitplus.wallet.eupidsdjwt.EU_PID_SD_JWT_VCT
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements
 import at.asitplus.wallet.lib.RequestOptionsCredential
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
@@ -55,9 +57,13 @@ import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
+import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.SD_JWT
+import at.asitplus.wallet.lib.data.SdJwtCredentialScheme
+import at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme
 import at.asitplus.wallet.lib.data.rfc3986.toUri
 import at.asitplus.wallet.lib.openid.ClientIdScheme
+import at.asitplus.wallet.lib.openid.CreationOptions
 import at.asitplus.wallet.lib.openid.CredentialPresentationRequestBuilder
 import at.asitplus.wallet.lib.openid.OpenId4VpRequestOptions
 import at.asitplus.wallet.lib.openid.OpenId4VpVerifier
@@ -173,8 +179,8 @@ fun ComposeUiTest.endToEndTest() {
                 println("InstrumentedTests: starting credential issuance setup")
                 val issuer = IssuerAgent(
                     keyMaterial = EphemeralKeyWithoutCert(),
-                    statusListBaseUrl = "http://127.0.0.1/credentials/status",
                     identifier = "https://issuer.example.com/".toUri(),
+                    statusListAgent = null,
                 )
                 catchingUnwrapped {
                     holderAgent.storeCredential(
@@ -182,7 +188,7 @@ fun ComposeUiTest.endToEndTest() {
                             CredentialToBeIssued.VcSd(
                                 getAttributes(),
                                 Clock.System.now().plus(60.minutes),
-                                EuPidSdJwtScheme,
+                                pidSdJwtScheme(),
                                 holderAgent.keyMaterial.publicKey,
                                 OidcUserInfoExtended(userInfo = OidcUserInfo(subject = ""))
                             )
@@ -257,13 +263,13 @@ private suspend fun createLocalPresentationRequest(): LocalPresentationRequest {
         presentationRequest = CredentialPresentationRequestBuilder(
             credentials = setOf(
                 RequestOptionsCredential(
-                    credentialScheme = EuPidSdJwtScheme,
+                    credentialScheme = pidSdJwtScheme(),
                     representation = SD_JWT,
-                    requestedAttributes = setOf(
-                        EuPidSdJwtScheme.SdJwtAttributes.GIVEN_NAME,
-                        EuPidSdJwtScheme.SdJwtAttributes.FAMILY_NAME,
-                        EuPidSdJwtScheme.SdJwtAttributes.BIRTH_DATE,
-                        EuPidSdJwtScheme.SdJwtAttributes.PORTRAIT,
+                    attributePaths = setOf(
+                        DCQLClaimsPathPointer(EuPidSdJwtDataElements.GIVEN_NAME),
+                        DCQLClaimsPathPointer(EuPidSdJwtDataElements.FAMILY_NAME),
+                        DCQLClaimsPathPointer(EuPidSdJwtDataElements.BIRTH_DATE),
+                        DCQLClaimsPathPointer(EuPidSdJwtDataElements.PORTRAIT),
                     ),
                 )
             )
@@ -273,7 +279,7 @@ private suspend fun createLocalPresentationRequest(): LocalPresentationRequest {
     return LocalPresentationRequest(
         url = verifier.createAuthnRequest(
             requestOptions = requestOptions,
-            creationOptions = OpenId4VpVerifier.CreationOptions.Query("https://wallet.example.org/authorize"),
+            creationOptions = CreationOptions.Query("https://wallet.example.org/authorize"),
         ).getOrThrow().url,
         verifier = verifier,
     )
@@ -289,11 +295,11 @@ private class RecordingPlatformAdapter(
 }
 
 private fun getAttributes(): List<ClaimToBeIssued> = listOf(
-    ClaimToBeIssued(EuPidSdJwtScheme.SdJwtAttributes.GIVEN_NAME, "XXXÉliás"),
-    ClaimToBeIssued(EuPidSdJwtScheme.SdJwtAttributes.FAMILY_NAME, "XXXTörőcsik"),
-    ClaimToBeIssued(EuPidSdJwtScheme.SdJwtAttributes.BIRTH_DATE, "1965-10-11"),
+    ClaimToBeIssued(EuPidSdJwtDataElements.GIVEN_NAME, "XXXÉliás"),
+    ClaimToBeIssued(EuPidSdJwtDataElements.FAMILY_NAME, "XXXTörőcsik"),
+    ClaimToBeIssued(EuPidSdJwtDataElements.BIRTH_DATE, "1965-10-11"),
     ClaimToBeIssued(
-        EuPidSdJwtScheme.SdJwtAttributes.PORTRAIT,
+        EuPidSdJwtDataElements.PORTRAIT,
         TEST_PORTRAIT_PNG.decodeToByteArray(Base64Strict)
     ),
 )
@@ -326,6 +332,10 @@ private fun createWalletDependencyProvider(platformAdapter: PlatformAdapter): Wa
         antilog = AntilogAdapter(platformAdapter, "", BuildType.DEBUG),
     )
 }
+// Scheme is resolved from remote type metadata registered at boot, not the removed library scheme object.
+private suspend fun pidSdJwtScheme() =
+    AttributeIndex.resolveIdentifier(EU_PID_SD_JWT_VCT, SD_JWT) as? SdJwtCredentialScheme
+        ?: SdJwtFallbackCredentialScheme(EU_PID_SD_JWT_VCT)
 
 class TestLifecycleOwner : LifecycleOwner {
     private val _lifecycle = LifecycleRegistry(this)

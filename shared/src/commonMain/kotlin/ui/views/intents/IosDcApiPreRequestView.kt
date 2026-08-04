@@ -2,13 +2,13 @@ package ui.views.intents
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import at.asitplus.catchingUnwrapped
+import at.asitplus.dcapi.ios.IosDcApiMdocPreRequestSummary
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.LoadingMessageKey
-import at.asitplus.wallet.app.dcapi.IosParsedMdocRequestSummary
 import kotlinx.serialization.json.Json
 import ui.presentation.AuthenticationReceivedStartPageContent
 import ui.views.LoadingView
@@ -27,7 +27,7 @@ fun IosDcApiPreRequestView(
 
     val parsedSummaryResult = remember(currentData.parsedRequestSummary) {
         catchingUnwrapped {
-            Json.decodeFromString<IosParsedMdocRequestSummary>(
+            Json.decodeFromString<IosDcApiMdocPreRequestSummary>(
                 currentData.parsedRequestSummary
                     ?: throw IllegalStateException("No parsed request summary available")
             )

@@ -2,6 +2,7 @@ package ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
 import data.storage.StoreEntryId
@@ -14,6 +15,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import ui.models.CredentialFreshnessSummaryUiModel
+import ui.models.toFallbackResolvedCredential
+import ui.models.toResolvedCredential
 import ui.models.toCredentialFreshnessSummaryModel
 
 class CredentialsViewModel(
@@ -21,8 +24,13 @@ class CredentialsViewModel(
     private val imageDecoder: ImageDecoder,
     private val subjectCredentialStore: WalletSubjectCredentialStore,
 ) : ViewModel() {
-    val storeContainer = subjectCredentialStore.observeStoreContainer().map {
-        CredentialStateModel.Success(it.credentials)
+    val storeContainer = subjectCredentialStore.observeStoreContainer().map { container ->
+        CredentialStateModel.Success(
+            container.credentials.map { (id, entry) ->
+                id to catchingUnwrapped { entry.toResolvedCredential() }
+                    .getOrElse { entry.toFallbackResolvedCredential() }
+            }
+        )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -54,4 +62,3 @@ class CredentialsViewModel(
         subjectCredentialStore.removeStoreEntryById(storeEntryId)
     }
 }
-

@@ -1,11 +1,9 @@
 package ui.viewmodels.intents
 
 import ErrorHandlingOverrideException
-import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
 import at.asitplus.wallet.lib.oidvci.OAuth2Exception
-import domain.BuildAuthenticationConsentPageFromAuthenticationRequest
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
@@ -18,11 +16,6 @@ class DCAPIAuthorizationIntentViewModel(
     val onSuccess: (Route) -> Unit,
     val onFailure: (Throwable) -> Unit
 ) {
-    private val buildConsentPageFromRequest =
-        BuildAuthenticationConsentPageFromAuthenticationRequest(
-            presentationService = walletMain.presentationService,
-        )
-
     private val buildConsentPageFromDcApiRequest =
         BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase()
 
@@ -35,7 +28,7 @@ class DCAPIAuthorizationIntentViewModel(
         onFailure(
             ErrorHandlingOverrideException(
                 onAcknowledge = {
-                    walletMain.platformAdapter.prepareDCAPICredentialResponse(response, false)
+                    walletMain.platformAdapter.prepareDCAPICredentialError(response)
                 },
                 cause = error
             )
@@ -45,12 +38,7 @@ class DCAPIAuthorizationIntentViewModel(
     fun process() = walletMain.scope.launch(Dispatchers.Default + coroutineExceptionHandler) {
         val dcApiRequest = walletMain.platformAdapter.getCurrentDCAPIVerificationData().getOrThrow()
 
-        val successRoute = when (dcApiRequest) {
-            is RequestParametersFrom.OpenId4VpDcApiMultiSigned -> TODO()
-            is RequestParametersFrom.OpenId4VpDcApiSigned -> buildConsentPageFromRequest(dcApiRequest)
-            is RequestParametersFrom.OpenId4VpDcApiUnsigned -> buildConsentPageFromRequest(dcApiRequest)
-            is RequestParametersFrom.IsoMdocDcApi -> buildConsentPageFromDcApiRequest(dcApiRequest)
-        }.getOrThrow()
+        val successRoute = buildConsentPageFromDcApiRequest(dcApiRequest).getOrThrow()
 
         onSuccess(successRoute)
     }

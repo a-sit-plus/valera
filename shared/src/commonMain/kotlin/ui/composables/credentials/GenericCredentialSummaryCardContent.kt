@@ -10,6 +10,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -27,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import at.asitplus.iso.IssuerSignedList
@@ -34,38 +36,51 @@ import at.asitplus.signum.indispensable.io.Base64Strict
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_hide_technical_details
 import at.asitplus.valera.resources.button_label_show_technical_details
+import at.asitplus.valera.resources.section_heading_cnf
+import at.asitplus.valera.resources.section_heading_cnf_icon_text
+import at.asitplus.valera.resources.section_heading_credential_contents
+import at.asitplus.valera.resources.section_heading_credential_contents_icon_text
+import at.asitplus.valera.resources.section_heading_status
+import at.asitplus.valera.resources.section_heading_status_icon_text
 import at.asitplus.valera.resources.section_heading_technical_data
 import at.asitplus.valera.resources.section_heading_technical_data_icon_text
 import at.asitplus.valera.resources.text_label_docType
+import at.asitplus.valera.resources.text_label_issued_at
 import at.asitplus.valera.resources.text_label_status_idx
 import at.asitplus.valera.resources.text_label_status_uri
 import at.asitplus.valera.resources.text_label_valid_from
 import at.asitplus.valera.resources.text_label_valid_to
 import at.asitplus.valera.resources.text_label_vcType
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore.StoreEntry
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.StatusListInfo
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import data.credentials.CredentialAdapter.Companion.toComplexJson
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
-import kotlin.time.Instant
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.longOrNull
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.IssuerTrustDetailsCard
 import ui.composables.Label
 import ui.composables.LabeledContent
 import ui.composables.LabeledText
 import ui.composables.PersonAttributeDetailCardHeading
+import ui.composables.TrustState
+import ui.models.ResolvedCredential
 import kotlin.math.min
+import kotlin.time.Instant
 
 
 @Composable
 fun GenericCredentialSummaryCardContent(
-    credential: StoreEntry,
+    credential: ResolvedCredential,
+    trustState: TrustState,
     modifier: Modifier = Modifier,
 ) {
 
     var showContent by remember {
-        mutableStateOf(credential.scheme?.schemaUri?.contains("unknown") ?: false)
+        mutableStateOf(credential.scheme.identifier.contains("unknown"))
     }
 
 
@@ -90,10 +105,10 @@ fun GenericCredentialSummaryCardContent(
         Column(
             modifier = modifier
         ) {
-            when (credential) {
-                is StoreEntry.Vc -> SingleVcCredentialCardContent(credential)
-                is StoreEntry.SdJwt -> SingleSdJwtCredentialCardContent(credential)
-                is StoreEntry.Iso -> SingleIsoCredentialCardContent(credential)
+            when (val entry = credential.entry) {
+                is StoreEntry.Vc -> SingleVcCredentialCardContent(entry, trustState)
+                is StoreEntry.SdJwt -> SingleSdJwtCredentialCardContent(entry, trustState)
+                is StoreEntry.Iso -> SingleIsoCredentialCardContent(entry, trustState)
             }
         }
     }
@@ -122,54 +137,75 @@ fun GenericCredentialSummaryCardContent(
 @Composable
 private fun SingleVcCredentialCardContent(
     credential: StoreEntry.Vc,
+    trustState: TrustState,
 ) {
     val modifier = Modifier.padding(bottom = 16.dp, end = 16.dp, start = 16.dp)
     ElevatedCard(modifier = Modifier.padding(bottom = 16.dp)) {
         Column(modifier = Modifier.fillMaxWidth()) {
             TechnicalMetadataHeader()
-            (credential.vc.vc.credentialStatus as? StatusListInfo)?.let {
-                StatusUri(modifier, it.uri.string)
-                StatusIndex(modifier, it.index)
-            }
             ValidFrom(credential.vc.notBefore, modifier)
             credential.vc.expiration?.let {
                 ValidUntil(it, modifier)
             }
         }
     }
-    Text(
-        credential.vc.vc.credentialSubject.toString().replace("""\[.+]""".toRegex(), "[...]")
-            .replace(", ", "\n")
-    )
+    (credential.vc.vc.credentialStatus as? StatusListInfo)?.let { StatusCard(it, modifier) }
+    credential.issuer?.let { IssuerTrustDetailsCard(it, trustState) }
+    CredentialContentsCard {
+        when (val subject = credential.vc.vc.credentialSubject) {
+            is JsonObject -> subject.mapWithPrefix().sortedBy { it.first }.toSet().forEach {
+                LabeledText(
+                    label = it.first,
+                    text = it.second.run { slice(0..min(lastIndex, 100)) },
+                    modifier = modifier,
+                    fontWeight = FontWeight.Normal,
+                )
+            }
+            else -> Text(
+                credential.vc.vc.credentialSubject.toString().replace("""\[.+]""".toRegex(), "[...]")
+                    .replace(", ", "\n"),
+                modifier = modifier,
+            )
+        }
+    }
 }
 
 
 @Composable
 private fun SingleSdJwtCredentialCardContent(
     credential: StoreEntry.SdJwt,
+    trustState: TrustState,
 ) {
     val modifier = Modifier.padding(bottom = 16.dp, end = 16.dp, start = 16.dp)
     ElevatedCard(modifier = Modifier.padding(bottom = 16.dp)) {
         Column(modifier = Modifier.fillMaxWidth()) {
             TechnicalMetadataHeader()
-            (credential.sdJwt.statusElement as? StatusListInfo)?.let {
-                StatusUri(modifier, it.uri.string)
-                StatusIndex(modifier, it.index)
-            }
             (credential.sdJwt.notBefore ?: credential.sdJwt.issuedAt)?.let {
                 ValidFrom(it, modifier)
             }
             credential.sdJwt.expiration?.let {
                 ValidUntil(it, modifier)
             }
+            credential.sdJwt.issuedAt?.let {
+                IssuedAt(it, modifier)
+            }
             VcType(credential.sdJwt.verifiableCredentialType, modifier)
         }
     }
-    credential.allEntries().forEach {
-        LabeledText(
-            label = it.first,
-            text = it.second.run { slice(0..min(lastIndex, 100)) },
-        )
+    (credential.sdJwt.statusElement as? StatusListInfo)?.let { StatusCard(it, modifier) }
+    credential.issuer?.let { IssuerTrustDetailsCard(it, trustState) }
+    (credential.toComplexJson()?.get("cnf") as? JsonObject)?.let { CnfCard(it, modifier) }
+    credential.allEntries().takeIf { it.isNotEmpty() }?.let { entries ->
+        CredentialContentsCard {
+            entries.forEach {
+                LabeledText(
+                    label = it.first,
+                    text = it.second.run { slice(0..min(lastIndex, 100)) },
+                    modifier = modifier,
+                    fontWeight = FontWeight.Normal,
+                )
+            }
+        }
     }
 }
 
@@ -178,10 +214,12 @@ private fun StoreEntry.SdJwt.allEntries(): Collection<Pair<String, String>> =
 
 private fun JsonObject.mapWithPrefix(prefix: String? = null): Collection<Pair<String, String>> =
     entries.flatMap {
+        // status and cnf are rendered in their own cards
+        if (prefix == null && (it.key == "status" || it.key == "cnf")) return@flatMap listOf()
         with(it.value) {
             when (this) {
                 is JsonObject -> mapWithPrefix("${it.key}.")
-                else -> listOf("${prefix ?: ""}${it.key}" to prettyToString())
+                else -> listOf("${prefix ?: ""}${it.key}" to formatClaimValue(it.key))
             }
         }
     }
@@ -190,15 +228,12 @@ private fun JsonObject.mapWithPrefix(prefix: String? = null): Collection<Pair<St
 @Composable
 private fun SingleIsoCredentialCardContent(
     credential: StoreEntry.Iso,
+    trustState: TrustState,
 ) {
     val modifier = Modifier.padding(bottom = 16.dp, end = 16.dp, start = 16.dp)
     ElevatedCard(modifier = Modifier.padding(bottom = 16.dp)) {
         Column(modifier = Modifier.fillMaxWidth()) {
             TechnicalMetadataHeader()
-            (credential.issuerSigned.issuerAuth.payload?.status as? StatusListInfo)?.let {
-                StatusUri(modifier, it.uri.string)
-                StatusIndex(modifier, it.index)
-            }
             credential.issuerSigned.issuerAuth.payload?.validityInfo?.let {
                 ValidFrom(it.validFrom, modifier)
                 ValidUntil(it.validUntil, modifier)
@@ -208,12 +243,21 @@ private fun SingleIsoCredentialCardContent(
             }
         }
     }
-    (credential.issuerSigned.namespaces?.mapIt() ?: listOf()).sortedBy { it.first }.forEach {
-        LabeledText(
-            label = it.first,
-            text = it.second.run { slice(0..min(lastIndex, 100)) },
-        )
-    }
+    (credential.issuerSigned.issuerAuth.payload?.status as? StatusListInfo)?.let { StatusCard(it, modifier) }
+    credential.issuer?.let { IssuerTrustDetailsCard(it, trustState) }
+    (credential.issuerSigned.namespaces?.mapIt() ?: listOf()).sortedBy { it.first }.takeIf { it.isNotEmpty() }
+        ?.let { entries ->
+            CredentialContentsCard {
+                entries.forEach {
+                    LabeledText(
+                        label = it.first,
+                        text = it.second.run { slice(0..min(lastIndex, 100)) },
+                        modifier = modifier,
+                        fontWeight = FontWeight.Normal,
+                    )
+                }
+            }
+        }
 }
 
 private fun Map<String, IssuerSignedList>.mapIt() = entries.flatMap { (nsKey, nsValue) ->
@@ -245,6 +289,53 @@ private fun TechnicalMetadataHeader() {
         iconText = stringResource(Res.string.section_heading_technical_data_icon_text),
         title = stringResource(Res.string.section_heading_technical_data),
     )
+}
+
+@Composable
+private fun StatusCard(statusInfo: StatusListInfo, modifier: Modifier) {
+    ElevatedCard(modifier = Modifier.padding(bottom = 16.dp)) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            PersonAttributeDetailCardHeading(
+                iconText = stringResource(Res.string.section_heading_status_icon_text),
+                title = stringResource(Res.string.section_heading_status),
+            )
+            StatusUri(modifier, statusInfo.uri.string)
+            StatusIndex(modifier, statusInfo.index)
+        }
+    }
+}
+
+@Composable
+private fun CnfCard(cnf: JsonObject, modifier: Modifier) {
+    ElevatedCard(modifier = Modifier.padding(bottom = 16.dp)) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            PersonAttributeDetailCardHeading(
+                iconText = stringResource(Res.string.section_heading_cnf_icon_text),
+                title = stringResource(Res.string.section_heading_cnf),
+            )
+            cnf.mapWithPrefix().sortedBy { it.first }.forEach {
+                LabeledContent(
+                    label = it.first,
+                    content = { Text(it.second, softWrap = true) },
+                    modifier = modifier,
+                )
+            }
+        }
+    }
+}
+
+/** Card wrapping the full list of credential elements/claims shown under the technical details. */
+@Composable
+private fun CredentialContentsCard(content: @Composable ColumnScope.() -> Unit) {
+    ElevatedCard(modifier = Modifier.padding(bottom = 16.dp)) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            PersonAttributeDetailCardHeading(
+                iconText = stringResource(Res.string.section_heading_credential_contents_icon_text),
+                title = stringResource(Res.string.section_heading_credential_contents),
+            )
+            content()
+        }
+    }
 }
 
 @Composable
@@ -313,6 +404,21 @@ private fun ValidUntil(instant: Instant, modifier: Modifier) {
 }
 
 @Composable
+private fun IssuedAt(instant: Instant, modifier: Modifier) {
+    LabeledContent(
+        label = stringResource(Res.string.text_label_issued_at),
+        content = {
+            Text(
+                instant.toString(),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        },
+        modifier = modifier,
+    )
+}
+
+@Composable
 private fun VcType(value: String, modifier: Modifier) {
     LabeledContent(
         label = stringResource(Res.string.text_label_vcType),
@@ -348,3 +454,13 @@ private fun Any.prettyToString() = when (this) {
     is ByteArray -> encodeToString(Base64Strict)
     else -> toString()
 }
+
+private val TIMESTAMP_CLAIMS = setOf("exp", "iat", "nbf")
+
+/** Renders Unix-epoch JWT timestamp claims (exp, iat, nbf) as a date-time, everything else as-is. */
+private fun Any.formatClaimValue(key: String): String =
+    if (key in TIMESTAMP_CLAIMS) {
+        (this as? JsonPrimitive)?.longOrNull?.let { Instant.fromEpochSeconds(it).toString() } ?: prettyToString()
+    } else {
+        prettyToString()
+    }

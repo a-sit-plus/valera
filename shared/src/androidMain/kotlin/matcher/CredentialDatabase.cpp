@@ -1,4 +1,3 @@
-// based on identity-credential[https://github.com/openwallet-foundation-labs/identity-credential] implementation
 
 #include "CredentialDatabase.h"
 #include "Request.h"
@@ -20,9 +19,10 @@ CredentialDatabase::CredentialDatabase(const uint8_t* encodedDatabase, size_t en
     }
     auto topMap = item->asMap();
 
+    std::vector<std::string> topProtocols;
     auto protocolsArray = topMap->get("protocols")->asArray();
     for (auto p = protocolsArray->begin(); p != protocolsArray->end(); ++p) {
-        protocols.push_back((*p)->asTstr()->value());
+        topProtocols.push_back((*p)->asTstr()->value());
     }
 
     auto credentialsArray = topMap->get("credentials")->asArray();
@@ -35,7 +35,19 @@ CredentialDatabase::CredentialDatabase(const uint8_t* encodedDatabase, size_t en
         std::string documentId = "";
         std::string mdocDoctype = "";
         std::string vcVct = "";
+        std::vector<std::string> docProtocols = topProtocols;
         std::map resultingClaims = std::map<std::string, Claim>();
+
+        auto& docProtocolsPtr = cred->get("protocols");
+        if (docProtocolsPtr != nullptr) {
+            auto docProtocolsArray = docProtocolsPtr->asArray();
+            if (docProtocolsArray != nullptr) {
+                docProtocols.clear();
+                for (auto p = docProtocolsArray->begin(); p != docProtocolsArray->end(); ++p) {
+                    docProtocols.push_back((*p)->asTstr()->value());
+                }
+            }
+        }
 
         auto& mdocPtr = cred->get("mdoc");
         if (mdocPtr != nullptr) {
@@ -85,10 +97,20 @@ CredentialDatabase::CredentialDatabase(const uint8_t* encodedDatabase, size_t en
                 documentId,
                 mdocDoctype,
                 vcVct,
+                docProtocols,
                 resultingClaims
             )
         );
     }
+}
+
+bool Credential::supportsProtocol(const std::string& protocol) {
+    for (const auto& p: protocols) {
+        if (p == protocol) {
+            return true;
+        }
+    }
+    return false;
 }
 
 Claim* Credential::findMatchingClaim(const DcqlRequestedClaim& requestedClaim) {
@@ -134,12 +156,13 @@ void Combination::addToCredmanPicker(const Request& request) const {
                 memcpy(icon, credential->bitmap.data(), credential->bitmap.size());
             }
             if (credmanRuntimeVersion >= 2) {
+                std::string subtitle = credential->subtitle + " (via " + request.protocol + ")";
                 ::AddEntryToSet(
                         entryId,
                         (char *) icon,
                         credential->bitmap.size(),
                         (char *) strdup(credential->title.c_str()),
-                        (char *) strdup(credential->subtitle.c_str()),
+                        (char *) strdup(subtitle.c_str()),
                         nullptr,
                         nullptr,
                         nullptr,

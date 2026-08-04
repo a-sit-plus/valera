@@ -1,10 +1,11 @@
 import android.Manifest
-import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
+import android.util.Base64
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,32 +19,33 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.credentials.CreateDigitalCredentialRequest
+import androidx.credentials.DigitalCredential
 import androidx.credentials.ExperimentalDigitalCredentialApi
 import androidx.credentials.GetDigitalCredentialOption
 import androidx.credentials.provider.CallingAppInfo
 import androidx.credentials.provider.PendingIntentHandler
 import androidx.credentials.provider.ProviderGetCredentialRequest
+import androidx.credentials.registry.provider.ClearCredentialRegistryRequest
 import androidx.credentials.registry.provider.RegistryManager
 import androidx.credentials.registry.provider.selectedEntryId
 import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.dcapi.*
-import at.asitplus.dcapi.request.ExchangeProtocolIdentifier
-import at.asitplus.dcapi.request.verifier.DigitalCredentialGetRequest
 import at.asitplus.dcapi.request.verifier.DigitalCredentialRequestOptions
+import at.asitplus.dcapi.request.verifier.toRequestParametersFrom
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
-import at.asitplus.signum.indispensable.josef.typed
 import at.asitplus.wallet.app.android.dcapi.AndroidDCAPIInvocationData
 import at.asitplus.wallet.app.android.dcapi.CustomRegistry
 import at.asitplus.wallet.app.common.*
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
+import at.asitplus.wallet.lib.openid.OpenId4VpHolder
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -53,7 +55,7 @@ import org.multipaz.prompt.PromptModel
 import ui.theme.darkScheme
 import ui.theme.lightScheme
 import java.io.File
-import kotlin.io.encoding.ExperimentalEncodingApi
+import java.security.MessageDigest
 
 
 actual fun getPlatformName(): String = "Android"
@@ -152,38 +154,52 @@ private fun TransientFlowRootView(
 }
 
 public class AndroidPlatformAdapter(
-    private val context: Context,
+    context: Context,
     private val intentState: IntentState
 ) : PlatformAdapter {
+    private val applicationContext = context.applicationContext
 
     override fun getCameraPermission(): Boolean? {
-        (context as? Activity)?.let { activity ->
-            val permission = Manifest.permission.CAMERA
-            return ContextCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED
-        }
-        return null
+        val permission = Manifest.permission.CAMERA
+        return ContextCompat.checkSelfPermission(applicationContext, permission) == PackageManager.PERMISSION_GRANTED
     }
 
     override fun openUrl(url: String) {
         Napier.d("Open URL: ${url.toUri()}")
         val uri = url.toUri()
         val customTabsIntent = CustomTabsIntent.Builder().build().apply {
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         try {
-            customTabsIntent.launchUrl(context, uri)
+            customTabsIntent.launchUrl(applicationContext, uri)
         } catch (e: Throwable) {
             Napier.w("Custom tab failed, falling back to browser intent", e)
-            context.startActivity(
+            applicationContext.startActivity(
                 Intent(Intent.ACTION_VIEW, uri).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+                    addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
             )
         }
     }
 
+    override fun tryOpenCrossDeviceQrCode(uri: String): Boolean =
+        try {
+            applicationContext.startActivity(
+                Intent(Intent.ACTION_VIEW, uri.toUri()).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+            )
+            true
+        } catch (e: ActivityNotFoundException) {
+            Napier.i("No system handler is available for cross-device QR codes", e)
+            false
+        } catch (e: SecurityException) {
+            Napier.w("System handler rejected the cross-device QR code intent", e)
+            false
+        }
+
     override fun writeToFile(text: String, fileName: String, folderName: String) {
-        val folder = File(context.filesDir, folderName)
+        val folder = File(applicationContext.filesDir, folderName)
         if (!folder.exists()) {
             folder.mkdir()
         }
@@ -197,7 +213,7 @@ public class AndroidPlatformAdapter(
     }
 
     override fun readFromFile(fileName: String, folderName: String): String? {
-        val folder = File(context.filesDir, folderName)
+        val folder = File(applicationContext.filesDir, folderName)
         if (!folder.exists()) {
             folder.mkdir()
         }
@@ -205,7 +221,7 @@ public class AndroidPlatformAdapter(
     }
 
     override fun clearFile(fileName: String, folderName: String) {
-        val folder = File(context.filesDir, folderName)
+        val folder = File(applicationContext.filesDir, folderName)
         if (!folder.exists()) {
             folder.mkdir()
         }
@@ -213,25 +229,42 @@ public class AndroidPlatformAdapter(
     }
 
     override fun shareLog() {
-        val folder = File(context.filesDir, "logs")
+        val folder = File(applicationContext.filesDir, "logs")
         val file = File(folder, "log.txt")
-        val fileUri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+        val fileUri = FileProvider.getUriForFile(
+            applicationContext,
+            "${applicationContext.packageName}.fileprovider",
+            file,
+        )
 
         val intent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_STREAM, fileUri)
             type = "application/text"
         }
-        context.startActivity(Intent.createChooser(intent, null))
+        applicationContext.startActivity(
+            Intent.createChooser(intent, null).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
     }
 
-    override fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope) {
-        scope.launch(Dispatchers.Default) {
+    @OptIn(ExperimentalDigitalCredentialApi::class)
+    override suspend fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope) {
+        withContext(Dispatchers.Default) {
             catching {
                 val credentialsListCbor = coseCompliantSerializer.encodeToByteArray(entries)
-                val customRegistry = CustomRegistry(credentialsListCbor, context)
-                RegistryManager.create(context).registerCredentials(customRegistry)
-                CustomRegistry.registerIssuance(context)
+                val customRegistry = CustomRegistry(credentialsListCbor, applicationContext)
+                val registryManager = RegistryManager.create(applicationContext)
+                registryManager.clearCredentialRegistry(
+                    ClearCredentialRegistryRequest(
+                        ClearCredentialRegistryRequest.PerTypeConfig(
+                            isDeleteAll = false,
+                            type = DigitalCredential.TYPE_DIGITAL_CREDENTIAL,
+                            registryIds = listOf(applicationContext.packageName),
+                        )
+                    )
+                )
+                registryManager.registerCredentials(customRegistry)
+                CustomRegistry.registerIssuance(applicationContext)
             }.onSuccess { Napier.i("DC API: Credential Manager registration succeeded") }
                 .onFailure { Napier.w("DC API: Credential Manager registration failed", it) }
         }
@@ -284,7 +317,7 @@ public class AndroidPlatformAdapter(
     )
 
     private fun loadPrivilegedUserAgents(): String =
-        context.assets.open("privileged_apps.json").use { stream ->
+        applicationContext.assets.open("privileged_apps.json").use { stream ->
             val data = ByteArray(stream.available()).apply { stream.read(this) }
             data.decodeToString()
         }
@@ -292,14 +325,32 @@ public class AndroidPlatformAdapter(
     private fun resolveCallingAppMetadata(callingAppInfo: CallingAppInfo): CallingAppMetadata {
         val privilegedUserAgents = loadPrivilegedUserAgents()
         val callingOrigin = callingAppInfo.getOrigin(privilegedUserAgents)
-            ?: throw IllegalArgumentException("DC API: Calling app origin unknown")
+            ?: callingAppInfo.toAndroidAppOrigin()
         return CallingAppMetadata(
             packageName = callingAppInfo.packageName,
             origin = callingOrigin
         )
     }
 
-    @OptIn(ExperimentalDigitalCredentialApi::class, ExperimentalEncodingApi::class)
+    private fun CallingAppInfo.toAndroidAppOrigin(): String {
+        val currentSignatures = if (signingInfoCompat.hasMultipleSigners) {
+            signingInfoCompat.apkContentsSigners
+        } else {
+            signingInfoCompat.signingCertificateHistory.take(1)
+        }
+        require(currentSignatures.size == 1) {
+            "DC API: Calling app must have exactly one current signing certificate"
+        }
+        val certificateHash = MessageDigest.getInstance("SHA-256")
+            .digest(currentSignatures.single().toByteArray())
+        val encodedHash = Base64.encodeToString(
+            certificateHash,
+            Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP
+        )
+        return "${OpenId4VpHolder.ANDROID_APK_KEY_HASH_ORIGIN_SCHEME}:$encodedHash"
+    }
+
+    @OptIn(ExperimentalDigitalCredentialApi::class)
     override fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest> = catching {
         (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (intent, _) ->
             // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
@@ -312,63 +363,25 @@ public class AndroidPlatformAdapter(
                 ?: throw IllegalArgumentException("Expected GetDigitalCredentialOption object not received")
 
             Napier.d("DC API: Got request ${option.requestJson}")
-            // Android's Bundle-to-JSON conversion serializes arrays as numerically-indexed objects
-            // (e.g. ["a","b"] becomes {"0":"a","1":"b"}), which breaks deserialization of list
-            // properties such as `redirect_uris` in client_metadata.
-            val rawRequest = joseCompliantSerializer.parseToJsonElement(option.requestJson)
-                .coerceIndexedObjectsToArrays()
+            // Android's Bundle-to-JSON conversion currently serializes arrays as numerically-indexed objects
+            // (e.g. ["a","b"] becomes {"0":"a","1":"b"}), which breaks deserialization of list properties.
             val dcRequestOptions = joseCompliantSerializer.decodeFromJsonElement(
                 DigitalCredentialRequestOptions.serializer(),
-                rawRequest,
+                joseCompliantSerializer.parseToJsonElement(option.requestJson).coerceIndexedObjectsToArrays(),
             )
 
             val selectionInfo = getSetSelection(credentialRequest)
                 ?: getSelection(credentialRequest)
 
-            val digitalCredentialGetRequest =
-                dcRequestOptions.requests.find { it.protocol == ExchangeProtocolIdentifier(selectionInfo.protocol) }
-                    ?: throw IllegalStateException("Unable to find suitable DC API request. Protocol may not be supported.")
-
             Napier.d("DC API: Selection $selectionInfo")
 
             val credentialIds = selectionInfo.documentIds
-
-            when (digitalCredentialGetRequest) {
-                is DigitalCredentialGetRequest.OpenId4VpSigned -> {
-                    Napier.d("Using OpenID4VP Signed, got request $digitalCredentialGetRequest for credential IDs $credentialIds")
-                    RequestParametersFrom.OpenId4VpDcApiSigned(
-                        jwsTyped = digitalCredentialGetRequest.data.request.typed(),
-                        credentialIds = credentialIds,
-                        callingPackageName = callingPackageName,
-                        callingOrigin = callingOrigin
-                    )
-                }
-                is DigitalCredentialGetRequest.OpenId4VpMultiSigned -> {
-                    TODO("OpenID4VP multisigned DC API requests are not supported yet")
-                }
-                is DigitalCredentialGetRequest.OpenId4VpUnsigned -> {
-                    Napier.d("Using OpenID4VP Unsigned, got request $digitalCredentialGetRequest for credential IDs $credentialIds")
-                    RequestParametersFrom.OpenId4VpDcApiUnsigned(
-                        parameters = digitalCredentialGetRequest.data,
-                        jsonString = joseCompliantSerializer.encodeToString(digitalCredentialGetRequest.data),
-                        credentialIds = credentialIds,
-                        callingPackageName = callingPackageName,
-                        callingOrigin = callingOrigin
-                    )
-                }
-                is DigitalCredentialGetRequest.IsoMdoc -> {
-                    Napier.d("Using Iso 18013-7 Annex C, got request $digitalCredentialGetRequest for credential IDs $credentialIds")
-                    RequestParametersFrom.IsoMdocDcApi(
-                        parameters = RequestParametersFrom.IsoMdocDcApi.IsoMdocRequestWrapper(
-                            digitalCredentialGetRequest.data
-                        ),
-                        jsonString = joseCompliantSerializer.encodeToString(digitalCredentialGetRequest.data),
-                        credentialIds = credentialIds,
-                        callingPackageName = callingPackageName,
-                        callingOrigin = callingOrigin
-                    )
-                }
-            }
+            dcRequestOptions.toRequestParametersFrom(
+                selectedProtocol = selectionInfo.protocol,
+                credentialIds = credentialIds,
+                callingPackageName = callingPackageName,
+                callingOrigin = callingOrigin,
+            )
         } ?: throw IllegalStateException("DCAPIInvocationData not set")
     }
 
@@ -390,23 +403,25 @@ public class AndroidPlatformAdapter(
         } ?: throw IllegalStateException("DCAPIInvocationData not set")
     }
 
-    override fun prepareDCAPICredentialResponse(response: String, success: Boolean) {
+    override fun prepareDCAPICredentialResponse(response: DigitalCredentialInterface) {
         (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
-            sendCredentialResponseToInvoker(response, success)
-            intentState.dcapiInvocationData.value = null
+            val serializedResponse = response.toAndroidDcApiResponseJson()
+            Napier.d("Returning response $serializedResponse")
+            try {
+                sendCredentialResponseToInvoker(serializedResponse, true)
+            } finally {
+                intentState.dcapiInvocationData.value = null
+            }
         } ?: throw IllegalStateException("Callback for response not found")
     }
 
-    override fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean) {
+    override fun prepareDCAPICredentialError(error: String) {
         (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (_, sendCredentialResponseToInvoker) ->
-            intentState.dcapiInvocationData.value = null
-            Napier.d("Returning response $response to digital credentials API invoker")
-            val dcApiResponse = DCAPIResponse(response)
-            // Needs to be cast to DigitalCredentialInterface so that protocol member is serialized
-            val isoMdocResponse: DigitalCredentialInterface = IsoMdocResponse(dcApiResponse)
-            val serializedResponse = joseCompliantSerializer.encodeToString(isoMdocResponse)
-            Napier.d("Returning response $serializedResponse")
-            sendCredentialResponseToInvoker(serializedResponse, success)
+            try {
+                sendCredentialResponseToInvoker(error, false)
+            } finally {
+                intentState.dcapiInvocationData.value = null
+            }
         } ?: throw IllegalStateException("Callback for response not found")
     }
 
@@ -427,10 +442,10 @@ public class AndroidPlatformAdapter(
 
     override fun openDeviceSettings() {
         Napier.d("Open Device settings")
-        context.startActivity(
+        applicationContext.startActivity(
             Intent(
                 Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                Uri.fromParts("package", context.packageName, null)
+                Uri.fromParts("package", applicationContext.packageName, null)
             ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         )
     }
@@ -470,6 +485,7 @@ public class AndroidPlatformAdapter(
                 JsonObject(fixedChildren)
             }
         }
+
         is JsonArray -> JsonArray(map { it.coerceIndexedObjectsToArrays() })
         else -> this
     }

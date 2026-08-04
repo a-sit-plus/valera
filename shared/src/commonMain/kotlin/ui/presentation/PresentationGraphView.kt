@@ -7,20 +7,22 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.navigationevent.NavigationEventInfo
-import androidx.navigationevent.compose.NavigationBackHandler
-import androidx.navigationevent.compose.rememberNavigationEventState
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import at.asitplus.openid.TransactionDataBase64Url
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_title
 import at.asitplus.valera.resources.heading_label_select_data
 import at.asitplus.valera.resources.heading_label_show_data
+import at.asitplus.wallet.app.common.TrustListService
+import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import org.jetbrains.compose.resources.stringResource
@@ -46,6 +48,8 @@ fun PresentationGraphView(
     presentationRequest: CredentialPresentationRequest?,
     navigateUpIsClose: Boolean = false,
     showStartRoute: Boolean = true,
+    trustListService: TrustListService,
+    fixedCredentialSelection: Boolean = false,
 ) {
     LaunchedEffect(selectionProvider) {
         selectionProvider.let {
@@ -148,7 +152,9 @@ fun PresentationGraphView(
                             }
                         }
                     }
-                }
+                },
+                trustListService = trustListService,
+                fixedCredentialSelection = fixedCredentialSelection,
             )
         }
 

@@ -4,8 +4,10 @@ import at.asitplus.KmmResult
 import at.asitplus.iso.DeviceResponse
 import at.asitplus.iso.Document
 import at.asitplus.iso.MobileSecurityObject
+import at.asitplus.openid.OpenId4VciClaimsPathPointer
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.presentation_canceled
 import at.asitplus.valera.resources.snackbar_nfc_tag_lost_retrying
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
@@ -20,6 +22,7 @@ import at.asitplus.wallet.app.common.presentation.NfcDispatchSuppressionMode
 import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
 import at.asitplus.wallet.lib.agent.VerifierAgent
+import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.data.IsoDocumentParsed
 import data.document.RequestDocumentBuilder
 import data.document.RequestDocumentList
@@ -33,7 +36,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromByteArray
 import org.jetbrains.compose.resources.getString
-import at.asitplus.valera.resources.presentation_canceled
 import ui.viewmodels.iso.common.TransferOptionsViewModel
 
 class VerifierViewModel(
@@ -214,13 +216,12 @@ class VerifierViewModel(
     }
 
     fun onReceiveCustomSelection(
-        selectedDocumentType: String,
-        selectedEntries: Collection<String>
+        selectedScheme: CredentialScheme,
+        selectedEntries: Collection<OpenId4VciClaimsPathPointer>
     ) {
         engagementPreviousState = VerifierState.SelectCustomRequest
-        val config = RequestDocumentBuilder.getDocTypeConfig(selectedDocumentType) ?: return
         _requestDocumentList.addRequestDocument(
-            RequestDocumentBuilder.buildRequestDocument(config.scheme, selectedEntries)
+            RequestDocumentBuilder.buildRequestDocument(selectedScheme, selectedEntries)
         )
         setStateToEngagement(selectedEngagementMethod.value)
     }

@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import at.asitplus.catching
-import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
 import at.asitplus.wallet.app.common.WalletMain
@@ -13,9 +12,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
-import at.asitplus.wallet.lib.openid.AuthenticationResponseResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -30,12 +27,9 @@ class DefaultPresentationGraphViewModel(
     private val validator: Validator,
 ) : ViewModel() {
     val route = savedStateHandle.toRoute<AuthenticationViewRoute>()
+    val trustListService = walletMain.trustListService
     val preparationState = catching {
         route.authorizationResponsePreparationState
-    }
-
-    val dcApiRequest = preparationState.map {
-        it.request as? RequestParametersFrom.DcApiRequest
     }
 
     val selectionProvider = MutableStateFlow<UiState<CredentialSelectionProvider<SubjectCredentialStore.StoreEntry>>>(
@@ -106,22 +100,7 @@ class DefaultPresentationGraphViewModel(
             credentialPresentation = credentialPresentation,
             preparationState = route.authorizationResponsePreparationState
         )
-        return when (authenticationResult) {
-            is OpenId4VpWallet.AuthenticationForward -> finalizeDcApi(authenticationResult)
-            is OpenId4VpWallet.AuthenticationSuccess -> authenticationResult
-        }
-    }
-
-    private fun finalizeDcApi(
-        authenticationResult: OpenId4VpWallet.AuthenticationForward,
-    ): OpenId4VpWallet.AuthenticationSuccess {
-        authenticationResult.authenticationResponseResult.params.let {
-            walletMain.presentationService.finalizeOpenId4VpDCAPIPresentation(joseCompliantSerializer.encodeToString(it))
-        }
-        return OpenId4VpWallet.AuthenticationSuccess()
+        return authenticationResult as? OpenId4VpWallet.AuthenticationSuccess
+            ?: throw IllegalStateException("DC API requests must use the DC API presentation flow")
     }
 }
-
-internal fun serializeDcApiPresentationResponse(
-    authenticationResponseResult: AuthenticationResponseResult.DcApi,
-) = joseCompliantSerializer.encodeToString(authenticationResponseResult.params.data)

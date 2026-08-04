@@ -6,9 +6,10 @@ import at.asitplus.valera.resources.credential_representation_format_label_mso_m
 import at.asitplus.valera.resources.credential_representation_format_label_plain_jwt
 import at.asitplus.valera.resources.credential_representation_format_label_sd_jwt
 import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.lib.data.CredentialScheme
 import org.jetbrains.compose.resources.stringResource
 
-val ConstantIndex.CredentialScheme.identifier: String
+val CredentialScheme.identifier: String
     get() = vcType ?: isoDocType ?: sdJwtType ?: schemaUri
 
 @Composable

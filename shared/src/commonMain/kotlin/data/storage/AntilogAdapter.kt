@@ -5,10 +5,10 @@ import at.asitplus.wallet.app.common.PlatformAdapter
 import io.github.aakira.napier.Antilog
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.LogLevel
-import kotlin.time.Clock
-import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 class AntilogAdapter(val platformAdapter: PlatformAdapter, private val defaultTag: String, private val buildType: BuildType): Antilog() {
     private val debugAntilogAdapter = DebugAntilog(defaultTag = defaultTag)

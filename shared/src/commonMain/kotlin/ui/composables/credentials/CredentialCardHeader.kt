@@ -5,17 +5,17 @@ import androidx.compose.runtime.Composable
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.agent.representation
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.iconLabel
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import ui.composables.CredentialCardActionMenu
 import ui.composables.LabeledText
 import ui.composables.PersonAttributeDetailCardHeading
 import ui.composables.PersonAttributeDetailCardHeadingIcon
 import ui.models.CredentialFreshnessSummaryUiModel
+import ui.models.ResolvedCredential
 
 
 @Composable
 fun ColumnScope.CredentialCardHeader(
-    credential: SubjectCredentialStore.StoreEntry,
+    credential: ResolvedCredential,
     showLoadingSpinner: Boolean,
     showActionMenu: Boolean,
     onDelete: () -> Unit,
@@ -28,7 +28,7 @@ fun ColumnScope.CredentialCardHeader(
         },
         title = {
             LabeledText(
-                label = credential.representation.uiLabel(),
+                label = credential.entry.representation.uiLabel(),
                 text = credential.scheme.uiLabel(),
             )
         },

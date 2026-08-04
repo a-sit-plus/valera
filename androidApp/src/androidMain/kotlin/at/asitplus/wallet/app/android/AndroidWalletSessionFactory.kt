@@ -2,7 +2,7 @@ package at.asitplus.wallet.app.android
 
 import AndroidPlatformAdapter
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
+import android.content.Context
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
 import at.asitplus.wallet.app.common.IntentState
@@ -25,13 +25,13 @@ internal fun createAndroidBuildContext(): BuildContext =
 
 internal fun createAndroidMainWalletSessionScope(
     sessionName: String,
-    activity: AppCompatActivity,
+    context: Context,
     intentState: IntentState,
     sessionService: SessionService,
     buildContext: BuildContext,
     promptModel: PromptModel,
+    platformAdapter: AndroidPlatformAdapter,
 ): SessionHandle {
-    val platformAdapter = AndroidPlatformAdapter(activity, intentState)
     return createSharedMainWalletSessionScope(
         sessionName = sessionName,
         intentState = intentState,
@@ -39,19 +39,19 @@ internal fun createAndroidMainWalletSessionScope(
         buildContext = buildContext,
         promptModel = promptModel,
         platformAdapter = platformAdapter,
-        dataStoreService = RealDataStoreService(getDataStore(activity), platformAdapter),
+        dataStoreService = RealDataStoreService(getDataStore(context), platformAdapter),
     )
 }
 
 internal fun createAndroidTransientFlowWalletSessionScope(
     sessionName: String,
-    activity: AppCompatActivity,
+    context: Context,
     intentState: IntentState,
     sessionService: SessionService,
     buildContext: BuildContext,
     promptModel: PromptModel,
+    platformAdapter: AndroidPlatformAdapter,
 ): SessionHandle {
-    val platformAdapter = AndroidPlatformAdapter(activity, intentState)
     return createSharedTransientFlowWalletSessionScope(
         sessionName = sessionName,
         intentState = intentState,
@@ -59,6 +59,6 @@ internal fun createAndroidTransientFlowWalletSessionScope(
         buildContext = buildContext,
         promptModel = promptModel,
         platformAdapter = platformAdapter,
-        dataStoreService = RealDataStoreService(getDataStore(activity), platformAdapter),
+        dataStoreService = RealDataStoreService(getDataStore(context), platformAdapter),
     )
 }

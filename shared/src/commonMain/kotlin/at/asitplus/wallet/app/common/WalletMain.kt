@@ -2,16 +2,15 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
-import at.asitplus.iso.EncryptionParameters
-import at.asitplus.dcapi.EncryptedResponse
+import at.asitplus.dcapi.DigitalCredentialInterface
 import at.asitplus.openid.RequestParametersFrom
-import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
 import at.asitplus.wallet.app.common.attestation.AttestationService
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.dcapi.DCAPIExportService
+import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.lib.agent.HolderAgent
@@ -19,14 +18,22 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import data.storage.DataStoreService
+import data.storage.PersistentTrustListStore
 import data.storage.WalletSubjectCredentialStore
 import io.github.aakira.napier.Napier
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import kotlinx.coroutines.*
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -62,6 +69,7 @@ class WalletMain(
     val credentialValidityService: CredentialValidityService,
     val attestationService: AttestationService,
     sessionCoroutineScope: CoroutineScope,
+    val trustListService: TrustListService,
 ) {
     val appReady = MutableStateFlow<Boolean?>(null)
 
@@ -78,9 +86,25 @@ class WalletMain(
     private var dcApiRegistrationJob: Job? = null
 
     init {
+        resolveUnknownCredentialSchemes()
         credentialValidityService.startChecking()
+        trustListService.startChecking()
         if (keyMaterial.keyMaterial is FallBackKeyMaterial) {
             Napier.e("FallBackKeyMaterial: ${keyMaterial.keyMaterial.reason}")
+        }
+    }
+
+    /**
+     * Resolves the scheme of every stored credential on startup, triggering remote type-metadata retrieval for
+     * those whose scheme is not known locally. Resolved schemes are cached in VC-K for later [resolveScheme] calls.
+     */
+    private fun resolveUnknownCredentialSchemes() {
+        scope.launch(Dispatchers.IO) {
+            catchingUnwrapped {
+                subjectCredentialStore.observeStoreContainer().first().credentials.forEach { (_, entry) ->
+                    catchingUnwrapped { entry.resolveScheme() }
+                }
+            }
         }
     }
 
@@ -154,14 +178,23 @@ class WalletMain(
         }
     }
 
+    suspend fun refreshDcApiCredentialRegistration() {
+        try {
+            Napier.d("DC API: Refreshing credential registration")
+            val storeContainer = subjectCredentialStore.observeStoreContainer().first()
+            dcApiExportService.registerCredentialWithSystem(storeContainer, scope)
+        } catch (e: Throwable) {
+            Napier.w("DC API: Could not refresh credentials with system", e)
+        }
+    }
+
     fun updateCheck() {
         scope.launch(Dispatchers.IO) {
             catchingUnwrapped {
-                val httpClient = httpService.buildHttpClient()
                 val host = "https://wallet.a-sit.plus/"
                 val url = "${host}check.json"
                 Napier.d("Performing update check with $url")
-                val json = httpClient.get(url).body<JsonObject>()
+                val json = httpService.cachedResourceClient(dataStoreService).get(url).body<JsonObject>()
                 json["apps"]?.jsonObject?.get(buildContext.packageName)?.let {
                     (it as? JsonObject)?.get("latestVersion")?.jsonPrimitive?.content?.let {
                         val latestVersion = SemVer.parse(it)
@@ -205,6 +238,13 @@ interface PlatformAdapter {
     fun openUrl(url: String)
 
     /**
+     * Tries to hand a FIDO hybrid-transport QR-code URI to a system component.
+     *
+     * @return whether a platform handler was started
+     */
+    fun tryOpenCrossDeviceQrCode(uri: String): Boolean
+
+    /**
      * Writes a user defined string to a file in a specific folder
      * @param text is the content of the new file or the content which gets append to an existing file
      * @param fileName the name of the file
@@ -237,7 +277,7 @@ interface PlatformAdapter {
      * @param entries credentials to add
      * @param scope CoroutineScope for registering credentials
      */
-    fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope)
+    suspend fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope)
 
     /**
      * Retrieves request from the digital credentials browser API
@@ -249,21 +289,11 @@ interface PlatformAdapter {
      */
     fun getCurrentDCAPIIssuingData(): KmmResult<DCAPIIssuingRequest>
 
-    /**
-     * Returns a Digital Credentials API credential response (OpenID4VP / generic) to the invoker.
-     *
-     * @param response serialized response payload
-     * @param success whether the request completed successfully
-     */
-    fun prepareDCAPICredentialResponse(response: String, success: Boolean)
+    /** Returns a successful Digital Credentials API response to the invoker. */
+    fun prepareDCAPICredentialResponse(response: DigitalCredentialInterface)
 
-    /**
-     * Returns an ISO mdoc Digital Credentials API response to the invoker.
-     *
-     * @param response encrypted ISO mdoc response payload
-     * @param success whether the request completed successfully
-     */
-    fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean)
+    /** Returns a Digital Credentials API error to the invoker. */
+    fun prepareDCAPICredentialError(error: String)
 
     /**
      * Returns a Digital Credentials API issuing response to the invoker.
@@ -296,6 +326,8 @@ class DummyPlatformAdapter : PlatformAdapter {
     override fun openUrl(url: String) {
     }
 
+    override fun tryOpenCrossDeviceQrCode(uri: String): Boolean = false
+
     override fun writeToFile(text: String, fileName: String, folderName: String) {
     }
 
@@ -309,7 +341,7 @@ class DummyPlatformAdapter : PlatformAdapter {
     override fun shareLog() {
     }
 
-    override fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope) {
+    override suspend fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope) {
     }
 
     override fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest> {
@@ -320,10 +352,10 @@ class DummyPlatformAdapter : PlatformAdapter {
         return KmmResult.failure(IllegalStateException("Using dummy platform adapter"))
     }
 
-    override fun prepareDCAPICredentialResponse(response: String, success: Boolean) {
+    override fun prepareDCAPICredentialResponse(response: DigitalCredentialInterface) {
     }
 
-    override fun prepareIsoMdocDCAPICredentialResponse(response: EncryptedResponse, success: Boolean) {
+    override fun prepareDCAPICredentialError(error: String) {
     }
 
     override fun prepareDCAPIIssuingResponse(response: String, success: Boolean) {

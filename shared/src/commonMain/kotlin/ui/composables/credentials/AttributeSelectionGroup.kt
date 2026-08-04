@@ -22,7 +22,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.text_label_check_all
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.lib.data.CredentialScheme
 import kotlinx.serialization.json.JsonPrimitive
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.LabeledCheckbox
@@ -32,7 +32,7 @@ import ui.composables.LabeledTextCheckbox
 fun AttributeSelectionGroup(
     credential: Map.Entry<SubjectCredentialStore.StoreEntry, Map<ConstraintField, NodeList>>,
     selection: SnapshotStateMap<String, Boolean>,
-    format: ConstantIndex.CredentialScheme?
+    format: CredentialScheme?
 ) {
     val storeEntry = credential.key
     val attributeSelectionList: List<AttributeSelectionElement> =
@@ -74,7 +74,10 @@ fun AttributeSelectionGroup(
 
     Card(
         modifier = Modifier,
-        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        ),
         elevation = CardDefaults.elevatedCardElevation(),
     ) {
         Column(
@@ -96,16 +99,14 @@ fun AttributeSelectionGroup(
             Spacer(modifier = Modifier.height(4.dp))
 
             attributeSelectionList.forEach { entry ->
-                format?.getLocalization(entry.jsonPath)?.let {
-                    LabeledTextCheckbox(
-                        label = stringResource(it),
-                        text = entry.value,
-                        checked = selection[entry.memberName] ?: true,
-                        onCheckedChange = { bool -> changeSelection(bool, entry.memberName) },
-                        enabled = entry.enabled
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
+                LabeledTextCheckbox(
+                    label = format?.getLocalization(entry.jsonPath) ?: entry.memberName,
+                    text = entry.value,
+                    checked = selection[entry.memberName] ?: true,
+                    onCheckedChange = { bool -> changeSelection(bool, entry.memberName) },
+                    enabled = entry.enabled
+                )
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }

@@ -25,7 +25,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -99,15 +98,17 @@ fun LogView(
         ) {
             LazyColumn(state = listState) {
                 items(vm.logArray.size) {
-                    val color: Color
-                    color = if (it % 2 == 0) {
-                        MaterialTheme.colorScheme.tertiaryContainer
+                    val (containerColor, contentColor) = if (it % 2 == 0) {
+                        MaterialTheme.colorScheme.tertiaryContainer to
+                                MaterialTheme.colorScheme.onTertiaryContainer
                     } else {
-                        MaterialTheme.colorScheme.secondaryContainer
+                        MaterialTheme.colorScheme.secondaryContainer to
+                                MaterialTheme.colorScheme.onSecondaryContainer
                     }
                     Text(
                         text = vm.logArray[it].trimEnd('\n'),
-                        modifier = Modifier.background(color = color).padding(5.dp).fillMaxWidth(),
+                        modifier = Modifier.background(color = containerColor).padding(5.dp).fillMaxWidth(),
+                        color = contentColor,
                         fontSize = 8.sp,
                         lineHeight = 10.sp,
                         fontFamily = FontFamily.Monospace
@@ -117,4 +118,3 @@ fun LogView(
         }
     }
 }
-

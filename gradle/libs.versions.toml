@@ -1,5 +1,5 @@
 [versions]
-vck="6.0.0-RC2"
+vck="7.0.0"
 
 agp = "8.12.3"
 kotlin = "2.3.0"
@@ -24,17 +24,6 @@ navigation-compose = "2.9.2"
 navigationevent-compose = "1.0.1" # Check if issuing a credential works on iOS after upgrading this. 1.1.0 has an issue, possibly just requires a compose update
 semver = "2.1.0"
 
-mdl = "1.4.0"
-eupid = "3.5.0"
-eupid-sdjwt = "1.4.0"
-powerofrepresentation = "1.4.0"
-certificateofresidence = "2.3.0"
-av = "1.1.0"
-companyregistration = "1.3.0"
-healthid = "2.3.0"
-ehic = "1.3.0"
-taxid = "1.3.0"
-
 atomicfu = "0.32.1"
 qrose = "1.1.2"
 core-splashscreen = "1.2.0"
@@ -45,7 +34,7 @@ warden-supreme = "1.0.0-RC11"
 
 
 # Test if DC API verification and issuing are still working after upgrading the following libraries:
-androidx-credentials = "1.6.0"
+androidx-credentials = "1.7.0-alpha02"
 androidx-credentials-registry-provider = "1.0.0-alpha04"
 
 
@@ -64,16 +53,6 @@ androidx-credentials-registry-provider = { module = "androidx.credentials.regist
 androidx-registry-provider-play-services = { module = "androidx.credentials.registry:registry-provider-play-services", version.ref = "androidx-credentials-registry-provider" }
 atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "atomicfu" }
 barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "barcode-scanning" }
-credential-av = { module = "at.asitplus.wallet:ageverification", version.ref = "av" }
-credential-eupid = { module = "at.asitplus.wallet:eupidcredential", version.ref = "eupid" }
-credential-eupid-sdjwt = { module = "at.asitplus.wallet:eupidcredential-sdjwt", version.ref = "eupid-sdjwt" }
-credential-powerofrepresentation = { module = "at.asitplus.wallet:powerofrepresentation", version.ref = "powerofrepresentation" }
-credential-certificateofresidence = { module = "at.asitplus.wallet:certificateofresidence", version.ref = "certificateofresidence" }
-credential-companyregistration = { module = "at.asitplus.wallet:company-registration", version.ref = "companyregistration" }
-credential-mdl = { group = "at.asitplus.wallet", name = "mobiledrivinglicence", version.ref = "mdl" }
-credential-healthid = { module = "at.asitplus.wallet:healthid", version.ref = "healthid" }
-credential-taxid = { group = "at.asitplus.wallet", name = "taxid", version.ref = "taxid" }
-credential-ehic = { group = "at.asitplus.wallet", name = "ehic", version.ref = "ehic"}
 datastore-core-okio = { module = "androidx.datastore:datastore-core-okio", version.ref = "datastore-preferences-core" }
 datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastore-preferences-core" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }

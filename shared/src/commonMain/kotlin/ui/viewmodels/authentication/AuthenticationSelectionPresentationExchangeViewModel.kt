@@ -4,23 +4,13 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
-import at.asitplus.catchingUnwrapped
 import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeListEntry
-import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.agent.representation
-import at.asitplus.wallet.ehic.EhicScheme
-import at.asitplus.wallet.healthid.HealthIdScheme
 import at.asitplus.wallet.lib.agent.PresentationExchangeCredentialDisclosure
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.data.ConstantIndex
-import at.asitplus.wallet.lib.data.CredentialToJsonConverter
 import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
-import at.asitplus.wallet.por.PowerOfRepresentationScheme
-import at.asitplus.wallet.taxid.TaxIdScheme
 import io.github.aakira.napier.Napier
-import kotlinx.serialization.json.jsonObject
 
 class AuthenticationSelectionPresentationExchangeViewModel(
     val credentialMatchingResult: PresentationExchangeMatchingResult<SubjectCredentialStore.StoreEntry>,
@@ -73,35 +63,9 @@ class AuthenticationSelectionPresentationExchangeViewModel(
                         null
                     }
                 }
-                // Manually assigns all available attributes in ISO credential if only presentation of all attributes shall be supported
-                val forcedAttributes = if (credential.representation != ConstantIndex.CredentialRepresentation.ISO_MDOC) {
-                    null
-                } else when (credential.scheme) {
-                    is HealthIdScheme,
-                    is EhicScheme,
-                    is PowerOfRepresentationScheme,
-                    is TaxIdScheme -> {
-                        val allAttributes = credential.scheme!!.claimNames.map {
-                            NormalizedJsonPath() + credential.scheme!!.isoNamespace!! + it
-                        }
-                        val claimStructure = CredentialToJsonConverter.toJsonElement(credential)
-                        Napier.d("Claim Structure: $claimStructure")
-                        allAttributes.filter { attribute ->
-                            val (namespace, attributeName) = attribute.segments.map {
-                                (it as NormalizedJsonPathSegment.NameSegment).memberName
-                            }
-                            catchingUnwrapped {
-                                claimStructure.jsonObject[namespace]!!.jsonObject[attributeName] != null
-                            }.getOrNull() ?: false
-                        }
-                    }
-
-                    else -> null
-                }
-
                 requestsId to PresentationExchangeCredentialDisclosure(
                     credential,
-                    forcedAttributes ?: disclosedAttributeSelection
+                    disclosedAttributeSelection
                 )
             }.toMap()
             Napier.d("Presenting Selection: $submission")

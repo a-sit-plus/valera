@@ -2,15 +2,15 @@ package ui.viewmodels.authentication
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.catchingUnwrapped
+import at.asitplus.dcapi.request.toDifInputDescriptors
 import at.asitplus.dif.DifInputDescriptor
 import at.asitplus.dif.PresentationDefinition
+import at.asitplus.iso.DeviceRequest
+import at.asitplus.iso.SessionTranscript
 import at.asitplus.signum.supreme.UserInitiatedCancellationReason
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.warning_authentication_cancelled
-import at.asitplus.iso.DeviceRequest
-import at.asitplus.iso.SessionTranscript
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.toDifInputDescriptorList
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
@@ -47,7 +47,7 @@ class PresentationViewModel(
         finishFunction: (ByteArray) -> Unit,
         sessionTranscript: SessionTranscript?
     ) {
-        descriptors = parsedRequest.docRequests.toDifInputDescriptorList()
+        descriptors = parsedRequest.docRequests.toDifInputDescriptors()
         this.finishFunction = finishFunction
         this.sessionTranscript = sessionTranscript
     }

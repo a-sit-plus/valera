@@ -2,6 +2,7 @@ package at.asitplus.wallet.app.common.dcapi
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.catching
+import at.asitplus.catchingUnwrapped
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.app_display_name
 import at.asitplus.wallet.app.common.PlatformAdapter
@@ -10,16 +11,15 @@ import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.common.dcapi.data.export.IsoMdocEntry
 import at.asitplus.wallet.app.common.dcapi.data.export.SdJwtEntry
 import at.asitplus.wallet.app.common.decodeImage
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPid
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
-import at.asitplus.wallet.eupid.EuPidScheme
-import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
-import data.credentials.CredentialAdapter.Companion.toAttributeMap
 import data.credentials.CredentialAdapter.Companion.toNamespaceAttributeMap
-import data.credentials.CredentialAttributeTranslator
 import data.credentials.EuPidCredentialAdapter
 import data.credentials.MobileDrivingLicenceCredentialAdapter
+import data.credentials.metadataLabel
+import data.credentials.toGenericAttributeList
 import data.storage.StoreContainer
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
@@ -32,7 +32,9 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
         Napier.d("DC API: Preparing registration of updated credentials with the system")
 
         val credentialListEntries = container.credentials.mapNotNull { (_, storeEntry) ->
-            catching { storeEntry.toCredentialEntry() }.getOrNull()
+            catchingUnwrapped { storeEntry.toCredentialEntry() }
+                .onFailure { Napier.w("Failed to convert credential to DC API entry", it) }
+                .getOrNull()
         }
 
         val credentialRegistry = CredentialRegistry.create(credentialListEntries)
@@ -42,14 +44,14 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
 
     private suspend fun SubjectCredentialStore.StoreEntry.toCredentialEntry() = when (this) {
         is SubjectCredentialStore.StoreEntry.SdJwt -> CredentialEntry(
-            title = scheme.uiLabelNonCompose(),
+            title = resolveScheme().uiLabelNonCompose(),
             subtitle = getString(Res.string.app_display_name),
             bitmap = extractPicture(),
             sdJwtEntry = toSdJwtEntry()
         )
 
         is SubjectCredentialStore.StoreEntry.Iso -> CredentialEntry(
-            title = scheme.uiLabelNonCompose(),
+            title = resolveScheme().uiLabelNonCompose(),
             subtitle = getString(Res.string.app_display_name),
             bitmap = extractPicture(),
             isoEntry = toIsoEntry()
@@ -58,29 +60,32 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
         is SubjectCredentialStore.StoreEntry.Vc -> null
     }
 
-    private suspend fun SubjectCredentialStore.StoreEntry.Iso.toIsoEntry() = IsoMdocEntry(
-        id = getDcApiId(),
-        docType = scheme?.isoDocType ?: "",
-        isoNamespaces = toNamespaceAttributeMap()?.let {
-            IsoMdocEntry.isoNamespacesFromNamespaceAttributeMap(it, getTranslator())
-        } ?: mapOf())
+    private suspend fun SubjectCredentialStore.StoreEntry.Iso.toIsoEntry(): IsoMdocEntry {
+        val scheme = resolveScheme()
+        return IsoMdocEntry(
+            id = getDcApiId(),
+            docType = schemeIdentifier ?: scheme.isoDocType ?: "",
+            isoNamespaces = toNamespaceAttributeMap()?.let {
+                IsoMdocEntry.isoNamespacesFromNamespaceAttributeMap(it) { path -> scheme.metadataLabel(path) }
+            } ?: mapOf()
+        )
+    }
 
-    private suspend fun SubjectCredentialStore.StoreEntry.SdJwt.toSdJwtEntry() = SdJwtEntry(
-        jwtId = getDcApiId(),
-        verifiableCredentialType = sdJwt.verifiableCredentialType,
-        claims = SdJwtEntry.fromAttributeMap(toAttributeMap(), getTranslator())
-    )
+    private suspend fun SubjectCredentialStore.StoreEntry.SdJwt.toSdJwtEntry(): SdJwtEntry {
+        val scheme = resolveScheme()
+        return SdJwtEntry(
+            jwtId = getDcApiId(),
+            verifiableCredentialType = schemeIdentifier ?: sdJwt.verifiableCredentialType,
+            claims = SdJwtEntry.fromAttributeList(toGenericAttributeList()) { path -> scheme.metadataLabel(path) }
+        )
+    }
 
-    private fun SubjectCredentialStore.StoreEntry.getTranslator(): CredentialAttributeTranslator = CredentialAttributeTranslator[scheme]
-        ?: throw IllegalStateException("Attribute translator not implemented")
+    private suspend fun SubjectCredentialStore.StoreEntry.extractPicture() = resolveScheme().let { s ->
+        when {
+            s.isMdl -> MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(this, s, imageDecoder).portraitRaw
+            s.isEuPid -> EuPidCredentialAdapter.createFromStoreEntry(this, s, imageDecoder).portraitRaw
 
-    private fun SubjectCredentialStore.StoreEntry.extractPicture() = when (scheme) {
-        is MobileDrivingLicenceScheme ->
-            MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(this, imageDecoder).portraitRaw
-        is EuPidSdJwtScheme,
-        is EuPidScheme ->
-            EuPidCredentialAdapter.createFromStoreEntry(this, imageDecoder).portraitRaw
-
-        else -> null
+            else -> null
+        }
     }
 }

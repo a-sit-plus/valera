@@ -1,4 +1,3 @@
-// based on identity-credential[https://github.com/openwallet-foundation-labs/identity-credential] implementation
 
 extern "C" {
 #include "credentialmanager.h"
@@ -11,8 +10,6 @@ extern "C" {
 #include "CredentialDatabase.h"
 #include "Request.h"
 #include "logger.h"
-
-auto PARSE_ALL_ISO_MDOC = false;
 
 extern "C" void matcher(void) {
     CallingAppInfo* appInfo = (CallingAppInfo*) malloc(sizeof(CallingAppInfo));
@@ -43,38 +40,29 @@ extern "C" void matcher(void) {
             cJSON *protocolData = cJSON_GetObjectItem(dcRequest, "data");
 
             if (protocolValue == "openid4vp" ||
-                protocolValue == "openid4vp-v1-unsigned" ||
-                protocolValue == "openid4vp-v1-signed") {
+                    protocolValue == "openid4vp-v1-unsigned" ||
+                    protocolValue == "openid4vp-v1-signed" ||
+                    protocolValue == "openid4vp-v1-multisigned") {
 
                 auto request = OpenID4VPRequest::parseOpenID4VP(protocolData, protocolValue);
-                auto dcqlResponse = request->dclqQuery.execute(db);
+                auto dcqlResponse = request->dclqQuery.execute(db, protocolValue);
                 if (dcqlResponse.has_value()) {
                     auto combinations = dcqlResponse.value().getCredentialCombinations();
+                    if (!combinations.empty()) {
+                        for (auto const &combination: combinations) {
+                            combination.addToCredmanPicker(*request);
+                        }
+                    }
+                }
+
+            } else if (protocolValue == "org.iso.mdoc" || protocolValue == "org-iso-mdoc") {
+                auto request = MdocRequest::parseMdocApi(protocolValue, protocolData);
+                auto combinations = request->getCredentialCombinations(db, protocolValue);
+                if (!combinations.empty()) {
                     for (auto const &combination: combinations) {
                         combination.addToCredmanPicker(*request);
                     }
                 }
-                break;
-
-            } else if (protocolValue == "org.iso.mdoc" || protocolValue == "org-iso-mdoc") {
-                if (PARSE_ALL_ISO_MDOC) {
-                    auto request = MdocRequest::getDummyElements(protocolValue, protocolData);
-                    auto combinations = request->combineALL(db);
-                    for (auto const& combination : combinations) {
-                        combination.addToCredmanPicker(*request);
-                    }
-                    break;
-                }
-                else {
-                    auto request = MdocRequest::parseMdocApi(protocolValue, protocolData);
-                    auto combinations = request->getCredentialCombinations(db);
-                    for (auto const& combination : combinations) {
-                        combination.addToCredmanPicker(*request);
-                    }
-                    break;
-                }
-
-
             }
         }
     }

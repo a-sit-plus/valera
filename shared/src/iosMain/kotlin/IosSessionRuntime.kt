@@ -9,9 +9,11 @@ import at.asitplus.wallet.app.common.di.appModule
 import at.asitplus.wallet.app.dcapi.IosDcApiPreRequestData
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
 import androidx.compose.material3.SnackbarDuration
+import data.storage.AntilogAdapter
 import data.storage.RealDataStoreService
-import io.github.aakira.napier.Antilog
 import data.storage.createDataStore
+import io.github.aakira.napier.Antilog
+import io.github.aakira.napier.LogLevel
 import io.github.aakira.napier.Napier
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
@@ -47,6 +49,13 @@ private object IosSessionRuntime {
         data class PreRequest(val data: IosDcApiPreRequestData) : PendingTransientState()
         data class Invocation(val data: IosDCAPIInvocationData) : PendingTransientState()
     }
+
+    private fun PendingTransientState.finishCallback(): () -> Unit = when (this) {
+        is PendingTransientState.UrlLink -> onFinish
+        is PendingTransientState.PreRequest -> data.onCancel
+        is PendingTransientState.Invocation -> data.onCancel
+    }
+
     private var pendingTransientState: PendingTransientState? = null
 
     fun bootstrap(buildContext: BuildContext, antilog: Antilog) {
@@ -55,8 +64,7 @@ private object IosSessionRuntime {
                 return
             }
 
-            initializeCredentialSchemes()
-            initializeLogging(antilog)
+            initializeLogging(buildContext, antilog)
             startKoin {
                 modules(appModule(), module { single { buildContext } })
             }
@@ -138,9 +146,19 @@ private object IosSessionRuntime {
     // Called when SessionService.newScope() triggers the scope factory (i.e. on app reset).
     // Clears stale pending state and wipes the intentState so navigation recomposes cleanly.
     private fun onSessionReset(sessionKind: IosSessionKind, intentState: IntentState) {
-        synchronized(stateLock) {
-            if (sessionKind == IosSessionKind.TRANSIENT_FLOW) pendingTransientState = null
+        val finishActiveFlow = synchronized(stateLock) {
+            val finish = if (sessionKind == IosSessionKind.TRANSIENT_FLOW) {
+                pendingTransientState = null
+                intentState.finishApp
+            } else {
+                null
+            }
             intentState.reset()
+            finish
+        }
+        finishActiveFlow?.let { finish ->
+            runCatching { finish() }
+                .onFailure { Napier.e("IosSessionRuntime could not finish flow during session reset", it) }
         }
     }
 
@@ -220,12 +238,22 @@ private object IosSessionRuntime {
     }
 
     fun closeTransientFlowSession() {
-        val handleToClose = synchronized(stateLock) {
-            pendingTransientState = null
-            transientFlowHandle?.also { handle ->
-                transientFlowHandle = null
-                handle.intentState.reset()
+        val (handleToClose, finishActiveFlows) = synchronized(stateLock) {
+            val finishCallbacks = buildList {
+                pendingTransientState?.finishCallback()?.let(::add)
+                transientFlowHandle?.intentState?.finishApp?.let(::add)
             }
+            pendingTransientState = null
+            val handle = transientFlowHandle
+            handle?.also {
+                transientFlowHandle = null
+                it.intentState.reset()
+            }
+            handle to finishCallbacks
+        }
+        finishActiveFlows.forEach { finish ->
+            runCatching { finish() }
+                .onFailure { Napier.e("IosSessionRuntime could not finish flow during session close", it) }
         }
         handleToClose?.sessionService?.close()
     }
@@ -271,22 +299,28 @@ private object IosSessionRuntime {
         }
     }
 
-    private fun initializeCredentialSchemes() {
-        at.asitplus.wallet.mdl.Initializer.initWithVCK()
-        at.asitplus.wallet.eupid.Initializer.initWithVCK()
-        at.asitplus.wallet.eupidsdjwt.Initializer.initWithVCK()
-        at.asitplus.wallet.cor.Initializer.initWithVCK()
-        at.asitplus.wallet.por.Initializer.initWithVCK()
-        at.asitplus.wallet.companyregistration.Initializer.initWithVCK()
-        at.asitplus.wallet.healthid.Initializer.initWithVCK()
-        at.asitplus.wallet.taxid.Initializer.initWithVCK()
-        at.asitplus.wallet.ehic.Initializer.initWithVCK()
-        at.asitplus.wallet.ageverification.Initializer.initWithVCK()
-    }
-
-    private fun initializeLogging(antilog: Antilog) {
+    private fun initializeLogging(buildContext: BuildContext, systemAntilog: Antilog) {
         Napier.takeLogarithm()
-        Napier.base(antilog)
+        Napier.base(
+            CompositeAntilog(
+                listOf(
+                    systemAntilog,
+                    AntilogAdapter(
+                        platformAdapter = IosPlatformAdapter(IntentState()),
+                        defaultTag = "",
+                        buildType = buildContext.buildType,
+                    )
+                )
+            )
+        )
+    }
+}
+
+private class CompositeAntilog(
+    private val antilogs: List<Antilog>
+) : Antilog() {
+    override fun performLog(priority: LogLevel, tag: String?, throwable: Throwable?, message: String?) {
+        antilogs.forEach { it.log(priority, tag, throwable, message) }
     }
 }
 

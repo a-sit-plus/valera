@@ -29,7 +29,6 @@ import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -48,8 +47,6 @@ import ui.viewmodels.ErrorViewModel
 fun ErrorView(
     vm: ErrorViewModel
 ) {
-    val tint = Color(255, 210, 0)
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -119,7 +116,7 @@ fun ErrorView(
                     Icons.Default.Warning,
                     contentDescription = null,
                     Modifier.size(100.dp),
-                    tint = tint
+                    tint = MaterialTheme.colorScheme.tertiary
                 )
                 Text("Message:", fontWeight = FontWeight.Bold)
                 Column(
@@ -128,6 +125,7 @@ fun ErrorView(
                 ) {
                     Text(
                         vm.message,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer,
                         modifier = Modifier.padding(
                             top = 5.dp,
                             bottom = 5.dp,
@@ -148,6 +146,7 @@ fun ErrorView(
                     ) {
                         Text(
                             it,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
                             modifier = Modifier.padding(
                                 top = 5.dp,
                                 bottom = 5.dp,

@@ -9,10 +9,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -23,29 +20,21 @@ fun CredentialSelectionCardLayout(
     isSelected: Boolean,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val containerColor = mutableStateOf(Color.Unspecified)
-    val borderStroke: MutableState<BorderStroke?> = mutableStateOf(null)
-
-    if (isSelected) {
-        containerColor.value = if (!isError) {
-            MaterialTheme.colorScheme.primaryContainer
-        } else {
-            MaterialTheme.colorScheme.errorContainer
-        }
-
-        val width = 2.dp
-        borderStroke.value = if (!isError) {
-            BorderStroke(width = width, color = MaterialTheme.colorScheme.inversePrimary)
-        } else {
-            BorderStroke(width = width, color = MaterialTheme.colorScheme.error)
-        }
-    } else {
-        containerColor.value = if (!isError) {
-            Color.Unspecified
-        } else {
-            MaterialTheme.colorScheme.errorContainer
-        }
-        borderStroke.value = null
+    val colors = when {
+        isError -> CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer,
+            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        )
+        isSelected -> CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+        else -> CardDefaults.elevatedCardColors()
+    }
+    val border = when {
+        !isSelected -> null
+        isError -> BorderStroke(2.dp, MaterialTheme.colorScheme.error)
+        else -> BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
     }
 
     Card(
@@ -53,8 +42,8 @@ fun CredentialSelectionCardLayout(
         enabled = onClick != null,
         modifier = modifier,
         elevation = CardDefaults.elevatedCardElevation(),
-        colors = CardDefaults.elevatedCardColors(containerColor = containerColor.value),
-        border = borderStroke.value
+        colors = colors,
+        border = border,
     ) {
         Column(
             modifier = modifier.padding(8.dp).fillMaxWidth(),

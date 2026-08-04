@@ -127,7 +127,7 @@ fun CredentialsView(
                             items(
                                 credentials.size,
                                 key = { credentials[it].first },
-                                contentType = { credentials[it].second.scheme?.let { it::class } }
+                                contentType = { credentials[it].second.scheme::class }
                             ) { index ->
                                 val storeEntry = credentials[index]
                                 val storeEntryIdentifier = storeEntry.first
@@ -152,7 +152,7 @@ fun CredentialsView(
                                         end = 16.dp,
                                         bottom = 16.dp
                                     ),
-                                    onRefresh = { onRefresh(credential, storeEntryIdentifier) }
+                                    onRefresh = { onRefresh(credential.entry, storeEntryIdentifier) }
                                 )
                             }
                             item {

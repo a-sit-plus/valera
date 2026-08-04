@@ -16,10 +16,10 @@ import at.asitplus.signum.indispensable.Digest
 import at.asitplus.signum.indispensable.X509SignatureAlgorithm
 import at.asitplus.signum.indispensable.io.ByteArrayBase64Serializer
 import at.asitplus.signum.indispensable.josef.JwsSigned
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_sign_successful
 import at.asitplus.wallet.app.common.Configuration.DATASTORE_SIGNING_CONFIG
-import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
 import at.asitplus.wallet.lib.oidvci.encodeToParameters
 import at.asitplus.wallet.lib.oidvci.formUrlEncode

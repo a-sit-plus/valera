@@ -1,10 +1,17 @@
 package ui.navigation
 
 import ErrorHandlingOverrideException
+import getPlatformName
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -22,21 +29,75 @@ import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult
 import io.github.aakira.napier.Napier
-import io.ktor.http.*
+import io.ktor.http.URLBuilder
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.koin.core.scope.Scope
 import ui.composables.credentials.CredentialCard
-import ui.navigation.routes.*
+import ui.models.toFallbackResolvedCredential
+import ui.models.toResolvedCredential
+import ui.navigation.routes.AddCredentialDcApiRoute
+import ui.navigation.routes.AddCredentialPreAuthnRoute
+import ui.navigation.routes.AddCredentialWithLinkRoute
+import ui.navigation.routes.AttestationSettingsRoute
+import ui.navigation.routes.AuthenticationSuccessRoute
+import ui.navigation.routes.AuthenticationViewRoute
+import ui.navigation.routes.AuthorizationIntentRoute
+import ui.navigation.routes.CapabilitiesRoute
+import ui.navigation.routes.CredentialDetailsRoute
+import ui.navigation.routes.DCAPIAuthorizationIntentRoute
+import ui.navigation.routes.DCAPIIssuingIntentRoute
+import ui.navigation.routes.DCAPIPresentationViewRoute
+import ui.navigation.routes.ErrorIntentRoute
+import ui.navigation.routes.LoadingRoute
+import ui.navigation.routes.LogRoute
+import ui.navigation.routes.PresentationIntentRoute
+import ui.navigation.routes.ProvisioningAuthRequestIntentRoute
+import ui.navigation.routes.ProvisioningResumeIntentRoute
+import ui.navigation.routes.ProvisioningStartIntentRoute
+import ui.navigation.routes.Route
+import ui.navigation.routes.SettingsRoute
+import ui.navigation.routes.SigningIntentRoute
+import ui.navigation.routes.SigningQtspSelectionRoute
+import ui.navigation.routes.SigningResumeIntentRoute
+import ui.navigation.routes.TransientFlowIssuingResultRoute
 import ui.presentation.DCAPIPresentationGraphView
 import ui.presentation.DefaultPresentationGraphView
-import ui.viewmodels.*
-import ui.viewmodels.intents.*
-import ui.views.*
+import ui.viewmodels.AttestationSettingsViewModel
+import ui.viewmodels.CredentialDetailsViewModel
+import ui.viewmodels.CredentialSelection
+import ui.viewmodels.LoadCredentialViewModel
+import ui.viewmodels.LogViewModel
+import ui.viewmodels.SigningQtspSelectionViewModel
+import ui.viewmodels.intents.AuthorizationIntentViewModel
+import ui.viewmodels.intents.DCAPIAuthorizationIntentViewModel
+import ui.viewmodels.intents.DCAPIIssuingIntentViewModel
+import ui.viewmodels.intents.ErrorIntentViewModel
+import ui.viewmodels.intents.PresentationIntentViewModel
+import ui.viewmodels.intents.ProvisioningIntentViewModel
+import ui.viewmodels.intents.SigningIntentViewModel
+import ui.viewmodels.intents.SigningResumeIntentViewModel
+import ui.views.AttestationSettingsView
+import ui.views.CapabilityView
+import ui.views.CredentialAddedView
+import ui.views.CredentialDetailsView
+import ui.views.LoadCredentialView
+import ui.views.LoadingView
+import ui.views.LogView
+import ui.views.SigningQtspSelectionView
 import ui.views.authentication.AuthenticationSuccessView
-import ui.views.intents.*
+import ui.views.intents.AuthorizationIntentView
+import ui.views.intents.DCAPIAuthorizationIntentView
+import ui.views.intents.DCAPIIssuingIntentView
+import ui.views.intents.ErrorIntentView
+import ui.views.intents.PresentationIntentView
+import ui.views.intents.ProvisioningIntentView
+import ui.views.intents.SigningIntentView
+import ui.views.intents.SigningResumeIntentView
+import ui.views.loadingMessageString
 
 internal enum class SharedDestinationFlow {
     Wallet,
@@ -157,7 +218,7 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
             onClickLogo = onClickLogo,
             koinScope = koinScope,
             onNavigateUp = navigator::invocationAwareBack,
-            showStartRoute = flow == SharedDestinationFlow.Wallet,
+            showStartRoute = shouldShowDcApiStartRoute(flow),
         )
     }
 
@@ -344,10 +405,14 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
     composable<TransientFlowIssuingResultRoute> { backStackEntry ->
         val route = backStackEntry.toRoute<TransientFlowIssuingResultRoute>()
         var isAutoDismissEnabled by rememberSaveable(route.storeEntryId) { mutableStateOf(true) }
+        var isAcknowledgeInProgress by rememberSaveable(route.storeEntryId) { mutableStateOf(false) }
         val detailsStoreEntryId = route.storeEntryId
         val storeEntry = route.storeEntryId?.let { storeEntryId ->
             walletMain.subjectCredentialStore.observeStoreContainer().map { container ->
-                container.credentials.find { it.first == storeEntryId }?.second
+                container.credentials.find { it.first == storeEntryId }?.second?.let { storeEntry ->
+                    catchingUnwrapped { storeEntry.toResolvedCredential() }
+                        .getOrElse { storeEntry.toFallbackResolvedCredential() }
+                }
             }.collectAsState(null).value
         }
         LaunchedEffect(route.storeEntryId, storeEntry) {
@@ -357,15 +422,21 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
             }
             Napier.d(
                 "${prefix}TransientFlowIssuingResultRoute render storeEntryId=${route.storeEntryId} " +
-                    "resolved=${storeEntry != null} scheme=${storeEntry?.scheme?.schemaUri}"
+                    "resolved=${storeEntry != null} scheme=${storeEntry?.scheme?.identifier}"
             )
         }
         val onAcknowledge = {
-            if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
-                val response = flow.encodeDigitalCredentialOfferReturn(DigitalCredentialOfferReturn.success())
-                walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, true)
+            if (!isAcknowledgeInProgress) {
+                isAcknowledgeInProgress = true
+                walletMain.scope.launch {
+                    walletMain.refreshDcApiCredentialRegistration()
+                    if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
+                        val response = flow.encodeDigitalCredentialOfferReturn(DigitalCredentialOfferReturn.success())
+                        walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, true)
+                    }
+                    navigator.popToInvoker()
+                }
             }
-            navigator.popToInvoker()
         }
 
         val backState = rememberNavigationEventState(NavigationEventInfo.None)
@@ -529,6 +600,11 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
         )
     }
 }
+
+internal fun shouldShowDcApiStartRoute(
+    flow: SharedDestinationFlow,
+    platformName: String = getPlatformName(),
+): Boolean = flow == SharedDestinationFlow.Wallet || platformName != "iOS"
 
 @Composable
 private fun LoadCredentialFromUrlContent(

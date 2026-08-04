@@ -21,13 +21,6 @@ fun DefaultPresentationGraphView(
     viewModel: DefaultPresentationGraphViewModel = koinViewModel(scope = koinScope),
     credentialValidator: Validator = koinInject(),
 ) {
-    val dcApiRequest = try {
-        viewModel.dcApiRequest.getOrThrow()
-    } catch (throwable: Throwable) {
-        onError(throwable)
-        return
-    }
-
     val presentationRequest = try {
         viewModel.preparationState.getOrThrow().credentialPresentationRequest
     } catch (throwable: Throwable) {
@@ -35,8 +28,8 @@ fun DefaultPresentationGraphView(
         return
     }
 
-    val spLocation = dcApiRequest?.callingOrigin ?: viewModel.route.recipientLocation
-    val spName = dcApiRequest?.callingPackageName
+    val spLocation = viewModel.route.recipientLocation
+    val spName: String? = null
 
     val authenticateAtRelyingParty = spLocation != "Local Presentation"
 
@@ -75,9 +68,9 @@ fun DefaultPresentationGraphView(
                 onError(throwable)
             }
             null
-        }
-    )
+        },
+        trustListService = viewModel.trustListService,
+        )
 }
-
 
 

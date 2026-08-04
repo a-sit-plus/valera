@@ -13,10 +13,7 @@ import org.koin.dsl.module
 class WalletApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-
-        initializeCredentialSchemes()
         initializeLogging()
-
         startKoin {
             modules(appModule(), module { single { createAndroidBuildContext() } })
         }
@@ -34,16 +31,4 @@ class WalletApplication : Application() {
         )
     }
 
-    private fun initializeCredentialSchemes() {
-        at.asitplus.wallet.mdl.Initializer.initWithVCK()
-        at.asitplus.wallet.eupid.Initializer.initWithVCK()
-        at.asitplus.wallet.eupidsdjwt.Initializer.initWithVCK()
-        at.asitplus.wallet.cor.Initializer.initWithVCK()
-        at.asitplus.wallet.por.Initializer.initWithVCK()
-        at.asitplus.wallet.companyregistration.Initializer.initWithVCK()
-        at.asitplus.wallet.healthid.Initializer.initWithVCK()
-        at.asitplus.wallet.taxid.Initializer.initWithVCK()
-        at.asitplus.wallet.ehic.Initializer.initWithVCK()
-        at.asitplus.wallet.ageverification.Initializer.initWithVCK()
-    }
 }

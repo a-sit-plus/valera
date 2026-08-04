@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import ui.models.CredentialFreshnessSummaryUiModel
 import ui.composables.buttons.DetailsButton
+import ui.models.CredentialFreshnessSummaryUiModel
 
 
 @Composable

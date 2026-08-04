@@ -1,19 +1,12 @@
 package data.credentials
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import at.asitplus.wallet.ageverification.AgeVerificationScheme
-import at.asitplus.wallet.companyregistration.CompanyRegistrationScheme
-import at.asitplus.wallet.cor.CertificateOfResidenceScheme
-import at.asitplus.wallet.ehic.EhicScheme
-import at.asitplus.wallet.eupid.EuPidScheme
-import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtScheme
-import at.asitplus.wallet.healthid.HealthIdScheme
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPidIso
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPidSdJwt
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
 import at.asitplus.wallet.lib.data.ConstantIndex
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
-import at.asitplus.wallet.por.PowerOfRepresentationScheme
-import at.asitplus.wallet.taxid.TaxIdScheme
+import at.asitplus.wallet.lib.data.CredentialScheme
 import data.PersonalDataCategory
-import data.credentialsdatacard.CompanyRegistrationCredentialAttributeCategorization
 
 /**
  * The type, `List<AttributeUnpackingInformation>`, is there to
@@ -26,19 +19,12 @@ typealias AttributeUnpackingInformation = Pair<NormalizedJsonPath, List<Normaliz
 interface CredentialAttributeCategorization {
     companion object {
         fun load(
-            scheme: ConstantIndex.CredentialScheme?,
+            scheme: CredentialScheme?,
             representation: ConstantIndex.CredentialRepresentation
-        ): Template = when (scheme) {
-            is EuPidScheme -> EuPidCredentialAttributeCategorization
-            is EuPidSdJwtScheme -> EuPidSdJwtCredentialAttributeCategorization
-            is MobileDrivingLicenceScheme -> MobileDrivingLicenceCredentialAttributeCategorization
-            is AgeVerificationScheme -> AgeVerificationCredentialAttributeCategorization
-            is PowerOfRepresentationScheme -> PowerOfRepresentationCredentialAttributeCategorization
-            is CertificateOfResidenceScheme -> CertificateOfResidenceCredentialAttributeCategorization
-            is CompanyRegistrationScheme -> CompanyRegistrationCredentialAttributeCategorization
-            is HealthIdScheme -> HealthIdCredentialAttributeCategorization
-            is EhicScheme -> EhicCredentialAttributeCategorization
-            is TaxIdScheme -> TaxIdCredentialAttributeCategorization
+        ): Template = when {
+            scheme.isEuPidSdJwt -> EuPidSdJwtCredentialAttributeCategorization
+            scheme.isEuPidIso -> EuPidCredentialAttributeCategorization
+            scheme.isMdl -> MobileDrivingLicenceCredentialAttributeCategorization
             else -> EmptyCredentialAttributeCategorization
         }
     }

@@ -6,10 +6,10 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -42,7 +42,6 @@ import at.asitplus.valera.resources.refresh_snackbar_message_single
 import at.asitplus.valera.resources.snackbar_local_presentment_busy
 import at.asitplus.valera.resources.snackbar_local_presentment_cancel_action
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
 import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.KeystoreService
@@ -50,11 +49,12 @@ import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
+import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.app.common.presentation.NfcDispatchSuppressionMode
 import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
-import at.asitplus.wallet.app.common.domain.platform.UrlOpener
+import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.launch
@@ -63,20 +63,58 @@ import org.koin.compose.koinInject
 import org.koin.core.scope.Scope
 import ui.composables.BottomBar
 import ui.composables.NavigationData
-import ui.navigation.routes.*
-import ui.viewmodels.*
+import ui.navigation.routes.AddCredentialRoute
+import ui.navigation.routes.AttestationSettingsRoute
+import ui.navigation.routes.AuthenticationSuccessRoute
+import ui.navigation.routes.AuthenticationViewRoute
+import ui.navigation.routes.CredentialDetailsRoute
+import ui.navigation.routes.DCAPIPresentationViewRoute
+import ui.navigation.routes.ErrorRoute
+import ui.navigation.routes.HomeScreenRoute
+import ui.navigation.routes.InitializationRoute
+import ui.navigation.routes.LoadCredentialRoute
+import ui.navigation.routes.LocalPresentationAuthenticationConsentRoute
+import ui.navigation.routes.LogRoute
+import ui.navigation.routes.OnboardingInformationRoute
+import ui.navigation.routes.OnboardingStartRoute
+import ui.navigation.routes.OnboardingWrapperTestTags
+import ui.navigation.routes.PresentDataRoute
+import ui.navigation.routes.ProximityHolderRoute
+import ui.navigation.routes.ProximityVerifierRoute
+import ui.navigation.routes.QrCodeScannerRoute
+import ui.navigation.routes.RefreshCenterRoute
+import ui.navigation.routes.Route
+import ui.navigation.routes.SettingsRoute
+import ui.navigation.routes.SigningCredentialIntentRoute
+import ui.navigation.routes.SigningPreloadIntentRoute
+import ui.navigation.routes.SigningServiceIntentRoute
+import ui.viewmodels.ErrorViewModel
+import ui.viewmodels.LoadCredentialViewModel
+import ui.viewmodels.QrCodeScannerMode
 import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.authentication.PresentationViewModel
-import ui.viewmodels.intents.*
-import ui.views.*
-import ui.views.intents.*
+import ui.viewmodels.intents.SigningCredentialIntentViewModel
+import ui.viewmodels.intents.SigningPreloadIntentViewModel
+import ui.viewmodels.intents.SigningServiceIntentViewModel
+import ui.views.CredentialsView
+import ui.views.ErrorView
+import ui.views.InitializationView
+import ui.views.LoadCredentialView
+import ui.views.LoadingView
+import ui.views.OnboardingInformationView
+import ui.views.OnboardingStartView
+import ui.views.PresentDataView
+import ui.views.QrCodeScannerView
+import ui.views.RefreshCredentialsView
+import ui.views.SelectIssuingServerView
+import ui.views.SettingsView
+import ui.views.intents.SigningCredentialIntentView
+import ui.views.intents.SigningPreloadIntentView
+import ui.views.intents.SigningServiceIntentView
 import ui.views.iso.holder.HolderView
 import ui.views.iso.verifier.VerifierView
+import ui.views.loadingMessageString
 import ui.views.presentation.PresentationView
-
-internal object NavigatorTestTags {
-    const val loadingTestTag = "loadingTestTag"
-}
 
 @ExperimentalMaterial3Api
 @Composable
@@ -269,7 +307,7 @@ private fun WalletNavHost(
         if (processedItemIds.contains(item.storeEntryId)) return@LaunchedEffect
         processedItemIds = processedItemIds + item.storeEntryId
         val result = snackbarHostState.showSnackbar(
-            message = getString(Res.string.refresh_snackbar_message_single, item.entry.scheme.uiLabelNonCompose()),
+            message = getString(Res.string.refresh_snackbar_message_single, item.scheme.uiLabelNonCompose()),
             actionLabel = getString(Res.string.refresh_snackbar_action),
             withDismissAction = true,
             duration = SnackbarDuration.Long,
@@ -504,7 +542,8 @@ private fun WalletNavHost(
                         if (e !is PresentmentCanceled) {
                             walletMain.errorService.emit(e)
                         }
-                    }
+                    },
+                    trustListService = walletMain.trustListService
                 )
             }
         }

@@ -38,4 +38,16 @@ import IdentityDocumentServices
 
         return nil
     }
+
+    @objc public class func removeDocument(id: String) async -> String? {
+        let store = IdentityDocumentProviderRegistrationStore()
+
+        do {
+            try await store.removeRegistration(forDocumentIdentifier: id)
+        } catch {
+            return registrationErrorMessage(for: error)
+        }
+
+        return nil
+    }
 }

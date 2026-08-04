@@ -6,12 +6,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import ui.models.CredentialFreshnessSummaryUiModel
+import ui.models.ResolvedCredential
 
 @Composable
 fun CredentialCard(
-    credential: SubjectCredentialStore.StoreEntry,
+    credential: ResolvedCredential,
     isTokenStatusEvaluated: Boolean,
     credentialFreshnessSummaryModel: CredentialFreshnessSummaryUiModel?,
     imageDecoder: (ByteArray) -> Result<ImageBitmap>,

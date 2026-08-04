@@ -3,6 +3,7 @@ package at.asitplus.wallet.app.common
 import at.asitplus.wallet.lib.agent.Validator
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
+import data.storage.PersistentTrustListStore
 import io.github.aakira.napier.Antilog
 import io.github.aakira.napier.Napier
 import org.multipaz.prompt.PromptModel
@@ -13,21 +14,14 @@ data class WalletDependencyProvider(
     val platformAdapter: PlatformAdapter,
     var subjectCredentialStore: PersistentSubjectCredentialStore =
         PersistentSubjectCredentialStore(dataStoreService, Validator()),
+    var trustListStore: PersistentTrustListStore =
+        PersistentTrustListStore(dataStoreService),
     val buildContext: BuildContext,
     val promptModel: PromptModel,
     val antilog: Antilog,
 ) {
     init {
-        at.asitplus.wallet.mdl.Initializer.initWithVCK()
-        at.asitplus.wallet.eupid.Initializer.initWithVCK()
-        at.asitplus.wallet.eupidsdjwt.Initializer.initWithVCK()
-        at.asitplus.wallet.cor.Initializer.initWithVCK()
-        at.asitplus.wallet.por.Initializer.initWithVCK()
-        at.asitplus.wallet.companyregistration.Initializer.initWithVCK()
-        at.asitplus.wallet.healthid.Initializer.initWithVCK()
-        at.asitplus.wallet.taxid.Initializer.initWithVCK()
-        at.asitplus.wallet.ehic.Initializer.initWithVCK()
-        at.asitplus.wallet.ageverification.Initializer.initWithVCK()
+        registerCredentialMetadata(buildContext, dataStoreService)
 
         Napier.takeLogarithm()
         Napier.base(antilog)

@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.PersonalDataCategory
 import data.credentials.MobileDrivingLicenceCredentialAdapter
 import ui.composables.AttributeRepresentation
@@ -18,7 +17,7 @@ fun MobileDrivingLicenceCredentialResidenceDataCard(
     modifier: Modifier = Modifier,
 ) {
     CredentialDetailCard(
-        credentialScheme = MobileDrivingLicenceScheme,
+        credentialScheme = credentialAdapter.scheme,
         personalDataCategory = PersonalDataCategory.ResidenceData,
         credentialAdapter = credentialAdapter,
         modifier = modifier,

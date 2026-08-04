@@ -30,6 +30,7 @@ import at.asitplus.valera.resources.error_credential_selection_error_invalid_req
 import at.asitplus.valera.resources.error_no_requests
 import at.asitplus.valera.resources.heading_label_select_data
 import at.asitplus.valera.resources.prompt_select_credential
+import at.asitplus.wallet.app.common.TrustListService
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.buttons.NavigateUpButton
@@ -41,6 +42,7 @@ fun AuthenticationSelectionPresentationExchangeView(
     vm: AuthenticationSelectionPresentationExchangeViewModel,
     onClickLogo: () -> Unit,
     onError: (Throwable) -> Unit,
+    trustListService: TrustListService
 ) {
     val iterableRequests = vm.iterableRequests
     if (iterableRequests.isEmpty()) {
@@ -75,6 +77,7 @@ fun AuthenticationSelectionPresentationExchangeView(
                     matchingCredentials = matchingCredentials,
                     attributeSelection = attributeSelection,
                     credentialSelection = credentialSelection,
+                    trustListService = trustListService
                 )
             }
         }

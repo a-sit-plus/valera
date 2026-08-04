@@ -64,12 +64,16 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>, privat
  * Gets the singleton DataStore instance, creating it if necessary.
  */
 fun getDataStore(producePath: () -> String): DataStore<Preferences> =
+    getDataStoreWithFactory {
+        PreferenceDataStoreFactory.createWithPath(produceFile = { producePath().toPath() })
+    }
+
+fun getDataStoreWithFactory(createDataStore: () -> DataStore<Preferences>): DataStore<Preferences> =
     synchronized(lock) {
         if (::dataStore.isInitialized) {
             dataStore
         } else {
-            PreferenceDataStoreFactory.createWithPath(produceFile = { producePath().toPath() })
-                .also { dataStore = it }
+            createDataStore().also { dataStore = it }
         }
     }
 

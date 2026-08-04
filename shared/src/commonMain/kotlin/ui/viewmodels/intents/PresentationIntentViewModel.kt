@@ -3,8 +3,8 @@ package ui.viewmodels.intents
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestLocalPresentment
-import at.asitplus.wallet.app.common.presentation.LocalPresentmentSource
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
+import at.asitplus.wallet.app.common.presentation.LocalPresentmentSource
 import io.github.aakira.napier.Napier
 import ui.navigation.routes.Route
 

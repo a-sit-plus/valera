@@ -3,14 +3,15 @@ package at.asitplus.wallet.app.common
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.IssuerMetadata
 import at.asitplus.openid.OAuth2AuthorizationServerMetadata
+import at.asitplus.openid.SupportedCredentialFormat
 import at.asitplus.openid.SupportedCredentialFormatIsoMdoc
 import at.asitplus.openid.SupportedCredentialFormatSdJwt
 import at.asitplus.openid.SupportedCredentialFormatW3cVcJsonLd
 import at.asitplus.openid.SupportedCredentialFormatW3cVcJwt
 import at.asitplus.openid.SupportedCredentialFormatW3cVcJwtJsonLd
+import at.asitplus.signum.indispensable.equalsCryptographically
 import at.asitplus.signum.indispensable.josef.JsonWebToken
 import at.asitplus.signum.indispensable.josef.JwsCompactTyped
-import at.asitplus.signum.indispensable.equalsCryptographically
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.signum.indispensable.josef.toJsonWebKey
 import at.asitplus.wallet.app.common.attestation.AttestationService
@@ -19,7 +20,9 @@ import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.data.AttributeIndex
-import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.ISO_MDOC
+import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.SD_JWT
+import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult
 import at.asitplus.wallet.lib.ktor.openid.OAuth2KtorClient
@@ -27,6 +30,7 @@ import at.asitplus.wallet.lib.ktor.openid.OpenId4VciClient
 import at.asitplus.wallet.lib.ktor.openid.ProvisioningContext
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
 import at.asitplus.wallet.lib.oidvci.WalletService
+import at.asitplus.wallet.lib.utils.MapStore
 import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
 import data.storage.StoreEntryId
@@ -39,7 +43,6 @@ import io.ktor.http.URLBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -226,7 +229,7 @@ class ProvisioningService(
         reissuingStoreEntryId: StoreEntryId? = null
     ) {
         provisioningFlowMutex.withLock {
-            ensureNoActiveProvisioningFlow()
+            clearAbandonedProvisioningFlow()
             clearCaches()
             config.set(host = credentialIssuer)
             cookieStorage.reset()
@@ -347,11 +350,15 @@ class ProvisioningService(
         provisioningInstanceAttestationStore.put(state, instanceAttestation.toString())
     }
 
-    private suspend fun ensureNoActiveProvisioningFlow() {
-        activeProvisioningStateStore.get(ACTIVE_PROVISIONING_STATE_KEY)?.let { state ->
-            throw IllegalStateException("A provisioning browser flow is already active for state $state")
-        }
-    }
+    /**
+     * A leftover active state means the previous browser flow was abandoned (the user never
+     * returned via the redirect): clear it and its stored context, so a new flow can start.
+     */
+    private suspend fun clearAbandonedProvisioningFlow() = clearAbandonedProvisioningFlow(
+        activeProvisioningStateStore = activeProvisioningStateStore,
+        provisioningContextStore = provisioningContextStore,
+        provisioningInstanceAttestationStore = provisioningInstanceAttestationStore,
+    )
 
     private suspend fun markActiveProvisioningState(state: String) {
         activeProvisioningStateStore.put(ACTIVE_PROVISIONING_STATE_KEY, state)
@@ -430,7 +437,7 @@ class ProvisioningService(
         onProgress: ((LoadingMessageKey) -> Unit)? = null,
     ): StoredCredentialIssuanceResult {
         val result = provisioningFlowMutex.withLock {
-            ensureNoActiveProvisioningFlow()
+            clearAbandonedProvisioningFlow()
             onProgress?.invoke(LoadingMessageKey.IssuingCredential)
             val result = openId4VciClient().loadCredentialWithOfferReturningResult(
                 credentialOffer,
@@ -496,20 +503,31 @@ internal fun validateProvisioningCallbackState(redirectedUrl: String, expectedSt
     validateProvisioningCallbackStateValue(callbackState.orEmpty(), expectedState)
 }
 
-private const val ACTIVE_PROVISIONING_STATE_KEY = "active"
+/** Removes an abandoned browser flow's active-state marker and per-state context, if any. */
+internal suspend fun clearAbandonedProvisioningFlow(
+    activeProvisioningStateStore: MapStore<String, String>,
+    provisioningContextStore: MapStore<String, String>,
+    provisioningInstanceAttestationStore: MapStore<String, String>,
+) {
+    activeProvisioningStateStore.remove(ACTIVE_PROVISIONING_STATE_KEY)?.let { state ->
+        Napier.w("Clearing abandoned provisioning browser flow for state $state")
+        provisioningContextStore.remove(state)
+        provisioningInstanceAttestationStore.remove(state)
+    }
+}
+
+internal const val ACTIVE_PROVISIONING_STATE_KEY = "active"
 class ProofKeyMismatchException(expected: String?, actual: String?) : IllegalStateException(
     "The credential proof signing key no longer matches the device key store " +
             "(key store holds $expected, key material advertises $actual). " +
             "The key material must be re-derived before issuing credentials."
 )
 
-val CredentialIdentifierInfo.credentialScheme: ConstantIndex.CredentialScheme?
-    get() =  with(supportedCredentialFormat) {
-        when (this) {
-            is SupportedCredentialFormatIsoMdoc -> AttributeIndex.resolveIsoDoctype(docType)
-            is SupportedCredentialFormatSdJwt -> AttributeIndex.resolveSdJwtAttributeType(sdJwtVcType)
-            is SupportedCredentialFormatW3cVcJsonLd -> this.credentialDefinition.type.firstNotNullOfOrNull { AttributeIndex.resolveAttributeType(it) }
-            is SupportedCredentialFormatW3cVcJwt -> this.credentialDefinition.types.firstNotNullOfOrNull { AttributeIndex.resolveAttributeType(it) }
-            is SupportedCredentialFormatW3cVcJwtJsonLd -> this.credentialDefinition.type.firstNotNullOfOrNull { AttributeIndex.resolveAttributeType(it) }
-        }
-    }
+suspend fun SupportedCredentialFormat.resolveCredentialScheme(): CredentialScheme? = when (this) {
+    is SupportedCredentialFormatIsoMdoc -> AttributeIndex.resolveIdentifier(docType, ISO_MDOC)
+    is SupportedCredentialFormatSdJwt -> AttributeIndex.resolveIdentifier(sdJwtVcType, SD_JWT)
+    is SupportedCredentialFormatW3cVcJwt -> AttributeIndex.resolveIdentifierPlainJwt(credentialDefinition.types)
+    is SupportedCredentialFormatW3cVcJsonLd -> AttributeIndex.resolveIdentifierPlainJwt(credentialDefinition.type)
+    is SupportedCredentialFormatW3cVcJwtJsonLd -> AttributeIndex.resolveIdentifierPlainJwt(credentialDefinition.type)
+}
+

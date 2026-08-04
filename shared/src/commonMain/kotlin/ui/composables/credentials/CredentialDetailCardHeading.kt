@@ -3,7 +3,6 @@ package ui.composables.credentials
 import ExpandButtonUpDown
 import androidx.compose.runtime.Composable
 import data.PersonalDataCategory
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.PersonAttributeDetailCardHeading
 
@@ -16,21 +15,6 @@ fun CredentialDetailCardHeader(
     CredentialDetailCardHeader(
         iconText = stringResource(iconText),
         title = stringResource(categoryTitle),
-        isExpanded = isExpanded,
-        onChangeIsExpanded = onChangeIsExpanded,
-    )
-}
-
-@Composable
-fun CredentialDetailCardHeader(
-    isExpanded: Boolean,
-    onChangeIsExpanded: (Boolean) -> Unit,
-    iconText: StringResource,
-    title: StringResource,
-) {
-    CredentialDetailCardHeader(
-        iconText = stringResource(iconText),
-        title = stringResource(title),
         isExpanded = isExpanded,
         onChangeIsExpanded = onChangeIsExpanded,
     )

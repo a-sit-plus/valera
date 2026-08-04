@@ -46,6 +46,8 @@ jobs:
         with:
           name: xcode.log
           path: "/tmp/iosApp-simulator-build.log"
+      - name: List available iOS simulators
+        run: xcrun simctl list devices available
       - name: Test KMP on iOS
         run: ./gradlew -U :shared:iosSimulatorArm64Test
       - name: Test Report from KMP on iOS

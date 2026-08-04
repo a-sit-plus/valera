@@ -21,6 +21,7 @@
     <string name="snackbar_nfc_tag_lost_retrying">NFC-Verbindung verloren. Bitte das andere Gerät erneut nahe halten.</string>
     <string name="snackbar_local_presentment_busy">Eine Präsentation läuft bereits.</string>
     <string name="snackbar_local_presentment_cancel_action">Abbrechen</string>
+    <string name="snackbar_cross_device_qr_code_use_system_camera">Dieser geräteübergreifende QR-Code wird von Valera nicht unterstützt. Bitte scannen Sie ihn stattdessen mit der Systemkamera-App.</string>
 
     <string name="button_label_use_device_credential">Passwort</string>
     <string name="button_label_confirm">Bestätigen</string>
@@ -58,125 +59,8 @@
     <string name="button_label_sign">Signieren</string>
     <string name="button_label_back">Zurück</string>
     <string name="button_label_attestation_config">Attestierungs-Konfiguration</string>
-
-    <string name="attribute_friendly_name_bpk">BPK</string>
-    <string name="attribute_friendly_name_firstname">Vorname</string>
-    <string name="attribute_friendly_name_lastname">Nachname</string>
-    <string name="attribute_friendly_name_date_of_birth">Geburtsdatum</string>
-    <string name="attribute_friendly_name_portrait">Porträt</string>
-    <string name="attribute_friendly_name_age_at_least_12">Zumindest 12 Jahre alt</string>
-    <string name="attribute_friendly_name_age_at_least_13">Zumindest 13 Jahre alt</string>
-    <string name="attribute_friendly_name_age_at_least_14">Zumindest 14 Jahre alt</string>
-    <string name="attribute_friendly_name_age_at_least_16">Zumindest 16 Jahre alt</string>
-    <string name="attribute_friendly_name_age_at_least_18">Zumindest 18 Jahre alt</string>
-    <string name="attribute_friendly_name_age_at_least_21">Zumindest 21 Jahre alt</string>
-    <string name="attribute_friendly_name_age_at_least_25">Zumindest 25 Jahre alt</string>
-    <string name="attribute_friendly_name_age_at_least_60">Zumindest 60 Jahre alt</string>
-    <string name="attribute_friendly_name_age_at_least_62">Zumindest 62 Jahre alt</string>
-    <string name="attribute_friendly_name_age_at_least_65">Zumindest 65 Jahre alt</string>
-    <string name="attribute_friendly_name_age_at_least_68">Zumindest 68 Jahre alt</string>
-    <string name="attribute_friendly_name_main_address">Hauptwohnsitz</string>
-    <string name="attribute_friendly_name_main_residence_country">Land</string>
-    <string name="attribute_friendly_name_main_residence_state">Staat</string>
-    <string name="attribute_friendly_name_main_residence_city">Stadt</string>
-    <string name="attribute_friendly_name_main_residence_postal_code">Postleitzahl</string>
-    <string name="attribute_friendly_name_main_residence_street">Straße</string>
-    <string name="attribute_friendly_name_main_residence_house_number">Hausnummer</string>
-    <string name="attribute_friendly_name_sex">Geschlecht</string>
-    <string name="attribute_friendly_name_height">Größe</string>
-    <string name="attribute_friendly_name_weight">Gewicht</string>
-    <string name="attribute_friendly_name_eye_colour">Augenfarbe</string>
-    <string name="attribute_friendly_name_hair_colour">Haarfarbe</string>
-    <string name="attribute_friendly_name_portrait_capture_date">Aufnahmedatum Portrait</string>
-    <string name="attribute_friendly_name_nationality">Nationalität</string>
-    <string name="attribute_friendly_name_age_in_years">Alter</string>
-    <string name="attribute_friendly_name_family_name_national_character">Nachname (national)</string>
-    <string name="attribute_friendly_name_given_name_national_character">Vorname (national)</string>
-    <string name="attribute_friendly_name_family_name_birth">Nachname (Geburt)</string>
-    <string name="attribute_friendly_name_given_name_birth">Vorname (Geburt)</string>
-    <string name="attribute_friendly_name_age_birth_year">Geburtsjahr</string>
-    <string name="attribute_friendly_name_place_of_birth">Geburtsort</string>
-    <string name="attribute_friendly_name_birth_place">Geburtsort</string>
-    <string name="attribute_friendly_name_birth_country">Geburtsland</string>
-    <string name="attribute_friendly_name_birth_state">Geburtsstaat</string>
-    <string name="attribute_friendly_name_birth_city">Geburtsstadt</string>
-    <string name="attribute_friendly_name_document_number">Ausweisnummer</string>
-    <string name="attribute_friendly_name_issue_date">Ausstellungsdatum</string>
-    <string name="attribute_friendly_name_issuing_authority">Ausstellende Behörde</string>
-    <string name="attribute_friendly_name_expiry_date">Ablaufdatum</string>
-    <string name="attribute_friendly_name_issuing_country">Ausstellungsland</string>
-    <string name="attribute_friendly_name_driving_privileges">Lenkberechtigungen</string>
-    <string name="attribute_friendly_name_distinguishing_sign">Ausstellungsland (Code)</string>
-    <string name="attribute_friendly_name_signature_usual_mark">Unterschrift</string>
-    <string name="attribute_friendly_name_biometric_template_face">Biometrie: Gesicht</string>
-    <string name="attribute_friendly_name_biometric_template_finger">Biometrie: Fingerabdruck</string>
-    <string name="attribute_friendly_name_biometric_template_iris">Biometrie: Iris</string>
-    <string name="attribute_friendly_name_biometric_template_signature_sign">Biometrie: Unterschrift</string>
-
-    <string name="attribute_friendly_name_country_code">Ländercode</string>
-    <string name="attribute_friendly_name_one_time_token">One Time Token</string>
-    <string name="attribute_friendly_name_health_insurance_id">Versicherungsnummer</string>
-    <string name="attribute_friendly_name_patient_id">Patientennummer</string>
-    <string name="attribute_friendly_name_e_prescription_code">ePrescription Nummer</string>
-    <string name="attribute_friendly_name_valid_until">Gültig bis</string>
-
-    <string name="attribute_friendly_name_legal_person_identifier">Name der juristischen Person</string>
-    <string name="attribute_friendly_name_legal_name">Identifier der juristischen Person</string>
-    <string name="attribute_friendly_name_full_powers">Volle Vertretungskraft</string>
-    <string name="attribute_friendly_name_e_service">Vertretungskraft für Funktion</string>
-    <string name="attribute_friendly_name_effective_from_date">Startdatum</string>
-    <string name="attribute_friendly_name_effective_until_date">Enddatum</string>
-    <string name="attribute_friendly_name_administrative_number">Administrative Nummer</string>
-    <string name="attribute_friendly_name_personal_administrative_number">Pers. administrative Nummer</string>
-    <string name="attribute_friendly_name_email_address">E-Mail-Adresse</string>
-    <string name="attribute_friendly_name_mobile_phone_number">Mobiltelefon</string>
-    <string name="attribute_friendly_name_trust_anchor">Trust URL</string>
-    <string name="attribute_friendly_name_location_status">Status URL</string>
-    <string name="attribute_friendly_name_issuing_jurisdiction">Ausstellende Jurisdiktion</string>
-    <string name="attribute_friendly_name_residence_address">Wohnadresse</string>
-    <string name="attribute_friendly_name_residence_address_po_box">Postfach</string>
-    <string name="attribute_friendly_name_residence_address_thoroughfare">Straße</string>
-    <string name="attribute_friendly_name_residence_address_locator_designator">Nr.</string>
-    <string name="attribute_friendly_name_residence_address_locator_name">Gebäude</string>
-    <string name="attribute_friendly_name_residence_address_post_code">PLZ</string>
-    <string name="attribute_friendly_name_residence_address_post_name">Ort</string>
-    <string name="attribute_friendly_name_residence_address_admin_unit_L1">L1</string>
-    <string name="attribute_friendly_name_residence_address_admin_unit_L2">L2</string>
-    <string name="attribute_friendly_name_residence_address_full_address">Volle Adresse</string>
-    <string name="attribute_friendly_name_arrival_date">Ankunftsdatum</string>
-
-    <string name="attribute_friendly_name_company_name">Name</string>
-    <string name="attribute_friendly_name_company_type">Typ</string>
-    <string name="attribute_friendly_name_company_status">Status</string>
-    <string name="attribute_friendly_name_company_activity">Wirtschaftstätigkeiten</string>
-    <string name="attribute_friendly_name_registration_date">Registrierungsdatum</string>
-    <string name="attribute_friendly_name_company_end_date">Auflösungsdatum</string>
-    <string name="attribute_friendly_name_company_euid">EUID</string>
-    <string name="attribute_friendly_name_vat_number">UID-Nummer</string>
-    <string name="attribute_friendly_name_contact_data">Kontaktdaten</string>
-    <string name="attribute_friendly_name_registered_address">Hauptsitz</string>
-    <string name="attribute_friendly_name_postal_address">Postadresse</string>
-    <string name="attribute_friendly_name_branch">Zweigstellen</string>
-
     <string name="attribute_friendly_name_data_recipient_name">Name</string>
     <string name="attribute_friendly_name_data_recipient_location">Ort</string>
-
-    <string name="attribute_friendly_name_tax_number">Steuernummer</string>
-    <string name="attribute_friendly_name_affiliation_country">Ansässigkeitsstaat</string>
-    <string name="attribute_friendly_name_registered_family_name">Registrierter Nachname</string>
-    <string name="attribute_friendly_name_registered_given_name">Registrierter Vorname</string>
-    <string name="attribute_friendly_name_resident_address">Wohnadresse</string>
-    <string name="attribute_friendly_name_church_tax_id">Kirchen-Steuernummer</string>
-    <string name="attribute_friendly_name_iban">IBAN</string>
-    <string name="attribute_friendly_name_pid_id">PID ID</string>
-    <string name="attribute_friendly_name_verification_status">Verifizierungsstatus</string>
-
-    <string name="attribute_friendly_name_issuing_authority_id">Ausstellende Behörde: ID</string>
-    <string name="attribute_friendly_name_issuing_authority_name">Ausstellende Behörde: Name</string>
-    <string name="attribute_friendly_name_authentic_source">Zuständige Institution</string>
-    <string name="attribute_friendly_name_authentic_source_id">Zuständige Institution: ID</string>
-    <string name="attribute_friendly_name_authentic_source_name">Zuständige Institution: Name</string>
-    <string name="attribute_friendly_name_social_security_number">Sozialversicherungsnummer</string>
 
     <string name="credential_representation_format_label_plain_jwt">Plain JWT</string>
     <string name="credential_representation_format_label_sd_jwt">SD-JWT</string>
@@ -232,6 +116,8 @@
 
     <string name="text_label_issuing_service">Ausstellservice</string>
     <string name="text_label_client_identifier">Client-ID</string>
+    <string name="text_label_openid4vp_allowed_origin_schemes">Erlaubte OpenID4VP-Origin-Schemata</string>
+    <string name="text_supporting_openid4vp_allowed_origin_schemes">Kommagetrennt, z. B. https,android:apk-key-hash. Leerzeichen werden ignoriert; leeren, um alle zu deaktivieren.</string>
     <string name="text_label_wallet_provider_attestation">Wallet Attestierung verwenden</string>
     <string name="text_label_id_identifier">Bezeichnung</string>
     <string name="text_label_id_format">Datenrepräsentation</string>
@@ -318,7 +204,6 @@
     <string name="prompt_select_credential">Welches Credential soll verwendet werden?</string>
     <string name="prompt_select_attribute">Welche Attribute sollen übermittelt werden?</string>
 
-    <string name="error_credential_matching_failed">UNPASSEND</string>
     <string name="error_credential_status_invalid">UNGÜLTIG</string>
     <string name="error_credential_timeliness_expired">ABGELAUFEN</string>
     <string name="error_credential_timeliness_not_yet_valid">NOCH NICHT GÜLTIG</string>
@@ -392,8 +277,6 @@
     <string name="section_heading_information">Information</string>
     <string name="section_heading_requested_data">Angefragte Daten</string>
     <string name="section_heading_data_recipient">Empfänger</string>
-    <string name="section_heading_admission_data">Zulassungsdaten</string>
-    <string name="section_heading_admission_data_icon_text">Z</string>
     <string name="section_heading_other_data_category_title">Sonstige</string>
     <string name="section_heading_other_data_category_icon_text">S</string>
     <string name="section_heading_age_data">Altersstufen</string>
@@ -410,10 +293,6 @@
     <string name="section_heading_biometric_data_icon_text">B</string>
     <string name="section_heading_metadata">Metadaten</string>
     <string name="section_heading_metadata_icon_text">M</string>
-    <string name="section_heading_representation_data">Vertretung</string>
-    <string name="section_heading_representation_data_icon_text">V</string>
-    <string name="section_heading_company_data">Firmendaten</string>
-    <string name="section_heading_company_data_icon_text">F</string>
     <string name="section_heading_residence_data">Meldeadresse</string>
     <string name="section_heading_residence_data_icon_text">MA</string>
     <string name="section_heading_missing_data">Neue Daten laden</string>
@@ -421,6 +300,13 @@
     <string name="section_heading_transaction_data">Transaktion</string>
     <string name="section_heading_technical_data">Technische Daten</string>
     <string name="section_heading_technical_data_icon_text">T</string>
+    <string name="section_heading_status">Status</string>
+    <string name="section_heading_status_icon_text">S</string>
+    <string name="section_heading_cnf">Bestätigung (cnf)</string>
+    <string name="section_heading_cnf_icon_text">C</string>
+    <string name="section_heading_credential_contents">Inhalt</string>
+    <string name="section_heading_credential_contents_icon_text">{}</string>
+    <string name="text_label_issued_at">Ausgestellt am</string>
 
     <string name="onboarding_section_load_data_icon_text">2</string>
     <string name="onboarding_section_load_data_title">Daten in die App laden</string>
@@ -494,7 +380,6 @@
     <string name="section_heading_request_mdl">mDL Anfragen</string>
     <string name="section_heading_request_pid">PID Anfragen</string>
     <string name="section_heading_request_av">AV Anfragen</string>
-    <string name="section_heading_request_hid">HealthID Anfrage</string>
     <string name="section_heading_request_combined">Kombinierte Credential-Anfrage</string>
     <string name="section_heading_request_custom">Individuelle Anfrage</string>
     <string name="section_heading_select_document_type">Dokument Typ</string>
@@ -507,7 +392,6 @@
     <string name="button_label_check_combined">Kombinierte Credential-Anfrage</string>
     <string name="button_label_check_custom">Individuelle Anfrage</string>
     <string name="button_label_check_over_age">Über %1$s</string>
-    <string name="button_label_check_health_id">HealthID Prüfen</string>
     <string name="button_add_request">Anfrage hinzufügen</string>
     <string name="text_label_all_attributes">Alle Attribute</string>
     <string name="text_label_mandatory_attributes">Notwendige Attribute</string>
@@ -552,7 +436,7 @@
     <string name="button_dismiss">Verwerfen</string>
     <string name="button_remove">Entfernen</string>
     <string name="button_refresh">Aktualisieren</string>
-    <string name="refresh_snackbar_message_single">Aktualisierung verfügbar für \'%1$s\'</string>
+    <string name="refresh_snackbar_message_single">Aktualisierung verfügbar für '%1$s'</string>
     <string name="refresh_snackbar_message_multiple">Aktualisierungen für mehrere Ausweise verfügbar</string>
     <string name="refresh_snackbar_action">Jetzt aktualisieren</string>
     <string name="error_no_refresh_token">Kein Refresh-Token verfügbar</string>
@@ -578,5 +462,18 @@
     <string name="text_label_attestation_status_expiration">Status gültig bis</string>
     <string name="text_label_attestation_storage_type">Schlüsselspeicher</string>
     <string name="text_label_attestation_user_authentication">Authentifizierung</string>
+
+    <!-- Trust Evaluation -->
+    <string name="trust_status_trusted">Vertrauenswürdiger Aussteller</string>
+    <string name="trust_status_untrusted">Nicht vertrauenswürdiger Aussteller</string>
+    <string name="trust_status_unknown">Vertrauensstatus unbekannt</string>
+    <string name="trust_status_evaluating">Vertrauensstatus wird geprüft…</string>
+
+    <string name="section_heading_issuer_trust">Aussteller-Vertrauensdetails</string>
+    <string name="section_heading_issuer_trust_icon_text">ITD</string>
+    <string name="text_label_issued_by">Aussteller</string>
+    <string name="text_label_trust_status">Status</string>
+    <string name="text_label_thumbprint">Fingerabdruck</string>
+    <string name="text_label_trust_list_urls">Vertrauenslisten-URLs</string>
 
 </resources>

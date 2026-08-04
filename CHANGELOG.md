@@ -1,3 +1,15 @@
+# Release 5.8.1:
+ * Update to VC-K 7.0.0
+ * Rework resolving credential schemes
+ * Drop support for PID in VC JWT (which was never officially specified anyway)
+ * DCAPI: Update matching implementation, improve iOS state handling
+ * Fix opening second provisioning flow after aborting the first one
+ * Add `TrustListService` for loading LoTE regularly in the background
+ * Display trust evaluation of credentials
+ * Cache remote lookups of trust lists and status lists
+ * Improve dark theme
+ * Improve UI performance
+
 # Release 5.8.0
  * Update to VC-K 6.0.0
  * Credentials: Show credential titles in refresh prompts and allow suppressing a prompt for a single credential
@@ -10,6 +22,7 @@
    * Use VC-K data classes to (de-)serialize received/emitted data
    * Add support for iOS using ISO/IEC 18013-7 Annex C protocol
    * Add support for issuance via the DC API based on the preliminary spec defined in https://github.com/openid/OpenID4VCI/pull/476
+   * Add a configurable OpenID4VP origin-scheme allowlist; debug builds additionally allow `http` by default
 
 # Release 5.7.6
  * Update to VC-K 5.12.0
@@ -21,7 +34,7 @@
  * Add: Support refreshing of credentials
  * Add: Support presentation for general DCQL queries
  * Add: Debug version allows for localhost cleartext transmissions, supporting local test environments
- 
+
 # Release 5.7.5
  * Update to VC-K 5.10.1
  * Provide self-signed key attestation on issuing
@@ -61,7 +74,7 @@
  * Add FallBackKeyMaterial to catch startup exceptions
  * Remove `getMatchingCredentials` (move to VC-K)
 
-# Release 5.7.2 
+# Release 5.7.2
  * Proximity: Use fixed IACA key and certificate for reader authentication
  * Credentials: Show technical metadata (validity, status)
 

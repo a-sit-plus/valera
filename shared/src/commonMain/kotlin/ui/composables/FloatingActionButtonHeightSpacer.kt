@@ -15,13 +15,3 @@ fun FloatingActionButtonHeightSpacer(
     Spacer(modifier = Modifier.height(FloatingActionButtonDefaults.padding + FloatingActionButtonDefaults.containerHeight + FloatingActionButtonDefaults.padding - externalPadding))
 }
 
-@Composable
-fun LargeFloatingActionButtonHeightSpacer(
-    externalPadding: Dp = 0.dp,
-) {
-    Spacer(
-        modifier = Modifier.height(
-            FloatingActionButtonDefaults.padding + FloatingActionButtonDefaults.LargeContainerSize + FloatingActionButtonDefaults.padding - externalPadding
-        )
-    )
-}

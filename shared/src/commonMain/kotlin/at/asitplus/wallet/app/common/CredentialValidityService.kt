@@ -8,12 +8,21 @@ import at.asitplus.valera.resources.error_reissue_failed
 import at.asitplus.valera.resources.success_refreshed
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import data.storage.DataStoreService
 import data.storage.StoreEntryId
 import data.storage.WalletSubjectCredentialStore
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -51,7 +60,7 @@ class CredentialValidityService(
         _refreshItems.update {
             entriesWithIds
                 .filterNot { it.first in suppressedIds }
-                .map { RefreshItem(storeEntryId = it.first, entry = it.second) }
+                .map { RefreshItem(storeEntryId = it.first, entry = it.second, scheme = it.second.resolveScheme()) }
         }
     }
 
@@ -100,14 +109,14 @@ class CredentialValidityService(
             val renewalInfo = entry.renewalInfo ?: return RefreshStatus.Failed.also {
                     snackbarService.showSnackbar(
                         getString(Res.string.error_no_refresh_token),
-                        entry.scheme.uiLabelNonCompose()
+                        entry.resolveScheme().uiLabelNonCompose()
                     )
                 }
 
             provisioningService.refreshCredential(renewalInfo, storeId, ::updateStatus)
             snackbarService.showSnackbar(
                 getString(Res.string.success_refreshed),
-                entry.scheme.uiLabelNonCompose()
+                entry.resolveScheme().uiLabelNonCompose()
             )
             RefreshStatus.Succeeded
         } catch (_: Exception) {
@@ -133,7 +142,7 @@ class CredentialValidityService(
             errorService.emit(e)
             snackbarService.showSnackbar(
                 getString(Res.string.error_reissue_failed),
-                entry.scheme.uiLabelNonCompose()
+                entry.resolveScheme().uiLabelNonCompose()
             )
             RefreshStatus.Failed
         }
@@ -160,6 +169,7 @@ class CredentialValidityService(
 data class RefreshItem(
     val storeEntryId: Long,
     val entry: SubjectCredentialStore.StoreEntry,
+    val scheme: CredentialScheme,
     val selected: Boolean = true,
     val status: RefreshStatus = RefreshStatus.Pending,
     val error: String? = null

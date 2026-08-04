@@ -8,8 +8,8 @@ import ui.navigation.routes.ErrorIntentRoute
 import ui.navigation.routes.IosDcApiPreRequestRoute
 import ui.navigation.routes.PresentationIntentRoute
 import ui.navigation.routes.ProvisioningAuthRequestIntentRoute
-import ui.navigation.routes.ProvisioningStartIntentRoute
 import ui.navigation.routes.ProvisioningResumeIntentRoute
+import ui.navigation.routes.ProvisioningStartIntentRoute
 import ui.navigation.routes.Route
 import ui.navigation.routes.SigningCredentialIntentRoute
 import ui.navigation.routes.SigningIntentRoute

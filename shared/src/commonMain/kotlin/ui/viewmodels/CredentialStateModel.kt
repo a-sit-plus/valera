@@ -1,10 +1,10 @@
 package ui.viewmodels
 
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import ui.models.ResolvedCredential
 
 sealed interface CredentialStateModel {
     data object Loading : CredentialStateModel
     data class Success(
-        val credentials: List<Pair<Long, SubjectCredentialStore.StoreEntry>>,
+        val credentials: List<Pair<Long, ResolvedCredential>>,
     ) : CredentialStateModel
 }

@@ -9,10 +9,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 
-fun JsonElement.normalizedJsonPaths(): List<NormalizedJsonPath> = leafNodeList().map {
-    it.normalizedJsonPath
-}
-
 fun JsonElement.leafNodeList(): NodeList = when (this) {
     is JsonArray -> jsonArray.flatMapIndexed { index: Int, jsonElement: JsonElement ->
         jsonElement.leafNodeList().map {

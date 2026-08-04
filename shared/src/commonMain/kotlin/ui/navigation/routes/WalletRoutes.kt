@@ -150,8 +150,15 @@ data class AuthenticationViewRoute(
 
 @Serializable
 data class DCAPIPresentationViewRoute(
-    val apiRequestSerialized: String
-) : Route()
+    val apiRequestSerialized: String,
+) : Route() {
+    constructor(request: RequestParametersFrom.DcApiRequest) : this(
+        apiRequestSerialized = joseCompliantSerializer.encodeToString<RequestParametersFrom.DcApiRequest>(request)
+    )
+
+    val request: RequestParametersFrom.DcApiRequest
+        get() = joseCompliantSerializer.decodeFromString(apiRequestSerialized)
+}
 
 @Serializable
 object LocalPresentationAuthenticationConsentRoute : Route()

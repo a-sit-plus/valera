@@ -2,7 +2,6 @@ package ui.views
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
@@ -42,9 +42,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_attestation_config
@@ -67,8 +68,12 @@ import at.asitplus.valera.resources.section_heading_general
 import at.asitplus.valera.resources.section_heading_information
 import at.asitplus.valera.resources.text_label_build
 import at.asitplus.valera.resources.text_label_client_identifier
+import at.asitplus.valera.resources.text_label_openid4vp_allowed_origin_schemes
+import at.asitplus.valera.resources.text_label_trust_list_urls
+import at.asitplus.valera.resources.text_supporting_openid4vp_allowed_origin_schemes
 import at.asitplus.valera.resources.warning
 import at.asitplus.wallet.app.common.BuildType
+import at.asitplus.wallet.lib.etsi.LoTEServiceType
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -76,6 +81,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope
 import ui.composables.CircularProgressIndicatorOverlay
 import ui.composables.DelayedComposable
+import ui.composables.LabeledText
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
@@ -107,6 +113,16 @@ fun SettingsView(
     LaunchedEffect(clientIdInputValue) {
         if (clientIdInputValue != clientIdInput.text) {
             clientIdInput = TextFieldValue(clientIdInputValue)
+        }
+    }
+
+    val originSchemesInputValue by settingsViewModel.openId4VpAllowedOriginSchemesInputState.collectAsState()
+    var originSchemesInput by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(originSchemesInputValue))
+    }
+    LaunchedEffect(originSchemesInputValue) {
+        if (originSchemesInputValue != originSchemesInput.text) {
+            originSchemesInput = TextFieldValue(originSchemesInputValue)
         }
     }
 
@@ -200,6 +216,36 @@ fun SettingsView(
                                 Text(stringResource(Res.string.button_label_default))
                             }
                         }
+                        Row(
+                            modifier = listSpacingModifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            OutlinedTextField(
+                                value = originSchemesInput,
+                                onValueChange = {
+                                    originSchemesInput = it
+                                    settingsViewModel.updateOpenId4VpAllowedOriginSchemesInput(it.text)
+                                },
+                                label = {
+                                    Text(stringResource(Res.string.text_label_openid4vp_allowed_origin_schemes))
+                                },
+                                supportingText = {
+                                    Text(stringResource(Res.string.text_supporting_openid4vp_allowed_origin_schemes))
+                                },
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Uri,
+                                ),
+                                modifier = Modifier.weight(1f),
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            TextButton(
+                                onClick = {
+                                    settingsViewModel.resetOpenId4VpAllowedOriginSchemesToDefault()
+                                }
+                            ) {
+                                Text(stringResource(Res.string.button_label_default))
+                            }
+                        }
                     }
 
                     Column(
@@ -227,6 +273,26 @@ fun SettingsView(
                                 )
                             },
                         )
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 12.dp)
+                        ) {
+                            Text(
+                                text = stringResource(Res.string.text_label_trust_list_urls),
+                                style = MaterialTheme.typography.titleSmall,
+                                modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
+                            )
+                            LoTEServiceType.defaultUrls.forEach { url ->
+                                Text(
+                                    text = url,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(start = 32.dp, top = 2.dp, bottom = 2.dp)
+                                )
+                            }
+                        }
                     }
 
                     Column(

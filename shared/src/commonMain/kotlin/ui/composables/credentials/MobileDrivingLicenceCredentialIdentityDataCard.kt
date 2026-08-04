@@ -13,8 +13,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
@@ -26,9 +24,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.content_description_portrait
-import at.asitplus.wallet.mdl.MobileDrivingLicenceScheme
 import data.PersonalDataCategory
 import data.credentials.MobileDrivingLicenceCredentialAdapter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.AttributeRepresentation
 
@@ -38,7 +37,7 @@ fun MobileDrivingLicenceCredentialIdentityDataCard(
     modifier: Modifier = Modifier,
 ) {
     CredentialDetailCard(
-        credentialScheme = MobileDrivingLicenceScheme,
+        credentialScheme = credentialAdapter.scheme,
         personalDataCategory = PersonalDataCategory.IdentityData,
         credentialAdapter = credentialAdapter,
         modifier = modifier,

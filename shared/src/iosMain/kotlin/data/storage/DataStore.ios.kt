@@ -1,9 +1,14 @@
 package data.storage
 
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.okio.OkioStorage
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.PreferencesSerializer
 import io.github.aakira.napier.Napier
 import kotlinx.cinterop.ExperimentalForeignApi
+import okio.FileSystem
+import okio.Path.Companion.toPath
 import platform.Foundation.NSBundle
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
@@ -14,13 +19,22 @@ private const val appGroupIdentifierInfoPlistKey = "WalletAppGroupIdentifier"
 
 // Modified from https://github.com/android/kotlin-multiplatform-samples/tree/main
 @OptIn(ExperimentalForeignApi::class)
-fun createDataStore(): DataStore<Preferences> = getDataStore(
-    producePath = {
-        resolveCurrentDataStorePath().also { currentPath ->
-            migrateLegacyDataStoreIfNeeded(currentPath)
-        }
-    }
-)
+fun createDataStore(): DataStore<Preferences> = getDataStoreWithFactory {
+    PreferenceDataStoreFactory.create(
+        storage = OkioStorage(
+            fileSystem = FileSystem.SYSTEM,
+            serializer = PreferencesSerializer,
+            coordinatorProducer = { path, fileSystem ->
+                DarwinInterProcessCoordinator(fileSystem, path)
+            },
+            producePath = {
+                resolveCurrentDataStorePath().also { currentPath ->
+                    migrateLegacyDataStoreIfNeeded(currentPath)
+                }.toPath()
+            }
+        )
+    )
+}
 
 @OptIn(ExperimentalForeignApi::class)
 private fun resolveCurrentDataStorePath(): String {
