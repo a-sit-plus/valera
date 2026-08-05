@@ -169,6 +169,10 @@ git status --short
 
 Do not overwrite or discard unrelated working-tree changes. Generated local files, signing material, `local.properties`, provisioning profiles, certificates, and local Xcode signing configuration must not be committed.
 
+User-visible changes require an entry in the current unreleased section of `CHANGELOG.md` on the same branch. When splitting a dirty worktree into several PR branches, base each branch directly on `development`, keep its changelog entry with the corresponding change, and verify that the branch builds without depending on changes assigned elsewhere.
+
+Treat nested Git checkouts and generated Gradle or IDE files as local artifacts unless the repository explicitly tracks them. Inspect untracked directories before staging broadly, especially around submodules and composite builds.
+
 ## High-risk change checklist
 
 For storage changes:
