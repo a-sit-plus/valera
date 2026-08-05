@@ -1,3 +1,6 @@
+# Release 5.8.2 (unreleased):
+ * Networking: Use explicit CIO and Darwin HTTP engines and make Android debug trust configuration compatible with CIO
+
 # Release 5.8.1:
  * Update to VC-K 7.0.0
  * Rework resolving credential schemes

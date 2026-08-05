@@ -36,7 +36,7 @@ class HttpService(private val buildContext: BuildContext) {
         cacheStorage: CacheStorage? = null,
         revalidateCachedResponses: Boolean = false,
         failureCooldown: Duration? = null,
-    ) = HttpClient {
+    ) = HttpClient(createPlatformHttpClientEngine()) {
         followRedirects = false
         install(ContentNegotiation) {
             json(joseCompliantSerializer)
