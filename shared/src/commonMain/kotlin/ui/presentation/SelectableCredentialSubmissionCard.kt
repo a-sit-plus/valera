@@ -10,6 +10,8 @@ interface SelectableCredentialSubmissionCard {
         isSelected: Boolean,
         allowMultiSelection: Boolean,
         onToggleSelection: (() -> Unit)?,
+        onLoadingChanged: (Boolean) -> Unit = {},
+        onError: (Throwable) -> Unit = {},
     )
 
     val credentialFreshnessSummary: StateFlow<CredentialFreshnessValidationStateUiModel>

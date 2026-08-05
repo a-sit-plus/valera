@@ -370,6 +370,8 @@ public class AndroidPlatformAdapter(
                 joseCompliantSerializer.parseToJsonElement(option.requestJson).coerceIndexedObjectsToArrays(),
             )
 
+            Napier.d("DC API: Selection $dcRequestOptions")
+
             val selectionInfo = getSetSelection(credentialRequest)
                 ?: getSelection(credentialRequest)
 

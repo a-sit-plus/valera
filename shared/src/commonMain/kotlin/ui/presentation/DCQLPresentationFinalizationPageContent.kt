@@ -13,6 +13,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
@@ -29,6 +34,7 @@ import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.DataDisplaySection
+import ui.composables.PresentationRequestLoadingIndicator
 import ui.composables.ScreenHeading
 
 @Composable
@@ -38,23 +44,35 @@ fun DCQLPresentationFinalizationPageContent(
     serviceProviderLocalizedLocation: String,
     dcqlQuery: DCQLQuery,
     selections: Map<DCQLCredentialQueryIdentifier, List<SelectableCredentialSubmissionCard>>,
+    onError: (Throwable) -> Unit,
     onAbort: () -> Unit,
     onSubmit: () -> Unit,
     serviceProviderLogo: ImageBitmap? = null,
 ) {
+    val cards = remember(selections) {
+        selections.entries.sortedBy { it.key.string }.flatMap { it.value }
+    }
+    val loadingCards = remember(cards) {
+        mutableStateMapOf<SelectableCredentialSubmissionCard, Boolean>().apply {
+            cards.forEach { put(it, true) }
+        }
+    }
+    var hasLoadingError by remember(cards) { mutableStateOf(false) }
+    val isLoading = loadingCards.values.any { it }
+
     PresentationFinalizationPageContent(
         authenticateAtRelyingParty = authenticateAtRelyingParty,
         serviceProviderLocalizedName = serviceProviderLocalizedName,
         serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
         onAbort = onAbort,
         onSubmit = onSubmit,
+        isContinueEnabled = !isLoading && !hasLoadingError,
         serviceProviderLogo = serviceProviderLogo,
     ) {
-        selections.entries.sortedBy {
-            it.key.string
-        }.flatMap {
-            it.value
-        }.forEach { card ->
+        if (isLoading) {
+            PresentationRequestLoadingIndicator()
+        }
+        cards.forEach { card ->
             Spacer(modifier = Modifier.height(8.dp))
             // TODO: good enough or should we have separate cards for final submissions?
             //  - if these cards should be reused, then allowMultiSelection shouldn't be relevant with (isSelected, onToggleSelection) = (true, null)
@@ -62,7 +80,12 @@ fun DCQLPresentationFinalizationPageContent(
             card(
                 isSelected = true,
                 allowMultiSelection = false,
-                onToggleSelection = null
+                onToggleSelection = null,
+                onLoadingChanged = { loadingCards[card] = it },
+                onError = {
+                    hasLoadingError = true
+                    onError(it)
+                },
             )
         }
     }
@@ -75,6 +98,7 @@ fun PresentationFinalizationPageContent(
     serviceProviderLocalizedLocation: String,
     onAbort: () -> Unit,
     onSubmit: () -> Unit,
+    isContinueEnabled: Boolean = true,
     serviceProviderLogo: ImageBitmap? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -83,7 +107,7 @@ fun PresentationFinalizationPageContent(
             CommonBottomButtonsAbortContinue(
                 text = stringResource(Res.string.prompt_send_above_data),
                 onAbort = onAbort,
-                onContinue = onSubmit,
+                onContinue = onSubmit.takeIf { isContinueEnabled },
                 useBackButton = true,
             )
         }
