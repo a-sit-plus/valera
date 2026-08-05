@@ -15,7 +15,7 @@ data class IsoMdocEntry(
 ) {
 
     companion object {
-        suspend fun isoNamespacesFromNamespaceAttributeMap(
+        fun isoNamespacesFromNamespaceAttributeMap(
             attributeMap: Map<String, Map<String, Any>>,
             attributeLabel: (NormalizedJsonPath) -> String?,
         ): Map<String, Map<String, ExportedElements>> {
@@ -24,7 +24,7 @@ data class IsoMdocEntry(
                     val displayName =
                         attributeLabel(name.toJsonPath()) ?: name
                     val truncatedValue = value.toCustomString().safeSubstring(128)
-                    name to ExportedElements(displayName, truncatedValue, truncatedValue)
+                    name to ExportedElements(displayName, truncatedValue, value.toCustomString())
                 }.toMap()
             }.toMap()
         }

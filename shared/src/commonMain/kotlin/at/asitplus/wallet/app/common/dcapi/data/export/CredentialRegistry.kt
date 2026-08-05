@@ -17,8 +17,6 @@ data class CredentialRegistry private constructor(
                 "openid4vp-v1-signed",
                 "openid4vp-v1-unsigned",
                 "org-iso-mdoc",
-                "org.iso.mdoc",
-                "openid4vp"
             ), credentials
         )
     }
