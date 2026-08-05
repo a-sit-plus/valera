@@ -4,6 +4,8 @@ import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.etsi.ListOfTrustedEntities
 import at.asitplus.etsi.TrustListPayload
+import at.asitplus.openid.RequestParameters
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.josef.JwsCompact
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.wallet.lib.etsi.LoTEFilterCriteria
@@ -122,6 +124,57 @@ class TrustListService(
         TrustState.UNKNOWN
     }
 
+    /**
+     * Evaluates trust for the relying party (requester) behind a given request, using its
+     * leaf certificate from the [RequestParametersFrom] chain, checked against the internal
+     * A-SIT root and any WRPC-typed (Wallet Relying Party Certificate) entries in [trustLists].
+     */
+    fun evaluateRelyingParty(
+        request: RequestParametersFrom<*>,
+        trustLists: Map<String, ListOfTrustedEntities>,
+    ): TrustState = try {
+        val chain = request.extractRequesterCertificateChains()
+        val leaf = chain?.firstOrNull()
+            ?: return TrustState.UNKNOWN
+
+        if (leaf.isTrustedBy(listOf(aistIssuerCert)).isSuccess) {
+            return TrustState.TRUSTED
+        }
+
+        val criteria = LoTEFilterCriteria(expectedServiceType = LoTEServiceType.WRPAC)
+        val certificateList: List<X509Certificate> = trustLists
+            .flatMap { lote -> loTeFilterService.extractTrustedCertificates(lote.key, lote.value, criteria) }
+            .mapNotNull { it.certificate }
+
+        if (certificateList.isEmpty()) {
+            return TrustState.UNTRUSTED
+        }
+
+        val validationResult = leaf.isTrustedBy(certificateList)
+        if (validationResult.isSuccess) TrustState.TRUSTED else TrustState.UNTRUSTED
+    } catch (e: Exception) {
+        Napier.e("Failed to evaluate relying party trust status due to unexpected error", e)
+        TrustState.UNKNOWN
+    }
+
+    /**
+     * Flow variant, analogous to [observeTrustStateForEntry], for reactively evaluating a
+     * relying party's trust state as fresh trust lists come in.
+     */
+    fun observeTrustStateForRelyingParty(
+        requestFlow: Flow<RequestParametersFrom<*>?>
+    ): Flow<TrustState> =
+        combine(
+            requestFlow,
+            persistentTrustListStore.observeTrustContainer(LoTEServiceType.defaultUrls)
+        ) { request, trustLists ->
+            val req = request
+                ?: return@combine TrustState.EVALUATING
+            val freshTrustLists = trustLists.filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
+            evaluateRelyingParty(req, freshTrustLists)
+        }
+
+
 
     /** Refreshes missing or expired lists, then sleeps until the earliest cached list expires. */
     fun startChecking(retryInterval: Duration = 1.hours) {
@@ -190,3 +243,31 @@ internal fun <T> Map<String, Pair<T, Instant>>.filterFresh(now: Instant, ttl: Du
 
 internal fun Collection<Instant>.nextRefreshIn(now: Instant, ttl: Duration): Duration =
     minOfOrNull { it + ttl - now }?.let { maxOf(Duration.ZERO, it) } ?: Duration.ZERO
+
+
+fun RequestParametersFrom<*>.extractRequesterCertificateChains(): List<X509Certificate>? =
+    when (this) {
+        is RequestParametersFrom.Jws<*> ->
+            (this.jwsTyped.jws as JwsCompact).jwsHeader.certificateChain
+
+        is RequestParametersFrom.OpenId4VpDcApiSigned ->
+            this.jwsTyped.jws.jwsHeader.certificateChain
+
+        is RequestParametersFrom.OpenId4VpDcApiMultiSigned ->
+            this.jwsTyped.jws.jwsHeaders.firstOrNull()?.certificateChain
+
+        is RequestParametersFrom.Uri,
+        is RequestParametersFrom.Json,
+        is RequestParametersFrom.OpenId4VpDcApiUnsigned -> emptyList()
+        is RequestParametersFrom.IsoMdocDcApi -> extractRelyingPartyCertificateChains()
+    }
+
+fun RequestParametersFrom.IsoMdocDcApi.extractRelyingPartyCertificateChains(): List<X509Certificate> {
+    val deviceRequest = this.parameters.isoMdocRequest.deviceRequest
+
+    val fromReaderAuthAll = deviceRequest.readerAuthAll
+        ?.firstOrNull()?.unprotectedHeader?.certificateChain?.map { cert -> X509Certificate.decodeFromDer(cert) }
+        ?: emptyList()
+
+    return fromReaderAuthAll
+}
