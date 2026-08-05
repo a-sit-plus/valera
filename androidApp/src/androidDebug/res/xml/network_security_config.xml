@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">localhost</domain>
-    </domain-config>
+    <!--
+        Ktor CIO performs hostname verification itself and invokes the platform trust manager through
+        X509TrustManager.checkServerTrusted(chain, authType). Android's domain-specific network security
+        configuration requires the hostname-aware overload instead, which CIO cannot call. Keep the debug
+        cleartext allowance as a base policy so Android provides a CIO-compatible trust manager.
+    -->
+    <base-config cleartextTrafficPermitted="true" />
 </network-security-config>
