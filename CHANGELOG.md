@@ -1,5 +1,6 @@
 # Release 5.8.2 (unreleased):
  * Update to VC-K 8.0.0-SNAPSHOT
+ * Credentials: Move expensive credential-list preparation and trust evaluation off the UI thread
 
 # Release 5.8.1:
  * Update to VC-K 7.0.0
