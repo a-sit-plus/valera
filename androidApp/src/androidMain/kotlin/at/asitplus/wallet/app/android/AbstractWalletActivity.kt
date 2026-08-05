@@ -42,10 +42,10 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        initMultipaz()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         populateLink(intent)
-        initMultipaz()
     }
 
     private fun initMultipaz() {
