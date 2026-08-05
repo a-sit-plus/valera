@@ -6,15 +6,16 @@ import at.asitplus.valera.resources.credential_representation_format_label_mso_m
 import at.asitplus.valera.resources.credential_representation_format_label_plain_jwt
 import at.asitplus.valera.resources.credential_representation_format_label_sd_jwt
 import at.asitplus.wallet.lib.data.ConstantIndex
+import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.wallet.lib.data.CredentialScheme
 import org.jetbrains.compose.resources.stringResource
 
 val CredentialScheme.identifier: String
-    get() = vcType ?: isoDocType ?: sdJwtType ?: schemaUri
+    get() = vcType ?: isoDocType ?: sdJwtType ?: "unknown"
 
 @Composable
-fun ConstantIndex.CredentialRepresentation.uiLabel(): String = when (this) {
-    ConstantIndex.CredentialRepresentation.PLAIN_JWT -> stringResource(Res.string.credential_representation_format_label_plain_jwt)
-    ConstantIndex.CredentialRepresentation.SD_JWT -> stringResource(Res.string.credential_representation_format_label_sd_jwt)
-    ConstantIndex.CredentialRepresentation.ISO_MDOC -> stringResource(Res.string.credential_representation_format_label_mso_mdoc)
+fun CredentialRepresentation.uiLabel(): String = when (this) {
+    CredentialRepresentation.PLAIN_JWT -> stringResource(Res.string.credential_representation_format_label_plain_jwt)
+    CredentialRepresentation.SD_JWT -> stringResource(Res.string.credential_representation_format_label_sd_jwt)
+    CredentialRepresentation.ISO_MDOC -> stringResource(Res.string.credential_representation_format_label_mso_mdoc)
 }

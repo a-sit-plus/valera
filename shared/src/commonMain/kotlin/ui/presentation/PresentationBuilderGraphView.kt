@@ -15,9 +15,9 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.unexpected_screen_text
 import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.TrustListService
+import at.asitplus.wallet.lib.agent.DCQLMatchingResult
+import at.asitplus.wallet.lib.agent.IsoDeviceRetrievalMatchingResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.openid.DCQLMatchingResult
-import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
 import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.DCQLCredentialQuerySubmissionSelectionOption
@@ -126,15 +126,20 @@ fun PresentationBuilderGraphView(
                             selectableCredentialSubmissionCards = selectableCredentialSubmissionCards,
                             onSubmit = {
                                 val submissions = it.mapValues { (queryId, submissionIndices) ->
-                                    val matches = selectionProvider.value.queryMatchingResult.matchingResult.dcqlQueryMatchingResult.credentialMatchingResults[queryId]
-                                        ?: return@DCQLPresentationBuilderGraphView onError(IllegalStateException("Failed to find submission options for unknown credential query identifier $queryId"))
+                                    val matches =
+                                        selectionProvider.value.queryMatchingResult.matchingResult.dcqlQueryMatchingResult.credentialMatchingResults[queryId]
+                                            ?: return@DCQLPresentationBuilderGraphView onError(IllegalStateException("Failed to find submission options for unknown credential query identifier $queryId"))
                                     submissionIndices.map {
-                                        val credentialMatchingResult = matches.getOrNull(it.toInt())?.getOrNull() ?: return@DCQLPresentationBuilderGraphView onError(
-                                            IllegalStateException("Failed to find submission option index $it for credential query identifier $queryId")
-                                        )
-                                        val credential = selectionProvider.value.queryMatchingResult.matchingResult.credentials.getOrNull(it.toInt()) ?: return@DCQLPresentationBuilderGraphView onError(
-                                            IllegalStateException("Failed to find credential at index $it")
-                                        )
+                                        val credentialMatchingResult = matches.getOrNull(it.toInt())?.getOrNull()
+                                            ?: return@DCQLPresentationBuilderGraphView onError(
+                                                IllegalStateException("Failed to find submission option index $it for credential query identifier $queryId")
+                                            )
+                                        val credential =
+                                            selectionProvider.value.queryMatchingResult.matchingResult.credentials.getOrNull(
+                                                it.toInt()
+                                            ) ?: return@DCQLPresentationBuilderGraphView onError(
+                                                IllegalStateException("Failed to find credential at index $it")
+                                            )
                                         DCQLCredentialSubmissionOption(
                                             credential = credential,
                                             matchingResult = credentialMatchingResult,
@@ -148,7 +153,7 @@ fun PresentationBuilderGraphView(
                     }
                 }
 
-                is PresentationExchangeMatchingResult -> if (
+                is at.asitplus.wallet.lib.agent.PresentationExchangeMatchingResult -> if (
                     hasMissingPresentationExchangeInputDescriptorMatches(
                         queryMatchingResult.matchingResult.inputDescriptorMatches
                     )
@@ -185,9 +190,12 @@ fun PresentationBuilderGraphView(
                             onError = onError,
                             onNavigateUp = onNavigateToPresentationStart,
                             onSubmit = onSubmit,
-                        trustListService = trustListService)
+                            trustListService = trustListService
+                        )
                     }
                 }
+
+                is IsoDeviceRetrievalMatchingResult<*> -> TODO()
             }
         }
     }

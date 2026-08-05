@@ -128,7 +128,7 @@ fun AuthenticationReceivedStartPageContent(
                             presentationRequest = presentationRequest,
                             onError = onError
                         )
-
+                        is CredentialPresentationRequest.IsoDeviceRetrieval -> TODO()
                         null -> inputDescriptors?.let {
                             InputDescriptorPreview(it, onError = onError)
                         }

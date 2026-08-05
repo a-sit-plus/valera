@@ -17,6 +17,7 @@ import at.asitplus.openid.dcql.DCQLClaimsPathPointerSegment
 import at.asitplus.openid.dcql.DCQLCredentialQuery
 import at.asitplus.openid.dcql.DCQLIsoMdocClaimsQuery
 import at.asitplus.openid.dcql.DCQLIsoMdocCredentialQuery
+import at.asitplus.openid.dcql.DCQLIsoMdocZkCredentialQuery
 import at.asitplus.openid.dcql.DCQLJsonClaimsQuery
 import at.asitplus.openid.dcql.DCQLJwtVcCredentialQuery
 import at.asitplus.openid.dcql.DCQLSdJwtCredentialQuery
@@ -145,6 +146,8 @@ suspend fun DCQLCredentialQuery.extractConsentData(): DcqlConsentData {
             PLAIN_JWT,
             meta.typeValues.list.flatten().filterNot { it == VERIFIABLE_CREDENTIAL },
         )
+
+        is DCQLIsoMdocZkCredentialQuery -> TODO()
     }
 
     // assuming all claims path pointers are single claim references

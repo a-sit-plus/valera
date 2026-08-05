@@ -9,8 +9,10 @@ import at.asitplus.openid.TransactionDataBase64Url
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.lib.agent.IsoDeviceRetrievalMatchingResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
+import at.asitplus.wallet.lib.data.CredentialPresentation.*
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.CredentialMatchingResult
@@ -56,14 +58,14 @@ abstract class AuthenticationViewModel(
         }
 
         when (val matching = matchingCredentials) {
-            is DCQLMatchingResult -> {
+            is at.asitplus.wallet.lib.agent.DCQLMatchingResult -> {
                 matching.matchingResult.toDefaultSubmission(matching.presentationRequest.dcqlQuery)
                 // TODO: create default selection?
                 // matching fails if query is not satisfiable, so we know that selection is the next step
                 viewState = AuthenticationViewState.Selection
             }
 
-            is PresentationExchangeMatchingResult -> {
+            is at.asitplus.wallet.lib.agent.PresentationExchangeMatchingResult -> {
                 if (matching.matchingResult.inputDescriptorMatches.values.find { it.size != 1 } == null) {
                     defaultCredentialSelection = matching.matchingResult.inputDescriptorMatches.entries.associate {
                         val requestId = it.key
@@ -77,6 +79,8 @@ abstract class AuthenticationViewModel(
                     viewState = AuthenticationViewState.NoMatchingCredential
                 }
             }
+
+            is IsoDeviceRetrievalMatchingResult<*> -> TODO()
         }
     }
 
@@ -95,15 +99,17 @@ abstract class AuthenticationViewModel(
                     )
 
                     null -> when(val it = presentationRequest) {
-                        is CredentialPresentationRequest.DCQLRequest -> CredentialPresentation.DCQLPresentation(
+                        is CredentialPresentationRequest.DCQLRequest -> DCQLPresentation(
                             presentationRequest = it,
                             credentialQuerySubmissions = null
                         )
 
-                        is CredentialPresentationRequest.PresentationExchangeRequest -> CredentialPresentation.PresentationExchangePresentation(
+                        is CredentialPresentationRequest.PresentationExchangeRequest -> PresentationExchangePresentation(
                             presentationRequest = it,
                             inputDescriptorSubmissions = null,
                         )
+
+                        is CredentialPresentationRequest.IsoDeviceRetrieval -> TODO()
                     }
                 }
             )

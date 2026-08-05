@@ -29,6 +29,7 @@ import at.asitplus.valera.resources.presentation_waiting_for_request
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
+import at.asitplus.wallet.lib.agent.IsoDeviceRetrievalMatchingResult
 import at.asitplus.wallet.lib.openid.DCQLMatchingResult
 import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
 import kotlinx.coroutines.CoroutineScope
@@ -151,7 +152,7 @@ fun PresentationView(
 
                 AuthenticationViewState.Selection -> {
                     when (val matching = presentationViewModel.matchingCredentials) {
-                        is DCQLMatchingResult -> {
+                        is at.asitplus.wallet.lib.agent.DCQLMatchingResult -> {
                             AuthenticationSelectionViewScaffold(
                                 title = stringResource(Res.string.heading_label_select_data),
                                 onNavigateUp = presentationViewModel.navigateUp,
@@ -168,7 +169,7 @@ fun PresentationView(
                             }
                         }
 
-                        is PresentationExchangeMatchingResult -> {
+                        is at.asitplus.wallet.lib.agent.PresentationExchangeMatchingResult -> {
                             AuthenticationSelectionPresentationExchangeView(
                                 vm = AuthenticationSelectionPresentationExchangeViewModel(
                                     confirmSelections = { selections ->
@@ -182,6 +183,8 @@ fun PresentationView(
                                 trustListService = trustListService
                             )
                         }
+
+                        is IsoDeviceRetrievalMatchingResult<*> -> TODO()
                     }
                 }
             }

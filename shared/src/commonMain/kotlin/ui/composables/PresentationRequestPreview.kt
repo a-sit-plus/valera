@@ -38,6 +38,7 @@ fun PresentationRequestPreview(
     when (presentationRequest) {
         is DCQLRequest -> DcqlRequestPreview(presentationRequest, onError)
         is PresentationExchangeRequest -> PresentationExchangeRequestPreview(presentationRequest, onError)
+        is CredentialPresentationRequest.IsoDeviceRetrieval -> TODO()
     }
 }
 

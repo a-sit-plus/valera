@@ -1,5 +1,5 @@
-# Release 5.8.1 (unreleased):
- * tbd
+# Release 5.8.2 (unreleased):
+ * Update to VC-K 8.0.0-SNAPSHOT
 
 # Release 5.8.1:
  * Update to VC-K 7.0.0

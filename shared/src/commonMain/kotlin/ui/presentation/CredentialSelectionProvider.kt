@@ -1,7 +1,7 @@
 package ui.presentation
 
+import at.asitplus.wallet.lib.agent.CredentialMatchingResult
 import at.asitplus.wallet.lib.agent.validation.CredentialFreshnessSummary
-import at.asitplus.wallet.lib.openid.CredentialMatchingResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

@@ -2,7 +2,6 @@ package ui.viewmodels.authentication
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.catchingUnwrapped
-import at.asitplus.dcapi.request.toDifInputDescriptors
 import at.asitplus.dif.DifInputDescriptor
 import at.asitplus.dif.PresentationDefinition
 import at.asitplus.iso.DeviceRequest
@@ -15,8 +14,6 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
-import at.asitplus.wallet.lib.openid.CredentialMatchingResult
-import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 
@@ -47,7 +44,7 @@ class PresentationViewModel(
         finishFunction: (ByteArray) -> Unit,
         sessionTranscript: SessionTranscript?
     ) {
-        descriptors = parsedRequest.docRequests.toDifInputDescriptors()
+        descriptors = listOf() // TODO Replace with ISO Device Retrieval
         this.finishFunction = finishFunction
         this.sessionTranscript = sessionTranscript
     }
@@ -61,9 +58,9 @@ class PresentationViewModel(
             )
         )
 
-    override suspend fun findMatchingCredentials(): Result<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> =
+    override suspend fun findMatchingCredentials(): Result<at.asitplus.wallet.lib.agent.CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> =
         catchingUnwrapped {
-            PresentationExchangeMatchingResult(
+            at.asitplus.wallet.lib.agent.PresentationExchangeMatchingResult(
                 presentationRequest = CredentialPresentationRequest.PresentationExchangeRequest(
                     presentationDefinition = PresentationDefinition(
                         inputDescriptors = presentationRequest.presentationDefinition.inputDescriptors,

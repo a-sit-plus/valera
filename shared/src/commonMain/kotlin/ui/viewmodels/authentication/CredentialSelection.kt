@@ -14,3 +14,4 @@ data class PresentationExchangeCredentialSubmissions<Credential: Any>(
     val inputDescriptorSubmissions: Map<String, PresentationExchangeCredentialDisclosure<Credential>>?,
 ) : CredentialPresentationSubmissions<Credential>
 
+// TODO Extend with ISO Device Retrieval
