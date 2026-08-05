@@ -9,6 +9,7 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.dcapi.ios.IosDcApiMdocPreRequestSummary
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.LoadingMessageKey
+import at.asitplus.wallet.app.common.TrustListService
 import kotlinx.serialization.json.Json
 import ui.presentation.AuthenticationReceivedStartPageContent
 import ui.views.LoadingView
@@ -18,6 +19,7 @@ import ui.views.loadingMessageString
 fun IosDcApiPreRequestView(
     intentState: IntentState,
     onError: (Throwable) -> Unit,
+    trustListService: TrustListService
 ) {
     val preRequestData by intentState.iosDcApiPreRequestData.collectAsState()
 
@@ -58,5 +60,6 @@ fun IosDcApiPreRequestView(
         presentationRequest = null,
         inputDescriptors = descriptors,
         onError = onError,
+        trustListService = trustListService
     )
 }

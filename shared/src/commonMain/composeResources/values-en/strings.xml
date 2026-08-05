@@ -464,6 +464,8 @@
     <string name="trust_status_untrusted">Untrusted Issuer</string>
     <string name="trust_status_unknown">Trust Status Unknown</string>
     <string name="trust_status_evaluating">Evaluating Trust…</string>
+    <string name="trust_status_trusted_verifier">Trusted Verifier</string>
+    <string name="trust_status_untrusted_verifier">Untrusted Verifier</string>
 
     <string name="section_heading_issuer_trust">Issuer Trust Details</string>
     <string name="section_heading_issuer_trust_icon_text">ITD</string>

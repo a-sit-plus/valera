@@ -169,6 +169,7 @@ fun AuthenticationConsentView(
                         data = listOfNotNull(
                             vm.spName?.let { stringResource(Res.string.attribute_friendly_name_data_recipient_name) to vm.spName },
                             stringResource(Res.string.attribute_friendly_name_data_recipient_location) to vm.spLocation,
+                            "Trust" to "Trusted Recipient"
                         ),
                         modifier = paddingModifier,
                     )

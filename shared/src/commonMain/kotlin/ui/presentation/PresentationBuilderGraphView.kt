@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import at.asitplus.KmmResult
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.catching
 import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.openid.dcql.DCQLCredentialQueryMatchingResult
@@ -50,6 +51,7 @@ fun PresentationBuilderGraphView(
     onNavigateToPresentationStart: () -> Unit,
     onSubmit: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>) -> Unit,
     trustListService: TrustListService,
+    request: RequestParametersFrom<*>,
     fixedCredentialSelection: Boolean = false,
 ) {
     when (selectionProvider) {
@@ -115,6 +117,8 @@ fun PresentationBuilderGraphView(
                             onSubmit = {
                                 onSubmit(DCQLCredentialSubmissions(fixedSubmissions))
                             },
+                            trustListService = trustListService,
+                            request = request
                         )
                     } else {
                         DCQLPresentationBuilderGraphView(
@@ -154,7 +158,9 @@ fun PresentationBuilderGraphView(
                                 }
 
                                 onSubmit(DCQLCredentialSubmissions(submissions))
-                            }
+                            },
+                            trustListService = trustListService,
+                            request = request
                         )
                     }
                 }

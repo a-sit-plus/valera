@@ -20,6 +20,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
@@ -32,6 +33,7 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.dif.InputDescriptor
 import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.openid.dcql.DCQLCredentialSetQuery
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_location
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_name
@@ -45,17 +47,21 @@ import at.asitplus.valera.resources.text_label_credential_request_or
 import at.asitplus.valera.resources.text_label_mandatory_dataset
 import at.asitplus.valera.resources.text_label_optional_dataset
 import at.asitplus.wallet.app.common.DcqlConsentData
+import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.extractConsentData
 import at.asitplus.wallet.app.common.toCredentialQueryUiModel
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.DataDisplaySection
 import ui.composables.InputDescriptorPreview
 import ui.composables.PresentationRequestPreview
 import ui.composables.PresentationRequestLoadingIndicator
 import ui.composables.ScreenHeading
+import ui.composables.TrustState
+import ui.composables.displayVerifierText
 
 @Composable
 fun AuthenticationReceivedStartPageContent(
@@ -70,7 +76,13 @@ fun AuthenticationReceivedStartPageContent(
     inputDescriptors: List<InputDescriptor>? = null,
     credentialQueryIdsSelectedForPresentation: Set<DCQLCredentialQueryIdentifier> = emptySet(),
     onError: (Throwable) -> Unit,
+    trustListService: TrustListService,
+    request: RequestParametersFrom<*>? = null
 ) {
+    val relyingPartyTrustState by trustListService
+        .observeTrustStateForRelyingParty(flowOf(request))
+        .collectAsState(initial = TrustState.EVALUATING)
+
     Scaffold(
         bottomBar = {
             CommonBottomButtonsAbortContinue(
@@ -116,6 +128,7 @@ fun AuthenticationReceivedStartPageContent(
                             serviceProviderLocalizedLocation?.takeIf { value -> value.isNotBlank() }?.let {
                                 stringResource(Res.string.attribute_friendly_name_data_recipient_location) to it
                             },
+                            "Trust state" to stringResource(relyingPartyTrustState.displayVerifierText)
                         ),
                     )
 

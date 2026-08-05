@@ -80,6 +80,7 @@ fun DCAPIPresentationGraphView(
         credentialQueryIdsSelectedForPresentation = selectedCredentialQueryIds,
         showStartRoute = showStartRoute,
         fixedCredentialSelection = dcApiRequest.credentialIds?.isNotEmpty() == true,
-        trustListService = viewModel.trustListService
+        trustListService = viewModel.trustListService,
+        request = dcApiRequest
     )
 }
