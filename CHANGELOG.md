@@ -1,5 +1,6 @@
 # Release 5.8.2 (unreleased):
  * Update to VC-K 8.0.0-SNAPSHOT
+ * DC API: Register unknown credential schemes with fallback metadata and preserve claim comparison values
 
 # Release 5.8.1:
  * Update to VC-K 7.0.0
