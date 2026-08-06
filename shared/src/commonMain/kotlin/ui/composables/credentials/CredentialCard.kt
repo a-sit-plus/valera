@@ -6,6 +6,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
+import data.credentials.CredentialAdapter
 import ui.models.CredentialFreshnessSummaryUiModel
 import ui.models.ResolvedCredential
 
@@ -19,6 +20,8 @@ fun CredentialCard(
     onRefresh: () -> Unit,
     onOpenDetails: (() -> Unit)?,
     showActionMenu: Boolean = true,
+    summaryAdapter: CredentialAdapter? = null,
+    usePreparedSummary: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     CredentialCardLayout(
@@ -40,10 +43,14 @@ fun CredentialCard(
             onRefresh = onRefresh,
             credentialFreshnessSummaryModel = credentialFreshnessSummaryModel
         )
-        CredentialSummaryCardContent(
-            credential = credential,
-            decodeToBitmap = imageDecoder,
-        )
+        if (usePreparedSummary) {
+            summaryAdapter?.let { CredentialSummaryCardContent(it) }
+        } else {
+            CredentialSummaryCardContent(
+                credential = credential,
+                decodeToBitmap = imageDecoder,
+            )
+        }
         CredentialCardFooter(
             credentialFreshnessSummaryModel = credentialFreshnessSummaryModel,
             onOpenDetails,

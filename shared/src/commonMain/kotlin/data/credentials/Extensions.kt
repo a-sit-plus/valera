@@ -1,6 +1,5 @@
 package data.credentials
 
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.catchingUnwrapped
 import at.asitplus.jsonpath.core.NormalizedJsonPath
@@ -18,7 +17,6 @@ import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 
 @Suppress("DEPRECATION")
-@Composable
 fun SubjectCredentialStore.StoreEntry.toCredentialAdapter(
     scheme: CredentialScheme,
     decodeImage: (ByteArray) -> Result<ImageBitmap>,
