@@ -8,6 +8,7 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.josef.JwsCompact
 import at.asitplus.signum.indispensable.pki.CertificateChain
 import at.asitplus.signum.indispensable.pki.X509Certificate
+import at.asitplus.signum.indispensable.pki.leaf
 import at.asitplus.wallet.lib.etsi.LoTEFilterCriteria
 import at.asitplus.wallet.lib.etsi.LoTEFilterService
 import at.asitplus.wallet.lib.etsi.LoTEServiceType
@@ -132,28 +133,10 @@ class TrustListService(
     fun evaluateRelyingParty(
         relayingPartyCertChain: CertificateChain?,
         trustLists: Map<String, ListOfTrustedEntities>,
-    ): TrustState = try {
-        val leaf = relayingPartyCertChain?.firstOrNull()
+    ): TrustState {
+        val leaf = relayingPartyCertChain?.leaf
             ?: return TrustState.UNKNOWN
-
-        if (leaf.isTrustedBy(listOf(aistIssuerCert)).isSuccess) {
-            return TrustState.TRUSTED
-        }
-
-        val criteria = LoTEFilterCriteria(expectedServiceType = LoTEServiceType.WRPAC)
-        val certificateList: List<X509Certificate> = trustLists
-            .flatMap { lote -> loTeFilterService.extractTrustedCertificates(lote.key, lote.value, criteria) }
-            .mapNotNull { it.certificate }
-
-        if (certificateList.isEmpty()) {
-            return TrustState.UNTRUSTED
-        }
-
-        val validationResult = leaf.isTrustedBy(certificateList)
-        if (validationResult.isSuccess) TrustState.TRUSTED else TrustState.UNTRUSTED
-    } catch (e: Exception) {
-        Napier.e("Failed to evaluate relying party trust status due to unexpected error", e)
-        TrustState.UNKNOWN
+        return evaluateIssuer(leaf, trustLists, LoTEServiceType.WRPAC)
     }
 
     /**
