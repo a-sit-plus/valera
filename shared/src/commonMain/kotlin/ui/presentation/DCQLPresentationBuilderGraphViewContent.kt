@@ -227,8 +227,8 @@ fun DCQLPresentationBuilderGraphViewContent(
                 submissionCards[it.toInt()]
             } ?: listOf()
         },
+        onError = onError,
         onAbort = onNavigateUp,
         onSubmit = onSubmit
     )
 }
-

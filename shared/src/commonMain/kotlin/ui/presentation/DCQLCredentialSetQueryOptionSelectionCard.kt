@@ -2,7 +2,6 @@ package ui.presentation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun ColumnScope.DCQLCredentialSetQueryOptionSelectionCard(
+fun DCQLCredentialSetQueryOptionSelectionCard(
     isSatisfiable: Boolean,
     credentialQueryUiModels: List<DCQLCredentialQueryUiModel>,
     isSelected: Boolean,
@@ -38,11 +37,13 @@ fun ColumnScope.DCQLCredentialSetQueryOptionSelectionCard(
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(8.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(8.dp),
             ) {
                 credentialQueryUiModels.forEachIndexed { index, it ->
                     CredentialSetQueryOptionSelectionCardCredentialQueryContent(
@@ -57,29 +58,8 @@ fun ColumnScope.DCQLCredentialSetQueryOptionSelectionCard(
             RadioButton(
                 selected = isSelected,
                 onClick = onSelectCredentialSetQuery,
+                modifier = Modifier.padding(end = 4.dp),
             )
         }
     }
 }
-
-//@Composable
-////@Preview
-//fun DCQLCredentialSetQueryOptionSelectionCardPreview() {
-//    var isSelected by rememberSaveable {
-//        mutableStateOf(false)
-//    }
-//    DCQLCredentialSetQueryOptionSelectionCard(
-//        isSatisfiable = true,
-//        isSelected = isSelected,
-//        credentialQueryUiModels = listOf(
-//            DCQLCredentialQueryUiModel(
-//                credentialIdentifierLocalized = "TestPID",
-//                requestedAttributesLocalized = listOf(
-//                    "Test Attribute 1",
-//                )
-//            )
-//        ),
-//    ) {
-//        isSelected = !isSelected
-//    }
-//}

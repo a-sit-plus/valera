@@ -78,10 +78,14 @@ fun DCQLPresentationCredentialSetQueryOptionSelectionPageContent(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth().padding(start = 8.dp)
                     ) {
-                        BoldCredentialSchemeText(stringResource(Res.string.text_label_select_no_optional_credential_set_query_option))
+                        BoldCredentialSchemeText(
+                            stringResource(Res.string.text_label_select_no_optional_credential_set_query_option),
+                            modifier = Modifier.weight(1f),
+                        )
                         RadioButton(
                             selected = selectedOptionIndex == 0u,
                             onClick = { onSelectCredentialSetQueryOptionAtIndex(0u) },
+                            modifier = Modifier.padding(end = 4.dp),
                         )
                     }
                 }
@@ -97,8 +101,8 @@ fun DCQLPresentationCredentialSetQueryOptionSelectionPageContent(
                 }
                 DCQLCredentialSetQueryOptionSelectionCard(
                     isSatisfiable = credentialSetQueryOption.isSatisfiable,
-                    isSelected = virtualIndexWithOptional == selectedOptionIndex,
                     credentialQueryUiModels = credentialSetQueryOption.credentialQueries,
+                    isSelected = virtualIndexWithOptional == selectedOptionIndex,
                 ) {
                     onSelectCredentialSetQueryOptionAtIndex(virtualIndexWithOptional)
                 }
@@ -106,4 +110,3 @@ fun DCQLPresentationCredentialSetQueryOptionSelectionPageContent(
         }
     }
 }
-
