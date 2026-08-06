@@ -4,6 +4,7 @@
  * DC API: Register unknown credential schemes with fallback metadata and preserve claim comparison values
  * DC API: Improve request grouping, fixed selections, loading and error handling, and credential selection layout
  * DC API: Match requests without claim constraints and display their mandatory attributes
+ * Add trust evaluation of the Relaying Party
 
 # Release 5.8.1:
  * Update to VC-K 7.0.0

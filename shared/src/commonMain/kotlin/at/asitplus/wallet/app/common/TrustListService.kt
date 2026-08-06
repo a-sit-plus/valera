@@ -128,7 +128,7 @@ class TrustListService(
     /**
      * Evaluates trust for the relying party (requester) behind a given request, using its
      * leaf certificate from the [RequestParametersFrom] chain, checked against the internal
-     * A-SIT root and any WRPC-typed (Wallet Relying Party Certificate) entries in [trustLists].
+     * A-SIT root and any WRPAC(Wallet Relying Party Access Certificate) entries in [trustLists].
      */
     fun evaluateRelyingParty(
         relayingPartyCertChain: CertificateChain?,
