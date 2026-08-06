@@ -1,5 +1,6 @@
 # Release 5.8.2 (unreleased):
  * Update to VC-K 8.0.0-SNAPSHOT
+ * DC API: Match requests without claim constraints and display their mandatory attributes
 
 # Release 5.8.1:
  * Update to VC-K 7.0.0
