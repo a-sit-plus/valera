@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import at.asitplus.openid.RequestParametersFrom
+import at.asitplus.wallet.lib.agent.DCQLMatchingResult
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope
 
@@ -30,6 +31,17 @@ fun DCAPIPresentationGraphView(
     val authenticateAtRelyingParty = spLocation != "Local Presentation"
 
     val matchingResult by viewModel.selectionProvider.collectAsState()
+    val queryMatchingResult = (matchingResult as? UiStateSuccess)?.value
+        ?.selectionProvider?.queryMatchingResult
+    val selectedCredentialQueryIds = if (dcApiRequest.credentialIds?.isNotEmpty() == true) {
+        (queryMatchingResult as? DCQLMatchingResult<*>)
+            ?.matchingResult?.credentialQueryMatches
+            ?.filterValues { it.isNotEmpty() }
+            ?.keys
+            .orEmpty()
+    } else {
+        emptySet()
+    }
     PresentationGraphView(
         koinScope = koinScope,
         serviceProviderLogo = null,
@@ -64,8 +76,8 @@ fun DCAPIPresentationGraphView(
 
             is RequestParametersFrom.IsoMdocDcApi -> null
         },
-        presentationRequest = (matchingResult as? UiStateSuccess)?.value?.selectionProvider
-            ?.queryMatchingResult?.presentationRequest,
+        presentationRequest = queryMatchingResult?.presentationRequest,
+        credentialQueryIdsSelectedForPresentation = selectedCredentialQueryIds,
         showStartRoute = showStartRoute,
         fixedCredentialSelection = dcApiRequest.credentialIds?.isNotEmpty() == true,
         trustListService = viewModel.trustListService
