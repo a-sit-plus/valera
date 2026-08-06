@@ -21,3 +21,26 @@ The [cJSON library](https://github.com/DaveGamble/cJSON) is shared in
 The [LibCppBor library](https://android.googlesource.com/platform/system/libcppbor/) is
 bundled as `cppbor.[cpp, h]` and `cppbor_parse.[cpp, h]`. This is licensed under the Apache
 License, Version 2.0.
+
+## Valera patches
+
+Local changes that must survive a source refresh from the parent projects are stored in
+the `patches` directory. After replacing the matcher sources with a newer upstream version,
+apply each patch before rebuilding the WebAssembly asset. For example, from the repository
+root run:
+
+```shell
+git apply --check shared/src/androidMain/kotlin/matcher/patches/empty-claims-mandatory-attributes.patch
+git apply shared/src/androidMain/kotlin/matcher/patches/empty-claims-mandatory-attributes.patch
+cd shared/src/androidMain/kotlin/matcher
+make clean && make -j
+cp build/matcher.wasm ../../../../../androidApp/src/androidMain/assets/dcapimatcher.wasm
+```
+
+The `--check` command detects upstream conflicts without changing files. If it fails, port
+the small change manually and refresh the patch before committing the updated matcher source
+and generated asset together.
+
+`empty-claims-mandatory-attributes.patch` adds a synthetic field to matching credentials when
+a DCQL credential query omits `claims`, so Android's system picker can display that all
+mandatory attributes are requested.

@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +30,10 @@ import at.asitplus.wallet.lib.data.CredentialToJsonConverter.toJsonElement
 import at.asitplus.wallet.lib.jws.SdJwtSigned
 import data.credentials.labeledPresentationAttributes
 import data.credentials.toCredentialAdapter
+import data.credentials.CredentialAdapter
+import data.Attribute
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.json.JsonObject
 import kotlinx.coroutines.flow.flowOf
@@ -55,46 +60,50 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
     matchingResult: KmmResult<DCQLCredentialQueryMatchingResult>,
     freshnessState: StateFlow<CredentialFreshnessValidationStateUiModel>,
     trustListService: TrustListService,
+    onLoadingChanged: (Boolean) -> Unit = {},
+    onError: (Throwable) -> Unit = {},
 ) {
     val credentialFreshnessValidationState by freshnessState.collectAsState()
-    val resolvedCredential by produceState<ResolvedCredential?>(null, credential) {
-        value = catchingUnwrapped { credential.toResolvedCredential() }
-            .getOrElse { credential.toFallbackResolvedCredential() }
+    val previewState by produceState<CredentialPreviewState>(
+        CredentialPreviewState.Loading,
+        credential,
+        matchingResult,
+    ) {
+        value = withContext(Dispatchers.Default) {
+            catchingUnwrapped {
+                val resolutionResult = catchingUnwrapped { credential.toResolvedCredential() }
+                val resolvedCredential = resolutionResult
+                    .getOrElse { credential.toFallbackResolvedCredential() }
+                val genericAttributeList = credential.presentationAttributes(matchingResult)
+                val credentialAdapter = credential.toCredentialAdapter(resolvedCredential.scheme) {
+                    decodeToBitmap(it)
+                }
+                CredentialPreviewState.Ready(
+                    resolvedCredential = resolvedCredential,
+                    credentialAdapter = credentialAdapter,
+                    labeledAttributes = credentialAdapter.labeledPresentationAttributes(genericAttributeList),
+                    loadingError = resolutionResult.exceptionOrNull(),
+                )
+            }.fold(
+                onSuccess = { it },
+                onFailure = { CredentialPreviewState.Error(it) },
+            )
+        }
     }
-    val displayCredential = resolvedCredential ?: return
+    LaunchedEffect(previewState) {
+        onLoadingChanged(previewState is CredentialPreviewState.Loading)
+        when (val state = previewState) {
+            CredentialPreviewState.Loading -> Unit
+            is CredentialPreviewState.Ready -> state.loadingError?.let(onError)
+            is CredentialPreviewState.Error -> onError(state.throwable)
+        }
+    }
+    val preview = previewState as? CredentialPreviewState.Ready ?: return
+    val displayCredential = preview.resolvedCredential
 
     val trustState by trustListService
-        .observeTrustStateForEntry(flowOf(resolvedCredential))
+        .observeTrustStateForEntry(flowOf(displayCredential))
         .collectAsState(initial = TrustState.EVALUATING)
-
-    val genericAttributeList: List<Pair<NormalizedJsonPath, Any>> =
-        when (val matchingResult = matchingResult.getOrNull()) {
-            null,
-            AllClaimsMatchingResult -> credential.allClaims().leafNodeList().map {
-                it.normalizedJsonPath to it.value
-            }
-
-            // only claims that are not selectively disclosable will be presented
-            AllMandatoryClaimsMatchingResult -> credential.mandatoryClaims().leafNodeList().map {
-                it.normalizedJsonPath to it.value
-            }
-
-            is ClaimsQueryResults -> matchingResult.claimsQueryResults.flatMap {
-                when (it) {
-                    is DCQLClaimsQueryResult.IsoMdocResult -> listOf(
-                        NormalizedJsonPath() + it.namespace + it.claimName to it.claimValue,
-                    )
-
-                    is DCQLClaimsQueryResult.JsonResult -> it.nodeList.map {
-                        it.normalizedJsonPath to it.value
-                    }
-                }
-            }
-        }
-
-    val credentialAdapter = credential.toCredentialAdapter(displayCredential.scheme) { decodeToBitmap(it) }
-
-    val labeledAttributes = credentialAdapter.labeledPresentationAttributes(genericAttributeList)
 
     CredentialSelectionCardLayout(
         isError = matchingResult.isFailure || when (val it = credentialFreshnessValidationState) {
@@ -122,25 +131,20 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
             modifier = Modifier.padding(vertical = 12.dp)
         )
 
-        CredentialSummaryCardContent(
-            credential = displayCredential,
-            decodeToBitmap = {
-                decodeToBitmap(it)
-            },
-        )
+        CredentialSummaryCardContent(preview.credentialAdapter)
         matchingResult.exceptionOrNull()?.message?.let {
             BigErrorText(it)
         }
         HorizontalDivider(modifier = Modifier.fillMaxWidth())
         AnimatedVisibility(!isSelected) {
-            Text(labeledAttributes.joinToString(", ") { it.first })
+            Text(preview.labeledAttributes.joinToString(", ") { it.first })
         }
         AnimatedVisibility(isSelected) {
             Column(
                 modifier = Modifier.padding(8.dp).fillMaxWidth().align(Alignment.Start),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                labeledAttributes.forEach {
+                preview.labeledAttributes.forEach {
                     LabeledAttribute(
                         label = it.first,
                         attribute = it.second,
@@ -148,6 +152,45 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
                 }
             }
 
+        }
+    }
+}
+
+private sealed interface CredentialPreviewState {
+    data object Loading : CredentialPreviewState
+
+    data class Ready(
+        val resolvedCredential: ResolvedCredential,
+        val credentialAdapter: CredentialAdapter,
+        val labeledAttributes: List<Pair<String, Attribute>>,
+        val loadingError: Throwable?,
+    ) : CredentialPreviewState
+
+    data class Error(val throwable: Throwable) : CredentialPreviewState
+}
+
+private fun SubjectCredentialStore.StoreEntry.presentationAttributes(
+    matchingResult: KmmResult<DCQLCredentialQueryMatchingResult>,
+): List<Pair<NormalizedJsonPath, Any>> = when (val result = matchingResult.getOrNull()) {
+    null,
+    AllClaimsMatchingResult -> allClaims().leafNodeList().map {
+        it.normalizedJsonPath to it.value
+    }
+
+    // only claims that are not selectively disclosable will be presented
+    AllMandatoryClaimsMatchingResult -> mandatoryClaims().leafNodeList().map {
+        it.normalizedJsonPath to it.value
+    }
+
+    is ClaimsQueryResults -> result.claimsQueryResults.flatMap {
+        when (it) {
+            is DCQLClaimsQueryResult.IsoMdocResult -> listOf(
+                NormalizedJsonPath() + it.namespace + it.claimName to it.claimValue,
+            )
+
+            is DCQLClaimsQueryResult.JsonResult -> it.nodeList.map { node ->
+                node.normalizedJsonPath to node.value
+            }
         }
     }
 }

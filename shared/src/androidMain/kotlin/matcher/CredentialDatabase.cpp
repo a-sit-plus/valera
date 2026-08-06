@@ -181,6 +181,22 @@ void Combination::addToCredmanPicker(const Request& request) const {
                 );
             }
 
+            if (match.claims.empty()) {
+                if (credmanRuntimeVersion >= 2) {
+                    ::AddFieldToEntrySet(entryId,
+                                         strdup("Requested attributes"),
+                                         strdup("All (mandatory) attributes"),
+                                         setId,
+                                         setIndex
+                    );
+                } else {
+                    ::AddFieldForStringIdEntry(entryId,
+                                               strdup("Requested attributes"),
+                                               strdup("All (mandatory) attributes")
+                    );
+                }
+            }
+
             for (const auto &claim: match.claims) {
                 if (credmanRuntimeVersion >= 2) {
                     ::AddFieldToEntrySet(entryId,
@@ -208,4 +224,3 @@ void Combination::addToCredmanPicker(const Request& request) const {
         }
     }
 }
-

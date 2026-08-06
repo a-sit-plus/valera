@@ -1,10 +1,15 @@
 package ui.composables
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.catchingUnwrapped
@@ -27,6 +32,8 @@ import at.asitplus.wallet.lib.data.CredentialScheme
 import data.credentials.JsonClaimReference
 import data.credentials.MdocClaimReference
 import data.credentials.jwtClaimLabel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -63,10 +70,15 @@ fun InputDescriptorPreview(
     // iOS identity provider extension process started for a DC API request.
     val consentData by produceState<List<PresentationExchangeConsentData>?>(null, inputDescriptors) {
         value = inputDescriptors.mapNotNull { inputDescriptor ->
-            catchingUnwrapped { inputDescriptor.extractConsentData() }
+            withContext(Dispatchers.Default) {
+                catchingUnwrapped { inputDescriptor.extractConsentData() }
+            }
                 .onFailure(onError)
                 .getOrNull()
         }
+    }
+    if (consentData == null) {
+        PresentationRequestLoadingIndicator()
     }
     consentData?.forEach { (representation, scheme, attributes) ->
         RequestedCredentialPreview(
@@ -96,16 +108,21 @@ fun DcqlRequestPreview(
     val invalidQueryMessage = stringResource(Res.string.error_invalid_dcql_query)
     // Resolved in a coroutine: see InputDescriptorPreview.
     val consentData by produceState<List<DcqlConsentData>?>(null, presentationRequest) {
-        value = catchingUnwrapped {
-            requestedCredentialCombination.map { credentialQueryIdentifier ->
-                val credentialQuery = presentationRequest.dcqlQuery.credentials.find {
-                    it.id == credentialQueryIdentifier
-                } ?: throw IllegalArgumentException(invalidQueryMessage)
-                credentialQuery.extractConsentData()
+        value = withContext(Dispatchers.Default) {
+            catchingUnwrapped {
+                requestedCredentialCombination.map { credentialQueryIdentifier ->
+                    val credentialQuery = presentationRequest.dcqlQuery.credentials.find {
+                        it.id == credentialQueryIdentifier
+                    } ?: throw IllegalArgumentException(invalidQueryMessage)
+                    credentialQuery.extractConsentData()
+                }
             }
         }.onFailure(onError).getOrNull()
     }
 
+    if (consentData == null) {
+        PresentationRequestLoadingIndicator()
+    }
     consentData?.forEach { (representation, scheme, attributePaths) ->
         RequestedCredentialPreview(
             scheme = scheme,
@@ -118,6 +135,16 @@ fun DcqlRequestPreview(
                 }
             }?.associateWith { false },
         )
+    }
+}
+
+@Composable
+internal fun PresentationRequestLoadingIndicator() {
+    Box(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        CircularProgressIndicator()
     }
 }
 

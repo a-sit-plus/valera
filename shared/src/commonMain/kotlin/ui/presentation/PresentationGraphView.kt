@@ -17,6 +17,7 @@ import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import at.asitplus.openid.TransactionDataBase64Url
+import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_title
 import at.asitplus.valera.resources.heading_label_select_data
@@ -46,6 +47,7 @@ fun PresentationGraphView(
     navController: NavHostController = rememberNavController(),
     transactionData: TransactionDataBase64Url?,
     presentationRequest: CredentialPresentationRequest?,
+    credentialQueryIdsSelectedForPresentation: Set<DCQLCredentialQueryIdentifier> = emptySet(),
     navigateUpIsClose: Boolean = false,
     showStartRoute: Boolean = true,
     trustListService: TrustListService,
@@ -98,6 +100,7 @@ fun PresentationGraphView(
             ) {
                 AuthenticationReceivedStartPageContent(
                     presentationRequest = presentationRequest,
+                    credentialQueryIdsSelectedForPresentation = credentialQueryIdsSelectedForPresentation,
                     authenticateAtRelyingParty = authenticateAtRelyingParty,
                     serviceProviderLogo = serviceProviderLogo,
                     serviceProviderLocalizedName = serviceProviderNameLocalized,
