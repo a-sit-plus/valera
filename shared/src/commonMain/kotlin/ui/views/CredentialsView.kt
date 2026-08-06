@@ -127,11 +127,12 @@ fun CredentialsView(
                             items(
                                 credentials.size,
                                 key = { credentials[it].first },
-                                contentType = { credentials[it].second.scheme::class }
+                                contentType = { credentials[it].second.credential.scheme::class }
                             ) { index ->
                                 val storeEntry = credentials[index]
                                 val storeEntryIdentifier = storeEntry.first
-                                val credential = storeEntry.second
+                                val credentialListItem = storeEntry.second
+                                val credential = credentialListItem.credential
                                 val isTokenStatusEvaluated = storeEntryIdentifier in credentialTimelinessesStates
                                 val credentialFreshnessSummary = credentialTimelinessesStates[storeEntryIdentifier]
 
@@ -152,7 +153,9 @@ fun CredentialsView(
                                         end = 16.dp,
                                         bottom = 16.dp
                                     ),
-                                    onRefresh = { onRefresh(credential.entry, storeEntryIdentifier) }
+                                    onRefresh = { onRefresh(credential.entry, storeEntryIdentifier) },
+                                    summaryAdapter = credentialListItem.summaryAdapter,
+                                    usePreparedSummary = true,
                                 )
                             }
                             item {

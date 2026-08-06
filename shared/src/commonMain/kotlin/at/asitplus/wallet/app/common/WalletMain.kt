@@ -86,25 +86,10 @@ class WalletMain(
     private var dcApiRegistrationJob: Job? = null
 
     init {
-        resolveUnknownCredentialSchemes()
         credentialValidityService.startChecking()
         trustListService.startChecking()
         if (keyMaterial.keyMaterial is FallBackKeyMaterial) {
             Napier.e("FallBackKeyMaterial: ${keyMaterial.keyMaterial.reason}")
-        }
-    }
-
-    /**
-     * Resolves the scheme of every stored credential on startup, triggering remote type-metadata retrieval for
-     * those whose scheme is not known locally. Resolved schemes are cached in VC-K for later [resolveScheme] calls.
-     */
-    private fun resolveUnknownCredentialSchemes() {
-        scope.launch(Dispatchers.IO) {
-            catchingUnwrapped {
-                subjectCredentialStore.observeStoreContainer().first().credentials.forEach { (_, entry) ->
-                    catchingUnwrapped { entry.resolveScheme() }
-                }
-            }
         }
     }
 
