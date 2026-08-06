@@ -14,7 +14,7 @@ data class SdJwtEntry(
     val claims: Map<String, ExportedElements>
 ) {
     companion object {
-        suspend fun fromAttributeList(
+        fun fromAttributeList(
             attributeList: List<Pair<NormalizedJsonPath, Any>>,
             attributeLabel: (NormalizedJsonPath) -> String?,
         ): Map<String, ExportedElements> = attributeList.map { (path, value) ->

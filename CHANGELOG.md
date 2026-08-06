@@ -1,4 +1,5 @@
 # Release 5.8.3:
+ * DC API: Register unknown credential schemes with fallback metadata and preserve claim comparison values
  * DC API: Improve request grouping, fixed selections, loading and error handling, and credential selection layout
  * DC API: Match requests without claim constraints and display their mandatory attributes
 
