@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,18 +59,22 @@ import at.asitplus.valera.resources.heading_label_show_data_third_party
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
 import at.asitplus.valera.resources.section_heading_transaction_data
+import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.lib.data.toTransactionData
 import io.github.aakira.napier.Napier
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
+import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.DataDisplaySection
 import ui.composables.LabeledText
 import ui.composables.Logo
 import ui.composables.PresentationRequestPreview
 import ui.composables.ScreenHeading
+import ui.composables.TrustState
 import ui.composables.buttons.CancelButton
 import ui.composables.buttons.ContinueButton
 import ui.composables.buttons.NavigateUpButton
+import ui.composables.displayVerifierText
 import ui.viewmodels.authentication.AuthenticationConsentViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,6 +82,7 @@ import ui.viewmodels.authentication.AuthenticationConsentViewModel
 fun AuthenticationConsentView(
     vm: AuthenticationConsentViewModel,
     onError: (Throwable) -> Unit,
+    trustListService: TrustListService
 ) {
     DisposableEffect(vm) {
         val previousOnUnauthenticated = vm.walletMain.keyMaterial.onUnauthenticated
@@ -91,6 +97,10 @@ fun AuthenticationConsentView(
     } else {
         stringResource(Res.string.heading_label_authenticate_at_device_title)
     }
+
+    val relyingPartyTrustState by trustListService
+        .observeTrustStateForCertChain(flowOf(vm.verifierCertificateChain))
+        .collectAsState(initial = TrustState.EVALUATING)
 
     Scaffold(
         topBar = {
@@ -169,7 +179,7 @@ fun AuthenticationConsentView(
                         data = listOfNotNull(
                             vm.spName?.let { stringResource(Res.string.attribute_friendly_name_data_recipient_name) to vm.spName },
                             stringResource(Res.string.attribute_friendly_name_data_recipient_location) to vm.spLocation,
-                            "Trust" to "Trusted Recipient"
+                            "Trust" to stringResource(relyingPartyTrustState.displayVerifierText)
                         ),
                         modifier = paddingModifier,
                     )

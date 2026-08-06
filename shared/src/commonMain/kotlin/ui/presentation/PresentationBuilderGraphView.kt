@@ -193,6 +193,7 @@ fun PresentationBuilderGraphView(
                             credentialFreshnessProviders = selectionProvider.value.credentialFreshnessProviders,
                             inputDescriptorSubmissions = fixedSubmissions,
                             trustListService = trustListService,
+                            request = request,
                             authenticateAtRelyingParty = authenticateAtRelyingParty,
                             serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
                             serviceProviderLocalizedName = serviceProviderLocalizedName,

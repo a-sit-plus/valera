@@ -4,9 +4,9 @@ import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.etsi.ListOfTrustedEntities
 import at.asitplus.etsi.TrustListPayload
-import at.asitplus.openid.RequestParameters
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.josef.JwsCompact
+import at.asitplus.signum.indispensable.pki.CertificateChain
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.wallet.lib.etsi.LoTEFilterCriteria
 import at.asitplus.wallet.lib.etsi.LoTEFilterService
@@ -130,11 +130,10 @@ class TrustListService(
      * A-SIT root and any WRPC-typed (Wallet Relying Party Certificate) entries in [trustLists].
      */
     fun evaluateRelyingParty(
-        request: RequestParametersFrom<*>,
+        relayingPartyCertChain: CertificateChain?,
         trustLists: Map<String, ListOfTrustedEntities>,
     ): TrustState = try {
-        val chain = request.extractRequesterCertificateChains()
-        val leaf = chain?.firstOrNull()
+        val leaf = relayingPartyCertChain?.firstOrNull()
             ?: return TrustState.UNKNOWN
 
         if (leaf.isTrustedBy(listOf(aistIssuerCert)).isSuccess) {
@@ -171,10 +170,20 @@ class TrustListService(
             val req = request
                 ?: return@combine TrustState.EVALUATING
             val freshTrustLists = trustLists.filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
-            evaluateRelyingParty(req, freshTrustLists)
+            evaluateRelyingParty(req.extractRequesterCertificateChains(), freshTrustLists)
         }
 
-
+    fun observeTrustStateForCertChain(
+        certChainFlow: Flow<CertificateChain?>
+    ): Flow<TrustState> =
+        combine(
+            certChainFlow,
+            persistentTrustListStore.observeTrustContainer(LoTEServiceType.defaultUrls)
+        ) { certChain, trustLists ->
+            if (certChain == null) return@combine TrustState.EVALUATING
+            val freshTrustLists = trustLists.filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
+            evaluateRelyingParty(certChain, freshTrustLists)
+        }
 
     /** Refreshes missing or expired lists, then sleeps until the earliest cached list expires. */
     fun startChecking(retryInterval: Duration = 1.hours) {

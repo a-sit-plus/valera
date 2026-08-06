@@ -6,6 +6,8 @@ import at.asitplus.dif.DifInputDescriptor
 import at.asitplus.dif.PresentationDefinition
 import at.asitplus.iso.DeviceRequest
 import at.asitplus.iso.SessionTranscript
+import at.asitplus.signum.indispensable.pki.CertificateChain
+import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.supreme.UserInitiatedCancellationReason
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.warning_authentication_cancelled
@@ -38,6 +40,7 @@ class PresentationViewModel(
     private var descriptors: List<DifInputDescriptor> = listOf()
     private var finishFunction: ((ByteArray) -> Unit)? = null
     private var sessionTranscript: SessionTranscript? = null
+    var verifierCertificateChain: CertificateChain? = null
 
     fun initWithDeviceRequest(
         parsedRequest: DeviceRequest,
@@ -47,6 +50,18 @@ class PresentationViewModel(
         descriptors = listOf() // TODO Replace with ISO Device Retrieval
         this.finishFunction = finishFunction
         this.sessionTranscript = sessionTranscript
+        this.verifierCertificateChain = (parsedRequest.readerAuthAll?.firstOrNull()
+            ?: parsedRequest.docRequests.firstNotNullOfOrNull { it.readerAuth })
+            ?.let { cose ->
+                cose.protectedHeader.certificateChain
+                    ?: cose.unprotectedHeader?.certificateChain
+            }
+            ?.let { rawChain ->
+                rawChain.map { bytes ->
+                    runCatching { X509Certificate.decodeFromDer(bytes) }.getOrNull()
+                        ?: return@let null
+                }
+            }
     }
 
     override val transactionData = null
