@@ -1,3 +1,6 @@
+# Release 5.8.3:
+ * DC API: Match requests without claim constraints and display their mandatory attributes
+
 # Release 5.8.2:
  * Networking: Use explicit CIO and Darwin HTTP engines and make Android debug trust configuration compatible with CIO
  * Prevent TLS probe errors from producing false offline results
