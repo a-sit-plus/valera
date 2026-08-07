@@ -38,8 +38,11 @@ import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.android.dcapi.AndroidDCAPIInvocationData
 import at.asitplus.wallet.app.android.dcapi.CustomRegistry
+import at.asitplus.wallet.app.android.dcapi.DCAPIVerificationSelection
 import at.asitplus.wallet.app.common.*
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
+import at.asitplus.wallet.app.common.dcapi.DCAPICredentialType
+import at.asitplus.wallet.app.common.dcapi.DCAPIVerificationData
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.lib.openid.OpenId4VpHolder
 import io.github.aakira.napier.Napier
@@ -351,8 +354,9 @@ public class AndroidPlatformAdapter(
     }
 
     @OptIn(ExperimentalDigitalCredentialApi::class)
-    override fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest> = catching {
-        (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (intent, _) ->
+    override fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIVerificationData> = catching {
+        (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { invocation ->
+            val intent = invocation.intent
             // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
             val credentialRequest = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
                 ?: throw IllegalArgumentException("DC API: No credential request received")
@@ -372,19 +376,39 @@ public class AndroidPlatformAdapter(
 
             Napier.d("DC API: Selection $dcRequestOptions")
 
-            val selectionInfo = getSetSelection(credentialRequest)
-                ?: getSelection(credentialRequest)
+            val selection = invocation.verificationSelection ?: run {
+                val selectionInfo = getSetSelection(credentialRequest)
+                    ?: getSelection(credentialRequest)
+                DCAPIVerificationSelection(
+                    protocol = selectionInfo.protocol,
+                    documentIds = selectionInfo.documentIds,
+                ).also { invocation.verificationSelection = it }
+            }
 
-            Napier.d("DC API: Selection $selectionInfo")
+            Napier.d("DC API: Selection protocol=${selection.protocol}")
 
-            val credentialIds = selectionInfo.documentIds
-            dcRequestOptions.toRequestParametersFrom(
-                selectedProtocol = selectionInfo.protocol,
-                credentialIds = credentialIds,
-                callingPackageName = callingPackageName,
-                callingOrigin = callingOrigin,
+            selection.nextIssuanceType()?.let {
+                DCAPIVerificationData.IssuanceRequired(it)
+            } ?: DCAPIVerificationData.Presentation(
+                dcRequestOptions.toRequestParametersFrom(
+                    selectedProtocol = selection.protocol,
+                    credentialIds = selection.resolvedDocumentIds(),
+                    callingPackageName = callingPackageName,
+                    callingOrigin = callingOrigin,
+                )
             )
         } ?: throw IllegalStateException("DCAPIInvocationData not set")
+    }
+
+    override fun resolveCurrentDCAPIVerificationIssuance(
+        credentialType: DCAPICredentialType,
+        credentialId: String,
+    ): KmmResult<Unit> = catching {
+        val invocation = intentState.dcapiInvocationData.value as? AndroidDCAPIInvocationData
+            ?: throw IllegalStateException("DCAPIInvocationData not set")
+        val selection = invocation.verificationSelection
+            ?: throw IllegalStateException("DC API verification selection not initialized")
+        selection.resolve(credentialType, credentialId)
     }
 
     @OptIn(ExperimentalDigitalCredentialApi::class)

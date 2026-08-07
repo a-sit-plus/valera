@@ -12,6 +12,8 @@
     <string name="unknown_exception">Unbekannter Fehler</string>
 
     <string name="app_display_name">Valera</string>
+    <string name="dcapi_issuing_credential_title">Credential ausstellen</string>
+    <string name="dcapi_issuer_missing_requested_type">Dieser Aussteller bietet den Credential-Typ %1$s nicht an.</string>
     <string name="snackbar_reset_app_successfully">App erfolgreich zurückgesetzt</string>
     <string name="snackbar_clear_log_successfully">Log erfolgreich gelöscht</string>
     <string name="snackbar_update_hint">App ist nicht aktuell. Bitte auf %1$s aktualisieren.</string>
@@ -27,6 +29,7 @@
     <string name="button_label_confirm">Bestätigen</string>
     <string name="button_label_dismiss">Abbrechen</string>
     <string name="button_label_ok">Ok</string>
+    <string name="button_label_present_now">Jetzt vorzeigen</string>
     <string name="button_label_retry">Erneut versuchen</string>
     <string name="button_label_authenticate">Anmelden</string>
     <string name="button_label_present_data">Vorzeigen</string>

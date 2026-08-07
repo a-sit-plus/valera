@@ -9,15 +9,22 @@ data class CredentialRegistry private constructor(
     @SerialName("protocols")
     val protocols: List<String>,
     @SerialName("credentials")
-    val credentials: List<CredentialEntry>
+    val credentials: List<CredentialEntry>,
+    @SerialName("issuingCredential")
+    val issuingCredential: IssuingCredentialEntry? = null,
 ) {
     companion object {
-        fun create(credentials: List<CredentialEntry>): CredentialRegistry = CredentialRegistry(
+        fun create(
+            credentials: List<CredentialEntry>,
+            issuingCredential: IssuingCredentialEntry? = null,
+        ): CredentialRegistry = CredentialRegistry(
             listOf(
                 "openid4vp-v1-signed",
                 "openid4vp-v1-unsigned",
                 "org-iso-mdoc",
-            ), credentials
+            ),
+            credentials,
+            issuingCredential,
         )
     }
 }

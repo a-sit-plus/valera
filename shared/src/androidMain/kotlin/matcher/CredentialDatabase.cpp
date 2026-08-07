@@ -102,6 +102,37 @@ CredentialDatabase::CredentialDatabase(const uint8_t* encodedDatabase, size_t en
             )
         );
     }
+
+    const auto& issuingCredentialItem = topMap->get("issuingCredential");
+    if (issuingCredentialItem != nullptr && issuingCredentialItem->asMap() != nullptr) {
+        auto issuingCredentialMap = issuingCredentialItem->asMap();
+        auto issuableMdocDocTypes = std::vector<std::string>();
+        auto issuableSdJwtVcts = std::vector<std::string>();
+
+        auto mdocDocTypes = issuingCredentialMap->get("mdocDocTypes")->asArray();
+        for (auto item = mdocDocTypes->begin(); item != mdocDocTypes->end(); ++item) {
+            issuableMdocDocTypes.push_back((*item)->asTstr()->value());
+        }
+
+        auto sdJwtVcts = issuingCredentialMap->get("sdJwtVcts")->asArray();
+        for (auto item = sdJwtVcts->begin(); item != sdJwtVcts->end(); ++item) {
+            issuableSdJwtVcts.push_back((*item)->asTstr()->value());
+        }
+
+        issuingCredential = Credential(
+                issuingCredentialMap->get("title")->asTstr()->value(),
+                issuingCredentialMap->get("subtitle")->asTstr()->value(),
+                {},
+                issuingCredentialMap->get("documentId")->asTstr()->value(),
+                "",
+                "",
+                topProtocols,
+                {},
+                true,
+                issuableMdocDocTypes,
+                issuableSdJwtVcts
+        );
+    }
 }
 
 bool Credential::supportsProtocol(const std::string& protocol) {
@@ -145,9 +176,12 @@ void Combination::addToCredmanPicker(const Request& request) const {
     for (const auto& element : elements) {
         for (const auto& match: element.matches) {
             Credential *credential = match.credential;
+            const std::string& documentId = match.syntheticDocumentId.empty()
+                    ? credential->documentId
+                    : match.syntheticDocumentId;
             std::string entryIdStr =
                     std::to_string(combinationNumber) + " " + request.protocol + " " +
-                    credential->documentId;
+                    documentId;
             char *entryId = (char *) strdup(entryIdStr.c_str());
 
             void *icon = nullptr;
@@ -182,17 +216,23 @@ void Combination::addToCredmanPicker(const Request& request) const {
             }
 
             if (match.claims.empty()) {
+                const char* fieldName = credential->isIssuingCredential
+                        ? "-"
+                        : "Requested attributes";
+                const char* fieldValue = credential->isIssuingCredential
+                        ? match.syntheticFieldValue.c_str()
+                        : "All (mandatory) attributes";
                 if (credmanRuntimeVersion >= 2) {
                     ::AddFieldToEntrySet(entryId,
-                                         strdup("Requested attributes"),
-                                         strdup("All (mandatory) attributes"),
+                                         strdup(fieldName),
+                                         strdup(fieldValue),
                                          setId,
                                          setIndex
                     );
                 } else {
                     ::AddFieldForStringIdEntry(entryId,
-                                               strdup("Requested attributes"),
-                                               strdup("All (mandatory) attributes")
+                                               strdup(fieldName),
+                                               strdup(fieldValue)
                     );
                 }
             }

@@ -16,6 +16,8 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
+import at.asitplus.wallet.app.common.dcapi.DCAPICredentialType
+import at.asitplus.wallet.app.common.dcapi.DCAPIVerificationData
 import at.asitplus.wallet.app.common.AV_DOC_TYPE
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
@@ -378,7 +380,7 @@ class IosPlatformAdapter(
         }
     }
 
-    override fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest> {
+    override fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIVerificationData> {
         Napier.d("getCurrentDCAPIVerificationData called")
         return (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let {
             try {
@@ -399,13 +401,18 @@ class IosPlatformAdapter(
                     callingOrigin = it.origin ?: throw IllegalStateException("No origin received"),
                     credentialIds = null,
                 )
-                KmmResult.success(walletRequest)
+                KmmResult.success(DCAPIVerificationData.Presentation(walletRequest))
             } catch (e: Throwable) {
                 Napier.e("Error parsing mdoc request", e)
                 KmmResult.failure(e)
             }
         } ?: KmmResult.failure(Throwable("No request data available"))
     }
+
+    override fun resolveCurrentDCAPIVerificationIssuance(
+        credentialType: DCAPICredentialType,
+        credentialId: String,
+    ): KmmResult<Unit> = KmmResult.failure(IllegalStateException("Not supported by iOS"))
 
     override fun getCurrentDCAPIIssuingData(): KmmResult<DCAPIIssuingRequest> = catching {
         throw IllegalStateException("Not supported by iOS")

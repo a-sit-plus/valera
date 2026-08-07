@@ -51,12 +51,13 @@
             </intent-filter>
         </activity>
 
+        <!-- Browser callbacks must return to the activity that owns the pending DC API session. -->
         <activity
             android:name=".TransientFlowActivity"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|mnc|colorMode|density|fontScale|fontWeightAdjustment|keyboard|layoutDirection|locale|mcc|navigation|smallestScreenSize|touchscreen|uiMode"
             android:exported="true"
             android:windowSoftInputMode="adjustResize"
-            android:launchMode="singleTask"
+            android:launchMode="singleInstance"
             android:taskAffinity="${applicationId}.transientFlow"
             android:excludeFromRecents="true"
             android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">

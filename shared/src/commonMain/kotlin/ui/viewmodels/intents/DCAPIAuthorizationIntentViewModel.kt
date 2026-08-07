@@ -2,6 +2,7 @@ package ui.viewmodels.intents
 
 import ErrorHandlingOverrideException
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.dcapi.DCAPIVerificationData
 import at.asitplus.wallet.app.common.domain.BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase
 import at.asitplus.wallet.lib.oidvci.OAuth2Exception
 import io.github.aakira.napier.Napier
@@ -36,9 +37,15 @@ class DCAPIAuthorizationIntentViewModel(
     }
 
     fun process() = walletMain.scope.launch(Dispatchers.Default + coroutineExceptionHandler) {
-        val dcApiRequest = walletMain.platformAdapter.getCurrentDCAPIVerificationData().getOrThrow()
+        val successRoute = when (
+            val data = walletMain.platformAdapter.getCurrentDCAPIVerificationData().getOrThrow()
+        ) {
+            is DCAPIVerificationData.Presentation ->
+                buildConsentPageFromDcApiRequest(data.request).getOrThrow()
 
-        val successRoute = buildConsentPageFromDcApiRequest(dcApiRequest).getOrThrow()
+            is DCAPIVerificationData.IssuanceRequired ->
+                ui.navigation.routes.AddCredentialForDCAPIVerificationRoute(data.credentialType)
+        }
 
         onSuccess(successRoute)
     }

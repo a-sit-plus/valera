@@ -32,6 +32,8 @@ root run:
 ```shell
 git apply --check shared/src/androidMain/kotlin/matcher/patches/empty-claims-mandatory-attributes.patch
 git apply shared/src/androidMain/kotlin/matcher/patches/empty-claims-mandatory-attributes.patch
+git apply --check shared/src/androidMain/kotlin/matcher/patches/issuing-credential-fallback.patch
+git apply shared/src/androidMain/kotlin/matcher/patches/issuing-credential-fallback.patch
 cd shared/src/androidMain/kotlin/matcher
 make clean && make -j
 cp build/matcher.wasm ../../../../../androidApp/src/androidMain/assets/dcapimatcher.wasm
@@ -44,3 +46,8 @@ and generated asset together.
 `empty-claims-mandatory-attributes.patch` adds a synthetic field to matching credentials when
 a DCQL credential query omits `claims`, so Android's system picker can display that all
 mandatory attributes are requested.
+
+`issuing-credential-fallback.patch` reads the issuing-credential template exported by Valera
+and uses it when no stored credential fully matches a supported DCQL credential query. Synthetic
+entry IDs carry the requested representation and type so the app can start the matching issuance
+flow and preserve DCQL request order.

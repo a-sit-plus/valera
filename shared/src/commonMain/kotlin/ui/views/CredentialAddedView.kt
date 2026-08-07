@@ -39,6 +39,7 @@ import at.asitplus.valera.resources.info_text_credential_added
 import at.asitplus.valera.resources.info_text_error_action_return_to_invoker
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.ScreenHeading
@@ -51,6 +52,7 @@ fun CredentialAddedView(
     onClickButton: () -> Unit,
     onClickLogo: () -> Unit,
     isAutoDismissEnabled: Boolean = true,
+    buttonLabel: StringResource = Res.string.button_label_ok,
     credentialContent: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     var secondsRemaining by remember { mutableIntStateOf(5) }
@@ -125,9 +127,9 @@ fun CredentialAddedView(
                             text = {
                                 Text(
                                     if (isAutoDismissEnabled) {
-                                        "${stringResource(Res.string.button_label_ok)} ($secondsRemaining)"
+                                        "${stringResource(buttonLabel)} ($secondsRemaining)"
                                     } else {
-                                        stringResource(Res.string.button_label_ok)
+                                        stringResource(buttonLabel)
                                     }
                                 )
                             },

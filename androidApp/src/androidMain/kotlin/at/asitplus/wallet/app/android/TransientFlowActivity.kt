@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import at.asitplus.wallet.app.android.dcapi.AndroidDCAPIInvocationData
 import io.github.aakira.napier.Napier
 import ui.navigation.IntentService.Companion.PRESENTATION_REQUESTED_INTENT
+import ui.navigation.IntentService.Companion.PROVISIONING_CALLBACK_URI
 
 class TransientFlowActivity : AbstractWalletActivity() {
     private val sessionViewModel: AndroidWalletSessionViewModel by lazy {
@@ -84,7 +85,13 @@ class TransientFlowActivity : AbstractWalletActivity() {
             }
             else -> {
                 Napier.d("TransientFlowActivity appLink=${intent.data}")
-                sessionViewModel.intentState.dcapiInvocationData.value = null
+                val preserveVerificationInvocation = intent.data?.toString()?.startsWith(PROVISIONING_CALLBACK_URI) == true &&
+                    (sessionViewModel.intentState.dcapiInvocationData.value as? AndroidDCAPIInvocationData)
+                        ?.intent
+                        ?.action == RegistryManager.ACTION_GET_CREDENTIAL
+                if (!preserveVerificationInvocation) {
+                    sessionViewModel.intentState.dcapiInvocationData.value = null
+                }
                 sessionViewModel.intentState.presentationStateModel.value = null
                 sessionViewModel.intentState.presentationStateModelProvider = null
                 sessionViewModel.intentState.appLink.value = intent.data?.toString()
