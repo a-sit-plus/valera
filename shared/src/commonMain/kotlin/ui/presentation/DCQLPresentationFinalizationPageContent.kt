@@ -28,6 +28,7 @@ import at.asitplus.openid.dcql.DCQLQuery
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_location
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_name
+import at.asitplus.valera.resources.button_label_submit
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
 import at.asitplus.valera.resources.heading_label_show_data_third_party
 import at.asitplus.valera.resources.prompt_send_above_data
@@ -109,6 +110,7 @@ fun PresentationFinalizationPageContent(
                 onAbort = onAbort,
                 onContinue = onSubmit.takeIf { isContinueEnabled },
                 useBackButton = true,
+                continueButtonLabel = Res.string.button_label_submit,
             )
         }
     ) {
