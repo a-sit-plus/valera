@@ -1,4 +1,5 @@
 import at.asitplus.wallet.app.common.BuildContext
+import at.asitplus.wallet.app.common.ErrorService
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.SessionHandle
 import at.asitplus.wallet.app.common.SessionService
@@ -72,7 +73,11 @@ private object IosSessionRuntime {
         }
     }
 
-    fun getOrCreateSession(buildContext: BuildContext, sessionKind: IosSessionKind): IosSessionHandle {
+    fun getOrCreateSession(
+        buildContext: BuildContext,
+        sessionKind: IosSessionKind,
+        openUrl: ((String) -> Unit)? = null,
+    ): IosSessionHandle {
         // Fast path: return the existing handle for this kind without any allocation.
         // A handle whose scope is already closed (e.g. left by the loser of a prior creation
         // race) is treated as absent: clear it and fall through to create a fresh session.
@@ -99,6 +104,7 @@ private object IosSessionRuntime {
                     buildContext = buildContext,
                     promptModel = promptModel,
                     sessionKind = sessionKind,
+                    openUrl = openUrl,
                 )
             }
         }
@@ -184,6 +190,8 @@ private object IosSessionRuntime {
             activeHandleFor(IosSessionKind.TRANSIENT_FLOW)?.intentState?.let { intentState ->
                 pendingTransientState = null
                 intentState.iosDcApiPreRequestData.value = null
+                intentState.pendingDCAPIVerificationIssuance.value = null
+                intentState.pendingDCAPIVerificationIssuanceQueue.value = emptyList()
                 intentState.dcapiInvocationData.value = data
                 intentState.appLink.value = IOS_DC_API_CALL
                 intentState.finishApp = { data.onCancel() }
@@ -214,12 +222,52 @@ private object IosSessionRuntime {
             if (pendingTransientState is PendingTransientState.Invocation) pendingTransientState = null
             transientFlowHandle?.intentState?.let { intentState ->
                 intentState.dcapiInvocationData.value = null
+                intentState.pendingDCAPIVerificationIssuance.value = null
+                intentState.pendingDCAPIVerificationIssuanceQueue.value = emptyList()
                 intentState.finishApp = null
                 if (intentState.appLink.value == IOS_DC_API_CALL) {
                     intentState.appLink.value = null
                 }
             }
         }
+    }
+
+    fun handleDcapiProvisioningCallback(url: String) {
+        val handled = synchronized(stateLock) {
+            activeHandleFor(IosSessionKind.TRANSIENT_FLOW)?.intentState?.let { intentState ->
+                if (intentState.dcapiInvocationData.value == null) {
+                    false
+                } else {
+                    intentState.appLink.value = url
+                    true
+                }
+            } ?: false
+        }
+        if (!handled) {
+            Napier.w("IosSessionRuntime ignored provisioning callback without an active DCAPI invocation")
+        }
+    }
+
+    fun cancelDcapiProvisioning() {
+        val cancel = synchronized(stateLock) {
+            activeHandleFor(IosSessionKind.TRANSIENT_FLOW)?.intentState
+                ?.also {
+                    it.pendingDCAPIVerificationIssuance.value = null
+                    it.pendingDCAPIVerificationIssuanceQueue.value = emptyList()
+                }
+                ?.dcapiInvocationData?.value
+                ?.let { it as? IosDCAPIInvocationData }
+                ?.onCancel
+        }
+        cancel?.invoke()
+    }
+
+    fun failDcapiProvisioning(message: String) {
+        val errorService = synchronized(stateLock) {
+            activeHandleFor(IosSessionKind.TRANSIENT_FLOW)?.sessionService?.scope?.value?.get<ErrorService>()
+        }
+        errorService?.emit(IllegalStateException(message))
+            ?: cancelDcapiProvisioning()
     }
 
     fun clearDcapiPreRequest() {
@@ -345,6 +393,18 @@ object IosSessionBridge {
         IosSessionRuntime.clearDcapiInvocation()
     }
 
+    fun handleDcapiProvisioningCallback(url: String) {
+        IosSessionRuntime.handleDcapiProvisioningCallback(url)
+    }
+
+    fun cancelDcapiProvisioning() {
+        IosSessionRuntime.cancelDcapiProvisioning()
+    }
+
+    fun failDcapiProvisioning(message: String) {
+        IosSessionRuntime.failDcapiProvisioning(message)
+    }
+
     fun clearDcapiPreRequest() {
         IosSessionRuntime.clearDcapiPreRequest()
     }
@@ -363,8 +423,11 @@ internal fun getOrCreateIosSession(buildContext: BuildContext): Triple<IntentSta
     return Triple(session.intentState, session.sessionService, session.promptModel)
 }
 
-internal fun getOrCreateIosTransientFlowSession(buildContext: BuildContext): Triple<IntentState, SessionService, PromptModel> {
-    val session = IosSessionRuntime.getOrCreateSession(buildContext, IosSessionKind.TRANSIENT_FLOW)
+internal fun getOrCreateIosTransientFlowSession(
+    buildContext: BuildContext,
+    openUrl: ((String) -> Unit)? = null,
+): Triple<IntentState, SessionService, PromptModel> {
+    val session = IosSessionRuntime.getOrCreateSession(buildContext, IosSessionKind.TRANSIENT_FLOW, openUrl)
     return Triple(session.intentState, session.sessionService, session.promptModel)
 }
 
@@ -375,8 +438,9 @@ private fun createIosWalletSessionScope(
     buildContext: BuildContext,
     promptModel: PromptModel,
     sessionKind: IosSessionKind,
+    openUrl: ((String) -> Unit)? = null,
 ): SessionHandle {
-    val platformAdapter = IosPlatformAdapter(intentState)
+    val platformAdapter = IosPlatformAdapter(intentState, openUrl)
     val dataStoreService = RealDataStoreService(createDataStore(), platformAdapter)
     return when (sessionKind) {
         IosSessionKind.MAIN -> createMainWalletSessionScope(

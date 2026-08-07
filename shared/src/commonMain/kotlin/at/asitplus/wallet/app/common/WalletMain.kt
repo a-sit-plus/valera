@@ -271,6 +271,10 @@ interface PlatformAdapter {
      */
     fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIVerificationData>
 
+    /** Credential types for which this platform can offer issuance after receiving a verification request. */
+    val dcApiVerificationIssuanceTypes: Set<DCAPICredentialType>
+        get() = emptySet()
+
     /** Resolves the currently requested synthetic verification credential with a stored DC API ID. */
     fun resolveCurrentDCAPIVerificationIssuance(
         credentialType: DCAPICredentialType,

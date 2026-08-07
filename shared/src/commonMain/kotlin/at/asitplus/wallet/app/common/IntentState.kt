@@ -23,6 +23,9 @@ class IntentState {
     /** Credential type currently being issued to satisfy a pending DC API verification request. */
     val pendingDCAPIVerificationIssuance = MutableStateFlow<DCAPICredentialType?>(null)
 
+    /** Missing credential types still to issue for the active DC API verification request. */
+    val pendingDCAPIVerificationIssuanceQueue = MutableStateFlow<List<DCAPICredentialType>>(emptyList())
+
     /** Pending iOS-only Digital Credentials API pre-request payload, if any. */
     val iosDcApiPreRequestData = MutableStateFlow<IosDcApiPreRequestData?>(null)
 
@@ -62,6 +65,7 @@ class IntentState {
         appLink.value = null
         dcapiInvocationData.value = null
         pendingDCAPIVerificationIssuance.value = null
+        pendingDCAPIVerificationIssuanceQueue.value = emptyList()
         iosDcApiPreRequestData.value = null
         presentationStateModel.value = null
         presentationStateModelProvider = null

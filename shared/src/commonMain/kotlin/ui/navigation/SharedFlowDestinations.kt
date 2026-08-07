@@ -147,6 +147,7 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
         DCAPIAuthorizationIntentView(remember {
             DCAPIAuthorizationIntentViewModel(
                 walletMain = walletMain,
+                intentState = intentState,
                 uri = backStackEntry.toRoute<DCAPIAuthorizationIntentRoute>().uri,
                 onSuccess = { route ->
                     Napier.d(
@@ -861,6 +862,7 @@ private fun cancelVerificationDrivenIssuance(
     intentState: IntentState,
 ) {
     intentState.pendingDCAPIVerificationIssuance.value = null
+    intentState.pendingDCAPIVerificationIssuanceQueue.value = emptyList()
     walletMain.platformAdapter.prepareDCAPICredentialError(
         OAuth2Exception.AccessDenied("Credential issuance was canceled").serialize()
     )
@@ -873,6 +875,7 @@ private fun emitVerificationIssuanceFailure(
     intentState: IntentState,
     error: Throwable,
 ) {
+    intentState.pendingDCAPIVerificationIssuanceQueue.value = emptyList()
     walletMain.errorService.emit(
         ErrorHandlingOverrideException(
             resetStackOverride = navigator::invocationAwareBack,
