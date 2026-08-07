@@ -1,4 +1,4 @@
-# Release 5.8.2 (unreleased):
+# Release 5.8.2:
  * Networking: Use explicit CIO and Darwin HTTP engines and make Android debug trust configuration compatible with CIO
  * Prevent TLS probe errors from producing false offline results
 
