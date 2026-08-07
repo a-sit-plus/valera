@@ -8,17 +8,18 @@ import at.asitplus.wallet.app.common.Configuration.DATASTORE_CAPABILITIES_ATTEST
 import data.storage.DataStoreService
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsBytes
+import io.ktor.network.tls.TlsException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.shareIn
 import ui.navigation.routes.RoutePrerequisites
 
 interface CapabilitiesService {
@@ -35,6 +36,7 @@ class RealCapabilitiesService(
     private val httpService: HttpService,
     sessionCoroutineScope: CoroutineScope,
 ) : CapabilitiesService {
+    private val httpClient = httpService.buildHttpClient()
     private val refreshTrigger = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val deviceLockStatus: Flow<Boolean> = refreshTrigger
         .onStart { emit(Unit) }
@@ -45,6 +47,7 @@ class RealCapabilitiesService(
     val onlineStatus: Flow<Boolean> = refreshTrigger
         .onStart { emit(Unit) }
         .map { getOnlineStatus() }
+        .shareIn(sessionCoroutineScope, SharingStarted.Eagerly, replay = 1)
     val attestationStatus: Flow<Boolean> = refreshTrigger
         .onStart { emit(Unit) }
         .map { getAttestationStatus() }
@@ -82,21 +85,19 @@ class RealCapabilitiesService(
         }
 
     init {
-        sessionCoroutineScope.launch(Dispatchers.IO) {
-            refreshStatus()
-        }
+        sessionCoroutineScope.coroutineContext[Job]?.invokeOnCompletion { httpClient.close() }
     }
 
     override suspend fun refreshStatus() {
         refreshTrigger.emit(Unit)
     }
 
-    private suspend fun getOnlineStatus() = catchingUnwrapped {
-        httpService.buildHttpClient().use { client ->
-            // Consume the body so the response stream is (hopefully) released before cancellation or client shutdown.
-            client.get("https://wallet.a-sit.plus/check.json").bodyAsBytes()
-        }
-    }.isSuccess
+    private suspend fun getOnlineStatus(): Boolean = catchingUnwrapped {
+        httpClient.get("https://wallet.a-sit.plus/check.json").bodyAsBytes()
+    }.fold(
+        onSuccess = { true },
+        onFailure = { it.isTlsError() },
+    )
 
     private suspend fun getSignerStatus() = keyStoreService.testSigner()
 
@@ -144,6 +145,11 @@ class RealCapabilitiesService(
         }
     }
 }
+
+internal fun Throwable.isTlsError(): Boolean =
+    generateSequence(this) { it.cause }.any { it is TlsException || it.isPlatformTlsError() }
+
+internal expect fun Throwable.isPlatformTlsError(): Boolean
 
 data class CapabilitiesData(
     val deviceLockStatus: Boolean,
