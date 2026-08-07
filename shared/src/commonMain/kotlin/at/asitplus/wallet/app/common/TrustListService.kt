@@ -23,12 +23,10 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import ui.composables.TrustState
@@ -70,31 +68,44 @@ class TrustListService(
     private val aistIssuerCert = X509Certificate.decodeFromPem(asitRootPem).getOrThrow()
     private val loTeFilterService: LoTEFilterService = LoTEFilterService()
 
+    /**
+     * Internal generic helper to observe a target flow alongside fresh trust lists.
+     * Accepts a suspending evaluation lambda.
+     */
+    private fun <T : Any> combineWithFreshTrustStore(
+        targetFlow: Flow<T?>,
+        evaluate: suspend (T, Map<String, ListOfTrustedEntities>) -> TrustState
+    ): Flow<TrustState> = combine(
+        targetFlow,
+        persistentTrustListStore.observeTrustContainer(LoTEServiceType.defaultUrls)
+    ) { target, trustLists ->
+        if (target == null) return@combine TrustState.EVALUATING
+
+        val freshTrustLists = trustLists.filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
+        evaluate(target, freshTrustLists)
+    }
+
 
     fun observeTrustStateForEntry(
         storeEntryFlow: Flow<ResolvedCredential?>
-    ): Flow<TrustState> =
-        combine(
-            storeEntryFlow,
-            persistentTrustListStore.observeTrustContainer(LoTEServiceType.defaultUrls)
-        ) { credential, trustLists ->
-            val entry = credential?.entry
-                ?: return@combine TrustState.EVALUATING
-            val issuer = entry.issuer
-                ?: return@combine TrustState.UNKNOWN
-            val scheme = entry.resolveScheme()
-            val schemeIdentifier = entry.schemeIdentifier
-                ?: scheme.vcType
-                ?: scheme.sdJwtType
-                ?: scheme.isoDocType
+    ): Flow<TrustState> = combineWithFreshTrustStore(storeEntryFlow) { credential, freshTrustLists ->
+        val entry = credential.entry
+        val issuer = entry.issuer
+            ?: return@combineWithFreshTrustStore TrustState.UNKNOWN
 
-            if (schemeIdentifier.isNullOrBlank())
-                return@combine TrustState.UNKNOWN
+        // Works because the lambda is now suspend-aware!
+        val scheme = entry.resolveScheme()
+        val schemeIdentifier = entry.schemeIdentifier
+            ?: scheme.vcType
+            ?: scheme.sdJwtType
+            ?: scheme.isoDocType
 
-            // Drop lists older than the offline-TTL so a long-stale trust list no longer confers trust.
-            val freshTrustLists = trustLists.filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
-            evaluateIssuer(issuer, freshTrustLists, LoTEServiceType.fromSchemeIdentifier(schemeIdentifier))
-        }.flowOn(Dispatchers.Default)
+        if (schemeIdentifier.isNullOrBlank()) {
+            return@combineWithFreshTrustStore TrustState.UNKNOWN
+        }
+
+        evaluateIssuer(issuer, freshTrustLists, LoTEServiceType.fromSchemeIdentifier(schemeIdentifier))
+    }
 
 
     /**
@@ -106,20 +117,21 @@ class TrustListService(
         serviceType: LoTEServiceType
     ): TrustState = try {
         if (issuer.isTrustedBy(listOf(aistIssuerCert)).isSuccess) {
-            return TrustState.TRUSTED
+            TrustState.TRUSTED
+        } else {
+            val criteria = LoTEFilterCriteria(expectedServiceType = serviceType)
+            val certificateList: List<X509Certificate> = trustLists
+                .flatMap { (key, lote) -> loTeFilterService.extractTrustedCertificates(key, lote, criteria) }
+                .mapNotNull { it.certificate }
+
+            if (certificateList.isEmpty()) {
+                TrustState.UNTRUSTED
+            } else if (issuer.isTrustedBy(certificateList).isSuccess) {
+                TrustState.TRUSTED
+            } else {
+                TrustState.UNTRUSTED
+            }
         }
-        val criteria = LoTEFilterCriteria(expectedServiceType = serviceType)
-        val certificateList: List<X509Certificate> = trustLists
-            .flatMap { lote -> loTeFilterService.extractTrustedCertificates(lote.key, lote.value, criteria) }
-            .mapNotNull { it.certificate }
-
-        if (certificateList.isEmpty()) {
-            return TrustState.UNTRUSTED
-        }
-
-        val validationResult = issuer.isTrustedBy(certificateList)
-
-        if (validationResult.isSuccess) TrustState.TRUSTED else TrustState.UNTRUSTED
     } catch (e: Exception) {
         Napier.e("Failed to evaluate issuer trust status due to unexpected error", e)
         TrustState.UNKNOWN
@@ -131,10 +143,10 @@ class TrustListService(
      * A-SIT root and any WRPAC(Wallet Relying Party Access Certificate) entries in [trustLists].
      */
     fun evaluateRelyingParty(
-        relayingPartyCertChain: CertificateChain?,
+        relyingPartyCertChain: CertificateChain?,
         trustLists: Map<String, ListOfTrustedEntities>,
     ): TrustState {
-        val leaf = relayingPartyCertChain?.leaf
+        val leaf = relyingPartyCertChain?.leaf
             ?: return TrustState.UNKNOWN
         return evaluateIssuer(leaf, trustLists, LoTEServiceType.WRPAC)
     }
@@ -145,28 +157,15 @@ class TrustListService(
      */
     fun observeTrustStateForRelyingParty(
         requestFlow: Flow<RequestParametersFrom<*>?>
-    ): Flow<TrustState> =
-        combine(
-            requestFlow,
-            persistentTrustListStore.observeTrustContainer(LoTEServiceType.defaultUrls)
-        ) { request, trustLists ->
-            val req = request
-                ?: return@combine TrustState.EVALUATING
-            val freshTrustLists = trustLists.filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
-            evaluateRelyingParty(req.extractRequesterCertificateChains(), freshTrustLists)
-        }
+    ): Flow<TrustState> = combineWithFreshTrustStore(requestFlow) { request, freshTrustLists ->
+        evaluateRelyingParty(request.extractRequesterCertificateChains(), freshTrustLists)
+    }
 
     fun observeTrustStateForCertChain(
         certChainFlow: Flow<CertificateChain?>
-    ): Flow<TrustState> =
-        combine(
-            certChainFlow,
-            persistentTrustListStore.observeTrustContainer(LoTEServiceType.defaultUrls)
-        ) { certChain, trustLists ->
-            if (certChain == null) return@combine TrustState.EVALUATING
-            val freshTrustLists = trustLists.filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
-            evaluateRelyingParty(certChain, freshTrustLists)
-        }
+    ): Flow<TrustState> = combineWithFreshTrustStore(certChainFlow) { certChain, freshTrustLists ->
+        evaluateRelyingParty(certChain, freshTrustLists)
+    }
 
     /** Refreshes missing or expired lists, then sleeps until the earliest cached list expires. */
     fun startChecking(retryInterval: Duration = 1.hours) {
@@ -187,10 +186,6 @@ class TrustListService(
                 )
             }
         }
-    }
-
-    fun refreshAll(): Job = sessionCoroutineScope.launch {
-        LoTEServiceType.defaultUrls.forEach { syncSingleUrl(it) }
     }
 
     private suspend fun refreshStaleEntries(): Boolean {
@@ -240,7 +235,7 @@ internal fun Collection<Instant>.nextRefreshIn(now: Instant, ttl: Duration): Dur
 fun RequestParametersFrom<*>.extractRequesterCertificateChains(): List<X509Certificate>? =
     when (this) {
         is RequestParametersFrom.Jws<*> ->
-            (this.jwsTyped.jws as JwsCompact).jwsHeader.certificateChain
+            (this.jws as JwsCompact).jwsHeader.certificateChain
 
         is RequestParametersFrom.OpenId4VpDcApiSigned ->
             this.jwsTyped.jws.jwsHeader.certificateChain

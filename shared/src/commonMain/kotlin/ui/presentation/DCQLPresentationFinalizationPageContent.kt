@@ -35,6 +35,7 @@ import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
 import at.asitplus.valera.resources.heading_label_show_data_third_party
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
+import at.asitplus.valera.resources.trust_status_title
 import at.asitplus.wallet.app.common.TrustListService
 import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
@@ -160,7 +161,7 @@ fun PresentationFinalizationPageContent(
                             stringResource(Res.string.attribute_friendly_name_data_recipient_name) to serviceProviderLocalizedName
                         },
                         stringResource(Res.string.attribute_friendly_name_data_recipient_location) to serviceProviderLocalizedLocation,
-                        "Trust" to stringResource(relyingPartyTrustState.displayVerifierText)
+                        stringResource(Res.string.trust_status_title) to stringResource(relyingPartyTrustState.displayVerifierText)
                     ),
                 )
 

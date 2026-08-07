@@ -46,6 +46,7 @@ import at.asitplus.valera.resources.text_label_credential_request_and
 import at.asitplus.valera.resources.text_label_credential_request_or
 import at.asitplus.valera.resources.text_label_mandatory_dataset
 import at.asitplus.valera.resources.text_label_optional_dataset
+import at.asitplus.valera.resources.trust_status_title
 import at.asitplus.wallet.app.common.DcqlConsentData
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.extractConsentData
@@ -128,7 +129,7 @@ fun AuthenticationReceivedStartPageContent(
                             serviceProviderLocalizedLocation?.takeIf { value -> value.isNotBlank() }?.let {
                                 stringResource(Res.string.attribute_friendly_name_data_recipient_location) to it
                             },
-                            "Trust state" to stringResource(relyingPartyTrustState.displayVerifierText)
+                            stringResource(Res.string.trust_status_title) to stringResource(relyingPartyTrustState.displayVerifierText)
                         ),
                     )
 
