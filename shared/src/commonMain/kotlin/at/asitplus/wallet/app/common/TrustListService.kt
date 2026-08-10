@@ -107,14 +107,14 @@ class TrustListService(
             return@combineWithFreshTrustStore TrustState.UNKNOWN
         }
 
-        evaluateIssuer(issuer, freshTrustLists, LoTEServiceType.fromSchemeIdentifier(schemeIdentifier))
+        evaluateCertificate(issuer, freshTrustLists, LoTEServiceType.fromSchemeIdentifier(schemeIdentifier))
     }
 
 
     /**
      * Evaluates if a given issuer is trusted based on the internal root cert and LoTEs.
      */
-    fun evaluateIssuer(
+    fun evaluateCertificate(
         issuer: X509Certificate,
         trustLists: Map<String, ListOfTrustedEntities>,
         serviceType: LoTEServiceType
@@ -151,7 +151,7 @@ class TrustListService(
     ): TrustState {
         val leaf = relyingPartyCertChain?.leaf
             ?: return TrustState.UNKNOWN
-        return evaluateIssuer(leaf, trustLists, LoTEServiceType.WRPAC)
+        return evaluateCertificate(leaf, trustLists, LoTEServiceType.WRPAC)
     }
 
     /**
@@ -240,7 +240,7 @@ fun RequestParametersFrom<*>.extractRelyingPartyCertificateChains(): List<X509Ce
         is RequestParametersFrom.Jws<*> -> when (val jws = this.jws) {
             is JwsCompact -> jws.jwsHeader.certificateChain
             is JwsFlattened -> jws.jwsHeader.certificateChain
-            is JwsGeneral -> jws.jwsHeaders.firstOrNull()?.certificateChain
+            is JwsGeneral -> jws.jwsHeaders.firstNotNullOfOrNull { it.certificateChain }
         }
         is RequestParametersFrom.OpenId4VpDcApiSigned ->
             this.jwsTyped.jws.jwsHeader.certificateChain
