@@ -23,8 +23,10 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.trust_status_evaluating
 import at.asitplus.valera.resources.trust_status_trusted
+import at.asitplus.valera.resources.trust_status_trusted_verifier
 import at.asitplus.valera.resources.trust_status_unknown
 import at.asitplus.valera.resources.trust_status_untrusted
+import at.asitplus.valera.resources.trust_status_untrusted_verifier
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -74,3 +76,11 @@ fun TrustStatusBanner(trustState: TrustState, modifier: Modifier = Modifier) {
 enum class TrustState {
     TRUSTED, UNTRUSTED, UNKNOWN, EVALUATING
 }
+
+val TrustState.displayVerifierText: StringResource
+    get() = when (this) {
+        TrustState.TRUSTED -> Res.string.trust_status_trusted_verifier
+        TrustState.UNTRUSTED -> Res.string.trust_status_untrusted_verifier
+        TrustState.UNKNOWN -> Res.string.trust_status_unknown
+        TrustState.EVALUATING -> Res.string.trust_status_evaluating
+    }

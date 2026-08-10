@@ -13,6 +13,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -23,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.openid.dcql.DCQLQuery
 import at.asitplus.valera.resources.Res
@@ -32,10 +35,15 @@ import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
 import at.asitplus.valera.resources.heading_label_show_data_third_party
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
+import at.asitplus.valera.resources.trust_status_title
+import at.asitplus.wallet.app.common.TrustListService
+import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.DataDisplaySection
 import ui.composables.PresentationRequestLoadingIndicator
 import ui.composables.ScreenHeading
+import ui.composables.TrustState
+import ui.composables.displayVerifierText
 
 @Composable
 fun DCQLPresentationFinalizationPageContent(
@@ -48,6 +56,8 @@ fun DCQLPresentationFinalizationPageContent(
     onAbort: () -> Unit,
     onSubmit: () -> Unit,
     serviceProviderLogo: ImageBitmap? = null,
+    trustListService: TrustListService,
+    request: RequestParametersFrom<*>
 ) {
     val cards = remember(selections) {
         selections.entries.sortedBy { it.key.string }.flatMap { it.value }
@@ -68,6 +78,8 @@ fun DCQLPresentationFinalizationPageContent(
         onSubmit = onSubmit,
         isContinueEnabled = !isLoading && !hasLoadingError,
         serviceProviderLogo = serviceProviderLogo,
+        trustListService = trustListService,
+        request = request
     ) {
         if (isLoading) {
             PresentationRequestLoadingIndicator()
@@ -100,8 +112,13 @@ fun PresentationFinalizationPageContent(
     onSubmit: () -> Unit,
     isContinueEnabled: Boolean = true,
     serviceProviderLogo: ImageBitmap? = null,
+    trustListService: TrustListService,
+    request: RequestParametersFrom<*>,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    val relyingPartyTrustState by trustListService
+        .observeTrustStateForRelyingParty(flowOf(request))
+        .collectAsState(initial = TrustState.EVALUATING)
     Scaffold(
         bottomBar = {
             CommonBottomButtonsAbortContinue(
@@ -144,6 +161,7 @@ fun PresentationFinalizationPageContent(
                             stringResource(Res.string.attribute_friendly_name_data_recipient_name) to serviceProviderLocalizedName
                         },
                         stringResource(Res.string.attribute_friendly_name_data_recipient_location) to serviceProviderLocalizedLocation,
+                        stringResource(Res.string.trust_status_title) to stringResource(relyingPartyTrustState.displayVerifierText)
                     ),
                 )
 

@@ -137,9 +137,11 @@ fun PresentationView(
                             walletMain = presentationViewModel.walletMain,
                             presentationRequest = presentationViewModel.presentationRequest,
                             onClickLogo = presentationViewModel.onClickLogo,
-                            onUnauthenticated = {}
+                            onUnauthenticated = {},
+                            verifierCertificateChain = presentationViewModel.verifierCertificateChain
                         ),
-                        onError = onError
+                        onError = onError,
+                        trustListService = trustListService
                     )
                 }
 

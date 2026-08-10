@@ -4,6 +4,7 @@
  * DC API: Register unknown credential schemes with fallback metadata and preserve claim comparison values
  * DC API: Improve request grouping, fixed selections, loading and error handling, and credential selection layout
  * DC API: Match requests without claim constraints and display their mandatory attributes
+ * Display trust evaluation of the Relying Party
 
 # Release 5.8.2:
  * Networking: Use explicit CIO and Darwin HTTP engines and make Android debug trust configuration compatible with CIO

@@ -70,6 +70,7 @@ fun DefaultPresentationGraphView(
             null
         },
         trustListService = viewModel.trustListService,
+        request = viewModel.preparationState.getOrThrow().request
         )
 }
 

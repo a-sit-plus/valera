@@ -10,9 +10,11 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import at.asitplus.catchingUnwrapped
 import at.asitplus.data.NonEmptyList.Companion.toNonEmptyList
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.openid.dcql.DCQLQuery
 import at.asitplus.wallet.app.common.DcqlConsentData
+import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.extractConsentData
 import at.asitplus.wallet.app.common.toCredentialQueryUiModel
 
@@ -49,6 +51,8 @@ fun DCQLPresentationBuilderGraphViewContent(
     onSubmit: () -> Unit,
     selectedOptionalCredentialSetQueryOptions: Map<UInt, UInt?>,
     confirmedOptionalCredentialSetQueryOptions: Map<UInt, UInt?>,
+    trustListService: TrustListService,
+    request: RequestParametersFrom<*>
 ) {
     val credentialSetQueries = dcqlQuery.requestedCredentialSetQueries
     val progressStart = 1
@@ -229,6 +233,8 @@ fun DCQLPresentationBuilderGraphViewContent(
         },
         onError = onError,
         onAbort = onNavigateUp,
-        onSubmit = onSubmit
+        onSubmit = onSubmit,
+        trustListService = trustListService,
+        request = request
     )
 }
