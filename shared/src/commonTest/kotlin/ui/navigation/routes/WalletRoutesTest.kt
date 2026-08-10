@@ -4,9 +4,14 @@ import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.LoadingMessageKey
+import at.asitplus.wallet.app.common.dcapi.DCAPICredentialRepresentation
+import at.asitplus.wallet.app.common.dcapi.DCAPICredentialType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.SerialDescriptor
 import ui.viewmodels.QrCodeScannerMode
 
 class WalletRoutesTest {
@@ -63,5 +68,31 @@ class WalletRoutesTest {
         val route = DCAPIPresentationViewRoute(request)
 
         assertEquals(request, route.request)
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    @Test
+    fun verificationIssuanceRoutesPreserveRequestedCredentialType() {
+        val type = DCAPICredentialType(DCAPICredentialRepresentation.SD_JWT, "urn:example:pid")
+        val addRoute = AddCredentialForDCAPIVerificationRoute(type)
+        val route = LoadCredentialForDCAPIVerificationRoute("https://issuer.example", type)
+
+        val addSerialized = joseCompliantSerializer.encodeToString(addRoute)
+        val serialized = joseCompliantSerializer.encodeToString(route)
+        val restoredAdd = joseCompliantSerializer.decodeFromString<AddCredentialForDCAPIVerificationRoute>(addSerialized)
+        val restored = joseCompliantSerializer.decodeFromString<LoadCredentialForDCAPIVerificationRoute>(serialized)
+
+        assertEquals(type, restoredAdd.credentialType)
+        assertEquals(route, restored)
+        assertEquals(type, restored.credentialType)
+        assertNavigationCompatibleArguments(AddCredentialForDCAPIVerificationRoute.serializer().descriptor)
+        assertNavigationCompatibleArguments(LoadCredentialForDCAPIVerificationRoute.serializer().descriptor)
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    private fun assertNavigationCompatibleArguments(descriptor: SerialDescriptor) {
+        repeat(descriptor.elementsCount) { index ->
+            assertEquals(PrimitiveKind.STRING, descriptor.getElementDescriptor(index).kind)
+        }
     }
 }

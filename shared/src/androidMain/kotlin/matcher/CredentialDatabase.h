@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <optional>
 
 //#include "Request.h"
 struct Request;
@@ -32,6 +33,10 @@ struct Credential {
     // Maps from claimName to Claim.
     std::map<std::string, Claim> claims;
 
+    bool isIssuingCredential = false;
+    std::vector<std::string> issuableMdocDocTypes;
+    std::vector<std::string> issuableSdJwtVcts;
+
     Claim* findMatchingClaim(const DcqlRequestedClaim& claim);
 
     bool supportsProtocol(const std::string& protocol);
@@ -55,11 +60,14 @@ struct CredentialDatabase {
     CredentialDatabase(const uint8_t* encodedDatabase, size_t encodedDatabaseLength);
     //std::vector<std::string> protocols;
     std::vector<Credential> credentials;
+    std::optional<Credential> issuingCredential;
 };
 
 struct CredentialPresentment {
     Credential* credential;
     std::vector<Claim*> claims;
+    std::string syntheticFieldValue = "";
+    std::string syntheticDocumentId = "";
 };
 
 struct CombinationElement {

@@ -1,12 +1,15 @@
 import ExtensionKit
 import Foundation
+import AuthenticationServices
 import IdentityDocumentServicesUI
 import IdentityDocumentServices
 import SwiftUI
 import shared
 
-class StatefulViewController: UIViewController {
+class StatefulViewController: UIViewController, ASWebAuthenticationPresentationContextProviding {
     var current: UIViewController?
+    private var webAuthenticationSession: ASWebAuthenticationSession?
+    private var webAuthenticationAnchor: ASPresentationAnchor?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -33,6 +36,62 @@ class StatefulViewController: UIViewController {
         ])
         
         viewController.didMove(toParent: self)
+    }
+
+    func startWebAuthentication(urlString: String) {
+        guard webAuthenticationSession == nil else {
+            IosSessionBridge.shared.failDcapiProvisioning(message: "A web authentication session is already active")
+            return
+        }
+        guard let url = URL(string: urlString), let anchor = view.window else {
+            IosSessionBridge.shared.failDcapiProvisioning(message: "Unable to start web authentication")
+            return
+        }
+
+        webAuthenticationAnchor = anchor
+        var session: ASWebAuthenticationSession!
+        session = ASWebAuthenticationSession(
+            url: url,
+            callback: .customScheme("asitplus-wallet")
+        ) { [weak self] callbackUrl, error in
+            guard let self, self.webAuthenticationSession === session else { return }
+            self.webAuthenticationSession = nil
+            self.webAuthenticationAnchor = nil
+
+            if let callbackUrl {
+                IosSessionBridge.shared.handleDcapiProvisioningCallback(url: callbackUrl.absoluteString)
+            } else if let authenticationError = error as? ASWebAuthenticationSessionError,
+                      authenticationError.code == .canceledLogin {
+                IosSessionBridge.shared.cancelDcapiProvisioning()
+            } else {
+                IosSessionBridge.shared.failDcapiProvisioning(
+                    message: error?.localizedDescription ?? "Web authentication failed"
+                )
+            }
+        }
+        session.presentationContextProvider = self
+        webAuthenticationSession = session
+        if !session.start() {
+            webAuthenticationSession = nil
+            webAuthenticationAnchor = nil
+            IosSessionBridge.shared.failDcapiProvisioning(message: "Unable to present web authentication")
+        }
+    }
+
+    func cancelWebAuthentication() {
+        let session = webAuthenticationSession
+        webAuthenticationSession = nil
+        webAuthenticationAnchor = nil
+        session?.cancel()
+    }
+
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        precondition(webAuthenticationSession === session && webAuthenticationAnchor != nil)
+        return webAuthenticationAnchor!
+    }
+
+    deinit {
+        cancelWebAuthentication()
     }
 }
 
@@ -219,6 +278,7 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                 // Clear Kotlin-side transient state before cancelling the system request so the next
                 // external flow starts from a clean bridge state.
                 markRequestFinished(context: context)
+                statefulViewController.cancelWebAuthentication()
                 IosSessionBridge.shared.clearDcapiPreRequest()
                 IosSessionBridge.shared.clearDcapiInvocation()
                 requestContext.cancel()
@@ -238,6 +298,7 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                 Task {
                     defer {
                         markRequestFinished(context: context)
+                        statefulViewController.cancelWebAuthentication()
                         IosSessionBridge.shared.clearDcapiInvocation()
                     }
                     do {
@@ -304,7 +365,10 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                 versionCode: (Bundle.main.infoDictionary?["CFBundleVersion"] as? String).flatMap { Int32($0) } ?? 1,
                     versionName: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0",
                     osVersion: "iOS " + UIDevice.current.systemVersion
-                )
+                ),
+                openUrl: { [weak statefulViewController] url in
+                    statefulViewController?.startWebAuthentication(urlString: url)
+                }
             )
             statefulViewController.display(viewController: mainViewController)
         }

@@ -6,6 +6,7 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.openid.SignatureRequestParameters
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.LoadingMessageKey
+import at.asitplus.wallet.app.common.dcapi.DCAPICredentialType
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import data.storage.StoreEntryId
 import kotlinx.serialization.Serializable
@@ -53,6 +54,32 @@ object AddCredentialRoute : PrerequisiteRoute(addCredentialPrerequisites)
 class LoadCredentialRoute(val host: String) : Route()
 
 @Serializable
+data class AddCredentialForDCAPIVerificationRoute(
+    val credentialTypeSerialized: String,
+) : PrerequisiteRoute(addCredentialPrerequisites) {
+    constructor(credentialType: DCAPICredentialType) : this(
+        credentialTypeSerialized = joseCompliantSerializer.encodeToString(credentialType),
+    )
+
+    val credentialType: DCAPICredentialType
+        get() = joseCompliantSerializer.decodeFromString(credentialTypeSerialized)
+}
+
+@Serializable
+data class LoadCredentialForDCAPIVerificationRoute(
+    val host: String,
+    val credentialTypeSerialized: String,
+) : Route() {
+    constructor(host: String, credentialType: DCAPICredentialType) : this(
+        host = host,
+        credentialTypeSerialized = joseCompliantSerializer.encodeToString(credentialType),
+    )
+
+    val credentialType: DCAPICredentialType
+        get() = joseCompliantSerializer.decodeFromString(credentialTypeSerialized)
+}
+
+@Serializable
 data class AddCredentialPreAuthnRoute(
     val credentialOfferSerialized: String
 ) : PrerequisiteRoute(addCredentialPrerequisites) {
@@ -81,7 +108,18 @@ data class AddCredentialDcApiRoute(
 }
 
 @Serializable
-data class TransientFlowIssuingResultRoute(val storeEntryId: StoreEntryId? = null) : Route()
+data class TransientFlowIssuingResultRoute(
+    val storeEntryId: StoreEntryId? = null,
+    val additionalStoreEntryIds: List<StoreEntryId> = emptyList(),
+) : Route() {
+    constructor(storeEntryIds: List<StoreEntryId>) : this(
+        storeEntryId = storeEntryIds.firstOrNull(),
+        additionalStoreEntryIds = storeEntryIds.drop(1),
+    )
+
+    val storeEntryIds: List<StoreEntryId>
+        get() = listOfNotNull(storeEntryId) + additionalStoreEntryIds
+}
 
 @Serializable
 data class AddCredentialWithLinkRoute(val uri: String) : Route()

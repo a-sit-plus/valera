@@ -3,9 +3,13 @@ package ui.viewmodels
 import ErrorHandlingOverrideException
 import at.asitplus.dcapi.issuance.DigitalCredentialOfferReturn
 import at.asitplus.openid.CredentialOffer
+import at.asitplus.openid.SupportedCredentialFormatIsoMdoc
+import at.asitplus.openid.SupportedCredentialFormatSdJwt
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.dcapi.DCAPICredentialRepresentation
+import at.asitplus.wallet.app.common.dcapi.DCAPICredentialType
 import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import kotlinx.coroutines.async
 
@@ -20,9 +24,13 @@ class LoadCredentialViewModel(
     val navigateUp: () -> Unit,
     val hostString: String,
     val credentialIdentifiers: Collection<CredentialIdentifierInfo>,
+    val requestedCredentialType: DCAPICredentialType?,
     val offer: CredentialOffer?,
     val onClickLogo: () -> Unit,
 ) {
+
+    val initialCredentialIdentifierInfo: CredentialIdentifierInfo
+        get() = credentialIdentifiers.first()
 
     init {
         check(credentialIdentifiers.isNotEmpty()) {
@@ -64,16 +72,24 @@ class LoadCredentialViewModel(
             hostString: String,
             onClickLogo: () -> Unit,
             onProgress: ((LoadingMessageKey) -> Unit)? = null,
+            requestedCredentialType: DCAPICredentialType? = null,
         ) = LoadCredentialViewModel(
             walletMain = walletMain,
             onSubmit = onSubmit,
             navigateUp = navigateUp,
             hostString = hostString,
             offer = null,
+            requestedCredentialType = requestedCredentialType,
             onClickLogo = onClickLogo,
             credentialIdentifiers = walletMain.scope.async {
                 onProgress?.invoke(LoadingMessageKey.IssuerMetadata)
                 walletMain.provisioningService.loadCredentialMetadata(hostString)
+                    .filterFor(requestedCredentialType)
+                    .also {
+                        if (requestedCredentialType != null && it.isEmpty()) {
+                            throw RequestedCredentialTypeUnavailableException(hostString, requestedCredentialType)
+                        }
+                    }
             }.await()
         )
 
@@ -90,6 +106,7 @@ class LoadCredentialViewModel(
             navigateUp = navigateUp,
             hostString = offer.credentialIssuer,
             offer = offer,
+            requestedCredentialType = null,
             onClickLogo = onClickLogo,
             credentialIdentifiers = walletMain.scope.async {
                 onProgress?.invoke(LoadingMessageKey.IssuerMetadata)
@@ -111,6 +128,7 @@ class LoadCredentialViewModel(
             navigateUp = navigateUp,
             hostString = offer.credentialIssuer,
             offer = offer,
+            requestedCredentialType = null,
             onClickLogo = onClickLogo,
             credentialIdentifiers = walletMain.scope.async {
                 onProgress?.invoke(LoadingMessageKey.IssuerMetadata)
@@ -139,6 +157,7 @@ class LoadCredentialViewModel(
                 navigateUp = navigateUp,
                 hostString = offer.credentialIssuer,
                 offer = offer,
+                requestedCredentialType = null,
                 onClickLogo = onClickLogo,
                 credentialIdentifiers = walletMain.scope.async {
                     onProgress?.invoke(LoadingMessageKey.IssuerMetadata)
@@ -146,6 +165,31 @@ class LoadCredentialViewModel(
                         .filter { it.credentialIdentifier in offer.configurationIds }
                 }.await()
             )
+        }
+    }
+}
+
+class RequestedCredentialTypeUnavailableException(
+    host: String,
+    val credentialType: DCAPICredentialType,
+) : IllegalStateException("Issuer '$host' does not offer the requested credential type '${credentialType.type}'")
+
+internal fun Collection<CredentialIdentifierInfo>.filterFor(
+    requestedType: DCAPICredentialType?,
+): List<CredentialIdentifierInfo> = if (requestedType == null) {
+    toList()
+} else {
+    filter { identifier ->
+        when (val format = identifier.supportedCredentialFormat) {
+            is SupportedCredentialFormatIsoMdoc ->
+                requestedType.representation == DCAPICredentialRepresentation.ISO_MDOC &&
+                    format.docType == requestedType.type
+
+            is SupportedCredentialFormatSdJwt ->
+                requestedType.representation == DCAPICredentialRepresentation.SD_JWT &&
+                    format.sdJwtVcType == requestedType.type
+
+            else -> false
         }
     }
 }

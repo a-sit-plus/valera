@@ -11,11 +11,14 @@ import at.asitplus.dcapi.toIosIsoMdocResponseBytes
 import at.asitplus.dcapi.ios.IosDcApiMdocPreRequestSummary
 import at.asitplus.dcapi.request.IsoMdocRequest
 import at.asitplus.dcapi.request.toRequestParametersFrom
-import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
+import at.asitplus.wallet.app.common.dcapi.DCAPICredentialRepresentation
+import at.asitplus.wallet.app.common.dcapi.DCAPICredentialType
+import at.asitplus.wallet.app.common.dcapi.DCAPIExportService
+import at.asitplus.wallet.app.common.dcapi.DCAPIVerificationData
 import at.asitplus.wallet.app.common.AV_DOC_TYPE
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
@@ -49,12 +52,19 @@ import kotlin.collections.mapValues
 
 actual fun getPlatformName(): String = "iOS"
 
-private val SUPPORTED_DOC_TYPES = listOf(
+internal val IOS_SUPPORTED_DOC_TYPES = setOf(
     AV_DOC_TYPE,
     EU_PID_DOCTYPE,
     "org.iso.23220.photoid.1",
     MDL_DOCTYPE
 )
+
+internal fun iosIssuingDocumentId(docType: String): String =
+    "${DCAPIExportService.ISSUING_CREDENTIAL_ID}:mdoc:${docType.encodeToByteArray().encodeHex()}"
+
+private fun ByteArray.encodeHex(): String = joinToString(separator = "") { byte ->
+    byte.toUByte().toString(radix = 16).padStart(length = 2, padChar = '0')
+}
 
 @Composable
 actual fun getColorScheme(): ColorScheme {
@@ -83,8 +93,9 @@ fun MainViewController(
 @ExperimentalMaterial3Api
 fun TransientFlowMainViewController(
     buildContext: BuildContext,
+    openUrl: ((String) -> Unit)? = null,
 ): UIViewController {
-    val (intentState, sessionService, promptModel) = getOrCreateIosTransientFlowSession(buildContext)
+    val (intentState, sessionService, promptModel) = getOrCreateIosTransientFlowSession(buildContext, openUrl)
 
     return ComposeUIViewController {
         PromptDialogs(promptModel)
@@ -96,8 +107,13 @@ fun TransientFlowMainViewController(
 }
 
 class IosPlatformAdapter(
-    private val intentState: IntentState
+    private val intentState: IntentState,
+    private val openUrlHandler: ((String) -> Unit)? = null,
 ) : PlatformAdapter {
+    override val dcApiVerificationIssuanceTypes: Set<DCAPICredentialType> =
+        IOS_SUPPORTED_DOC_TYPES.mapTo(mutableSetOf()) {
+            DCAPICredentialType(DCAPICredentialRepresentation.ISO_MDOC, it)
+        }
     private companion object {
         const val REGISTERED_DOCUMENT_IDS_DEFAULTS_KEY = "dcapi.registeredDocumentIds"
         const val ISO_DC_API_VALIDATION_ERROR = "ISO 18013-7 Annex C request validation failed"
@@ -123,6 +139,10 @@ class IosPlatformAdapter(
 
     override fun openUrl(url: String) {
         dispatch_async(dispatch_get_main_queue()) {
+            openUrlHandler?.let {
+                it(url)
+                return@dispatch_async
+            }
             val url = NSURL(string = url)
             if (UIApplication.sharedApplication.canOpenURL(url)) {
                 UIApplication.sharedApplication.openURL(url, mapOf<Any?, Any?>(), null)
@@ -290,9 +310,17 @@ class IosPlatformAdapter(
         withContext(Dispatchers.Default) {
             // Serialize the whole removal+add process so concurrent snapshots can't interleave.
             registeredDocumentIdsLock.withLock {
-                val currentIds = entries.credentials.mapNotNull { entry ->
-                    entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
-                }.toSet()
+                val storedDocuments = entries.credentials.mapNotNull { entry ->
+                    val id = entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
+                    val docType = entry.isoEntry?.docType ?: entry.sdJwtEntry?.verifiableCredentialType
+                    if (id != null && docType in IOS_SUPPORTED_DOC_TYPES) id to docType else null
+                }
+                val storedDocTypes = storedDocuments.mapTo(mutableSetOf()) { it.second }
+                val issuingDocuments = IOS_SUPPORTED_DOC_TYPES
+                    .filterNot { it in storedDocTypes }
+                    .map { docType -> iosIssuingDocumentId(docType) to docType }
+                val documents = storedDocuments + issuingDocuments
+                val currentIds = documents.mapTo(mutableSetOf()) { it.first }
                 val staleIds = registeredDocumentIds - currentIds
                 staleIds.forEach { id ->
                     if (removeDocumentFromSwift(id, scope)) {
@@ -300,11 +328,9 @@ class IosPlatformAdapter(
                         saveRegisteredDocumentIds(registeredDocumentIds)
                     }
                 }
-                for (entry in entries.credentials) {
-                    val id = entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
-                    val docType = entry.isoEntry?.docType ?: entry.sdJwtEntry?.verifiableCredentialType
+                for ((id, docType) in documents) {
                     // Only register credentials we haven't registered before.
-                    if (id != null && docType != null && id !in registeredDocumentIds) {
+                    if (id !in registeredDocumentIds) {
                         if (storeDocumentFromSwift(id, docType, scope)) {
                             registeredDocumentIds.add(id)
                             saveRegisteredDocumentIds(registeredDocumentIds)
@@ -323,7 +349,7 @@ class IosPlatformAdapter(
     ): Boolean = suspendCancellableCoroutine { cont ->
         try {
             Napier.d("storeDocumentFromSwift invoked")
-            if (docType !in SUPPORTED_DOC_TYPES) {
+            if (docType !in IOS_SUPPORTED_DOC_TYPES) {
                 Napier.w("DocType '$docType' is not supported on iOS, will not add it to the system")
                 if (cont.isActive) cont.resume(false)
                 return@suspendCancellableCoroutine
@@ -378,8 +404,11 @@ class IosPlatformAdapter(
         }
     }
 
-    override fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest> {
+    override fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIVerificationData> {
         Napier.d("getCurrentDCAPIVerificationData called")
+        intentState.pendingDCAPIVerificationIssuanceQueue.value.firstOrNull()?.let {
+            return KmmResult.success(DCAPIVerificationData.IssuanceRequired(it))
+        }
         return (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let {
             try {
                 val isoMdocRequest = it.rawRequest?.let { request -> Json.decodeFromString<IsoMdocRequest>(request) }
@@ -399,12 +428,24 @@ class IosPlatformAdapter(
                     callingOrigin = it.origin ?: throw IllegalStateException("No origin received"),
                     credentialIds = null,
                 )
-                KmmResult.success(walletRequest)
+                KmmResult.success(DCAPIVerificationData.Presentation(walletRequest))
             } catch (e: Throwable) {
                 Napier.e("Error parsing mdoc request", e)
                 KmmResult.failure(e)
             }
         } ?: KmmResult.failure(Throwable("No request data available"))
+    }
+
+    override fun resolveCurrentDCAPIVerificationIssuance(
+        credentialType: DCAPICredentialType,
+        credentialId: String,
+    ): KmmResult<Unit> = catching {
+        require(credentialId.isNotBlank()) { "Issued credential has no DC API ID" }
+        val queue = intentState.pendingDCAPIVerificationIssuanceQueue.value
+        require(queue.firstOrNull() == credentialType) {
+            "Issued credential type does not match the pending iOS request"
+        }
+        intentState.pendingDCAPIVerificationIssuanceQueue.value = queue.drop(1)
     }
 
     override fun getCurrentDCAPIIssuingData(): KmmResult<DCAPIIssuingRequest> = catching {

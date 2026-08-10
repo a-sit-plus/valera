@@ -74,6 +74,8 @@ struct DcqlQuery {
 struct DcqlResponseCredentialSetOptionMemberMatch {
     Credential* credential;
     std::vector<Claim*> claims;
+    std::string syntheticFieldValue = "";
+    std::string syntheticDocumentId = "";
 };
 
 struct DcqlResponseCredentialSetOptionMember {

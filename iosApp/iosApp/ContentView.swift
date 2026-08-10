@@ -30,7 +30,7 @@ struct ComposeView: UIViewControllerRepresentable {
 // Presented as a sheet over ContentView, mirroring Android's TransientFlowActivity.
 struct TransientFlowView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
-        Main_iosKt.TransientFlowMainViewController(buildContext: makeBuildContext())
+        Main_iosKt.TransientFlowMainViewController(buildContext: makeBuildContext(), openUrl: nil)
     }
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
 }

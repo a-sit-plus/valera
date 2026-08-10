@@ -7,4 +7,6 @@ import at.asitplus.wallet.app.common.dcapi.DCAPIInvocationData
 data class AndroidDCAPIInvocationData(
     var intent: Intent,
     val sendCredentialResponseToInvoker: (String, Boolean) -> Unit
-) : DCAPIInvocationData
+) : DCAPIInvocationData {
+    internal var verificationSelection: DCAPIVerificationSelection? = null
+}

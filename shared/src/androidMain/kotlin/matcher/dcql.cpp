@@ -185,6 +185,54 @@ struct QueryResponse {
     std::vector<DcqlResponseCredentialSetOptionMemberMatch> matches;
 };
 
+std::string HexEncode(const std::string& value) {
+    static const char* digits = "0123456789abcdef";
+    std::string encoded;
+    encoded.reserve(value.size() * 2);
+    for (const unsigned char character : value) {
+        encoded.push_back(digits[character >> 4]);
+        encoded.push_back(digits[character & 0x0f]);
+    }
+    return encoded;
+}
+
+std::string IssuingCredentialDocumentId(
+        const Credential& credential,
+        const DcqlCredentialQuery& query,
+        const std::string& credentialType
+) {
+    const char* representation = query.format == "dc+sd-jwt" ? "sdjwt" : "mdoc";
+    return credential.documentId + ":" + representation + ":" + HexEncode(credentialType);
+}
+
+std::optional<std::string> IssuingCredentialTypeForQuery(
+        const Credential& credential,
+        const DcqlCredentialQuery& query
+) {
+    if (query.format == "mso_mdoc" || query.format == "mso_mdoc_zk") {
+        if (std::find(
+                credential.issuableMdocDocTypes.begin(),
+                credential.issuableMdocDocTypes.end(),
+                query.mdocDocType
+        ) != credential.issuableMdocDocTypes.end()) {
+            return query.mdocDocType;
+        }
+        return std::nullopt;
+    }
+    if (query.format == "dc+sd-jwt") {
+        for (const auto& vct : query.vctValues) {
+            if (std::find(
+                    credential.issuableSdJwtVcts.begin(),
+                    credential.issuableSdJwtVcts.end(),
+                    vct
+            ) != credential.issuableSdJwtVcts.end()) {
+                return vct;
+            }
+        }
+    }
+    return std::nullopt;
+}
+
 bool CredentialSetOptionIsSatisfied(
         const DcqlCredentialSetOption& option,
         const std::map<std::string, QueryResponse>& credentialQueryIdToResponse
@@ -271,6 +319,19 @@ std::optional<DcqlResponse> DcqlQuery::execute(CredentialDatabase* credentialDat
                 }
             }
         }
+        // The issuing credential is a fallback and must never be displayed beside a full stored match.
+        if (matches.empty() && credentialDatabase->issuingCredential.has_value()) {
+            Credential& issuingCredential = credentialDatabase->issuingCredential.value();
+            auto issuingCredentialType = IssuingCredentialTypeForQuery(issuingCredential, query);
+            if (issuingCredential.supportsProtocol(protocol) && issuingCredentialType.has_value()) {
+                matches.push_back(DcqlResponseCredentialSetOptionMemberMatch(
+                        &issuingCredential,
+                        {},
+                        "Create a new credential of type " + issuingCredentialType.value(),
+                        IssuingCredentialDocumentId(issuingCredential, query, issuingCredentialType.value())
+                ));
+            }
+        }
         credentialQueryIdToResponse[query.id] = QueryResponse(&query, matches);
     }
 
@@ -280,14 +341,20 @@ std::optional<DcqlResponse> DcqlQuery::execute(CredentialDatabase* credentialDat
         //   If credential_sets is not provided, the Verifier requests presentations for
         //   all Credentials in credentials to be returned.
         //
-        for (const auto& pair: credentialQueryIdToResponse) {
-            if (pair.second.matches.empty()) {
-                LOG("No matches for credential query with id %s", pair.second.query->id.c_str());
+        for (const auto& query : dcqlCredentialQueries) {
+            const auto& response = credentialQueryIdToResponse.at(query.id);
+            if (response.matches.empty()) {
+                LOG("No matches for credential query with id %s", response.query->id.c_str());
                 return std::nullopt;
             }
             std::vector<DcqlResponseCredentialSetOptionMemberMatch> matches;
-            for (const auto& match : pair.second.matches) {
-                matches.push_back(DcqlResponseCredentialSetOptionMemberMatch(match.credential, match.claims));
+            for (const auto& match : response.matches) {
+                matches.push_back(DcqlResponseCredentialSetOptionMemberMatch(
+                        match.credential,
+                        match.claims,
+                        match.syntheticFieldValue,
+                        match.syntheticDocumentId
+                ));
             }
             std::vector<DcqlResponseCredentialSetOptionMember> members;
             members.push_back(DcqlResponseCredentialSetOptionMember(matches));
@@ -402,7 +469,12 @@ std::vector<Combination> DcqlResponse::getCredentialCombinations() {
                 for (const auto& member : option.members) {
                     std::vector<CredentialPresentment> cmatches;
                     for (const auto& match : member.matches) {
-                        cmatches.push_back(CredentialPresentment(match.credential, match.claims));
+                        cmatches.push_back(CredentialPresentment(
+                                match.credential,
+                                match.claims,
+                                match.syntheticFieldValue,
+                                match.syntheticDocumentId
+                        ));
                     }
                     elements.push_back(CombinationElement(cmatches));
                 }

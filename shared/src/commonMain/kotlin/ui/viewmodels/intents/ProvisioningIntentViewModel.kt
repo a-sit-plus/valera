@@ -28,7 +28,7 @@ class ProvisioningIntentViewModel(
             )
             walletMain.loadingStatusService.clear()
             Napier.d("ProvisioningIntentViewModel success storedEntryIds=$storedEntryIds")
-            TransientFlowIssuingResultRoute(storedEntryIds.firstOrNull())
+            TransientFlowIssuingResultRoute(storedEntryIds)
         }.onSuccess {
             Napier.d("ProvisioningIntentViewModel navigating to route=$it")
             onSuccess(it)

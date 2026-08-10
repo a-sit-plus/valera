@@ -1,6 +1,7 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.wallet.app.common.dcapi.DCAPIInvocationData
+import at.asitplus.wallet.app.common.dcapi.DCAPICredentialType
 import at.asitplus.wallet.app.dcapi.IosDcApiPreRequestData
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +19,12 @@ class IntentState {
 
     /** Active Digital Credentials API invocation/session payload, if any. */
     val dcapiInvocationData = MutableStateFlow<DCAPIInvocationData?>(null)
+
+    /** Credential type currently being issued to satisfy a pending DC API verification request. */
+    val pendingDCAPIVerificationIssuance = MutableStateFlow<DCAPICredentialType?>(null)
+
+    /** Missing credential types still to issue for the active DC API verification request. */
+    val pendingDCAPIVerificationIssuanceQueue = MutableStateFlow<List<DCAPICredentialType>>(emptyList())
 
     /** Pending iOS-only Digital Credentials API pre-request payload, if any. */
     val iosDcApiPreRequestData = MutableStateFlow<IosDcApiPreRequestData?>(null)
@@ -57,6 +64,8 @@ class IntentState {
     fun reset() {
         appLink.value = null
         dcapiInvocationData.value = null
+        pendingDCAPIVerificationIssuance.value = null
+        pendingDCAPIVerificationIssuanceQueue.value = emptyList()
         iosDcApiPreRequestData.value = null
         presentationStateModel.value = null
         presentationStateModelProvider = null

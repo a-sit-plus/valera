@@ -23,23 +23,34 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.dcapi.issuance.DigitalCredentialOfferReturn
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.button_label_ok
+import at.asitplus.valera.resources.button_label_present_now
+import at.asitplus.valera.resources.dcapi_issuer_missing_requested_type
 import at.asitplus.valera.resources.info_text_error_action_return_to_invoker
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.decodeImage
+import at.asitplus.wallet.app.common.dcapi.DCAPICredentialRepresentation
+import at.asitplus.wallet.app.common.dcapi.DCAPICredentialType
+import at.asitplus.wallet.app.common.dcapi.DCAPIVerificationData
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.oidvci.OAuth2Exception
 import io.github.aakira.napier.Napier
 import io.ktor.http.URLBuilder
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.core.scope.Scope
+import org.jetbrains.compose.resources.getString
 import ui.composables.credentials.CredentialCard
 import ui.models.toFallbackResolvedCredential
 import ui.models.toResolvedCredential
 import ui.navigation.routes.AddCredentialDcApiRoute
+import ui.navigation.routes.AddCredentialForDCAPIVerificationRoute
 import ui.navigation.routes.AddCredentialPreAuthnRoute
 import ui.navigation.routes.AddCredentialWithLinkRoute
 import ui.navigation.routes.AttestationSettingsRoute
@@ -53,6 +64,7 @@ import ui.navigation.routes.DCAPIIssuingIntentRoute
 import ui.navigation.routes.DCAPIPresentationViewRoute
 import ui.navigation.routes.ErrorIntentRoute
 import ui.navigation.routes.LoadingRoute
+import ui.navigation.routes.LoadCredentialForDCAPIVerificationRoute
 import ui.navigation.routes.LogRoute
 import ui.navigation.routes.PresentationIntentRoute
 import ui.navigation.routes.ProvisioningAuthRequestIntentRoute
@@ -70,6 +82,7 @@ import ui.viewmodels.AttestationSettingsViewModel
 import ui.viewmodels.CredentialDetailsViewModel
 import ui.viewmodels.CredentialSelection
 import ui.viewmodels.LoadCredentialViewModel
+import ui.viewmodels.RequestedCredentialTypeUnavailableException
 import ui.viewmodels.LogViewModel
 import ui.viewmodels.SigningQtspSelectionViewModel
 import ui.viewmodels.intents.AuthorizationIntentViewModel
@@ -87,6 +100,7 @@ import ui.views.CredentialDetailsView
 import ui.views.LoadCredentialView
 import ui.views.LoadingView
 import ui.views.LogView
+import ui.views.SelectIssuingServerView
 import ui.views.SigningQtspSelectionView
 import ui.views.authentication.AuthenticationSuccessView
 import ui.views.intents.AuthorizationIntentView
@@ -133,6 +147,7 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
         DCAPIAuthorizationIntentView(remember {
             DCAPIAuthorizationIntentViewModel(
                 walletMain = walletMain,
+                intentState = intentState,
                 uri = backStackEntry.toRoute<DCAPIAuthorizationIntentRoute>().uri,
                 onSuccess = { route ->
                     Napier.d(
@@ -219,6 +234,75 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
             koinScope = koinScope,
             onNavigateUp = navigator::invocationAwareBack,
             showStartRoute = shouldShowDcApiStartRoute(flow),
+        )
+    }
+
+    composable<AddCredentialForDCAPIVerificationRoute> { backStackEntry ->
+        val requestedType = backStackEntry.toRoute<AddCredentialForDCAPIVerificationRoute>().credentialType
+        val backState = rememberNavigationEventState(NavigationEventInfo.None)
+        NavigationBackHandler(state = backState, isBackEnabled = true) {
+            cancelVerificationDrivenIssuance(navigator, walletMain, intentState)
+        }
+        SelectIssuingServerView(
+            navigateUp = {
+                cancelVerificationDrivenIssuance(navigator, walletMain, intentState)
+            },
+            onClickLogo = onClickLogo,
+            onNavigateToLoadCredentialRoute = { host ->
+                navigator.navigate(LoadCredentialForDCAPIVerificationRoute(host, requestedType))
+            },
+            koinScope = koinScope,
+        )
+    }
+
+    composable<LoadCredentialForDCAPIVerificationRoute> { backStackEntry ->
+        val route = backStackEntry.toRoute<LoadCredentialForDCAPIVerificationRoute>()
+        var vm by remember { mutableStateOf<LoadCredentialViewModel?>(null) }
+        LaunchedEffect(route) {
+            catchingUnwrapped {
+                LoadCredentialViewModel.init(
+                    walletMain = walletMain,
+                    navigateUp = navigator::navigateBack,
+                    hostString = route.host,
+                    requestedCredentialType = route.credentialType,
+                    onSubmit = { credentialIdentifierInfo, _, _ ->
+                        intentState.pendingDCAPIVerificationIssuance.value = route.credentialType
+                        walletMain.loadingStatusService.set(LoadingMessageKey.IssuingCredential)
+                        navigator.navigate(LoadingRoute(LoadingMessageKey.IssuingCredential))
+                        walletMain.scope.launch {
+                            try {
+                                walletMain.provisioningService.startProvisioningWithAuthRequest(
+                                    credentialIssuer = route.host,
+                                    credentialIdentifierInfo = credentialIdentifierInfo,
+                                )
+                            } catch (error: Throwable) {
+                                intentState.pendingDCAPIVerificationIssuance.value = null
+                                walletMain.loadingStatusService.clear()
+                                emitVerificationIssuanceFailure(navigator, walletMain, intentState, error)
+                            }
+                        }
+                    },
+                    onClickLogo = onClickLogo,
+                    onProgress = walletMain.loadingStatusService::set,
+                )
+            }.onSuccess {
+                walletMain.loadingStatusService.clear()
+                vm = it
+            }.onFailure { error ->
+                walletMain.loadingStatusService.clear()
+                if (error is RequestedCredentialTypeUnavailableException) {
+                    navigator.navigateBack()
+                    walletMain.snackbarService.showSnackbar(
+                        getString(Res.string.dcapi_issuer_missing_requested_type, error.credentialType.type)
+                    )
+                } else {
+                    emitVerificationIssuanceFailure(navigator, walletMain, intentState, error)
+                }
+            }
+        }
+        val loadingMessage by walletMain.loadingStatusService.message.collectAsState()
+        vm?.let { LoadCredentialView(it) } ?: LoadingView(
+            loadingMessageString(loadingMessage ?: LoadingMessageKey.IssuerMetadata)
         )
     }
 
@@ -404,7 +488,12 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
 
     composable<TransientFlowIssuingResultRoute> { backStackEntry ->
         val route = backStackEntry.toRoute<TransientFlowIssuingResultRoute>()
-        var isAutoDismissEnabled by rememberSaveable(route.storeEntryId) { mutableStateOf(true) }
+        val isVerificationDrivenIssuance = remember(route.storeEntryId) {
+            intentState.pendingDCAPIVerificationIssuance.value != null
+        }
+        var isAutoDismissEnabled by rememberSaveable(route.storeEntryId) {
+            mutableStateOf(!isVerificationDrivenIssuance)
+        }
         var isAcknowledgeInProgress by rememberSaveable(route.storeEntryId) { mutableStateOf(false) }
         val detailsStoreEntryId = route.storeEntryId
         val storeEntry = route.storeEntryId?.let { storeEntryId ->
@@ -429,12 +518,24 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
             if (!isAcknowledgeInProgress) {
                 isAcknowledgeInProgress = true
                 walletMain.scope.launch {
-                    walletMain.refreshDcApiCredentialRegistration()
-                    if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
+                    val nextVerificationRoute = catchingUnwrapped {
+                        advanceVerificationDrivenIssuance(walletMain, intentState, route.storeEntryIds)
+                    }.getOrElse { error ->
+                        emitVerificationIssuanceFailure(navigator, walletMain, intentState, error)
+                        return@launch
+                    }
+                    if (nextVerificationRoute != null) {
+                        navigator.navigateNewGraph(nextVerificationRoute)
+                        walletMain.scope.launch { walletMain.refreshDcApiCredentialRegistration() }
+                    } else if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
+                        walletMain.scope.launch { walletMain.refreshDcApiCredentialRegistration() }
                         val response = flow.encodeDigitalCredentialOfferReturn(DigitalCredentialOfferReturn.success())
                         walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, true)
+                        navigator.popToInvoker()
+                    } else {
+                        walletMain.scope.launch { walletMain.refreshDcApiCredentialRegistration() }
+                        navigator.popToInvoker()
                     }
-                    navigator.popToInvoker()
                 }
             }
         }
@@ -447,6 +548,11 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
             onClickButton = onAcknowledge,
             onClickLogo = onClickLogo,
             isAutoDismissEnabled = isAutoDismissEnabled,
+            buttonLabel = if (isVerificationDrivenIssuance) {
+                Res.string.button_label_present_now
+            } else {
+                Res.string.button_label_ok
+            },
             credentialContent = storeEntry?.let { credential ->
                 {
                     CredentialCard(
@@ -489,7 +595,12 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
                     navigator.navigateNewGraph(route ?: TransientFlowIssuingResultRoute())
                 },
                 onFailure = { error ->
-                    walletMain.errorService.emit(error)
+                    if (intentState.pendingDCAPIVerificationIssuance.value != null) {
+                        intentState.pendingDCAPIVerificationIssuance.value = null
+                        emitVerificationIssuanceFailure(navigator, walletMain, intentState, error)
+                    } else {
+                        walletMain.errorService.emit(error)
+                    }
                 })
         })
     }
@@ -693,3 +804,91 @@ private fun SharedDestinationFlow.encodeDigitalCredentialOfferReturn(
         SharedDestinationFlow.Wallet -> joseCompliantSerializer.encodeToString(value)
         SharedDestinationFlow.Transient -> joseCompliantSerializer.encodeToString(value)
     }
+
+private suspend fun advanceVerificationDrivenIssuance(
+    walletMain: WalletMain,
+    intentState: IntentState,
+    storedEntryIds: List<Long>,
+): Route? {
+    val pendingType = intentState.pendingDCAPIVerificationIssuance.value
+    if (pendingType == null) {
+        return null
+    }
+    try {
+        val current = walletMain.platformAdapter.getCurrentDCAPIVerificationData().getOrThrow()
+        val issuance = current as? DCAPIVerificationData.IssuanceRequired
+            ?: throw IllegalStateException("DC API verification no longer requires credential issuance")
+        require(issuance.credentialType == pendingType) {
+            "Issued credential type '${pendingType.type}' does not match the pending verification type " +
+                "'${issuance.credentialType.type}'"
+        }
+        val container = walletMain.subjectCredentialStore.observeStoreContainer().first()
+        val issuedCredential = container.credentials
+            .asSequence()
+            .filter { it.first in storedEntryIds }
+            .map { it.second }
+            .firstOrNull { it.matches(pendingType) }
+            ?: throw IllegalStateException(
+                "Issuance did not produce the requested credential type '${pendingType.type}'"
+            )
+
+        walletMain.platformAdapter.resolveCurrentDCAPIVerificationIssuance(
+            credentialType = pendingType,
+            credentialId = issuedCredential.getDcApiId(),
+        ).getOrThrow()
+
+        return when (val next = walletMain.platformAdapter.getCurrentDCAPIVerificationData().getOrThrow()) {
+            is DCAPIVerificationData.IssuanceRequired ->
+                AddCredentialForDCAPIVerificationRoute(next.credentialType)
+
+            is DCAPIVerificationData.Presentation -> DCAPIPresentationViewRoute(next.request)
+        }
+    } finally {
+        intentState.pendingDCAPIVerificationIssuance.value = null
+    }
+}
+
+private fun SubjectCredentialStore.StoreEntry.matches(type: DCAPICredentialType): Boolean = when (type.representation) {
+    DCAPICredentialRepresentation.ISO_MDOC -> this is SubjectCredentialStore.StoreEntry.Iso &&
+        schemeIdentifier == type.type
+
+    DCAPICredentialRepresentation.SD_JWT -> this is SubjectCredentialStore.StoreEntry.SdJwt &&
+        schemeIdentifier == type.type
+}
+
+private fun cancelVerificationDrivenIssuance(
+    navigator: WalletNavigationController,
+    walletMain: WalletMain,
+    intentState: IntentState,
+) {
+    intentState.pendingDCAPIVerificationIssuance.value = null
+    intentState.pendingDCAPIVerificationIssuanceQueue.value = emptyList()
+    walletMain.platformAdapter.prepareDCAPICredentialError(
+        OAuth2Exception.AccessDenied("Credential issuance was canceled").serialize()
+    )
+    navigator.invocationAwareBack()
+}
+
+private fun emitVerificationIssuanceFailure(
+    navigator: WalletNavigationController,
+    walletMain: WalletMain,
+    intentState: IntentState,
+    error: Throwable,
+) {
+    intentState.pendingDCAPIVerificationIssuanceQueue.value = emptyList()
+    walletMain.errorService.emit(
+        ErrorHandlingOverrideException(
+            resetStackOverride = navigator::invocationAwareBack,
+            actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
+            onAcknowledge = {
+                if (intentState.dcapiInvocationData.value != null) {
+                    walletMain.platformAdapter.prepareDCAPICredentialError(
+                        OAuth2Exception.InvalidRequest(error.message).serialize()
+                    )
+                }
+                navigator.invocationAwareBack()
+            },
+            cause = error,
+        )
+    )
+}

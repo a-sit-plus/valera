@@ -5,10 +5,19 @@ import at.asitplus.catching
 import at.asitplus.catchingUnwrapped
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.app_display_name
+import at.asitplus.valera.resources.dcapi_issuing_credential_title
+import at.asitplus.wallet.app.common.AV_DOC_TYPE
+import at.asitplus.wallet.app.common.COMPANY_REGISTRATION_VCT
+import at.asitplus.wallet.app.common.COR_VCT
+import at.asitplus.wallet.app.common.EHIC_VCT
+import at.asitplus.wallet.app.common.HEALTH_ID_VCT
+import at.asitplus.wallet.app.common.POR_VCT
 import at.asitplus.wallet.app.common.PlatformAdapter
+import at.asitplus.wallet.app.common.TAX_ID_VCT
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialEntry
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.common.dcapi.data.export.IsoMdocEntry
+import at.asitplus.wallet.app.common.dcapi.data.export.IssuingCredentialEntry
 import at.asitplus.wallet.app.common.dcapi.data.export.SdJwtEntry
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPid
@@ -18,6 +27,9 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme
 import at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme
+import at.asitplus.wallet.eupid.EU_PID_DOCTYPE
+import at.asitplus.wallet.eupidsdjwt.EU_PID_SD_JWT_VCT
+import at.asitplus.wallet.mdl.MDL_DOCTYPE
 import data.credentials.CredentialAdapter.Companion.toNamespaceAttributeMap
 import data.credentials.EuPidCredentialAdapter
 import data.credentials.MobileDrivingLicenceCredentialAdapter
@@ -40,10 +52,21 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
                 .getOrNull()
         }
 
-        val credentialRegistry = CredentialRegistry.create(credentialListEntries)
+        val credentialRegistry = CredentialRegistry.create(
+            credentials = credentialListEntries,
+            issuingCredential = createIssuingCredentialEntry(),
+        )
         platformAdapter.registerWithDigitalCredentialsAPI(credentialRegistry, scope)
         Napier.d("DC API: Registering ${credentialRegistry.credentials.size} credentials with the system")
     }
+
+    private suspend fun createIssuingCredentialEntry() = IssuingCredentialEntry(
+        title = getString(Res.string.dcapi_issuing_credential_title),
+        subtitle = getString(Res.string.app_display_name),
+        id = ISSUING_CREDENTIAL_ID,
+        mdocDocTypes = supportedIssuingMdocDocTypes,
+        sdJwtVcts = supportedIssuingSdJwtVcts,
+    )
 
     private suspend fun SubjectCredentialStore.StoreEntry.toCredentialEntry(): CredentialEntry? {
         if (this is SubjectCredentialStore.StoreEntry.Vc) return null
@@ -104,5 +127,29 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
         is SubjectCredentialStore.StoreEntry.SdJwt -> SdJwtFallbackCredentialScheme(schemeIdentifier)
         is SubjectCredentialStore.StoreEntry.Iso -> IsoMdocFallbackCredentialScheme(schemeIdentifier)
         is SubjectCredentialStore.StoreEntry.Vc -> error("JWT VC credentials are not registered with the DC API")
+    }
+
+    companion object {
+        internal const val ISSUING_CREDENTIAL_ID = "dcapi-issuing-credential"
+
+        internal val supportedIssuingMdocDocTypes = listOf(
+            EU_PID_DOCTYPE,
+            MDL_DOCTYPE,
+            AV_DOC_TYPE,
+        )
+
+        internal val supportedIssuingSdJwtVcts = listOf(
+            "EuPid2023",
+            EU_PID_SD_JWT_VCT,
+            MDL_DOCTYPE,
+            EHIC_VCT,
+            TAX_ID_VCT,
+            COR_VCT,
+            COMPANY_REGISTRATION_VCT,
+            POR_VCT,
+            HEALTH_ID_VCT,
+            AV_DOC_TYPE,
+            "urn:eidgvat:eid.status.full"
+        )
     }
 }

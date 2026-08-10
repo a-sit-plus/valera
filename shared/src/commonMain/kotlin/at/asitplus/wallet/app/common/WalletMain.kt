@@ -11,6 +11,8 @@ import at.asitplus.wallet.app.common.attestation.AttestationService
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.dcapi.DCAPIExportService
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
+import at.asitplus.wallet.app.common.dcapi.DCAPICredentialType
+import at.asitplus.wallet.app.common.dcapi.DCAPIVerificationData
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.lib.agent.HolderAgent
@@ -267,7 +269,17 @@ interface PlatformAdapter {
     /**
      * Retrieves request from the digital credentials browser API
      */
-    fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest>
+    fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIVerificationData>
+
+    /** Credential types for which this platform can offer issuance after receiving a verification request. */
+    val dcApiVerificationIssuanceTypes: Set<DCAPICredentialType>
+        get() = emptySet()
+
+    /** Resolves the currently requested synthetic verification credential with a stored DC API ID. */
+    fun resolveCurrentDCAPIVerificationIssuance(
+        credentialType: DCAPICredentialType,
+        credentialId: String,
+    ): KmmResult<Unit>
 
     /**
      * Retrieves creation request from the digital credentials browser API
@@ -329,9 +341,14 @@ class DummyPlatformAdapter : PlatformAdapter {
     override suspend fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope) {
     }
 
-    override fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest> {
+    override fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIVerificationData> {
         return KmmResult.failure(IllegalStateException("Using dummy platform adapter"))
     }
+
+    override fun resolveCurrentDCAPIVerificationIssuance(
+        credentialType: DCAPICredentialType,
+        credentialId: String,
+    ): KmmResult<Unit> = KmmResult.failure(IllegalStateException("Using dummy platform adapter"))
 
     override fun getCurrentDCAPIIssuingData(): KmmResult<DCAPIIssuingRequest> {
         return KmmResult.failure(IllegalStateException("Using dummy platform adapter"))

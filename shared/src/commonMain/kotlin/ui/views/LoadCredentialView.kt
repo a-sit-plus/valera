@@ -34,7 +34,7 @@ fun LoadCredentialView(
     vm: LoadCredentialViewModel
 ) {
     var credentialIdentifierInfo by rememberSaveable(saver = CredentialIdentifierInfoSaver().asMutableStateSaver()) {
-        mutableStateOf(vm.credentialIdentifiers.first())
+        mutableStateOf(vm.initialCredentialIdentifierInfo)
     }
 
     var transactionCode by rememberSaveable(stateSaver = TextFieldValue.Saver) {
