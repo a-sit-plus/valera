@@ -4,8 +4,11 @@ import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.etsi.ListOfTrustedEntities
 import at.asitplus.etsi.TrustListPayload
+import at.asitplus.iso.DeviceRequest
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.josef.JwsCompact
+import at.asitplus.signum.indispensable.josef.JwsFlattened
+import at.asitplus.signum.indispensable.josef.JwsGeneral
 import at.asitplus.signum.indispensable.pki.CertificateChain
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.indispensable.pki.leaf
@@ -158,7 +161,7 @@ class TrustListService(
     fun observeTrustStateForRelyingParty(
         requestFlow: Flow<RequestParametersFrom<*>?>
     ): Flow<TrustState> = combineWithFreshTrustStore(requestFlow) { request, freshTrustLists ->
-        evaluateRelyingParty(request.extractRequesterCertificateChains(), freshTrustLists)
+        evaluateRelyingParty(request.extractRelyingPartyCertificateChains(), freshTrustLists)
     }
 
     fun observeTrustStateForCertChain(
@@ -232,10 +235,13 @@ internal fun Collection<Instant>.nextRefreshIn(now: Instant, ttl: Duration): Dur
     minOfOrNull { it + ttl - now }?.let { maxOf(Duration.ZERO, it) } ?: Duration.ZERO
 
 
-fun RequestParametersFrom<*>.extractRequesterCertificateChains(): List<X509Certificate>? =
+fun RequestParametersFrom<*>.extractRelyingPartyCertificateChains(): List<X509Certificate>? =
     when (this) {
-        is RequestParametersFrom.Jws<*> ->
-            (this.jws as JwsCompact).jwsHeader.certificateChain
+        is RequestParametersFrom.Jws<*> -> when (val jws = this.jws) {
+            is JwsCompact -> jws.jwsHeader.certificateChain
+            is JwsFlattened -> jws.jwsHeader.certificateChain
+            is JwsGeneral -> jws.jwsHeaders.firstOrNull()?.certificateChain
+        }
 
         is RequestParametersFrom.OpenId4VpDcApiSigned ->
             this.jwsTyped.jws.jwsHeader.certificateChain
@@ -249,12 +255,18 @@ fun RequestParametersFrom<*>.extractRequesterCertificateChains(): List<X509Certi
         is RequestParametersFrom.IsoMdocDcApi -> extractRelyingPartyCertificateChains()
     }
 
-fun RequestParametersFrom.IsoMdocDcApi.extractRelyingPartyCertificateChains(): List<X509Certificate> {
-    val deviceRequest = this.parameters.isoMdocRequest.deviceRequest
+fun RequestParametersFrom.IsoMdocDcApi.extractRelyingPartyCertificateChains(): List<X509Certificate> =
+    this.parameters.isoMdocRequest.deviceRequest.extractCertificateChain() ?: emptyList()
 
-    val fromReaderAuthAll = deviceRequest.readerAuthAll
-        ?.firstOrNull()?.unprotectedHeader?.certificateChain?.map { cert -> X509Certificate.decodeFromDer(cert) }
-        ?: emptyList()
-
-    return fromReaderAuthAll
-}
+fun DeviceRequest.extractCertificateChain(): List<X509Certificate>? =
+    (readerAuthAll?.firstOrNull() ?: docRequests.firstNotNullOfOrNull { it.readerAuth })
+        ?.let { cose ->
+            cose.protectedHeader.certificateChain
+                ?: cose.unprotectedHeader?.certificateChain
+        }
+        ?.let { rawChain ->
+            rawChain.map { bytes ->
+                runCatching { X509Certificate.decodeFromDer(bytes) }.getOrNull()
+                    ?: return@let null
+            }
+        }

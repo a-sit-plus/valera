@@ -464,8 +464,8 @@
     <string name="trust_status_untrusted">Untrusted Issuer</string>
     <string name="trust_status_unknown">Trust Status Unknown</string>
     <string name="trust_status_evaluating">Evaluating Trust…</string>
-    <string name="trust_status_trusted_verifier">Trusted Requester</string>
-    <string name="trust_status_untrusted_verifier">Untrusted Requester</string>
+    <string name="trust_status_trusted_verifier">Trusted Relying Party</string>
+    <string name="trust_status_untrusted_verifier">Untrusted Relying Party</string>
     <string name="trust_status_title">Trust State</string>
 
     <string name="section_heading_issuer_trust">Issuer Trust Details</string>
