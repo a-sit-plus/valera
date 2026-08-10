@@ -242,21 +242,16 @@ fun RequestParametersFrom<*>.extractRelyingPartyCertificateChains(): List<X509Ce
             is JwsFlattened -> jws.jwsHeader.certificateChain
             is JwsGeneral -> jws.jwsHeaders.firstOrNull()?.certificateChain
         }
-
         is RequestParametersFrom.OpenId4VpDcApiSigned ->
             this.jwsTyped.jws.jwsHeader.certificateChain
-
         is RequestParametersFrom.OpenId4VpDcApiMultiSigned ->
             this.jwsTyped.jws.jwsHeaders.firstOrNull()?.certificateChain
-
         is RequestParametersFrom.Uri,
         is RequestParametersFrom.Json,
-        is RequestParametersFrom.OpenId4VpDcApiUnsigned -> emptyList()
-        is RequestParametersFrom.IsoMdocDcApi -> extractRelyingPartyCertificateChains()
-    }
-
-fun RequestParametersFrom.IsoMdocDcApi.extractRelyingPartyCertificateChains(): List<X509Certificate> =
-    this.parameters.isoMdocRequest.deviceRequest.extractCertificateChain() ?: emptyList()
+        is RequestParametersFrom.OpenId4VpDcApiUnsigned -> null
+        is RequestParametersFrom.IsoMdocDcApi ->
+            this.parameters.isoMdocRequest.deviceRequest.extractCertificateChain()
+    }?.takeIf { it.isNotEmpty() }
 
 fun DeviceRequest.extractCertificateChain(): List<X509Certificate>? =
     (readerAuthAll?.firstOrNull() ?: docRequests.firstNotNullOfOrNull { it.readerAuth })
@@ -264,9 +259,7 @@ fun DeviceRequest.extractCertificateChain(): List<X509Certificate>? =
             cose.protectedHeader.certificateChain
                 ?: cose.unprotectedHeader?.certificateChain
         }
-        ?.let { rawChain ->
-            rawChain.map { bytes ->
-                runCatching { X509Certificate.decodeFromDer(bytes) }.getOrNull()
-                    ?: return@let null
-            }
+        ?.mapNotNull { bytes ->
+            runCatching { X509Certificate.decodeFromDer(bytes) }.getOrNull()
         }
+        ?.takeIf { it.isNotEmpty() }
