@@ -281,6 +281,9 @@
     <string name="section_heading_actions">Actions</string>
     <string name="section_heading_information">Information</string>
     <string name="section_heading_requested_data">Requested Data</string>
+    <string name="text_label_credential_request_and">AND</string>
+    <string name="text_label_credential_request_or">OR</string>
+    <string name="text_label_selected_for_presentation">Selected for presentation</string>
     <string name="section_heading_data_recipient">Recipient</string>
     <string name="section_heading_other_data_category_title">Other</string>
     <string name="section_heading_other_data_category_icon_text">O</string>

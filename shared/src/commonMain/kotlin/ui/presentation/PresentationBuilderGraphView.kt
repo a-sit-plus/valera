@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import at.asitplus.KmmResult
+import at.asitplus.catching
 import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.openid.dcql.DCQLCredentialQueryMatchingResult
 import at.asitplus.openid.dcql.DCQLCredentialSubmissionOption
@@ -29,6 +30,11 @@ import ui.viewmodels.authentication.DCQLCredentialSubmissions
 import ui.views.LoadingView
 import ui.views.authentication.AuthenticationNoCredentialView
 import kotlin.time.Duration.Companion.seconds
+
+private typealias FixedDcApiSubmissions = Map<
+    DCQLCredentialQueryIdentifier,
+    List<DCQLCredentialSubmissionOption<SubjectCredentialStore.StoreEntry>>,
+>
 
 @ExperimentalMaterial3Api
 @Composable
@@ -79,8 +85,7 @@ fun PresentationBuilderGraphView(
                         trustListService = trustListService,
                     )
                     if (fixedCredentialSelection) {
-                        val fixedSubmissionsResult = queryMatchingResult.matchingResult
-                            .toDefaultSubmission(queryMatchingResult.presentationRequest.dcqlQuery)
+                        val fixedSubmissionsResult = queryMatchingResult.toFixedDcApiSubmissions()
                         fixedSubmissionsResult.exceptionOrNull()?.let { throwable ->
                             LaunchedEffect(throwable.message) {
                                 onError(throwable)
@@ -105,6 +110,7 @@ fun PresentationBuilderGraphView(
                             serviceProviderLocalizedName = serviceProviderLocalizedName,
                             dcqlQuery = queryMatchingResult.presentationRequest.dcqlQuery,
                             selections = fixedSubmissionCards,
+                            onError = onError,
                             onAbort = onNavigateToPresentationStart,
                             onSubmit = {
                                 onSubmit(DCQLCredentialSubmissions(fixedSubmissions))
@@ -166,6 +172,16 @@ fun PresentationBuilderGraphView(
                 } else {
                     if (fixedCredentialSelection) {
                         val fixedSubmissions = queryMatchingResult.matchingResult.toDefaultSubmission()
+                        if (fixedSubmissions.isEmpty()) {
+                            LaunchedEffect(Unit) {
+                                onError(
+                                    IllegalStateException(
+                                        "No credential matching the fixed DC API selection was found"
+                                    )
+                                )
+                            }
+                            return
+                        }
                         PresentationExchangeFinalizationPageContent(
                             matchingResult = queryMatchingResult,
                             credentialFreshnessProviders = selectionProvider.value.credentialFreshnessProviders,
@@ -200,6 +216,27 @@ fun PresentationBuilderGraphView(
         }
     }
 }
+
+private fun DCQLMatchingResult<SubjectCredentialStore.StoreEntry>.toFixedDcApiSubmissions():
+    KmmResult<FixedDcApiSubmissions> =
+    catching {
+        val dcqlQuery = presentationRequest.dcqlQuery
+        val queriesAllowingMultiple = dcqlQuery.credentials
+            .filter { it.multiple }
+            .map { it.id }
+            .toSet()
+        val submissions = matchingResult.credentialQueryMatches
+            .mapValues { (queryId, matches) ->
+                if (queryId in queriesAllowingMultiple) matches else matches.take(1)
+            }
+            .filterValues { it.isNotEmpty() }
+
+        require(submissions.isNotEmpty()) {
+            "No credential matching the fixed DC API selection was found"
+        }
+        dcqlQuery.checkCredentialSetQueryRequirements(submissions.keys).getOrThrow()
+        submissions
+    }
 
 private fun DCQLMatchingResult<SubjectCredentialStore.StoreEntry>.toSelectableCredentialSubmissionCards(
     credentialFreshnessProviders: List<StateFlow<CredentialFreshnessValidationStateUiModel>>,
@@ -253,7 +290,9 @@ private fun dcqlCredentialSubmissionCard(
     override fun invoke(
         isSelected: Boolean,
         allowMultiSelection: Boolean,
-        onToggleSelection: (() -> Unit)?
+        onToggleSelection: (() -> Unit)?,
+        onLoadingChanged: (Boolean) -> Unit,
+        onError: (Throwable) -> Unit,
     ) {
         DCQLCredentialQuerySubmissionSelectionOption(
             allowMultiSelection = allowMultiSelection,
@@ -263,6 +302,8 @@ private fun dcqlCredentialSubmissionCard(
             matchingResult = matchingResult,
             freshnessState = freshnessState,
             trustListService = trustListService,
+            onLoadingChanged = onLoadingChanged,
+            onError = onError,
         )
     }
 

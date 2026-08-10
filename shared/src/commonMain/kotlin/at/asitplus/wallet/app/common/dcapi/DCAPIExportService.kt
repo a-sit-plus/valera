@@ -15,6 +15,9 @@ import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEu
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.CredentialScheme
+import at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme
+import at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme
 import data.credentials.CredentialAdapter.Companion.toNamespaceAttributeMap
 import data.credentials.EuPidCredentialAdapter
 import data.credentials.MobileDrivingLicenceCredentialAdapter
@@ -42,50 +45,64 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
         Napier.d("DC API: Registering ${credentialRegistry.credentials.size} credentials with the system")
     }
 
-    private suspend fun SubjectCredentialStore.StoreEntry.toCredentialEntry() = when (this) {
-        is SubjectCredentialStore.StoreEntry.SdJwt -> CredentialEntry(
-            title = resolveScheme().uiLabelNonCompose(),
-            subtitle = getString(Res.string.app_display_name),
-            bitmap = extractPicture(),
-            sdJwtEntry = toSdJwtEntry()
-        )
+    private suspend fun SubjectCredentialStore.StoreEntry.toCredentialEntry(): CredentialEntry? {
+        if (this is SubjectCredentialStore.StoreEntry.Vc) return null
 
-        is SubjectCredentialStore.StoreEntry.Iso -> CredentialEntry(
-            title = resolveScheme().uiLabelNonCompose(),
-            subtitle = getString(Res.string.app_display_name),
-            bitmap = extractPicture(),
-            isoEntry = toIsoEntry()
-        )
+        val scheme = catchingUnwrapped { resolveScheme() }
+            .onFailure {
+                Napier.w("Failed to resolve credential metadata for DC API registration; using fallback", it)
+            }
+            .getOrElse { fallbackScheme() }
 
-        is SubjectCredentialStore.StoreEntry.Vc -> null
+        return when (this) {
+            is SubjectCredentialStore.StoreEntry.SdJwt -> CredentialEntry(
+                title = scheme.uiLabelNonCompose(),
+                subtitle = getString(Res.string.app_display_name),
+                bitmap = extractPicture(scheme),
+                sdJwtEntry = toSdJwtEntry(scheme),
+            )
+
+            is SubjectCredentialStore.StoreEntry.Iso -> CredentialEntry(
+                title = scheme.uiLabelNonCompose(),
+                subtitle = getString(Res.string.app_display_name),
+                bitmap = extractPicture(scheme),
+                isoEntry = toIsoEntry(scheme),
+            )
+
+            is SubjectCredentialStore.StoreEntry.Vc -> null
+        }
     }
 
-    private suspend fun SubjectCredentialStore.StoreEntry.Iso.toIsoEntry(): IsoMdocEntry {
-        val scheme = resolveScheme()
-        return IsoMdocEntry(
-            id = getDcApiId(),
-            docType = schemeIdentifier ?: scheme.isoDocType ?: "",
-            isoNamespaces = toNamespaceAttributeMap()?.let {
-                IsoMdocEntry.isoNamespacesFromNamespaceAttributeMap(it) { path -> scheme.metadataLabel(path) }
-            } ?: mapOf()
-        )
-    }
+    private suspend fun SubjectCredentialStore.StoreEntry.Iso.toIsoEntry(
+        scheme: CredentialScheme,
+    ): IsoMdocEntry = IsoMdocEntry(
+        id = getDcApiId(),
+        docType = schemeIdentifier,
+        isoNamespaces = toNamespaceAttributeMap()?.let {
+            IsoMdocEntry.isoNamespacesFromNamespaceAttributeMap(it) { path -> scheme.metadataLabel(path) }
+        } ?: mapOf()
+    )
 
-    private suspend fun SubjectCredentialStore.StoreEntry.SdJwt.toSdJwtEntry(): SdJwtEntry {
-        val scheme = resolveScheme()
-        return SdJwtEntry(
-            jwtId = getDcApiId(),
-            verifiableCredentialType = schemeIdentifier ?: sdJwt.verifiableCredentialType,
-            claims = SdJwtEntry.fromAttributeList(toGenericAttributeList()) { path -> scheme.metadataLabel(path) }
-        )
-    }
+    private suspend fun SubjectCredentialStore.StoreEntry.SdJwt.toSdJwtEntry(
+        scheme: CredentialScheme,
+    ): SdJwtEntry = SdJwtEntry(
+        jwtId = getDcApiId(),
+        verifiableCredentialType = schemeIdentifier,
+        claims = SdJwtEntry.fromAttributeList(toGenericAttributeList()) { path -> scheme.metadataLabel(path) }
+    )
 
-    private suspend fun SubjectCredentialStore.StoreEntry.extractPicture() = resolveScheme().let { s ->
+    private fun SubjectCredentialStore.StoreEntry.extractPicture(scheme: CredentialScheme) = scheme.let { s ->
         when {
             s.isMdl -> MobileDrivingLicenceCredentialAdapter.createFromStoreEntry(this, s, imageDecoder).portraitRaw
             s.isEuPid -> EuPidCredentialAdapter.createFromStoreEntry(this, s, imageDecoder).portraitRaw
 
             else -> null
         }
+    }
+
+    private fun SubjectCredentialStore.StoreEntry.fallbackScheme(): CredentialScheme = when (this) {
+        is SubjectCredentialStore.StoreEntry.SdJwt -> SdJwtFallbackCredentialScheme(schemeIdentifier)
+        is SubjectCredentialStore.StoreEntry.Iso -> IsoMdocFallbackCredentialScheme(schemeIdentifier)
+        is SubjectCredentialStore.StoreEntry.Vc -> error("JWT VC credentials are not registered with the DC API")
     }
 }
