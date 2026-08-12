@@ -76,7 +76,7 @@ private fun resolveLegacyDataStorePath(): String {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private fun getAppGroupIdentifier(): String {
+internal fun getAppGroupIdentifier(): String {
     val appGroupIdentifier = NSBundle.mainBundle.objectForInfoDictionaryKey(appGroupIdentifierInfoPlistKey) as? String
     if (!appGroupIdentifier.isNullOrBlank()) {
         return appGroupIdentifier
