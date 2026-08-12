@@ -1,4 +1,4 @@
-# Release 5.8.3 (unreleased):
+# Release 5.9.0 (unreleased):
  * Update to VC-K 8.0.0-SNAPSHOT
  * Credentials: Move expensive credential-list preparation and trust evaluation off the UI thread
  * DC API: Register unknown credential schemes with fallback metadata and preserve claim comparison values
