@@ -1,7 +1,6 @@
 package at.asitplus.wallet.app.common.dcapi
 
 import androidx.compose.ui.graphics.ImageBitmap
-import at.asitplus.catching
 import at.asitplus.catchingUnwrapped
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.app_display_name
@@ -77,7 +76,7 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
         scheme: CredentialScheme,
     ): IsoMdocEntry = IsoMdocEntry(
         id = getDcApiId(),
-        docType = schemeIdentifier,
+        docType = schemeIdentifier ?: scheme.isoDocType ?: "unknown",
         isoNamespaces = toNamespaceAttributeMap()?.let {
             IsoMdocEntry.isoNamespacesFromNamespaceAttributeMap(it) { path -> scheme.metadataLabel(path) }
         } ?: mapOf()
@@ -87,7 +86,7 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
         scheme: CredentialScheme,
     ): SdJwtEntry = SdJwtEntry(
         jwtId = getDcApiId(),
-        verifiableCredentialType = schemeIdentifier,
+        verifiableCredentialType = schemeIdentifier ?: scheme.sdJwtType ?: "unknown",
         claims = SdJwtEntry.fromAttributeList(toGenericAttributeList()) { path -> scheme.metadataLabel(path) }
     )
 
@@ -101,8 +100,8 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
     }
 
     private fun SubjectCredentialStore.StoreEntry.fallbackScheme(): CredentialScheme = when (this) {
-        is SubjectCredentialStore.StoreEntry.SdJwt -> SdJwtFallbackCredentialScheme(schemeIdentifier)
-        is SubjectCredentialStore.StoreEntry.Iso -> IsoMdocFallbackCredentialScheme(schemeIdentifier)
+        is SubjectCredentialStore.StoreEntry.SdJwt -> SdJwtFallbackCredentialScheme(schemeIdentifier ?: sdJwt.verifiableCredentialType)
+        is SubjectCredentialStore.StoreEntry.Iso -> IsoMdocFallbackCredentialScheme(schemeIdentifier ?: issuerSigned.issuerAuth.payload?.docType ?: "unknown")
         is SubjectCredentialStore.StoreEntry.Vc -> error("JWT VC credentials are not registered with the DC API")
     }
 }

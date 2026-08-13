@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import at.asitplus.openid.RequestParametersFrom
-import at.asitplus.wallet.lib.agent.DCQLMatchingResult
+import at.asitplus.wallet.lib.openid.DCQLMatchingResult
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope
 
