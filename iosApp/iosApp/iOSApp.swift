@@ -10,6 +10,7 @@ struct iOSApp: App {
     #endif
 
     init() {
+        Main_iosKt.migrateLegacyLogFile()
         IosSessionBridge.shared.bootstrap(
             buildContext: BuildContext(
                 buildType: buildType,

@@ -25,6 +25,7 @@ import io.github.aakira.napier.Napier
 import at.asitplus.wallet.app.ios.DigitalCredentials
 import at.asitplus.wallet.eupid.EU_PID_DOCTYPE
 import at.asitplus.wallet.mdl.MDL_DOCTYPE
+import data.storage.getAppGroupIdentifier
 import kotlinx.cinterop.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -48,6 +49,34 @@ import kotlin.collections.mapValues
 
 
 actual fun getPlatformName(): String = "iOS"
+
+@OptIn(ExperimentalForeignApi::class)
+fun migrateLegacyLogFile() {
+    val fileManager = NSFileManager.defaultManager
+    val legacyLogPath = fileManager.URLForDirectory(
+        directory = NSDocumentDirectory,
+        inDomain = NSUserDomainMask,
+        appropriateForURL = null,
+        create = false,
+        error = null,
+    )?.URLByAppendingPathComponent("logs/log.txt")?.path ?: return
+    if (!fileManager.fileExistsAtPath(legacyLogPath)) return
+
+    val sharedLogsUrl = fileManager.containerURLForSecurityApplicationGroupIdentifier(
+        getAppGroupIdentifier()
+    )?.URLByAppendingPathComponent("logs") ?: return
+    val sharedLogsPath = sharedLogsUrl.path ?: return
+    val sharedLogPath = sharedLogsUrl.URLByAppendingPathComponent("log.txt")?.path ?: return
+    if (fileManager.fileExistsAtPath(sharedLogPath)) return
+
+    fileManager.createDirectoryAtPath(
+        path = sharedLogsPath,
+        withIntermediateDirectories = true,
+        attributes = null,
+        error = null,
+    )
+    fileManager.moveItemAtPath(legacyLogPath, sharedLogPath, null)
+}
 
 private val SUPPORTED_DOC_TYPES = listOf(
     AV_DOC_TYPE,
@@ -456,11 +485,9 @@ class IosPlatformAdapter(
     }
 
     fun getBaseUrl(): NSURL? {
-        val urls = NSFileManager.defaultManager.URLsForDirectory(
-            directory = NSDocumentDirectory,
-            inDomains = NSUserDomainMask
+        return NSFileManager.defaultManager.containerURLForSecurityApplicationGroupIdentifier(
+            getAppGroupIdentifier()
         )
-        return urls.first() as? NSURL
     }
 
     override fun getCameraPermission(): Boolean? {
