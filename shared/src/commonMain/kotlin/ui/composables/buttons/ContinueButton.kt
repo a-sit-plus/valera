@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
 import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.TextIconButton
 
@@ -19,6 +20,7 @@ import ui.composables.TextIconButton
 fun ContinueButton(
     onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    label: StringResource = Res.string.button_label_continue,
 ) {
     TextIconButton(
         icon = {
@@ -28,7 +30,7 @@ fun ContinueButton(
             )
         },
         text = {
-            Text(stringResource(Res.string.button_label_continue))
+            Text(stringResource(label))
         },
         enabled = onClick != null,
         onClick = onClick ?: {},

@@ -34,6 +34,7 @@
     <string name="button_label_cancel">Abbrechen</string>
     <string name="button_label_consent">Zustimmen</string>
     <string name="button_label_continue">Weiter</string>
+    <string name="button_label_submit">Übermitteln</string>
     <string name="button_label_details">Details</string>
     <string name="button_label_delete_credential">Löschen</string>
     <string name="button_label_share">Teilen</string>
