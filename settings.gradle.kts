@@ -16,7 +16,6 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
-
 val vckDir = file("../vck")
 val vckBuildFile = file("../vck/build.gradle.kts")
 if (vckDir.isDirectory && vckBuildFile.exists()) {

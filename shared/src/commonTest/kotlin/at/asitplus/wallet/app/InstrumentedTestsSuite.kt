@@ -31,8 +31,8 @@ import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.button_label_open_url
 import at.asitplus.valera.resources.button_label_start
 import at.asitplus.valera.resources.content_description_portrait
-import at.asitplus.valera.resources.credential_scheme_label_eu_pid_sdjwt
 import at.asitplus.valera.resources.heading_label_authentication_success
+import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
 import at.asitplus.wallet.app.common.CapabilitiesData
@@ -104,9 +104,9 @@ fun ComposeUiTest.endToEndTest() {
     val startText = runBlocking { getString(Res.string.button_label_start) }
     val portraitText = runBlocking { getString(Res.string.content_description_portrait) }
     val continueText = runBlocking { getString(Res.string.button_label_continue) }
-    val pidHeader = runBlocking { getString(Res.string.credential_scheme_label_eu_pid_sdjwt) }
     val openUrlText = runBlocking { getString(Res.string.button_label_open_url) }
     val authenticationSuccessText = runBlocking { getString(Res.string.heading_label_authentication_success) }
+    val sendDataPromptText = runBlocking { getString(Res.string.prompt_send_above_data) }
     val redirectUrl = CompletableDeferred<String>()
     val credentialIssued = CompletableDeferred<Unit>()
     val intentState = IntentState()
@@ -229,10 +229,13 @@ fun ComposeUiTest.endToEndTest() {
     waitUntilExactlyOneExists(hasText(continueText), 10000)
     onNodeWithText(continueText).performClick()
 
-    waitUntilExactlyOneExists(hasText(pidHeader), 5000)
-    onNodeWithText(pidHeader).performClick()
+    waitUntilExactlyOneExists(hasText("XXXÉliás XXXTörőcsik"), 5000)
+    onNodeWithText("XXXÉliás XXXTörőcsik").performClick()
 
     waitUntilExactlyOneExists(hasText(continueText), 5000)
+    onNodeWithText(continueText).performClick()
+
+    waitUntilExactlyOneExists(hasText(sendDataPromptText), 5000)
     onNodeWithText(continueText).performClick()
 
     waitUntilExactlyOneExists(hasText(authenticationSuccessText), 10000)
@@ -273,7 +276,7 @@ private suspend fun createLocalPresentationRequest(): LocalPresentationRequest {
                     ),
                 )
             )
-        ).toPresentationExchangeRequest()
+        ).toDCQLRequest()
     )
 
     return LocalPresentationRequest(

@@ -6,10 +6,13 @@ import at.asitplus.dif.DifInputDescriptor
 import at.asitplus.dif.PresentationDefinition
 import at.asitplus.iso.DeviceRequest
 import at.asitplus.iso.SessionTranscript
+import at.asitplus.signum.indispensable.pki.CertificateChain
+import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.supreme.UserInitiatedCancellationReason
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.warning_authentication_cancelled
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.extractCertificateChain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
@@ -38,6 +41,7 @@ class PresentationViewModel(
     private var descriptors: List<DifInputDescriptor> = listOf()
     private var finishFunction: ((ByteArray) -> Unit)? = null
     private var sessionTranscript: SessionTranscript? = null
+    var verifierCertificateChain: CertificateChain? = null
 
     fun initWithDeviceRequest(
         parsedRequest: DeviceRequest,
@@ -47,6 +51,7 @@ class PresentationViewModel(
         descriptors = listOf() // TODO Replace with ISO Device Retrieval
         this.finishFunction = finishFunction
         this.sessionTranscript = sessionTranscript
+        this.verifierCertificateChain = parsedRequest.extractCertificateChain()
     }
 
     override val transactionData = null

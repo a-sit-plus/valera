@@ -472,6 +472,9 @@
     <string name="trust_status_untrusted">Nicht vertrauenswürdiger Aussteller</string>
     <string name="trust_status_unknown">Vertrauensstatus unbekannt</string>
     <string name="trust_status_evaluating">Vertrauensstatus wird geprüft…</string>
+    <string name="trust_status_trusted_verifier">Vertrauenswürdiger Service Provider</string>
+    <string name="trust_status_untrusted_verifier">Nicht vertrauenswürdiger Service Provider</string>
+    <string name="trust_status_title">Vertrauensstatus</string>
 
     <string name="section_heading_issuer_trust">Aussteller-Vertrauensdetails</string>
     <string name="section_heading_issuer_trust_icon_text">ITD</string>

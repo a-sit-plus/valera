@@ -21,7 +21,6 @@ import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import at.asitplus.wallet.lib.openid.DcApiPreparationState
 import io.github.aakira.napier.Napier
-import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.encodeToByteArray
@@ -34,7 +33,7 @@ class PresentationService(
     settingsRepository: SettingsRepository,
 ) {
     private val presentationService = OpenId4VpWallet(
-        engine = HttpClient().engine,
+        engine = createPlatformHttpClientEngine(),
         httpClientConfig = httpService.loggingConfig,
         keyMaterial = keyMaterial,
         holderAgent = holderAgent,

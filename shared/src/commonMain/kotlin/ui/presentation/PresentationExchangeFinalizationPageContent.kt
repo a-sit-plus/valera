@@ -17,6 +17,7 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.dif.ConstraintField
 import at.asitplus.jsonpath.core.NodeList
 import at.asitplus.jsonpath.core.NormalizedJsonPath
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
@@ -46,6 +47,7 @@ fun PresentationExchangeFinalizationPageContent(
     credentialFreshnessProviders: List<StateFlow<CredentialFreshnessValidationStateUiModel>>,
     inputDescriptorSubmissions: Map<String, PresentationExchangeCredentialDisclosure<SubjectCredentialStore.StoreEntry>>,
     trustListService: TrustListService,
+    request: RequestParametersFrom<*>,
     authenticateAtRelyingParty: Boolean,
     serviceProviderLocalizedName: String?,
     serviceProviderLocalizedLocation: String,
@@ -89,6 +91,8 @@ fun PresentationExchangeFinalizationPageContent(
         serviceProviderLocalizedName = serviceProviderLocalizedName,
         serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
         onAbort = onAbort,
+        trustListService = trustListService,
+        request = request,
         onSubmit = {
             onSubmit(PresentationExchangeCredentialSubmissions(inputDescriptorSubmissions))
         },
