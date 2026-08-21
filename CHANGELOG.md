@@ -4,6 +4,7 @@
  * Update to VC-K 8.0.0-SNAPSHOT
  * Credentials: Move expensive credential-list preparation and trust evaluation off the UI thread
  * DC API: Register unknown credential schemes with fallback metadata and preserve claim comparison values
+ * DC API: Support multisigned OpenID4VP requests on Android
  * DC API: Improve request grouping, fixed selections, loading and error handling, and credential selection layout
  * DC API: Match requests without claim constraints and display their mandatory attributes
  * Presentation: Label the final confirmation action Submit
