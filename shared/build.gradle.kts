@@ -4,6 +4,7 @@ import at.asitplus.gradle.ktor
 import at.asitplus.gradle.kmmresult
 import at.asitplus.gradle.napier
 import at.asitplus.gradle.serialization
+import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
 
 plugins {
@@ -29,7 +30,7 @@ val iosLinkerOpts = listOf("-lsqlite3")
 kotlin {
     jvmToolchain(17)
 
-    androidLibrary {
+    targets.withType<KotlinMultiplatformAndroidLibraryTarget>().configureEach {
         namespace = "at.asitplus.wallet.app.common"
 
         packaging {
