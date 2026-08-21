@@ -19,7 +19,7 @@ import org.jetbrains.compose.resources.getString
 import ui.navigation.routes.AuthenticationViewRoute
 import ui.viewmodels.authentication.CredentialPresentationSubmissions
 import ui.viewmodels.authentication.DCQLCredentialSubmissions
-import ui.viewmodels.authentication.PresentationExchangeCredentialSubmissions
+import ui.viewmodels.authentication.IsoDeviceRequestCredentialSubmissions
 
 class DefaultPresentationGraphViewModel(
     savedStateHandle: SavedStateHandle,
@@ -67,9 +67,9 @@ class DefaultPresentationGraphViewModel(
                     credentialQuerySubmissions = credentialPresentationSubmissions.credentialQuerySubmissions
                 )
 
-                is PresentationExchangeCredentialSubmissions -> CredentialPresentation.PresentationExchangePresentation(
-                    presentationRequest = presentationRequest as CredentialPresentationRequest.PresentationExchangeRequest,
-                    inputDescriptorSubmissions = credentialPresentationSubmissions.inputDescriptorSubmissions
+                is IsoDeviceRequestCredentialSubmissions -> CredentialPresentation.IsoDeviceRetrievalPresentation(
+                    presentationRequest = presentationRequest as CredentialPresentationRequest.IsoDeviceRetrieval,
+                    submissions = credentialPresentationSubmissions.submissions,
                 )
             }
         } catch (it: Throwable) {

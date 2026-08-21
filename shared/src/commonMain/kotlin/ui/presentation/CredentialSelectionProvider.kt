@@ -33,7 +33,3 @@ fun <Credential : Any> CredentialMatchingResult<Credential>.toCredentialSelectio
         )
     }
 )
-
-internal fun <Credential : Any, Match : Any> hasMissingPresentationExchangeInputDescriptorMatches(
-    inputDescriptorMatches: Map<String, Map<Credential, Match>>,
-) = inputDescriptorMatches.values.any { it.isEmpty() }

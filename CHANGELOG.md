@@ -6,6 +6,7 @@
  * DC API: Match requests without claim constraints and display their mandatory attributes
  * Presentation: Label the final confirmation action Submit
  * Display trust evaluation of the Relying Party
+ * Presentation: Replace remaining Presentation Exchange flows with DCQL and ISO DeviceRequest, including proximity and ISO DC API requests
 
 # Release 5.8.2:
  * Networking: Use explicit CIO and Darwin HTTP engines and make Android debug trust configuration compatible with CIO
