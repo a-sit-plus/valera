@@ -2,9 +2,7 @@ package at.asitplus.wallet.app.common
 
 import androidx.compose.runtime.Composable
 import at.asitplus.catchingUnwrapped
-import at.asitplus.dif.ConstraintField
-import at.asitplus.dif.ConstraintFilter
-import at.asitplus.dif.InputDescriptor
+import at.asitplus.iso.DeviceRequest
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.IndexSegment
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.NameSegment
@@ -32,8 +30,6 @@ import at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme
 import at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme
 import at.asitplus.wallet.lib.data.VcDataModelConstants.VERIFIABLE_CREDENTIAL
 import at.asitplus.wallet.lib.data.VcFallbackCredentialScheme
-import at.asitplus.wallet.lib.data.dif.ConstraintFieldsEvaluationException
-import at.asitplus.wallet.lib.data.dif.PresentationExchangeInputEvaluator
 import at.asitplus.wallet.lib.oidvci.toFormat
 import data.credentials.JsonClaimReference
 import data.credentials.MdocClaimReference
@@ -51,54 +47,24 @@ import org.jetbrains.compose.resources.stringResource
 import ui.presentation.DCQLCredentialQueryUiModel
 import ui.presentation.DCQLCredentialQueryUiModelAttributeLabels
 
-typealias PresentationExchangeConsentData = Triple<CredentialRepresentation, CredentialScheme, Map<NormalizedJsonPath, Boolean>>
 typealias DcqlConsentData = Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimReference?>?>
 
-suspend fun InputDescriptor.extractConsentData(): PresentationExchangeConsentData {
-    @Suppress("DEPRECATION")
-    val credentialRepresentation = when {
-        this.format == null -> throw IllegalStateException("Format of input descriptor must be set")
-        this.format?.sdJwt != null -> SD_JWT
-        this.format?.msoMdoc != null -> ISO_MDOC
-        else -> PLAIN_JWT
-    }
-    val credentialIdentifiers = when (credentialRepresentation) {
-        PLAIN_JWT -> throw Throwable("PLAIN_JWT not implemented")
-        SD_JWT -> vctConstraint()?.filter?.referenceValues()
-        ISO_MDOC -> listOf(this.id)
-    } ?: throw Throwable("Missing Pattern")
-    check(credentialIdentifiers.isNotEmpty()) {
-        "Presentation definition input descriptor '$id' does not declare any credential identifier"
-    }
+data class IsoDeviceRequestConsentData(
+    val scheme: CredentialScheme,
+    val attributes: List<NormalizedJsonPath>,
+)
 
-    val scheme = resolveConsentScheme(credentialRepresentation, credentialIdentifiers)
-
-    val matchedCredentialIdentifier = when (credentialRepresentation) {
-        PLAIN_JWT -> throw Throwable("PLAIN_JWT not implemented")
-        SD_JWT -> if (scheme.sdJwtType in credentialIdentifiers) scheme.sdJwtType else scheme.isoNamespace
-        ISO_MDOC -> scheme.isoDocType
-    }
-
-    val requestedElements = constraints?.fields?.map {
-        (it.toNormalizedJsonPath()?.segments?.last() as NameSegment).memberName
-    }
-
-    val constraintsMap = PresentationExchangeInputEvaluator.evaluateInputDescriptorAgainstCredential(
-        inputDescriptor = this,
-        credentialClaimStructure = scheme.toCredentialClaimStructure(credentialRepresentation, requestedElements),
-        credentialFormat = credentialRepresentation.toFormat(),
-        credentialScheme = matchedCredentialIdentifier,
-        fallbackFormatHolder = this.format,
-        pathAuthorizationValidator = { true },
-    ).getOrThrow()
-
-    val attributes = constraintsMap.mapNotNull {
-        val path = it.value.map { it.normalizedJsonPath }.firstOrNull() ?: return@mapNotNull null
-        val optional = it.key.optional == true
-        path to optional
-    }.toMap()
-
-    return Triple(credentialRepresentation, scheme, attributes)
+/** Resolves every ISO document request independently and preserves request, namespace, and element order. */
+suspend fun DeviceRequest.extractConsentData(): List<IsoDeviceRequestConsentData> = docRequests.map { docRequest ->
+    val itemsRequest = docRequest.itemsRequest.value
+    IsoDeviceRequestConsentData(
+        scheme = resolveConsentScheme(ISO_MDOC, listOf(itemsRequest.docType)),
+        attributes = itemsRequest.namespaces.flatMap { (namespace, elements) ->
+            elements.entries.map { element ->
+                NormalizedJsonPath() + namespace + element.dataElementIdentifier
+            }
+        },
+    )
 }
 
 /**
@@ -119,12 +85,6 @@ private suspend fun resolveConsentScheme(
 private fun CredentialScheme.isFallback() = this is VcFallbackCredentialScheme
         || this is SdJwtFallbackCredentialScheme
         || this is IsoMdocFallbackCredentialScheme
-
-private fun InputDescriptor.vctConstraint() =
-    constraints?.fields?.firstOrNull { it.path.toString().contains("vct") }
-
-private fun ConstraintFilter.referenceValues() =
-    (pattern ?: const?.content)?.let { listOf(it) } ?: enum
 
 /**
  * assumes json claim path pointers don't contain `null`, otherwise only the prefix is shown
@@ -265,37 +225,7 @@ private fun JsonObjectBuilder.addSdJwtDummyMetadata() {
     put("status", buildJsonObject { })
 }
 
-fun Throwable.enrichMessage() = when (this) {
-    is ConstraintFieldsEvaluationException -> "$message ${constraintFieldExceptions.keys}"
-    else -> message ?: toString()
-}
-
-// TODO Replace with function from JSONPath
-private fun ConstraintField.toNormalizedJsonPath(): NormalizedJsonPath? =
-    path.firstOrNull()?.removePrefix("$")?.run {
-        NormalizedJsonPath(
-            if (contains("[")) {
-                segmentsByAngle()
-            } else if (contains(".")) {
-                segmentsByDot()
-            } else {
-                fallback()
-            }
-        )
-    }
-
-private fun String.segmentsByAngle() = split("[")
-    .filter { it.isNotEmpty() }
-    .map { NameSegment(it.removeSuffix("]").unquote()) }
-
-private fun String.segmentsByDot() = split(".")
-    .filter { it.isNotEmpty() }
-    .map { NameSegment(it) }
-
-private fun String.unquote() = removePrefix("'").removePrefix("\"")
-    .removeSuffix("\"").removeSuffix("'")
-
-private fun String.fallback(): List<NameSegment> = listOf(NameSegment(this))
+fun Throwable.enrichMessage() = message ?: toString()
 
 // Only NameSegments carry a member name; IndexSegments (e.g. [0] in array paths) are skipped.
 fun NormalizedJsonPath.memberName(id: Int) =
