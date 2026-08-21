@@ -143,9 +143,7 @@ class InstanceAttestationHelper(
         audience: String,
         nonce: String?,
     ): JwsCompactTyped<JsonWebToken> = BuildClientAttestationPoPJwt.invoke(
-        clientId = buildContext.versionName,
         signJwt = SignJwt(keyMaterial(), headerModifier = JwsHeaderNone()),
-        lifetime = 1.minutes,
         audience = audience,
         nonce = nonce
     )
