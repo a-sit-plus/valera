@@ -9,15 +9,13 @@ import at.asitplus.openid.TransactionDataBase64Url
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.lib.agent.CredentialMatchingResult
 import at.asitplus.wallet.lib.agent.IsoDeviceRetrievalMatchingResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentation.*
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
-import at.asitplus.wallet.lib.openid.CredentialMatchingResult
-import at.asitplus.wallet.lib.openid.DCQLMatchingResult
-import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -65,22 +63,16 @@ abstract class AuthenticationViewModel(
                 viewState = AuthenticationViewState.Selection
             }
 
-            is at.asitplus.wallet.lib.agent.PresentationExchangeMatchingResult -> {
-                if (matching.matchingResult.inputDescriptorMatches.values.find { it.size != 1 } == null) {
-                    defaultCredentialSelection = matching.matchingResult.inputDescriptorMatches.entries.associate {
-                        val requestId = it.key
-                        val credential = it.value.keys.first()
-                        requestId to credential
-                    }.toMap()
-                    viewState = AuthenticationViewState.Selection
-                } else if (matching.matchingResult.inputDescriptorMatches.values.find { it.isEmpty() } == null) {
-                    viewState = AuthenticationViewState.Selection
+            is IsoDeviceRetrievalMatchingResult -> viewState =
+                if (matching.matchingResult.documentMatches.any { it.isEmpty() }) {
+                    AuthenticationViewState.NoMatchingCredential
                 } else {
-                    viewState = AuthenticationViewState.NoMatchingCredential
+                    AuthenticationViewState.Selection
                 }
-            }
 
-            is IsoDeviceRetrievalMatchingResult<*> -> TODO()
+            else -> throw UnsupportedOperationException(
+                "Unsupported credential matching result: ${matching::class.simpleName}"
+            )
         }
     }
 
@@ -93,9 +85,9 @@ abstract class AuthenticationViewModel(
                         credentialQuerySubmissions = credentialPresentationSubmissions.credentialQuerySubmissions
                     )
 
-                    is PresentationExchangeCredentialSubmissions -> CredentialPresentation.PresentationExchangePresentation(
-                        presentationRequest = presentationRequest as CredentialPresentationRequest.PresentationExchangeRequest,
-                        inputDescriptorSubmissions = credentialPresentationSubmissions.inputDescriptorSubmissions
+                    is IsoDeviceRequestCredentialSubmissions -> IsoDeviceRetrievalPresentation(
+                        presentationRequest = presentationRequest as CredentialPresentationRequest.IsoDeviceRetrieval,
+                        submissions = credentialPresentationSubmissions.submissions,
                     )
 
                     null -> when(val it = presentationRequest) {
@@ -104,12 +96,14 @@ abstract class AuthenticationViewModel(
                             credentialQuerySubmissions = null
                         )
 
-                        is CredentialPresentationRequest.PresentationExchangeRequest -> PresentationExchangePresentation(
+                        is CredentialPresentationRequest.IsoDeviceRetrieval -> IsoDeviceRetrievalPresentation(
                             presentationRequest = it,
-                            inputDescriptorSubmissions = null,
+                            submissions = null,
                         )
 
-                        is CredentialPresentationRequest.IsoDeviceRetrieval -> TODO()
+                        else -> throw UnsupportedOperationException(
+                            "Unsupported presentation request: ${it::class.simpleName}"
+                        )
                     }
                 }
             )

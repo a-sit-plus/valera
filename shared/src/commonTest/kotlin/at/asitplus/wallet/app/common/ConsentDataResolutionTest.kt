@@ -1,10 +1,10 @@
 package at.asitplus.wallet.app.common
 
-import at.asitplus.dif.Constraint
-import at.asitplus.dif.ConstraintField
-import at.asitplus.dif.DifInputDescriptor
-import at.asitplus.dif.FormatContainerJwt
-import at.asitplus.dif.FormatHolder
+import at.asitplus.iso.DeviceRequest
+import at.asitplus.iso.DocRequest
+import at.asitplus.iso.ItemsRequest
+import at.asitplus.iso.ItemsRequestList
+import at.asitplus.iso.SingleItemsRequest
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.NameSegment
 import at.asitplus.openid.dcql.DCQLClaimsPathPointer
@@ -14,6 +14,7 @@ import at.asitplus.openid.dcql.DCQLJsonClaimsQuery
 import at.asitplus.openid.dcql.DCQLSdJwtCredentialMetadataAndValidityConstraints
 import at.asitplus.openid.dcql.DCQLSdJwtCredentialQuery
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.lib.LibraryInitializer
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
@@ -24,6 +25,7 @@ import at.asitplus.wallet.lib.data.ResolvedCredentialMetadata
 import at.asitplus.wallet.sdjwt.SdJwtTypeMetadataDefinition
 import at.asitplus.wallet.sdjwt.SdJwtTypeMetadataDocument
 import at.asitplus.wallet.sdjwt.SdJwtTypeMetadataVckExtensions
+import io.github.z4kn4fein.semver.Version
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -39,31 +41,35 @@ import at.asitplus.wallet.sdjwt.CredentialFormatEnum as SdJwtCredentialFormatEnu
  */
 class ConsentDataResolutionTest {
 
-    /** Input descriptors like those built from the iOS DC API mdoc pre-request summary. */
+    /** Device requests resolve known document metadata and preserve namespace/data-element paths. */
     @Test
     fun resolvesMdocClaimLabelsThroughMetadataRegistry() = runTest {
         registerTestMetadata()
-        val descriptor = DifInputDescriptor(
-            id = TEST_DOCTYPE,
-            format = FormatHolder(msoMdoc = FormatContainerJwt()),
-            constraints = Constraint(
-                fields = setOf(
-                    ConstraintField(
-                        path = listOf(
-                            NormalizedJsonPath(
-                                NameSegment(TEST_NAMESPACE),
-                                NameSegment("family_name"),
-                            ).toString()
-                        ),
-                    )
-                )
-            ),
+        val request = deviceRequest(
+            TEST_DOCTYPE,
+            TEST_NAMESPACE,
+            "family_name",
         )
 
-        val (representation, scheme, attributes) = descriptor.extractConsentData()
+        val consentData = request.extractConsentData().single()
 
-        assertEquals(ISO_MDOC, representation)
-        assertEquals(TEST_LABEL, scheme.getLocalization(attributes.keys.single()))
+        assertEquals(TEST_LABEL, consentData.scheme.getLocalization(consentData.attributes.single()))
+        assertEquals(
+            NormalizedJsonPath(NameSegment(TEST_NAMESPACE), NameSegment("family_name")).toString(),
+            consentData.attributes.single().toString(),
+        )
+    }
+
+    @Test
+    fun resolvesUnknownMdocWithFallbackScheme() = runTest {
+        val consentData = deviceRequest(
+            "org.example.unknown",
+            "org.example.unknown.namespace",
+            "unknown_element",
+        ).extractConsentData().single()
+
+        assertEquals("org.example.unknown", consentData.scheme.isoDocType)
+        assertEquals(1, consentData.attributes.size)
     }
 
     /** A DCQL query like an Android DC API / OpenID4VP request for an SD-JWT credential. */
@@ -154,4 +160,20 @@ class ConsentDataResolutionTest {
         override suspend fun findEntry(identifier: String, representation: CredentialRepresentation) =
             entries[identifier to representation]
     }
+
+    private fun deviceRequest(docType: String, namespace: String, element: String) = DeviceRequest(
+        parsedVersion = Version(1, 0),
+        docRequests = arrayOf(
+            DocRequest(
+                itemsRequest = ByteStringWrapper(
+                    ItemsRequest(
+                        docType = docType,
+                        namespaces = mapOf(
+                            namespace to ItemsRequestList(listOf(SingleItemsRequest(element, false)))
+                        ),
+                    )
+                )
+            )
+        )
+    )
 }
