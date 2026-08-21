@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common.dcapi.data.export
 
+import at.asitplus.dcapi.request.ExchangeProtocolIdentifier
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -14,9 +15,10 @@ data class CredentialRegistry private constructor(
     companion object {
         fun create(credentials: List<CredentialEntry>): CredentialRegistry = CredentialRegistry(
             listOf(
-                "openid4vp-v1-signed",
-                "openid4vp-v1-unsigned",
-                "org-iso-mdoc",
+                ExchangeProtocolIdentifier.OPENID4VP_V1_SIGNED,
+                ExchangeProtocolIdentifier.OPENID4VP_V1_MULTISIGNED,
+                ExchangeProtocolIdentifier.OPENID4VP_V1_UNSIGNED,
+                ExchangeProtocolIdentifier.ORG_ISO_MDOC,
             ), credentials
         )
     }
