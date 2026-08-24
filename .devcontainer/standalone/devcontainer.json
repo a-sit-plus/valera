@@ -1,0 +1,45 @@
+{
+  "name": "compose-wallet-app (standalone)",
+  "customizations": {
+    "jetbrains": {
+      "plugins": []
+    }
+  },
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": "../..",
+    "args": {
+      "HOST_USER": "${localEnv:USER}"
+    }
+  },
+  "remoteUser": "dev",
+  "containerUser": "dev",
+  "containerEnv": {
+    "HOST_USER": "${localEnv:USER}",
+    "WALLET_PROFILE": "standalone",
+    "WALLET_REPOSITORY_KIND": "compose-wallet-app"
+  },
+  "remoteEnv": {
+    "JAVA_HOME": "/opt/java/temurin-17"
+  },
+  "mounts": [
+    "source=wallet-internal-gradle-v1,target=/home/dev/.gradle,type=volume",
+    "source=wallet-internal-konan-v1,target=/home/dev/.konan,type=volume",
+    "source=wallet-internal-npm-v1,target=/home/dev/.npm,type=volume"
+  ],
+  "runArgs": [
+    "--cap-drop=ALL",
+    "--cap-add=CHOWN",
+    "--security-opt=no-new-privileges",
+    "--pids-limit=4096",
+    "--cpus=12",
+    "--memory=24g",
+    "--tmpfs=/tmp:rw,exec,nosuid,nodev,size=2147483648",
+    "--tmpfs=/run:rw,nosuid,nodev,size=67108864"
+  ],
+  "hostRequirements": {
+    "cpus": 12,
+    "memory": "24gb"
+  },
+  "postCreateCommand": "/usr/local/bin/wallet-setup-workspace"
+}

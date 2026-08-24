@@ -1,0 +1,4 @@
+**
+!.devcontainer/scripts/setup-workspace.sh
+!.devcontainer/scripts/wallet-import-debug-keystore
+

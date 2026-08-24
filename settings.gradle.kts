@@ -1,7 +1,21 @@
+import java.util.Properties
+
 include(":androidApp")
 include(":shared")
-include(":cinterop")
-include("interop")
+
+val localProperties = Properties().apply {
+    rootDir.resolve("local.properties")
+        .takeIf { it.isFile }
+        ?.inputStream()
+        ?.use(::load)
+}
+val disableAppleTargets = System.getenv("disableAppleTargets")
+    ?: localProperties.getProperty("disableAppleTargets")
+
+if ("true" != disableAppleTargets) {
+    include(":cinterop")
+    include(":interop")
+}
 
 pluginManagement {
     repositories {
@@ -16,13 +30,16 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
-val vckDir = file("../vck")
-val vckBuildFile = file("../vck/build.gradle.kts")
+val vckDir = System.getenv("VCK_COMPOSITE_PATH")
+    ?.takeIf { it.isNotBlank() }
+    ?.let(::file)
+    ?: file("../vck")
+val vckBuildFile = vckDir.resolve("build.gradle.kts")
 if (vckDir.isDirectory && vckBuildFile.exists()) {
     logger.warn("Detected VC-K in ${vckDir.absolutePath}.")
     logger.warn("Including VC-K as composite build.")
     logger.warn("If you do not want this, move the VC-K to another location!")
-    includeBuild("../vck")
+    includeBuild(vckDir)
 }
 
 dependencyResolutionManagement {

@@ -151,9 +151,18 @@ kotlin {
             implementation("androidx.compose.ui:ui-test-manifest")
         }
 
-        iosMain.dependencies {
-            api(project(":interop"))
-            implementation(ktor("client-darwin"))
+        // Only touch iosMain when the Apple targets above were actually created. The
+        // accessor creates the source set as a side effect, and a source set that belongs
+        // to no compilation has source roots but no IDE module. Gradle warns about it
+        // ("configured but not added to any Kotlin compilation") and IntelliJ's Gradle
+        // import fails outright with "contentRootData is null" while merging content roots:
+        // https://youtrack.jetbrains.com/issue/IDEA-363235
+        // https://youtrack.jetbrains.com/issue/IDEA-374908
+        if ("true" != disableAppleTargets) {
+            iosMain.dependencies {
+                api(project(":interop"))
+                implementation(ktor("client-darwin"))
+            }
         }
     }
 }
@@ -162,20 +171,25 @@ compose.resources {
     packageOfResClass = "at.asitplus.valera.resources"
 }
 
-exportXCFramework(
-    name = "shared",
-    transitiveExports = false,
-    static = true,
-    additionalExports = arrayOf(
-        libs.vck,
-        libs.vck.openid,
-        libs.vck.openid.ktor,
-        kmmresult(),
-        napier()
-    )
-) {
-    binaryOption("bundleId", "at.asitplus.wallet.shared")
-    freeCompilerArgs += listOf("-Xoverride-konan-properties=minVersion.ios=18.5;minVersionSinceXcode15.ios=18.5")
+// Same reasoning as the iosMain guard above: exporting an XCFramework materialises the
+// Apple source sets (iosTest among them). With no Apple targets those source sets belong
+// to no compilation, which breaks IntelliJ's Gradle import.
+if ("true" != disableAppleTargets) {
+    exportXCFramework(
+        name = "shared",
+        transitiveExports = false,
+        static = true,
+        additionalExports = arrayOf(
+            libs.vck,
+            libs.vck.openid,
+            libs.vck.openid.ktor,
+            kmmresult(),
+            napier()
+        )
+    ) {
+        binaryOption("bundleId", "at.asitplus.wallet.shared")
+        freeCompilerArgs += listOf("-Xoverride-konan-properties=minVersion.ios=18.5;minVersionSinceXcode15.ios=18.5")
+    }
 }
 
 // Device is intentionally left unset here: KotlinNativeSimulatorTest.device falls back to
