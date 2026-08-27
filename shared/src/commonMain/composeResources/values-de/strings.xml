@@ -505,7 +505,7 @@
     <string name="info_text_registration_cert_typ_valid">Die angefragten Credential-Typen sind erlaubt</string>
     <string name="info_text_registration_cert_typ_invalid">Es werden andere Credential-Typen abgefragt als erlaubt!</string>
     <string name="info_text_registration_cert_identifier_valid">Identifikation des Service Provider ist korrekt</string>
-    <string name="info_text_registration_cert_identifier_invalid">Der Service Provider verwendet eine andere Identifikation als von ihm registriert!</string>
+    <string name="info_text_registration_cert_identifier_invalid">Der Service Provider verwendet eine andere Identifikation als registriert wurde!</string>
     <string name="info_text_registration_cert_requested_claim_invalid">Es werden mehr Attribute abgefragt als erlaubt!</string>
     <string name="info_text_registration_cert_requested_claim_valid">Die abgefragten Attribute sind erlaubt</string>
 </resources>
