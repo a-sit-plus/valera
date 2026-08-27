@@ -497,7 +497,7 @@
     <string name="label_registration_cert_details_service_description">Service-Beschreibung</string>
     <string name="label_registration_cert_more_details">Mehr Details</string>
     <string name="label_registration_cert_info_uri">Info Uri</string>
-    <string name="label_registration_cert_support_uri">Support Uri</string>
+    <string name="label_registration_cert_support_uri">Support URL</string>
 
     <string name="info_text_registration_cert_missing">Der Service Provider hat kein Zertifikat zu dieser Anfrage mitgesendet</string>
     <string name="info_text_registration_cert_valid">Der Service Provider hat ein gültiges Zertifikat</string>
