@@ -65,6 +65,9 @@ android {
 }
 dependencies {
     implementation(project(":shared"))
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.registry.provider)
     implementation(libs.koin.core)
