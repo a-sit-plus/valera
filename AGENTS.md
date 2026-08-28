@@ -13,7 +13,7 @@ Read `README.md`, `DEVELOPMENT.md`, and `CONTRIBUTING.md` before changing releas
 - `shared/`: shared business logic, Compose UI, Koin modules, persistence, and platform source sets.
   - `src/commonMain`: platform-independent code.
   - `src/androidMain`: Android actuals and integrations.
-  - `src/iosMain` and `src/appleMain`: Apple actuals and integrations.
+  - `src/iosMain`: Apple actuals and integrations.
   - `src/commonTest`, `src/androidHostTest`, `src/androidDeviceTest`, `src/iosTest`: tests.
 - `androidApp/`: Android application, activities, retained session host, manifest, resources, and DC API matcher assets. Plain Android Gradle module, so it uses the standard AGP layout (`src/main`, `src/debug`), not Kotlin Multiplatform source-set names.
 - `iosApp/`: Swift/Xcode host app and Identity Document Provider extension.
