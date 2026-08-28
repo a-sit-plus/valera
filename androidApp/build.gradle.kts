@@ -17,6 +17,7 @@ android {
         res.directories += "src/androidMain/res"
         assets.directories += "src/androidMain/assets"
     }
+    sourceSets["debug"].res.directories += "src/androidDebug/res"
 
     signingConfigs {
         getByName("debug") {
