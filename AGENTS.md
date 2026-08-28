@@ -15,7 +15,7 @@ Read `README.md`, `DEVELOPMENT.md`, and `CONTRIBUTING.md` before changing releas
   - `src/androidMain`: Android actuals and integrations.
   - `src/iosMain` and `src/appleMain`: Apple actuals and integrations.
   - `src/commonTest`, `src/androidHostTest`, `src/androidDeviceTest`, `src/iosTest`: tests.
-- `androidApp/`: Android application, activities, retained session host, manifest, resources, and DC API matcher assets.
+- `androidApp/`: Android application, activities, retained session host, manifest, resources, and DC API matcher assets. Plain Android Gradle module, so it uses the standard AGP layout (`src/main`, `src/debug`), not Kotlin Multiplatform source-set names.
 - `iosApp/`: Swift/Xcode host app and Identity Document Provider extension.
 - `interop/` and `cinterop/`: Apple Digital Credentials interop.
 - `../vck`: Valera is a consumer of VC-K. When this sibling repository is present, Valera automatically includes it as a Gradle composite build instead of using only the published VC-K artifacts.
@@ -131,8 +131,8 @@ An HTTP status probe still needs to consume or close its response. Merely checki
 
 Android DC API matching uses bundled WebAssembly assets:
 
-- verification: `androidApp/src/androidMain/assets/dcapimatcher.wasm`;
-- issuance: `androidApp/src/androidMain/assets/dcapimatcher_issuing_hardcoded.wasm`.
+- verification: `androidApp/src/main/assets/dcapimatcher.wasm`;
+- issuance: `androidApp/src/main/assets/dcapimatcher_issuing_hardcoded.wasm`.
 
 Sources and build instructions are under `shared/src/androidMain/kotlin/matcher*`. If matcher source changes, rebuild and replace the corresponding asset; otherwise the application continues executing the old binary.
 

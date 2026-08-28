@@ -159,8 +159,8 @@ Android uses custom WebAssembly matchers for the Digital Credentials API integra
 These matchers are loaded from app assets by [`CustomRegistry`](./shared/src/androidMain/kotlin/at/asitplus/wallet/app/android/dcapi/CustomRegistry.kt).
 
 There are currently two separate matcher binaries:
-* Verification matcher: `androidApp/src/androidMain/assets/dcapimatcher.wasm`
-* Issuance matcher: `androidApp/src/androidMain/assets/dcapimatcher_issuing_hardcoded.wasm`
+* Verification matcher: `androidApp/src/main/assets/dcapimatcher.wasm`
+* Issuance matcher: `androidApp/src/main/assets/dcapimatcher_issuing_hardcoded.wasm`
 
 Source locations:
 * Verification matcher: [`shared/src/androidMain/kotlin/matcher`](./shared/src/androidMain/kotlin/matcher)

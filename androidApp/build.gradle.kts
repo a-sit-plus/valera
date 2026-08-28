@@ -11,14 +11,6 @@ val apkSignerPassword =
 android {
     namespace = "at.asitplus.wallet.app.android"
 
-    sourceSets["main"].apply {
-        manifest.srcFile("src/androidMain/AndroidManifest.xml")
-        kotlin.directories += "src/androidMain/kotlin"
-        res.directories += "src/androidMain/res"
-        assets.directories += "src/androidMain/assets"
-    }
-    sourceSets["debug"].res.directories += "src/androidDebug/res"
-
     signingConfigs {
         getByName("debug") {
             storeFile = file("keystore.p12")
