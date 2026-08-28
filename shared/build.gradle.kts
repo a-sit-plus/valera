@@ -147,9 +147,14 @@ kotlin {
             implementation("androidx.compose.ui:ui-test-manifest")
         }
 
-        iosMain.dependencies {
-            api(project(":interop"))
-            implementation(ktor("client-darwin"))
+        // Guarded like the target declarations above: the `iosMain` accessor creates the source set
+        // on demand, so referencing it unconditionally would leave a dangling source set behind
+        // (belonging to no compilation) whenever the Apple targets are disabled.
+        if ("true" != disableAppleTargets) {
+            iosMain.dependencies {
+                api(project(":interop"))
+                implementation(ktor("client-darwin"))
+            }
         }
     }
 }

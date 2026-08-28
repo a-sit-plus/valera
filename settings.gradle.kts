@@ -20,10 +20,29 @@ dependencyResolutionManagement {
 
 rootProject.name = "compose-wallet-app"
 
+// Mirrors the conventions plugin's `envExtra` lookup, which is not available this early:
+// environment first, then -P properties, then gradle.properties overridden by local.properties.
+val disableAppleTargets: String? = System.getenv("disableAppleTargets")
+    ?: startParameter.projectProperties["disableAppleTargets"]
+    ?: run {
+        val properties = java.util.Properties()
+        listOf("gradle.properties", "local.properties").forEach { name ->
+            val file = File(rootDir, name)
+            if (file.exists()) file.inputStream().use { properties.load(it) }
+        }
+        properties.getProperty("disableAppleTargets")
+    }
+
 include(":androidApp")
 include(":shared")
-include(":cinterop")
-include(":interop")
+
+// `cinterop` and `interop` exist only to bridge the Apple Digital Credentials API. Leaving them out
+// entirely when Apple targets are disabled avoids a Kotlin module that declares no targets at all,
+// which KGP rejects. `shared` guards its `iosMain` dependency on `:interop` with the same flag.
+if ("true" != disableAppleTargets) {
+    include(":cinterop")
+    include(":interop")
+}
 
 val vckDir = file("../vck")
 val vckBuildFile = file("../vck/build.gradle.kts")
