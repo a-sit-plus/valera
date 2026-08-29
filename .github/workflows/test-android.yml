@@ -44,6 +44,7 @@ jobs:
 
       - name: Reporting
         uses: a-sit-plus/internal-workflows/.github/actions/common-reporting@v2
+        if: success() || failure()
         with:
           report-name: ${{ github.workflow }}
           matrix-identifier: ${{ runner.os }}-androidRunner-${{ runner.arch }}

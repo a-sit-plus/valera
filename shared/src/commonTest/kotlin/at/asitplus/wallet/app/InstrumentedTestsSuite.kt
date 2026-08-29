@@ -13,7 +13,9 @@ import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.printToString
 import androidx.compose.ui.test.waitUntilDoesNotExist
 import androidx.compose.ui.test.waitUntilExactlyOneExists
 import androidx.compose.ui.unit.dp
@@ -30,6 +32,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_continue
 import at.asitplus.valera.resources.button_label_open_url
 import at.asitplus.valera.resources.button_label_start
+import at.asitplus.valera.resources.button_label_submit
 import at.asitplus.valera.resources.content_description_portrait
 import at.asitplus.valera.resources.heading_label_authentication_success
 import at.asitplus.valera.resources.prompt_send_above_data
@@ -56,8 +59,9 @@ import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
-import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.SD_JWT
 import at.asitplus.wallet.lib.data.SdJwtCredentialScheme
 import at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme
@@ -101,9 +105,20 @@ import kotlin.uuid.Uuid
 @OptIn(ExperimentalUuidApi::class, ExperimentalTestApi::class)
 @ExperimentalMaterial3Api
 fun ComposeUiTest.endToEndTest() {
+    try {
+        runEndToEndTest()
+    } catch (cause: Throwable) {
+        throw AssertionError("${cause.message}\n${onRoot(useUnmergedTree = true).printToString()}", cause)
+    }
+}
+
+@OptIn(ExperimentalUuidApi::class, ExperimentalTestApi::class)
+@ExperimentalMaterial3Api
+private fun ComposeUiTest.runEndToEndTest() {
     val startText = runBlocking { getString(Res.string.button_label_start) }
     val portraitText = runBlocking { getString(Res.string.content_description_portrait) }
     val continueText = runBlocking { getString(Res.string.button_label_continue) }
+    val submitText = runBlocking { getString(Res.string.button_label_submit) }
     val openUrlText = runBlocking { getString(Res.string.button_label_open_url) }
     val authenticationSuccessText = runBlocking { getString(Res.string.heading_label_authentication_success) }
     val sendDataPromptText = runBlocking { getString(Res.string.prompt_send_above_data) }
@@ -126,6 +141,13 @@ fun ComposeUiTest.endToEndTest() {
             module {
                 scope(named(SESSION_NAME)) {
                     scopedOf(::DummyCapabilitiesService) binds arrayOf(CapabilitiesService::class)
+                    scoped<HolderAgent> {
+                        HolderAgent(
+                            keyMaterial = get<KeyMaterial>(),
+                            subjectCredentialStore = get<SubjectCredentialStore>(),
+                            validator = get<Validator>(),
+                        )
+                    }
                 }
             }
         }
@@ -195,7 +217,7 @@ fun ComposeUiTest.endToEndTest() {
                         )
                             .getOrThrow()
                             .toStoreCredentialInput()
-                    )
+                    ).getOrThrow()
                 }.onSuccess {
                     println("InstrumentedTests: credential issuance setup completed")
                     credentialIssued.complete(Unit)
@@ -236,7 +258,7 @@ fun ComposeUiTest.endToEndTest() {
     onNodeWithText(continueText).performClick()
 
     waitUntilExactlyOneExists(hasText(sendDataPromptText), 5000)
-    onNodeWithText(continueText).performClick()
+    onNodeWithText(submitText).performClick()
 
     waitUntilExactlyOneExists(hasText(authenticationSuccessText), 10000)
     onNodeWithText(openUrlText).performClick()
@@ -335,10 +357,7 @@ private fun createWalletDependencyProvider(platformAdapter: PlatformAdapter): Wa
         antilog = AntilogAdapter(platformAdapter, "", BuildType.DEBUG),
     )
 }
-// Scheme is resolved from remote type metadata registered at boot, not the removed library scheme object.
-private suspend fun pidSdJwtScheme() =
-    AttributeIndex.resolveIdentifier(EU_PID_SD_JWT_VCT, SD_JWT) as? SdJwtCredentialScheme
-        ?: SdJwtFallbackCredentialScheme(EU_PID_SD_JWT_VCT)
+private fun pidSdJwtScheme(): SdJwtCredentialScheme = SdJwtFallbackCredentialScheme(EU_PID_SD_JWT_VCT)
 
 class TestLifecycleOwner : LifecycleOwner {
     private val _lifecycle = LifecycleRegistry(this)
