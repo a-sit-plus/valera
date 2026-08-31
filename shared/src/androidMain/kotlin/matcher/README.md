@@ -12,7 +12,7 @@ into `../assets/identitycredentialmatcher.wasm` where it will get picked up as p
 of the identity-appsupport library. The following command-line does this
 
 ```shell
-$ make clean && make -j && cp build/matcher.wasm ../../../../../androidApp/src/androidMain/assets/dcapimatcher.wasm
+$ make clean && make -j && cp build/matcher.wasm ../../../../../androidApp/src/main/assets/dcapimatcher.wasm
 ```
 
 The [cJSON library](https://github.com/DaveGamble/cJSON) is shared in
@@ -34,7 +34,7 @@ git apply --check shared/src/androidMain/kotlin/matcher/patches/empty-claims-man
 git apply shared/src/androidMain/kotlin/matcher/patches/empty-claims-mandatory-attributes.patch
 cd shared/src/androidMain/kotlin/matcher
 make clean && make -j
-cp build/matcher.wasm ../../../../../androidApp/src/androidMain/assets/dcapimatcher.wasm
+cp build/matcher.wasm ../../../../../androidApp/src/main/assets/dcapimatcher.wasm
 ```
 
 The `--check` command detects upstream conflicts without changing files. If it fails, port

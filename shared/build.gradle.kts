@@ -129,18 +129,13 @@ kotlin {
         }
 
         androidMain.dependencies {
-            implementation(libs.androidx.biometric)
-            api(libs.androidx.activity.compose)
-            api(libs.androidx.appcompat)
-            api(libs.androidx.core.ktx)
+            implementation(libs.androidx.core.ktx)
             implementation("uk.uuid.slf4j:slf4j-android:1.7.30-0")
-            implementation(ktor("client-android"))
             implementation(libs.androidx.camera.camera2)
             implementation(libs.androidx.camera.lifecycle)
             implementation(libs.androidx.camera.view)
             implementation(libs.accompanist.permissions)
             implementation(libs.barcode.scanning)
-            implementation(libs.core.splashscreen)
             implementation(libs.androidx.credentials)
             implementation(libs.androidx.credentials.registry.provider)
             implementation(libs.androidx.registry.provider.play.services)
@@ -152,9 +147,14 @@ kotlin {
             implementation("androidx.compose.ui:ui-test-manifest")
         }
 
-        iosMain.dependencies {
-            api(project(":interop"))
-            implementation(ktor("client-darwin"))
+        // Guarded like the target declarations above: the `iosMain` accessor creates the source set
+        // on demand, so referencing it unconditionally would leave a dangling source set behind
+        // (belonging to no compilation) whenever the Apple targets are disabled.
+        if ("true" != disableAppleTargets) {
+            iosMain.dependencies {
+                api(project(":interop"))
+                implementation(ktor("client-darwin"))
+            }
         }
     }
 }
