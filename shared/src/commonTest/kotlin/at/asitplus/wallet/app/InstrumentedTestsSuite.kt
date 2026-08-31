@@ -4,6 +4,7 @@ import App
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.test.ComposeUiTest
@@ -183,6 +184,16 @@ private fun ComposeUiTest.runEndToEndTest() {
                             sessionCoroutineScope.cancel()
                         }
                     }
+                }
+            }
+
+            DisposableEffect(sessionService) {
+                onDispose {
+                    // runComposeUiTest waits for composition-owned work to finish. The session
+                    // and prompt model intentionally outlive individual routes, so the test must
+                    // close them when its composition is torn down.
+                    sessionService.close()
+                    walletDependencyProvider.promptModel.promptModelScope.cancel()
                 }
             }
 
