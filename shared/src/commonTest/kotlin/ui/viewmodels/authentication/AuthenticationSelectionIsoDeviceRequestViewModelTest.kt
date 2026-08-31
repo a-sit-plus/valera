@@ -55,6 +55,16 @@ class AuthenticationSelectionIsoDeviceRequestViewModelTest {
         }
     }
 
+    /** A Device Request with no document request has nothing to select; construction must not yield an empty view. */
+    @Test
+    fun rejectsDeviceRequestWithoutDocumentRequests() {
+        val matching = matchingResult(credentials = listOf("credential"), matches = emptyList())
+
+        assertFailsWith<IllegalStateException> {
+            AuthenticationSelectionIsoDeviceRequestViewModel(matching, {}, {})
+        }
+    }
+
     private fun matchingResult(
         credentials: List<String>,
         matches: List<List<IsoDeviceRetrievalCredentialMatch>>,

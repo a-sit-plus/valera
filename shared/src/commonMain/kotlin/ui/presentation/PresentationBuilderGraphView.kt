@@ -168,7 +168,7 @@ fun PresentationBuilderGraphView(
                 }
 
                 is IsoDeviceRetrievalMatchingResult -> if (
-                    queryMatchingResult.matchingResult.documentMatches.any { it.isEmpty() }
+                    queryMatchingResult.matchingResult.hasUnsatisfiedDocumentRequest()
                 ) {
                     AuthenticationNoCredentialView(
                         AuthenticationNoCredentialViewModel(

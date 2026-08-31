@@ -19,6 +19,7 @@ import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
+import ui.presentation.hasUnsatisfiedDocumentRequest
 
 abstract class AuthenticationViewModel(
     val spName: String?,
@@ -36,7 +37,6 @@ abstract class AuthenticationViewModel(
     abstract val transactionData: TransactionDataBase64Url?
 
     lateinit var matchingCredentials: CredentialMatchingResult<SubjectCredentialStore.StoreEntry>
-    lateinit var defaultCredentialSelection: Map<String, SubjectCredentialStore.StoreEntry>
 
     abstract suspend fun findMatchingCredentials(): Result<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>>
 
@@ -64,7 +64,7 @@ abstract class AuthenticationViewModel(
             }
 
             is IsoDeviceRetrievalMatchingResult -> viewState =
-                if (matching.matchingResult.documentMatches.any { it.isEmpty() }) {
+                if (matching.matchingResult.hasUnsatisfiedDocumentRequest()) {
                     AuthenticationViewState.NoMatchingCredential
                 } else {
                     AuthenticationViewState.Selection

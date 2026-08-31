@@ -71,6 +71,35 @@ fun CredentialAdapter.labeledPresentationAttributes(
     .sortedBy { it.first }
 
 /**
+ * Labels the paths a submission is about to disclose, in the order the disclosure lists them, which is the order
+ * the document request asked for them in.
+ *
+ * Unlike [labeledPresentationAttributes] this never drops a path: a consent list that silently omits an attribute
+ * would under-report what is being sent. An attribute the bespoke adapter cannot render therefore falls back to the
+ * raw stored value, and one that has no display representation at all (e.g. raw bytes) to a label-only row.
+ *
+ * The requested paths are built by the matching layer, not by [toGenericAttributeList], and [NormalizedJsonPath] has
+ * no value equality, so the stored values are looked up by normalized path string.
+ */
+fun SubjectCredentialStore.StoreEntry.labeledDisclosedAttributes(
+    scheme: CredentialScheme,
+    disclosedAttributes: Collection<NormalizedJsonPath>,
+    decodeImage: (ByteArray) -> Result<ImageBitmap>,
+): List<Pair<String, Attribute?>> {
+    val adapter = toCredentialAdapter(scheme, decodeImage)
+    // only flattened when a path does not resolve through the adapter, which is the uncommon case
+    val storedValues by lazy { toGenericAttributeList().associate { (path, value) -> path.toString() to value } }
+    return disclosedAttributes.map { path ->
+        val attribute = catchingUnwrapped { adapter.getAttribute(path) }.getOrNull()
+            ?: storedValues[path.toString()]?.let { Attribute.fromValue(it) }
+        val label = scheme.getLocalization(path)
+            ?: path.segments.lastOrNull()?.let { scheme.getLocalization(NormalizedJsonPath(it)) }
+            ?: path.genericLabel()
+        label to attribute
+    }
+}
+
+/**
  * Flattens all disclosed claims of a credential into `(path, value)` pairs, using the same path convention as
  * SD-JWT VC Type Metadata (nested SD-JWT objects become multi-segment paths; ISO mdoc claims become
  * `[namespace, element]`). Used to render credentials that have no bespoke adapter.

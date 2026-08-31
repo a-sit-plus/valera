@@ -19,6 +19,7 @@ import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_complex_dcql_query
 import at.asitplus.valera.resources.error_invalid_dcql_query
+import at.asitplus.valera.resources.text_label_intent_to_retain
 import at.asitplus.wallet.app.common.DcqlConsentData
 import at.asitplus.wallet.app.common.IsoDeviceRequestConsentData
 import at.asitplus.wallet.app.common.extractConsentData
@@ -55,10 +56,16 @@ fun IsoDeviceRequestPreview(
     presentationRequest: CredentialPresentationRequest.IsoDeviceRetrieval,
     onError: (Throwable) -> Unit,
 ) {
+    // Resolved in a coroutine: scheme resolution may fetch type metadata (from the persistent cache or remotely)
+    // when the in-memory scheme index is still cold, e.g. right after the iOS identity provider extension process
+    // started for a DC API request. Resolved per document request, so one unresolvable document type reports its
+    // own error instead of blanking the preview for every other document in the same request.
     val consentData by produceState<List<IsoDeviceRequestConsentData>?>(null, presentationRequest) {
-        value = withContext(Dispatchers.Default) {
-            catchingUnwrapped { presentationRequest.deviceRequest.extractConsentData() }
-        }.onFailure(onError).getOrNull()
+        value = presentationRequest.deviceRequest.docRequests.mapNotNull { docRequest ->
+            withContext(Dispatchers.Default) {
+                catchingUnwrapped { docRequest.extractConsentData() }
+            }.onFailure(onError).getOrNull()
+        }
     }
     if (consentData == null) {
         PresentationRequestLoadingIndicator()
@@ -68,6 +75,7 @@ fun IsoDeviceRequestPreview(
             scheme = request.scheme,
             representation = ConstantIndex.CredentialRepresentation.ISO_MDOC,
             attributes = request.attributes.associateWith { false },
+            intendsToRetain = request::intendsToRetain,
         )
         Spacer(modifier = Modifier.height(16.dp))
     }
@@ -136,9 +144,11 @@ fun RequestedCredentialPreview(
     scheme: CredentialScheme,
     representation: ConstantIndex.CredentialRepresentation,
     attributes: Map<NormalizedJsonPath?, Boolean>?,
+    intendsToRetain: (NormalizedJsonPath) -> Boolean = { false },
 ) {
     val schemeName = scheme.uiLabel()
     val format = representation.name
+    val intentToRetainText = stringResource(Res.string.text_label_intent_to_retain)
     val localizations = attributes?.let { claimReferences ->
         val otherClaims = claimReferences.count {
             it.key == null
@@ -149,11 +159,12 @@ fun RequestedCredentialPreview(
             it.key!!
         }
         otherClaims to singleClaimReferences.mapKeys { (path, _) ->
-            catchingUnwrapped {
+            val label = catchingUnwrapped {
                 scheme.getLocalization(path)
                     ?: representation.getMetadataLocalization(path)?.let { stringResource(it) }
                     ?: path.toShorthandNameSegmentNotationWherePossible().removePrefix("$.")
             }.getOrElse { path.toShorthandNameSegmentNotationWherePossible().removePrefix("$.") }
+            if (intendsToRetain(path)) "$label ($intentToRetainText)" else label
         }
     }
     ConsentAttributesSection(

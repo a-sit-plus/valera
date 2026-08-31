@@ -3,6 +3,7 @@ package at.asitplus.wallet.app.common
 import androidx.compose.runtime.Composable
 import at.asitplus.catchingUnwrapped
 import at.asitplus.iso.DeviceRequest
+import at.asitplus.iso.DocRequest
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.IndexSegment
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.NameSegment
@@ -52,20 +53,34 @@ typealias DcqlConsentData = Triple<CredentialRepresentation, CredentialScheme, C
 data class IsoDeviceRequestConsentData(
     val scheme: CredentialScheme,
     val attributes: List<NormalizedJsonPath>,
-)
+    /**
+     * The elements the verifier declared it intends to keep beyond the transaction (ISO/IEC 18013-5
+     * `IntentToRetain`), so consent can say so rather than implying a one-off read. Held as normalized path
+     * strings because [NormalizedJsonPath] has no value equality; use [intendsToRetain] to query it.
+     */
+    val retainedAttributePaths: Set<String>,
+) {
+    fun intendsToRetain(path: NormalizedJsonPath) = path.toString() in retainedAttributePaths
+}
 
-/** Resolves every ISO document request independently and preserves request, namespace, and element order. */
-suspend fun DeviceRequest.extractConsentData(): List<IsoDeviceRequestConsentData> = docRequests.map { docRequest ->
-    val itemsRequest = docRequest.itemsRequest.value
-    IsoDeviceRequestConsentData(
-        scheme = resolveConsentScheme(ISO_MDOC, listOf(itemsRequest.docType)),
-        attributes = itemsRequest.namespaces.flatMap { (namespace, elements) ->
-            elements.entries.map { element ->
-                NormalizedJsonPath() + namespace + element.dataElementIdentifier
-            }
-        },
+/** Resolves one ISO document request and preserves namespace and element order. */
+suspend fun DocRequest.extractConsentData(): IsoDeviceRequestConsentData {
+    val request = itemsRequest.value
+    val elements = request.namespaces.flatMap { (namespace, elements) ->
+        elements.entries.map { element ->
+            (NormalizedJsonPath() + namespace + element.dataElementIdentifier) to element.intentToRetain
+        }
+    }
+    return IsoDeviceRequestConsentData(
+        scheme = resolveConsentScheme(ISO_MDOC, listOf(request.docType)),
+        attributes = elements.map { it.first },
+        retainedAttributePaths = elements.filter { it.second }.mapTo(mutableSetOf()) { it.first.toString() },
     )
 }
+
+/** Resolves every ISO document request independently and preserves request, namespace, and element order. */
+suspend fun DeviceRequest.extractConsentData(): List<IsoDeviceRequestConsentData> =
+    docRequests.map { it.extractConsentData() }
 
 /**
  * Resolves the first identifier yielding a scheme with known type metadata, triggering (cached)

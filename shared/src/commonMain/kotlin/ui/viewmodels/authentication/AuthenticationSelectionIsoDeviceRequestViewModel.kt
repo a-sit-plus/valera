@@ -20,6 +20,9 @@ class AuthenticationSelectionIsoDeviceRequestViewModel<Credential : Any>(
         mutableStateMapOf()
 
     init {
+        // Callers route an unsatisfiable request to the no-credential screen; state the precondition here so a
+        // future caller that forgets fails on construction instead of indexing an empty list in the view.
+        check(requests.isNotEmpty()) { "ISO Device Request does not contain any document request" }
         requests.forEachIndexed { requestIndex, matches ->
             credentialSelection[requestIndex] = mutableStateOf(
                 matches.firstOrNull()

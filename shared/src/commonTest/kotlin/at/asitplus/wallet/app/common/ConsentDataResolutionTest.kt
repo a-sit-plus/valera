@@ -29,7 +29,9 @@ import io.github.z4kn4fein.semver.Version
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 import at.asitplus.openid.CredentialFormatEnum as OpenIdCredentialFormatEnum
 import at.asitplus.wallet.sdjwt.CredentialFormatEnum as SdJwtCredentialFormatEnum
 
@@ -48,7 +50,7 @@ class ConsentDataResolutionTest {
         val request = deviceRequest(
             TEST_DOCTYPE,
             TEST_NAMESPACE,
-            "family_name",
+            "family_name" to false,
         )
 
         val consentData = request.extractConsentData().single()
@@ -65,7 +67,7 @@ class ConsentDataResolutionTest {
         val consentData = deviceRequest(
             "org.example.unknown",
             "org.example.unknown.namespace",
-            "unknown_element",
+            "unknown_element" to false,
         ).extractConsentData().single()
 
         assertEquals("org.example.unknown", consentData.scheme.isoDocType)
@@ -161,7 +163,39 @@ class ConsentDataResolutionTest {
             entries[identifier to representation]
     }
 
-    private fun deviceRequest(docType: String, namespace: String, element: String) = DeviceRequest(
+    /**
+     * ISO/IEC 18013-5 `IntentToRetain` states that the verifier will keep an element beyond the transaction, which
+     * consent has to be able to show; it is per data element, so it must not leak to the other requested elements.
+     */
+    @Test
+    fun reportsIntentToRetainPerDataElement() = runTest {
+        registerTestMetadata()
+
+        val consentData = deviceRequest(
+            TEST_DOCTYPE,
+            TEST_NAMESPACE,
+            "family_name" to true,
+            "given_name" to false,
+        ).extractConsentData().single()
+
+        val (familyName, givenName) = consentData.attributes
+        assertEquals(
+            listOf("family_name", "given_name"),
+            consentData.attributes.map { (it.segments.last() as NameSegment).memberName },
+        )
+        assertTrue(consentData.intendsToRetain(familyName))
+        assertFalse(consentData.intendsToRetain(givenName))
+        // the request is resolved into fresh path instances, and NormalizedJsonPath has no value equality
+        assertTrue(
+            consentData.intendsToRetain(NormalizedJsonPath(NameSegment(TEST_NAMESPACE), NameSegment("family_name")))
+        )
+    }
+
+    private fun deviceRequest(
+        docType: String,
+        namespace: String,
+        vararg elements: Pair<String, Boolean>,
+    ) = DeviceRequest(
         parsedVersion = Version(1, 0),
         docRequests = arrayOf(
             DocRequest(
@@ -169,7 +203,11 @@ class ConsentDataResolutionTest {
                     ItemsRequest(
                         docType = docType,
                         namespaces = mapOf(
-                            namespace to ItemsRequestList(listOf(SingleItemsRequest(element, false)))
+                            namespace to ItemsRequestList(
+                                elements.map { (element, intentToRetain) ->
+                                    SingleItemsRequest(element, intentToRetain)
+                                }
+                            )
                         ),
                     )
                 )

@@ -1,6 +1,7 @@
 package ui.presentation
 
 import at.asitplus.wallet.lib.agent.CredentialMatchingResult
+import at.asitplus.wallet.lib.agent.HolderIsoDeviceRetrievalQueryMatchingResult
 import at.asitplus.wallet.lib.agent.validation.CredentialFreshnessSummary
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -33,3 +34,11 @@ fun <Credential : Any> CredentialMatchingResult<Credential>.toCredentialSelectio
         )
     }
 )
+
+/**
+ * True when the request cannot be answered at all: at least one requested document has no matching credential, or
+ * the Device Request asked for no document in the first place. Both must route to the no-credential screen; a
+ * request with no documents would otherwise reach a selection step that has nothing to select.
+ */
+internal fun HolderIsoDeviceRetrievalQueryMatchingResult<*>.hasUnsatisfiedDocumentRequest() =
+    documentMatches.isEmpty() || documentMatches.any { it.isEmpty() }

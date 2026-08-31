@@ -8,8 +8,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -24,9 +24,11 @@ import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
 import at.asitplus.wallet.lib.agent.DeviceRequestCredentialDisclosure
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import data.credentials.labeledDisclosedAttributes
 import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import ui.composables.DisclosedAttribute
 import ui.composables.TrustState
 import ui.composables.TrustStatusBanner
 import ui.composables.credentials.CredentialSelectionCardHeader
@@ -94,6 +96,11 @@ private fun IsoDeviceRequestCredentialSelectionCard(
     val trustState by trustListService.observeTrustStateForEntry(flowOf(resolvedCredential))
         .collectAsState(initial = TrustState.EVALUATING)
     val displayCredential = resolvedCredential ?: return
+    val labeledAttributes = disclosure.credential.labeledDisclosedAttributes(
+        scheme = displayCredential.scheme,
+        disclosedAttributes = disclosure.disclosedAttributes,
+        decodeImage = { imageDecoder(it) },
+    )
 
     CredentialSelectionCardLayout(
         onClick = { selection.value = disclosure },
@@ -111,8 +118,11 @@ private fun IsoDeviceRequestCredentialSelectionCard(
         )
         TrustStatusBanner(trustState, Modifier.fillMaxWidth().padding(vertical = 8.dp))
         CredentialSummaryCardContent(displayCredential) { imageDecoder(it) }
-        disclosure.disclosedAttributes.forEach { path ->
-            Text(path.toString(), modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
+        HorizontalDivider(Modifier.fillMaxWidth())
+        Column(Modifier.padding(8.dp).fillMaxWidth()) {
+            labeledAttributes.forEach { (label, attribute) ->
+                DisclosedAttribute(label, attribute, Modifier.padding(bottom = 8.dp))
+            }
         }
     }
 }

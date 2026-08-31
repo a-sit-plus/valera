@@ -17,15 +17,14 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.lib.agent.DeviceRequestCredentialDisclosure
 import at.asitplus.wallet.lib.agent.IsoDeviceRetrievalMatchingResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import data.credentials.toCredentialAdapter
+import data.credentials.labeledDisclosedAttributes
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import org.koin.compose.koinInject
-import ui.composables.LabeledAttribute
+import ui.composables.DisclosedAttribute
 import ui.composables.TrustState
 import ui.composables.TrustStatusBanner
 import ui.composables.credentials.CredentialSelectionCardHeader
@@ -104,7 +103,11 @@ private fun IsoSubmissionSummaryCard(
     val displayCredential = resolvedCredential ?: return
     val trustState by trustListService.observeTrustStateForEntry(flowOf(resolvedCredential))
         .collectAsState(initial = TrustState.EVALUATING)
-    val adapter = disclosure.credential.toCredentialAdapter(displayCredential.scheme) { decodeToBitmap(it) }
+    val labeledAttributes = disclosure.credential.labeledDisclosedAttributes(
+        scheme = displayCredential.scheme,
+        disclosedAttributes = disclosure.disclosedAttributes,
+        decodeImage = { decodeToBitmap(it) },
+    )
 
     CredentialSelectionCardLayout(
         isError = (freshness as? CredentialFreshnessValidationStateUiModel.Done)
@@ -124,11 +127,8 @@ private fun IsoSubmissionSummaryCard(
         CredentialSummaryCardContent(displayCredential) { decodeToBitmap(it) }
         HorizontalDivider(Modifier.fillMaxWidth())
         Column(Modifier.padding(8.dp).fillMaxWidth()) {
-            disclosure.disclosedAttributes.forEach { path ->
-                val label = displayCredential.scheme.getLocalization(path) ?: path.toString()
-                catchingUnwrapped { adapter.getAttribute(path) }.getOrNull()?.let { attribute ->
-                    LabeledAttribute(label, attribute, Modifier.padding(bottom = 8.dp))
-                }
+            labeledAttributes.forEach { (label, attribute) ->
+                DisclosedAttribute(label, attribute, Modifier.padding(bottom = 8.dp))
             }
         }
     }
