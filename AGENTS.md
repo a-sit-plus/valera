@@ -149,7 +149,7 @@ Use the smallest checks that cover the change, then broaden for lifecycle, DI, p
 Common Android verification:
 
 ```bash
-./gradlew :androidApp:compileDebugKotlinAndroid :shared:testAndroidHostTest
+./gradlew :androidApp:compileDebugKotlin :shared:testAndroidHostTest
 ```
 
 Common metadata verification:

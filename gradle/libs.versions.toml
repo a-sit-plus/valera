@@ -1,14 +1,14 @@
 [versions]
 vck="8.0.0-SNAPSHOT"
 
-agp = "8.12.3"
-kotlin = "2.3.0"
+agp = "9.1.1"
+kotlin = "2.4.10"
 compose-plugin = "1.10.3"
 compose-material-icons-core = "1.7.3"
 compose-material3 = "1.10.0-alpha05"
 koin = "4.2.2"
 # TestBallon has to be the same version as in vck, otherwise tests in composite builds may fail
-testballoon = "1.0.0-K2.3.0"
+testballoon = "1.0.1-K2.4.0"
 
 accompanist-permissions = "0.37.3"
 activity-compose = "1.13.0"
@@ -34,8 +34,8 @@ warden-supreme = "1.0.0-RC11"
 
 
 # Test if DC API verification and issuing are still working after upgrading the following libraries:
-androidx-credentials = "1.7.0-alpha02"
-androidx-credentials-registry-provider = "1.0.0-alpha04"
+androidx-credentials = "1.7.0-alpha03"
+androidx-credentials-registry-provider = "1.0.0-alpha05"
 
 
 [libraries]
