@@ -29,7 +29,6 @@
 
     <application
         android:name=".WalletApplication"
-        android:usesCleartextTraffic="true"
         android:allowBackup="false"
         android:fullBackupContent="false"
         android:dataExtractionRules="@xml/data_extraction_rules"

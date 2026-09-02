@@ -30,6 +30,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import ui.composables.TrustState
@@ -168,6 +169,21 @@ class TrustListService(
         certChainFlow: Flow<CertificateChain?>
     ): Flow<TrustState> = combineWithFreshTrustStore(certChainFlow) { certChain, freshTrustLists ->
         evaluateRelyingParty(certChain, freshTrustLists)
+    }
+
+    suspend fun getTrustList(
+        serviceType: LoTEServiceType
+    ): List<X509Certificate>? = runCatching {
+        persistentTrustListStore.observeTrustContainer(LoTEServiceType.defaultUrls).firstOrNull()?.let { trustLists ->
+            val criteria = LoTEFilterCriteria(expectedServiceType = serviceType)
+            val freshTrustLists = trustLists.filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
+            freshTrustLists
+                .flatMap { (key, lote) -> loTeFilterService.extractTrustedCertificates(key, lote, criteria) }
+                .mapNotNull { it.certificate } + aistIssuerCert
+        } ?: listOf(aistIssuerCert)
+    }.getOrElse {
+        Napier.w("Error fetching trust list!", it)
+        null
     }
 
     /** Refreshes missing or expired lists, then sleeps until the earliest cached list expires. */
