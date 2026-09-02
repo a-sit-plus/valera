@@ -8,7 +8,7 @@ import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.data.primitives.CachingStatusListTokenResolver
 import at.asitplus.wallet.app.common.data.primitives.SimpleBootstrappingBulkStore
 import at.asitplus.wallet.app.common.data.primitives.SimpleCacheStoreWrapper
-import at.asitplus.wallet.app.common.domain.vck.tokenStatusList.StatusListTokenResolver
+import at.asitplus.wallet.lib.agent.validation.StatusListTokenResolver
 import at.asitplus.wallet.lib.data.StatusListJwt
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.MediaTypes
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.StatusListTokenPayload
