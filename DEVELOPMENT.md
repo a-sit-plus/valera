@@ -93,6 +93,14 @@ Recommended GitHub Actions secret names for iOS release signing:
 * `APPLE_API_ISSUER_ID`
 * `APPLE_ID`
 
+## WRPAC & WRPRC Trust Anchors (demo)
+
+For certificate validation modify `WrpChainValidator.requestCertificateTrustAnchors`.
+
+Notes:
+- This list contains one or more root certificates.
+- Trust anchors are used for chain anchoring only and are not expected in transported `x5c` values.
+
 ## Deployments
 
 We use [fastlane](https://fastlane.tools/) to build the iOS App. The CI pipeline and secrets on this GitHub repository are already set up correctly.

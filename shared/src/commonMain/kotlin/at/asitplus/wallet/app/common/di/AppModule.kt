@@ -11,6 +11,11 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.di.dataModule
 import at.asitplus.wallet.app.common.domain.di.domainModule
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
+import at.asitplus.wallet.app.common.relyingParty.validation.WrpValidator
+import at.asitplus.wallet.app.common.relyingParty.validation.certificates.WrpChainValidator
+import at.asitplus.wallet.app.common.relyingParty.validation.certificates.accessCertificate.WrpacValidator
+import at.asitplus.wallet.app.common.relyingParty.validation.certificates.registrationCertificate.WrprcRequestValidator
+import at.asitplus.wallet.app.common.relyingParty.validation.certificates.registrationCertificate.WrprcValidator
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.scopedOf
 import org.koin.core.module.dsl.singleOf
@@ -49,6 +54,7 @@ fun appModule(): Module = module {
                 attestationService = get(),
                 sessionCoroutineScope = get(),
                 trustListService = get(),
+                wrpValidator = get()
             )
         }
         scopedOf(::ErrorService)
@@ -64,7 +70,11 @@ fun appModule(): Module = module {
                 sessionCoroutineScope = get()
             )
         }
-
+        scopedOf(::WrprcRequestValidator)
+        scopedOf(::WrprcValidator)
+        scopedOf(::WrpacValidator)
+        scopedOf(::WrpChainValidator)
+        scopedOf(::WrpValidator)
     }
 
     includes(dataModule())

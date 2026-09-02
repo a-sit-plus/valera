@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
@@ -24,7 +25,7 @@ import at.asitplus.valera.resources.heading_label_authenticate_at_device_title
 import at.asitplus.valera.resources.heading_label_select_data
 import at.asitplus.valera.resources.heading_label_show_data
 import at.asitplus.wallet.app.common.TrustListService
-import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.relyingParty.validation.WrpValidationResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import org.jetbrains.compose.resources.stringResource
@@ -32,6 +33,7 @@ import org.koin.core.scope.Scope
 import ui.views.authentication.AuthenticationSuccessView
 import ui.views.authentication.TransactionDataView
 
+@ExperimentalComposeUiApi
 @ExperimentalMaterial3Api
 @Composable
 fun PresentationGraphView(
@@ -54,6 +56,7 @@ fun PresentationGraphView(
     showStartRoute: Boolean = true,
     trustListService: TrustListService,
     fixedCredentialSelection: Boolean = false,
+    wrpValidationResult: WrpValidationResult? = null,
 ) {
     LaunchedEffect(selectionProvider) {
         selectionProvider.let {
@@ -126,7 +129,8 @@ fun PresentationGraphView(
                     },
                     onError = onError,
                     trustListService = trustListService,
-                    request = request
+                    request = request,
+                    wrpValidationResult = wrpValidationResult,
                 )
             }
         }
@@ -162,7 +166,8 @@ fun PresentationGraphView(
                 },
                 trustListService = trustListService,
                 fixedCredentialSelection = fixedCredentialSelection,
-                request = request
+                request = request,
+                wrpValidationResult = wrpValidationResult,
             )
         }
 

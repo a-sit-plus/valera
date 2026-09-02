@@ -73,6 +73,7 @@ class QrCodeScannerViewModel(
         val buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase =
             BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
                 presentationService = walletMain.presentationService,
+                wrpValidator = walletMain.wrpValidator
             )
         val page =
             buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link).getOrThrow()
@@ -80,7 +81,8 @@ class QrCodeScannerViewModel(
             authenticationRequest = page.authenticationRequest,
             authorizationResponsePreparationState = page.authorizationResponsePreparationState,
             recipientLocation = page.recipientLocation,
-            isCrossDeviceFlow = true
+            isCrossDeviceFlow = true,
+            wrpValidationResult = page.wrpValidationResult
         )
     }
 

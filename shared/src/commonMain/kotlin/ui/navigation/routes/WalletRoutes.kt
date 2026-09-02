@@ -6,6 +6,7 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.openid.SignatureRequestParameters
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.LoadingMessageKey
+import at.asitplus.wallet.app.common.relyingParty.validation.WrpValidationResult
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import data.storage.StoreEntryId
 import kotlinx.serialization.Serializable
@@ -129,35 +130,45 @@ data class AuthenticationViewRoute(
     val authorizationPreparationStateSerialized: String,
     val recipientLocation: String,
     val isCrossDeviceFlow: Boolean,
+    val wrpRequestValidationResultSerialized: String?
 ) : Route() {
     constructor(
         authenticationRequest: RequestParametersFrom<AuthenticationRequestParameters>,
         authorizationResponsePreparationState: AuthorizationResponsePreparationState,
         recipientLocation: String,
         isCrossDeviceFlow: Boolean,
+        wrpValidationResult: WrpValidationResult? = null
     ) : this(
         authenticationRequestParametersFromSerialized = joseCompliantSerializer.encodeToString(authenticationRequest),
         authorizationPreparationStateSerialized = joseCompliantSerializer.encodeToString(authorizationResponsePreparationState),
         recipientLocation = recipientLocation,
-        isCrossDeviceFlow
+        isCrossDeviceFlow = isCrossDeviceFlow,
+        wrpRequestValidationResultSerialized = joseCompliantSerializer.encodeToString(wrpValidationResult)
     )
 
     val authenticationRequest: RequestParametersFrom<AuthenticationRequestParameters>
         get() = joseCompliantSerializer.decodeFromString(authenticationRequestParametersFromSerialized)
     val authorizationResponsePreparationState: AuthorizationResponsePreparationState
         get() = joseCompliantSerializer.decodeFromString(authorizationPreparationStateSerialized)
+    val wrpValidationResult: WrpValidationResult?
+        get() = wrpRequestValidationResultSerialized?.let { joseCompliantSerializer.decodeFromString(it) }
 }
 
 @Serializable
 data class DCAPIPresentationViewRoute(
     val apiRequestSerialized: String,
+    val wrpRequestValidationResultSerialized: String?
 ) : Route() {
-    constructor(request: RequestParametersFrom.DcApiRequest) : this(
-        apiRequestSerialized = joseCompliantSerializer.encodeToString<RequestParametersFrom.DcApiRequest>(request)
+    constructor(request: RequestParametersFrom.DcApiRequest, wrpValidationResult: WrpValidationResult? = null) : this(
+        apiRequestSerialized = joseCompliantSerializer.encodeToString<RequestParametersFrom.DcApiRequest>(request),
+        wrpRequestValidationResultSerialized = joseCompliantSerializer.encodeToString(wrpValidationResult)
     )
 
     val request: RequestParametersFrom.DcApiRequest
         get() = joseCompliantSerializer.decodeFromString(apiRequestSerialized)
+
+    val wrpValidationResult: WrpValidationResult?
+        get() = wrpRequestValidationResultSerialized?.let { joseCompliantSerializer.decodeFromString(it) }
 }
 
 @Serializable

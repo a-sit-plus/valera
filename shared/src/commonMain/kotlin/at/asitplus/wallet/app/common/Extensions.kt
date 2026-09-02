@@ -21,6 +21,7 @@ import at.asitplus.openid.dcql.DCQLIsoMdocZkCredentialQuery
 import at.asitplus.openid.dcql.DCQLJsonClaimsQuery
 import at.asitplus.openid.dcql.DCQLJwtVcCredentialQuery
 import at.asitplus.openid.dcql.DCQLSdJwtCredentialQuery
+import at.asitplus.wallet.app.common.relyingParty.validation.certificates.registrationCertificate.RequestCredentialAttributesValidity
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.data.AttributeIndex
@@ -120,10 +121,10 @@ private fun CredentialScheme.isFallback() = this is VcFallbackCredentialScheme
         || this is SdJwtFallbackCredentialScheme
         || this is IsoMdocFallbackCredentialScheme
 
-private fun InputDescriptor.vctConstraint() =
+fun InputDescriptor.vctConstraint() =
     constraints?.fields?.firstOrNull { it.path.toString().contains("vct") }
 
-private fun ConstraintFilter.referenceValues() =
+fun ConstraintFilter.referenceValues() =
     (pattern ?: const?.content)?.let { listOf(it) } ?: enum
 
 /**
@@ -306,7 +307,9 @@ fun NormalizedJsonPath.minus(name: String) =
     NormalizedJsonPath(this.segments.filter { it !is NameSegment || it.memberName != name })
 
 @Composable
-fun Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimReference?>?>.toCredentialQueryUiModel(): DCQLCredentialQueryUiModel {
+fun Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimReference?>?>.toCredentialQueryUiModel(
+    allowedAttributes:  RequestCredentialAttributesValidity? = null
+): DCQLCredentialQueryUiModel {
     val (representation, scheme, attributePaths) = this
     return DCQLCredentialQueryUiModel(
         credentialRepresentationLocalized = representation.uiLabel(),
@@ -320,7 +323,14 @@ fun Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimRef
                             ?: representation.getMetadataLocalization(path)?.let { stringResource(it) }
                             ?: path.displayPath()
                     }.getOrElse { path.displayPath() }
-                }
+                },
+                allowedAttributes = allowedAttributes?.toMap()?.mapNotNull { (path, allowed) ->
+                    catchingUnwrapped {
+                        scheme.getLocalization(path)
+                            ?: representation.getMetadataLocalization(path)?.let { stringResource(it) }
+                            ?: path.displayPath()
+                    }.getOrElse { path.displayPath() } to allowed
+                }?.toMap()
             )
         },
     )

@@ -17,7 +17,7 @@ class DCAPIAuthorizationIntentViewModel(
     val onFailure: (Throwable) -> Unit
 ) {
     private val buildConsentPageFromDcApiRequest =
-        BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase()
+        BuildAuthenticationConsentPageFromAuthenticationRequestDCAPIUseCase(walletMain.wrpValidator)
 
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, error ->
         Napier.w("Exception occurred during DC API invocation", error)

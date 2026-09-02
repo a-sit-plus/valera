@@ -483,4 +483,29 @@
     <string name="text_label_thumbprint">Fingerabdruck</string>
     <string name="text_label_trust_list_urls">Vertrauenslisten-URLs</string>
 
+    <!-- Access / Registration Certificate -->
+    <string name="label_registration_cert_request">Abfrage</string>
+    <string name="label_registration_cert_valid">Gültig</string>
+    <string name="label_registration_cert_invalid">Ungültig</string>
+    <string name="label_registration_cert">Zertifikat</string>
+    <string name="label_registration_cert_credential_typ">Credential-Typ</string>
+    <string name="label_registration_cert_attributes">Attribute</string>
+    <string name="label_registration_cert_identifier">Identifikation</string>
+    <string name="label_registration_cert_details_trade_name">Handelsbezeichnung</string>
+    <string name="label_registration_cert_details_purpose">Zweck</string>
+    <string name="label_registration_cert_details_country">Land</string>
+    <string name="label_registration_cert_details_service_description">Service-Beschreibung</string>
+    <string name="label_registration_cert_more_details">Mehr Details</string>
+    <string name="label_registration_cert_info_uri">Info URL</string>
+    <string name="label_registration_cert_support_uri">Support URL</string>
+
+    <string name="info_text_registration_cert_missing">Der Service Provider hat kein Zertifikat zu dieser Anfrage mitgesendet</string>
+    <string name="info_text_registration_cert_valid">Der Service Provider hat ein gültiges Zertifikat</string>
+    <string name="info_text_registration_cert_invalid">Das Zertifikat des Service Provider ist ungültig!</string>
+    <string name="info_text_registration_cert_typ_valid">Die angefragten Credential-Typen sind erlaubt</string>
+    <string name="info_text_registration_cert_typ_invalid">Es werden andere Credential-Typen abgefragt als erlaubt!</string>
+    <string name="info_text_registration_cert_identifier_valid">Identifikation des Service Provider ist korrekt</string>
+    <string name="info_text_registration_cert_identifier_invalid">Der Service Provider verwendet eine andere Identifikation als registriert wurde!</string>
+    <string name="info_text_registration_cert_requested_claim_invalid">Es werden mehr Attribute abgefragt als erlaubt!</string>
+    <string name="info_text_registration_cert_requested_claim_valid">Die abgefragten Attribute sind erlaubt</string>
 </resources>
