@@ -22,19 +22,20 @@ import at.asitplus.openid.dcql.DCQLJwtVcCredentialQuery
 import at.asitplus.openid.dcql.DCQLSdJwtCredentialQuery
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
+import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.RequestCredentialAttributesValidity
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.*
 import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme
+import at.asitplus.wallet.lib.data.JsonClaimReference
+import at.asitplus.wallet.lib.data.MdocClaimReference
 import at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme
+import at.asitplus.wallet.lib.data.SingleClaimReference
 import at.asitplus.wallet.lib.data.VcDataModelConstants.VERIFIABLE_CREDENTIAL
 import at.asitplus.wallet.lib.data.VcFallbackCredentialScheme
 import at.asitplus.wallet.lib.oidvci.toFormat
-import data.credentials.JsonClaimReference
-import data.credentials.MdocClaimReference
-import data.credentials.SingleClaimReference
 import data.credentials.jwtClaimLabel
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -249,7 +250,9 @@ fun NormalizedJsonPath.minus(name: String) =
     NormalizedJsonPath(this.segments.filter { it !is NameSegment || it.memberName != name })
 
 @Composable
-fun Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimReference?>?>.toCredentialQueryUiModel(): DCQLCredentialQueryUiModel {
+fun Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimReference?>?>.toCredentialQueryUiModel(
+    allowedAttributes:  RequestCredentialAttributesValidity? = null
+): DCQLCredentialQueryUiModel {
     val (representation, scheme, attributePaths) = this
     return DCQLCredentialQueryUiModel(
         credentialRepresentationLocalized = representation.uiLabel(),
@@ -263,7 +266,14 @@ fun Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimRef
                             ?: representation.getMetadataLocalization(path)?.let { stringResource(it) }
                             ?: path.displayPath()
                     }.getOrElse { path.displayPath() }
-                }
+                },
+                allowedAttributes = allowedAttributes?.toMap()?.mapNotNull { (path, allowed) ->
+                    catchingUnwrapped {
+                        scheme.getLocalization(path)
+                            ?: representation.getMetadataLocalization(path)?.let { stringResource(it) }
+                            ?: path.displayPath()
+                    }.getOrElse { path.displayPath() } to allowed
+                }?.toMap()
             )
         },
     )

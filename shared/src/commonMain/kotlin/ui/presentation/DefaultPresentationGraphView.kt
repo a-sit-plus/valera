@@ -5,11 +5,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import at.asitplus.wallet.lib.agent.Validator
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope
 
+@OptIn(ExperimentalComposeUiApi::class)
 @ExperimentalMaterial3Api
 @Composable
 fun DefaultPresentationGraphView(
@@ -70,8 +72,9 @@ fun DefaultPresentationGraphView(
             null
         },
         trustListService = viewModel.trustListService,
-        request = viewModel.preparationState.getOrThrow().request
-        )
+        request = viewModel.preparationState.getOrThrow().request,
+        wrpValidationResult = viewModel.wrpValidationResult,
+    )
 }
 
 

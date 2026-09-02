@@ -25,12 +25,12 @@ import at.asitplus.wallet.app.common.IsoDeviceRequestConsentData
 import at.asitplus.wallet.app.common.extractConsentData
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
+import at.asitplus.wallet.lib.data.JsonClaimReference
+import at.asitplus.wallet.lib.data.MdocClaimReference
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest.DCQLRequest
 import at.asitplus.wallet.lib.data.CredentialScheme
-import data.credentials.JsonClaimReference
-import data.credentials.MdocClaimReference
 import data.credentials.jwtClaimLabel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
