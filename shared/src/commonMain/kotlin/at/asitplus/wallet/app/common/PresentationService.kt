@@ -1,28 +1,19 @@
 package at.asitplus.wallet.app.common
 
-import at.asitplus.iso.DeviceAuthentication
 import at.asitplus.iso.SessionTranscript
-import at.asitplus.iso.wrapInCborTag
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.RequestParametersFrom
-import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
-import at.asitplus.signum.supreme.UserInitiatedCancellationReason
 import at.asitplus.wallet.app.common.data.SettingsRepository
-import at.asitplus.wallet.lib.agent.CreatePresentationResult
 import at.asitplus.wallet.lib.agent.HolderAgent
-import at.asitplus.wallet.lib.agent.PresentationException
 import at.asitplus.wallet.lib.agent.PresentationRequestParameters
 import at.asitplus.wallet.lib.agent.PresentationResponseParameters
-import at.asitplus.wallet.lib.cbor.CoseHeaderNone
-import at.asitplus.wallet.lib.cbor.SignCoseDetached
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import at.asitplus.wallet.lib.openid.DcApiPreparationState
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.first
-import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.encodeToByteArray
 
 class PresentationService(
@@ -77,7 +68,7 @@ class PresentationService(
     }
 
     suspend fun finalizeLocalPresentation(
-        credentialPresentation: CredentialPresentation.PresentationExchangePresentation,
+        credentialPresentation: CredentialPresentation.IsoDeviceRetrievalPresentation,
         finishFunction: (ByteArray) -> Unit,
         spName: String?,
         sessionTranscript: SessionTranscript
@@ -88,47 +79,15 @@ class PresentationService(
             request = PresentationRequestParameters(
                 nonce = "",
                 audience = spName ?: "",
-                returnOneDeviceResponse = true,
-                calcIsoDeviceSignaturePlain = { input ->
-                    val deviceAuthentication = DeviceAuthentication(
-                        type = "DeviceAuthentication",
-                        sessionTranscript = sessionTranscript,
-                        docType = input.docType,
-                        namespaces = input.deviceNameSpaceBytes
-                    )
-
-                    val deviceAuthenticationBytes = coseCompliantSerializer
-                        .encodeToByteArray(ByteStringWrapper(deviceAuthentication))
-                        .wrapInCborTag(24)
-                    Napier.d("Device authentication signature input is ${deviceAuthenticationBytes.toHexString()}")
-                    SignCoseDetached<ByteArray>(keyMaterial, CoseHeaderNone(), CoseHeaderNone())
-                        .invoke(null, null, deviceAuthenticationBytes, ByteArraySerializer())
-                        .getOrElse { e ->
-                            Napier.w("Could not create DeviceAuth for presentation", e)
-                            // Unwrap user cancellation (e.g. biometric dismissed) so callers can
-                            // treat it separately from real errors.
-                            throw generateSequence(e as Throwable?) { it.cause }
-                                .filterIsInstance<UserInitiatedCancellationReason>()
-                                .firstOrNull() ?: PresentationException(e)
-                        }
-                },
+                calcIsoSessionTranscript = { sessionTranscript },
             ),
             credentialPresentation = credentialPresentation,
         )
 
         val presentation =
-            presentationResult.getOrThrow() as PresentationResponseParameters.PresentationExchangeParameters
+            presentationResult.getOrThrow() as PresentationResponseParameters.DeviceRetrievalParameters
 
-        val deviceResponse = when (val result = presentation.presentationResults.singleOrNull()
-            ?: throw PresentationException(
-                IllegalStateException("Local presentation must return exactly one device response")
-            )) {
-            is CreatePresentationResult.DeviceResponse -> coseCompliantSerializer.encodeToByteArray(
-                result.deviceResponse
-            )
-
-            else -> throw PresentationException(IllegalStateException("Must be a device response"))
-        }
+        val deviceResponse = coseCompliantSerializer.encodeToByteArray(presentation.deviceResponse)
 
         Napier.d("Local presentation created device response with ${deviceResponse.size} bytes")
         finishFunction(deviceResponse)
