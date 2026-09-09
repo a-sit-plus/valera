@@ -240,8 +240,6 @@ private fun JsonObjectBuilder.addSdJwtDummyMetadata() {
     put("status", buildJsonObject { })
 }
 
-fun Throwable.enrichMessage() = message ?: toString()
-
 // Only NameSegments carry a member name; IndexSegments (e.g. [0] in array paths) are skipped.
 fun NormalizedJsonPath.memberName(id: Int) =
     this.segments.filterIsInstance<NameSegment>().map { it.memberName }.getOrNull(id)
