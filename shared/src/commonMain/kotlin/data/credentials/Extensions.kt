@@ -73,9 +73,10 @@ fun CredentialAdapter.labeledPresentationAttributes(
  * Labels the paths a submission is about to disclose, in the order the disclosure lists them, which is the order
  * the document request asked for them in.
  *
- * Unlike [labeledPresentationAttributes] this never drops a path: a consent list that silently omits an attribute
- * would under-report what is being sent. An attribute the bespoke adapter cannot render, therefore falls back to the
- * raw stored value, and one that has no display representation at all (e.g. raw bytes) to a label-only row.
+ * This accepts disclosure paths rather than `(path, value)` pairs and preserves their request order. A consent list
+ * must never drop a path, because that would under-report what is being sent. An attribute the bespoke adapter cannot
+ * render therefore falls back to the raw stored value, and one that has no display representation at all (e.g. raw
+ * bytes) to a label-only row.
  *
  * The requested paths are built by the matching layer, not by [toGenericAttributeList], and [NormalizedJsonPath] has
  * no value equality, so the stored values are looked up by normalised path string.
