@@ -144,10 +144,10 @@ fun DCQLCredentialQuerySubmissionSelectionOption(
                 modifier = Modifier.padding(8.dp).fillMaxWidth().align(Alignment.Start),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                preview.labeledAttributes.forEach {
-                    LabeledAttribute(
-                        label = it.first,
-                        attribute = it.second,
+                preview.labeledAttributes.forEach { (label, attribute) ->
+                    DisclosedAttribute(
+                        label = label,
+                        attribute = attribute,
                     )
                 }
             }
@@ -162,7 +162,7 @@ private sealed interface CredentialPreviewState {
     data class Ready(
         val resolvedCredential: ResolvedCredential,
         val credentialAdapter: CredentialAdapter,
-        val labeledAttributes: List<Pair<String, Attribute>>,
+        val labeledAttributes: List<Pair<String, Attribute?>>,
         val loadingError: Throwable?,
     ) : CredentialPreviewState
 

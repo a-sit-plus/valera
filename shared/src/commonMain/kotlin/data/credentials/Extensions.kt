@@ -51,23 +51,22 @@ class FallbackCredentialAdapter(
 /**
  * Labels `(path, value)` pairs for display in presentation cards: formats values through the bespoke
  * adapter where possible (raw value otherwise), labels from type-metadata claim descriptions where
- * available (raw claim path otherwise). Never drops a claim just because its scheme is unknown;
- * hides technical JWT claims like the credential details view does.
+ * available (raw claim path otherwise). Never drops a claim just because its scheme or value renderer is unknown;
+ * hides technical JWT claims like the credential details view does. Claims without a displayable value are returned
+ * with a null attribute, so the UI can still show their label.
  */
 fun CredentialAdapter.labeledPresentationAttributes(
     attributes: List<Pair<NormalizedJsonPath, Any>>,
-): List<Pair<String, Attribute>> = attributes
+): List<Pair<String, Attribute?>> = attributes
     .filterNot { (path, _) -> path.memberName(0) in HIDDEN_TOP_LEVEL_CLAIMS }
-    .mapNotNull { (path, value) ->
+    .map { (path, value) ->
         val attribute = catchingUnwrapped { getAttribute(path) }.getOrNull()
             ?: Attribute.fromValue(value)
-            ?: return@mapNotNull null
         val label = scheme.getLocalization(path)
             ?: path.segments.lastOrNull()?.let { scheme.getLocalization(NormalizedJsonPath(it)) }
             ?: path.genericLabel()
         label to attribute
     }
-    .distinctBy { it.first }
     .sortedBy { it.first }
 
 /**
@@ -75,11 +74,11 @@ fun CredentialAdapter.labeledPresentationAttributes(
  * the document request asked for them in.
  *
  * Unlike [labeledPresentationAttributes] this never drops a path: a consent list that silently omits an attribute
- * would under-report what is being sent. An attribute the bespoke adapter cannot render therefore falls back to the
+ * would under-report what is being sent. An attribute the bespoke adapter cannot render, therefore falls back to the
  * raw stored value, and one that has no display representation at all (e.g. raw bytes) to a label-only row.
  *
  * The requested paths are built by the matching layer, not by [toGenericAttributeList], and [NormalizedJsonPath] has
- * no value equality, so the stored values are looked up by normalized path string.
+ * no value equality, so the stored values are looked up by normalised path string.
  */
 fun SubjectCredentialStore.StoreEntry.labeledDisclosedAttributes(
     scheme: CredentialScheme,

@@ -21,6 +21,7 @@ import kotlinx.coroutines.test.runTest
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
@@ -50,6 +51,21 @@ class DisclosedAttributeLabelingTest {
             labeled.map { it.second },
             "every disclosed attribute needs its value, in request order",
         )
+    }
+
+    @Test
+    fun keepsPresentationAttributeWithoutDisplayableValue() = runTest {
+        val scheme = IsoMdocFallbackCredentialScheme(DOCTYPE)
+        val credential = storeIsoCredential(scheme)
+        val path = NormalizedJsonPath() + DOCTYPE + "portrait"
+        val attributes = listOf(path to byteArrayOf(1, 2, 3))
+
+        val labeled = FallbackCredentialAdapter(attributes, credential, scheme)
+            .labeledPresentationAttributes(attributes)
+
+        assertEquals(1, labeled.size, "an unrenderable presentation attribute must keep its label")
+        assertTrue(labeled.single().first.isNotBlank())
+        assertNull(labeled.single().second)
     }
 
     private suspend fun storeIsoCredential(
