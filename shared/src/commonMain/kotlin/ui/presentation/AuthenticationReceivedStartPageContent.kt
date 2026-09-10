@@ -74,7 +74,7 @@ fun AuthenticationReceivedStartPageContent(
     onContinue: () -> Unit,
     presentationRequest: CredentialPresentationRequest?,
     credentialQueryIdsSelectedForPresentation: Set<DCQLCredentialQueryIdentifier> = emptySet(),
-    onError: (Throwable) -> Unit,
+    errorAction: (Throwable) -> Unit,
     trustListService: TrustListService,
     request: RequestParametersFrom<*>? = null
 ) {
@@ -150,7 +150,7 @@ fun AuthenticationReceivedStartPageContent(
                                                 it.id to it.extractConsentData()
                                             }
                                         }
-                                    }.onFailure(onError).getOrNull()
+                                    }.onFailure(errorAction).getOrNull()
                                 }
                                 if (consentData == null) {
                                     PresentationRequestLoadingIndicator()
@@ -166,11 +166,11 @@ fun AuthenticationReceivedStartPageContent(
 
                             is CredentialPresentationRequest.IsoDeviceRetrieval -> PresentationRequestPreview(
                                 presentationRequest = presentationRequest,
-                                onError = onError,
+                                errorAction = errorAction,
                             )
                             null -> PresentationRequestLoadingIndicator()
                             else -> LaunchedEffect(presentationRequest) {
-                                onError(
+                                errorAction(
                                     UnsupportedOperationException(
                                         "Unsupported presentation request: ${presentationRequest::class.simpleName}"
                                     )

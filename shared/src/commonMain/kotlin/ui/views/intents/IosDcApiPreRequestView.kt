@@ -58,7 +58,7 @@ fun IosDcApiPreRequestView(
         onAbort = currentData.onCancel,
         onContinue = currentData.onContinue,
         presentationRequest = CredentialPresentationRequest.IsoDeviceRetrieval(parsedSummary.toDeviceRequest()),
-        onError = onError,
+        errorAction = onError,
         trustListService = trustListService
     )
 }

@@ -40,13 +40,13 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun PresentationRequestPreview(
     presentationRequest: CredentialPresentationRequest,
-    onError: (Throwable) -> Unit,
+    errorAction: (Throwable) -> Unit,
 ) {
     when (presentationRequest) {
-        is DCQLRequest -> DcqlRequestPreview(presentationRequest, onError)
-        is CredentialPresentationRequest.IsoDeviceRetrieval -> IsoDeviceRequestPreview(presentationRequest, onError)
+        is DCQLRequest -> DcqlRequestPreview(presentationRequest, errorAction)
+        is CredentialPresentationRequest.IsoDeviceRetrieval -> IsoDeviceRequestPreview(presentationRequest, errorAction)
         else -> LaunchedEffect(presentationRequest) {
-            onError(UnsupportedOperationException("Unsupported presentation request: ${presentationRequest::class.simpleName}"))
+            errorAction(UnsupportedOperationException("Unsupported presentation request: ${presentationRequest::class.simpleName}"))
         }
     }
 }
@@ -54,7 +54,7 @@ fun PresentationRequestPreview(
 @Composable
 fun IsoDeviceRequestPreview(
     presentationRequest: CredentialPresentationRequest.IsoDeviceRetrieval,
-    onError: (Throwable) -> Unit,
+    errorAction: (Throwable) -> Unit,
 ) {
     // Resolved in a coroutine: scheme resolution may fetch type metadata (from the persistent cache or remotely)
     // when the in-memory scheme index is still cold, e.g. right after the iOS identity provider extension process
@@ -64,7 +64,7 @@ fun IsoDeviceRequestPreview(
         value = presentationRequest.deviceRequest.docRequests.mapNotNull { docRequest ->
             withContext(Dispatchers.Default) {
                 catchingUnwrapped { docRequest.extractConsentData() }
-            }.onFailure(onError).getOrNull()
+            }.onFailure(errorAction).getOrNull()
         }
     }
     if (consentData == null) {
@@ -84,15 +84,15 @@ fun IsoDeviceRequestPreview(
 @Composable
 fun DcqlRequestPreview(
     presentationRequest: DCQLRequest,
-    onError: (Throwable) -> Unit,
+    errorAction: (Throwable) -> Unit,
 ) {
     if (presentationRequest.dcqlQuery.requestedCredentialSetQueries.size != 1) {
-        return onError(UnsupportedOperationException(stringResource(Res.string.error_complex_dcql_query)))
+        return errorAction(UnsupportedOperationException(stringResource(Res.string.error_complex_dcql_query)))
     }
     val credentialSetQuery = presentationRequest.dcqlQuery.requestedCredentialSetQueries.first()
 
     if (credentialSetQuery.options.size != 1) {
-        return onError(UnsupportedOperationException(stringResource(Res.string.error_complex_dcql_query)))
+        return errorAction(UnsupportedOperationException(stringResource(Res.string.error_complex_dcql_query)))
     }
     val requestedCredentialCombination = credentialSetQuery.options.first()
 
@@ -108,7 +108,7 @@ fun DcqlRequestPreview(
                     credentialQuery.extractConsentData()
                 }
             }
-        }.onFailure(onError).getOrNull()
+        }.onFailure(errorAction).getOrNull()
     }
 
     if (consentData == null) {

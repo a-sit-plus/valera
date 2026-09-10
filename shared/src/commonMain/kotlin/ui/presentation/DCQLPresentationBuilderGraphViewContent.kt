@@ -39,7 +39,7 @@ fun DCQLPresentationBuilderGraphViewContent(
     selectableCredentialSubmissionCards: Map<DCQLCredentialQueryIdentifier, List<SelectableCredentialSubmissionCard>>,
     satisfiableCredentialQueries: Collection<DCQLCredentialQueryIdentifier>,
     onNavigateUp: () -> Unit,
-    onError: (Throwable) -> Unit,
+    errorAction: (Throwable) -> Unit,
     onContinueWithSelection: () -> Unit,
     onSelectSubmissions: (DCQLCredentialQueryIdentifier, Set<UInt>) -> Unit,
     onSelectRequiredCredentialSetQueryOption: (UInt, UInt) -> Unit,
@@ -95,7 +95,7 @@ fun DCQLPresentationBuilderGraphViewContent(
     val consentData by produceState<Map<DCQLCredentialQueryIdentifier, DcqlConsentData>?>(null, dcqlQuery) {
         value = catchingUnwrapped {
             dcqlQuery.credentials.associate { it.id to it.extractConsentData() }
-        }.onFailure(onError).getOrNull()
+        }.onFailure(errorAction).getOrNull()
     }
     val credentialQueryUiModels = consentData?.mapValues {
         it.value.toCredentialQueryUiModel()
@@ -107,10 +107,10 @@ fun DCQLPresentationBuilderGraphViewContent(
         val credentialQuery = dcqlQuery.credentials.firstOrNull {
             it.id == unconfirmedRequestedCredentialQuery
         } ?: return LaunchedEffect(Unit) {
-            onError(IllegalStateException("Credential query with id `$unconfirmedRequestedCredentialQuery` not found in request $dcqlQuery"))
+            errorAction(IllegalStateException("Credential query with id `$unconfirmedRequestedCredentialQuery` not found in request $dcqlQuery"))
         }
         val credentialQueryUiModel = credentialQueryUiModels[credentialQuery.id] ?: return LaunchedEffect(Unit) {
-            onError(IllegalStateException("Credential query model for query with id `$unconfirmedRequestedCredentialQuery` not found."))
+            errorAction(IllegalStateException("Credential query model for query with id `$unconfirmedRequestedCredentialQuery` not found."))
         }
         val selectedIndices = selectedSubmissionIndices[unconfirmedRequestedCredentialQuery] ?: setOf()
 
@@ -156,7 +156,7 @@ fun DCQLPresentationBuilderGraphViewContent(
                     },
                     credentialQueries = it.map { identifier ->
                         credentialQueryUiModels[identifier] ?: return LaunchedEffect(Unit) {
-                            onError(
+                            errorAction(
                                 IllegalStateException("Unable to find credential query ui model for id `$identifier`")
                             )
                         }
@@ -201,7 +201,7 @@ fun DCQLPresentationBuilderGraphViewContent(
                     },
                     credentialQueries = it.map { identifier ->
                         credentialQueryUiModels[identifier] ?: return LaunchedEffect(Unit) {
-                            onError(
+                            errorAction(
                                 IllegalStateException("Unable to find credential query ui model for id `$identifier`")
                             )
                         }
@@ -231,7 +231,7 @@ fun DCQLPresentationBuilderGraphViewContent(
                 submissionCards[it.toInt()]
             } ?: listOf()
         },
-        onError = onError,
+        onError = errorAction,
         onAbort = onNavigateUp,
         onSubmit = onSubmit,
         trustListService = trustListService,

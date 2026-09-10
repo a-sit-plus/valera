@@ -185,7 +185,7 @@ fun AuthenticationConsentView(
                         modifier = paddingModifier,
                     )
 
-                    PresentationRequestPreview(vm.presentationRequest, onError = onError)
+                    PresentationRequestPreview(vm.presentationRequest, errorAction = onError)
 
                     if (vm.transactionData != null) {
                         Spacer(modifier = Modifier.height(32.dp))

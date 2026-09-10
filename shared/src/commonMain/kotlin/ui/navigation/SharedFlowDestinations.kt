@@ -204,7 +204,7 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
 
     composable<AuthenticationViewRoute> {
         DefaultPresentationGraphView(
-            onError = onError,
+            errorAction = onError,
             onClickLogo = onClickLogo,
             koinScope = koinScope,
             onNavigateUp = navigator::invocationAwareBack,
@@ -214,7 +214,7 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
 
     composable<DCAPIPresentationViewRoute> {
         DCAPIPresentationGraphView(
-            onError = onError,
+            errorAction = onError,
             onClickLogo = onClickLogo,
             koinScope = koinScope,
             onNavigateUp = navigator::invocationAwareBack,

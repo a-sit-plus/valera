@@ -13,7 +13,7 @@ import org.koin.core.scope.Scope
 @Composable
 fun DCAPIPresentationGraphView(
     onNavigateUp: () -> Unit,
-    onError: (Throwable) -> Unit,
+    errorAction: (Throwable) -> Unit,
     onClickLogo: () -> Unit,
     koinScope: Scope,
     showStartRoute: Boolean = true,
@@ -22,7 +22,7 @@ fun DCAPIPresentationGraphView(
     val dcApiRequest = try {
         viewModel.dcApiWalletRequest.getOrThrow()
     } catch (it: Throwable) {
-        return onError(it)
+        return errorAction(it)
     }
 
     val spName = dcApiRequest.callingPackageName
@@ -49,7 +49,7 @@ fun DCAPIPresentationGraphView(
         serviceProviderLocationLocalized = spLocation,
         authenticateAtRelyingParty = authenticateAtRelyingParty,
         onNavigateUp = onNavigateUp,
-        onError = onError,
+        onError = errorAction,
         onClickLogo = onClickLogo,
         navigateUpIsClose = true,
         selectionProvider = matchingResult.map {
@@ -58,7 +58,7 @@ fun DCAPIPresentationGraphView(
         submitPresentation = { it, navigate ->
             viewModel.confirmSelection(
                 credentialPresentationSubmissions = it,
-                onFailure = onError,
+                onFailure = errorAction,
                 onSuccess = {
                     navigate(
                         PresentationSuccessRoute(
