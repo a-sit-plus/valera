@@ -65,7 +65,7 @@ Valera fetches credentials from [wallet-issuer.a-sit.plus](https://wallet-issuer
 
 **Show credentials (presentation)**
 * 🪪 **OpenID4VP** with both **SD-JWT VC** and **ISO mDoc** presentation
-* 🧮 **DCQL** and **Presentation Exchange** queries — verifiers pick exactly which attributes to request, you consent per attribute
+* 🧮 **DCQL** and ISO **DeviceRequest** queries — verifiers specify the credentials and data elements to request
 * 📡 **Proximity presentation** to a verifier over **Bluetooth Low Energy** and **NFC** ([ISO/IEC 18013-5](https://www.iso.org/standard/69084.html))
 * 🌐 **Digital Credentials API** presentation, including **ISO 18013-7 Annex C** (now on iOS too)
 * 🔎 Built-in **technical detail view** to inspect a credential's claims, validity and status — great for debugging interop
@@ -93,7 +93,7 @@ Valera is developed in lockstep with two companion reference services, so the wh
 | | What it is | Try it |
 |---|---|---|
 | 🪪 **Issuing Backend** | A Spring Boot **OpenID4VCI issuer** (also issuance over the DC API) that mints wallet-ready PID, mDL, EHIC, Age Verification, PoR, CoR and Tax ID credentials as JWT VC, SD-JWT VC and ISO mDoc. | [wallet-issuer.a-sit.plus](https://wallet-issuer.a-sit.plus/) · [repo](https://github.com/a-sit-plus/wallet-issuing-backend) |
-| ✅ **Relying Party** | A Spring Boot **OpenID4VP verifier** that requests and validates presentations over QR, deep link and the DC API, with freely configurable DCQL / Presentation Exchange queries. | [wallet-rp.a-sit.plus](https://wallet-rp.a-sit.plus/) · [repo](https://github.com/a-sit-plus/wallet-relying-party) |
+| ✅ **Relying Party** | A Spring Boot **OpenID4VP verifier** that requests and validates presentations over QR, deep link and the DC API, with configurable DCQL and ISO DeviceRequest queries. | [wallet-rp.a-sit.plus](https://wallet-rp.a-sit.plus/) · [repo](https://github.com/a-sit-plus/wallet-relying-party) |
 
 The demo relying party in particular lets you freely define **how and which details** of a credential are requested — the best way to explore verifiable presentation in all its (technical) glory.
 

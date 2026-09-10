@@ -113,7 +113,7 @@ fun DCQLPresentationBuilderGraphView(
                         onNavigateUp()
                     }
                 },
-                onError = onError,
+                errorAction = onError,
                 onSubmit = {
                     onSubmit(selectedSubmissionIndices)
                 },

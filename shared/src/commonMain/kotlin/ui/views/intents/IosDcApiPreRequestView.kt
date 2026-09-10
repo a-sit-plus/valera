@@ -10,6 +10,7 @@ import at.asitplus.dcapi.ios.IosDcApiMdocPreRequestSummary
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.TrustListService
+import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import kotlinx.serialization.json.Json
 import ui.presentation.AuthenticationReceivedStartPageContent
 import ui.views.LoadingView
@@ -47,7 +48,6 @@ fun IosDcApiPreRequestView(
         LaunchedEffect(Unit) { onError(IllegalStateException("Missing parsed request summary")) }
         return LoadingView(loadingMessageString(LoadingMessageKey.IncomingRequest))
     }
-    val descriptors = parsedSummary.toDifInputDescriptors()
     val origin = currentData.origin
 
     AuthenticationReceivedStartPageContent(
@@ -57,9 +57,8 @@ fun IosDcApiPreRequestView(
         serviceProviderLocalizedLocation = origin,
         onAbort = currentData.onCancel,
         onContinue = currentData.onContinue,
-        presentationRequest = null,
-        inputDescriptors = descriptors,
-        onError = onError,
+        presentationRequest = CredentialPresentationRequest.IsoDeviceRetrieval(parsedSummary.toDeviceRequest()),
+        errorAction = onError,
         trustListService = trustListService
     )
 }

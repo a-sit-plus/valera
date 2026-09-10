@@ -28,8 +28,10 @@ import ui.models.CredentialFreshnessValidationStateUiModel
 import ui.viewmodels.authentication.AuthenticationNoCredentialViewModel
 import ui.viewmodels.authentication.CredentialPresentationSubmissions
 import ui.viewmodels.authentication.DCQLCredentialSubmissions
+import ui.viewmodels.authentication.AuthenticationSelectionIsoDeviceRequestViewModel
 import ui.views.LoadingView
 import ui.views.authentication.AuthenticationNoCredentialView
+import ui.views.authentication.AuthenticationSelectionIsoDeviceRequestView
 import kotlin.time.Duration.Companion.seconds
 
 private typealias FixedDcApiSubmissions = Map<
@@ -165,10 +167,8 @@ fun PresentationBuilderGraphView(
                     }
                 }
 
-                is at.asitplus.wallet.lib.agent.PresentationExchangeMatchingResult -> if (
-                    hasMissingPresentationExchangeInputDescriptorMatches(
-                        queryMatchingResult.matchingResult.inputDescriptorMatches
-                    )
+                is IsoDeviceRetrievalMatchingResult -> if (
+                    queryMatchingResult.matchingResult.hasUnsatisfiedDocumentRequest()
                 ) {
                     AuthenticationNoCredentialView(
                         AuthenticationNoCredentialViewModel(
@@ -177,21 +177,16 @@ fun PresentationBuilderGraphView(
                     )
                 } else {
                     if (fixedCredentialSelection) {
-                        val fixedSubmissions = queryMatchingResult.matchingResult.toDefaultSubmission()
-                        if (fixedSubmissions.isEmpty()) {
-                            LaunchedEffect(Unit) {
-                                onError(
-                                    IllegalStateException(
-                                        "No credential matching the fixed DC API selection was found"
-                                    )
-                                )
-                            }
+                        val fixedSubmissionsResult = queryMatchingResult.matchingResult.toDefaultSubmission()
+                        val fixedSubmissions = fixedSubmissionsResult.getOrNull()
+                        if (fixedSubmissions == null) {
+                            LaunchedEffect(Unit) { onError(requireNotNull(fixedSubmissionsResult.exceptionOrNull())) }
                             return
                         }
-                        PresentationExchangeFinalizationPageContent(
+                        IsoDeviceRequestFinalizationPageContent(
                             matchingResult = queryMatchingResult,
                             credentialFreshnessProviders = selectionProvider.value.credentialFreshnessProviders,
-                            inputDescriptorSubmissions = fixedSubmissions,
+                            submissions = fixedSubmissions,
                             trustListService = trustListService,
                             request = request,
                             authenticateAtRelyingParty = authenticateAtRelyingParty,
@@ -199,26 +194,24 @@ fun PresentationBuilderGraphView(
                             serviceProviderLocalizedName = serviceProviderLocalizedName,
                             onError = onError,
                             onAbort = onNavigateToPresentationStart,
-                            onSubmit = {
-                                onSubmit(it)
-                            },
+                            onSubmit = onSubmit,
                         )
                     } else {
-                        PresentationExchangePresentationBuilderGraphView(
-                            authenticateAtRelyingParty = authenticateAtRelyingParty,
-                            serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
-                            serviceProviderLocalizedName = serviceProviderLocalizedName,
+                        AuthenticationSelectionIsoDeviceRequestView(
+                            vm = AuthenticationSelectionIsoDeviceRequestViewModel(
+                                credentialMatchingResult = queryMatchingResult,
+                                confirmSelections = onSubmit,
+                                navigateUp = onNavigateToPresentationStart,
+                            ),
                             onClickLogo = onClickLogo,
-                            matchingResult = selectionProvider.value.queryMatchingResult,
-                            onError = onError,
-                            onNavigateUp = onNavigateToPresentationStart,
-                            onSubmit = onSubmit,
-                            trustListService = trustListService
+                            trustListService = trustListService,
                         )
                     }
                 }
 
-                is IsoDeviceRetrievalMatchingResult<*> -> TODO()
+                else -> LaunchedEffect(queryMatchingResult::class.simpleName) {
+                    onError(UnsupportedOperationException("Unsupported credential matching result: ${queryMatchingResult::class.simpleName}"))
+                }
             }
         }
     }

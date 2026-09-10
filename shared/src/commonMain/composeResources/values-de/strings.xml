@@ -139,7 +139,7 @@
     <string name="text_label_valid_to">Gültig bis</string>
     <string name="text_label_optional">Optional</string>
     <string name="text_label_all_claims_requested">Alle Attribute</string>
-    <string name="text_label_check_all">Alle auswählen</string>
+    <string name="text_label_intent_to_retain">wird gespeichert</string>
     <string name="text_label_powered_by">POWERED BY</string>
     <string name="text_label_certificate">Zertifikat</string>
     <string name="text_label_vda">VDA</string>
@@ -208,7 +208,6 @@
     <string name="error_credential_status_invalid">UNGÜLTIG</string>
     <string name="error_credential_timeliness_expired">ABGELAUFEN</string>
     <string name="error_credential_timeliness_not_yet_valid">NOCH NICHT GÜLTIG</string>
-    <string name="error_credential_selection_error_invalid_request_id">Keine Auswahl mit requestId</string>
     <string name="error_credential_scheme_not_supported">Credential Schema wird nicht unterstützt</string>
     <string name="error_authentication_at_sp_failed">Anmeldung fehlgeschlagen</string>
     <string name="error_biometric_error_no_hardware">Keine kryptografische Hardware gefunden.</string>
@@ -234,7 +233,6 @@
     <string name="error_qr_code_scanning_invalid_metadata_jws_object_signature">Ungültige Metadaten Signatur</string>
     <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">Client-ID ist nicht in den Metadaten unter `redirect_uris` enthalten.</string>
     <string name="error_missing_value">Fehler es sind keine Daten gegeben</string>
-    <string name="error_no_requests">Es sind keine Anfragen vorhanden</string>
     <string name="error_clearing_log_failed">Log konnte nicht gelöscht werden.</string>
     <string name="error_resetting_app_failed">App konnte nicht zurückgesetzt werden.</string>
 

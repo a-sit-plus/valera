@@ -124,7 +124,7 @@ fun PresentationGraphView(
                     } else {
                         null
                     },
-                    onError = onError,
+                    errorAction = onError,
                     trustListService = trustListService,
                     request = request
                 )

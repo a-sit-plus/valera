@@ -20,6 +20,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
@@ -30,7 +31,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.catchingUnwrapped
-import at.asitplus.dif.InputDescriptor
 import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.openid.dcql.DCQLCredentialSetQuery
 import at.asitplus.openid.RequestParametersFrom
@@ -57,7 +57,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.DataDisplaySection
-import ui.composables.InputDescriptorPreview
 import ui.composables.PresentationRequestPreview
 import ui.composables.PresentationRequestLoadingIndicator
 import ui.composables.ScreenHeading
@@ -74,9 +73,8 @@ fun AuthenticationReceivedStartPageContent(
     onAbort: () -> Unit,
     onContinue: () -> Unit,
     presentationRequest: CredentialPresentationRequest?,
-    inputDescriptors: List<InputDescriptor>? = null,
     credentialQueryIdsSelectedForPresentation: Set<DCQLCredentialQueryIdentifier> = emptySet(),
-    onError: (Throwable) -> Unit,
+    errorAction: (Throwable) -> Unit,
     trustListService: TrustListService,
     request: RequestParametersFrom<*>? = null
 ) {
@@ -152,7 +150,7 @@ fun AuthenticationReceivedStartPageContent(
                                                 it.id to it.extractConsentData()
                                             }
                                         }
-                                    }.onFailure(onError).getOrNull()
+                                    }.onFailure(errorAction).getOrNull()
                                 }
                                 if (consentData == null) {
                                     PresentationRequestLoadingIndicator()
@@ -166,15 +164,17 @@ fun AuthenticationReceivedStartPageContent(
                                 }
                             }
 
-                            is CredentialPresentationRequest.PresentationExchangeRequest -> PresentationRequestPreview(
+                            is CredentialPresentationRequest.IsoDeviceRetrieval -> PresentationRequestPreview(
                                 presentationRequest = presentationRequest,
-                                onError = onError
+                                errorAction = errorAction,
                             )
-                            is CredentialPresentationRequest.IsoDeviceRetrieval -> TODO()
-                            null -> if (inputDescriptors != null) {
-                                InputDescriptorPreview(inputDescriptors, onError = onError)
-                            } else {
-                                PresentationRequestLoadingIndicator()
+                            null -> PresentationRequestLoadingIndicator()
+                            else -> LaunchedEffect(presentationRequest) {
+                                errorAction(
+                                    UnsupportedOperationException(
+                                        "Unsupported presentation request: ${presentationRequest::class.simpleName}"
+                                    )
+                                )
                             }
                         }
                     }

@@ -51,24 +51,53 @@ class FallbackCredentialAdapter(
 /**
  * Labels `(path, value)` pairs for display in presentation cards: formats values through the bespoke
  * adapter where possible (raw value otherwise), labels from type-metadata claim descriptions where
- * available (raw claim path otherwise). Never drops a claim just because its scheme is unknown;
- * hides technical JWT claims like the credential details view does.
+ * available (raw claim path otherwise). Never drops a claim just because its scheme or value renderer is unknown;
+ * hides technical JWT claims like the credential details view does. Claims without a displayable value are returned
+ * with a null attribute, so the UI can still show their label.
  */
 fun CredentialAdapter.labeledPresentationAttributes(
     attributes: List<Pair<NormalizedJsonPath, Any>>,
-): List<Pair<String, Attribute>> = attributes
+): List<Pair<String, Attribute?>> = attributes
     .filterNot { (path, _) -> path.memberName(0) in HIDDEN_TOP_LEVEL_CLAIMS }
-    .mapNotNull { (path, value) ->
+    .map { (path, value) ->
         val attribute = catchingUnwrapped { getAttribute(path) }.getOrNull()
             ?: Attribute.fromValue(value)
-            ?: return@mapNotNull null
         val label = scheme.getLocalization(path)
             ?: path.segments.lastOrNull()?.let { scheme.getLocalization(NormalizedJsonPath(it)) }
             ?: path.genericLabel()
         label to attribute
     }
-    .distinctBy { it.first }
     .sortedBy { it.first }
+
+/**
+ * Labels the paths a submission is about to disclose, in the order the disclosure lists them, which is the order
+ * the document request asked for them in.
+ *
+ * This accepts disclosure paths rather than `(path, value)` pairs and preserves their request order. A consent list
+ * must never drop a path, because that would under-report what is being sent. An attribute the bespoke adapter cannot
+ * render therefore falls back to the raw stored value, and one that has no display representation at all (e.g. raw
+ * bytes) to a label-only row.
+ *
+ * The requested paths are built by the matching layer, not by [toGenericAttributeList], and [NormalizedJsonPath] has
+ * no value equality, so the stored values are looked up by normalised path string.
+ */
+fun SubjectCredentialStore.StoreEntry.labeledDisclosedAttributes(
+    scheme: CredentialScheme,
+    disclosedAttributes: Collection<NormalizedJsonPath>,
+    decodeImage: (ByteArray) -> Result<ImageBitmap>,
+): List<Pair<String, Attribute?>> {
+    val adapter = toCredentialAdapter(scheme, decodeImage)
+    // only flattened when a path does not resolve through the adapter, which is the uncommon case
+    val storedValues by lazy { toGenericAttributeList().associate { (path, value) -> path.toString() to value } }
+    return disclosedAttributes.map { path ->
+        val attribute = catchingUnwrapped { adapter.getAttribute(path) }.getOrNull()
+            ?: storedValues[path.toString()]?.let { Attribute.fromValue(it) }
+        val label = scheme.getLocalization(path)
+            ?: path.segments.lastOrNull()?.let { scheme.getLocalization(NormalizedJsonPath(it)) }
+            ?: path.genericLabel()
+        label to attribute
+    }
+}
 
 /**
  * Flattens all disclosed claims of a credential into `(path, value)` pairs, using the same path convention as
