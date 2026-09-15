@@ -67,7 +67,7 @@ class TrustListService(
     private val client = httpService.cachedResourceClient(dataStoreService, revalidate = true)
 
     // A-SIT trust list
-    private val aistIssuerCert = X509Certificate.decodeFromPem(asitRootPem).getOrThrow()
+    private val asitIssuerCert = X509Certificate.decodeFromPem(asitRootPem).getOrThrow()
     private val loTeFilterService: LoTEFilterService = LoTEFilterService()
 
     /**
@@ -118,11 +118,11 @@ class TrustListService(
         trustLists: Map<String, ListOfTrustedEntities>,
         serviceProfile: LoteProfile
     ): TrustState = try {
-        if (issuer.isTrustedBy(listOf(aistIssuerCert)).isSuccess) {
+        if (issuer.isTrustedBy(listOf(asitIssuerCert)).isSuccess) {
             TrustState.TRUSTED
         } else {
-            val certificateList: List<X509Certificate> = trustLists
-                .flatMap { (key, lote) -> loTeFilterService.extractIssuanceCertificates(lote, serviceProfile) }
+            val certificateList: List<X509Certificate> = trustLists.values
+                .flatMap {  lote -> loTeFilterService.extractIssuanceCertificates(lote, serviceProfile) }
                 .mapNotNull { it.certificate }
 
             if (certificateList.isEmpty()) {
