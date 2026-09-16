@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.nfc.NfcAdapter
 import android.nfc.cardemulation.CardEmulation
 import android.os.Bundle
@@ -11,6 +12,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.credentials.CreateDigitalCredentialResponse
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -130,12 +132,20 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        val nfcAdapter = NfcAdapter.getDefaultAdapter(this) ?: return
-        val cardEmulation = CardEmulation.getInstance(nfcAdapter)
-        if (!cardEmulation.categoryAllowsForegroundPreference(CardEmulation.CATEGORY_OTHER)) {
-            Napier.w("CardEmulation.categoryAllowsForegroundPreference(CATEGORY_OTHER) returned false")
-        }
+        val nfcAdapter = tryNfcHceOperation("adapter lookup") {
+            NfcAdapter.getDefaultAdapter(this)
+        } ?: return
         preferredServiceJob = lifecycleScope.launch {
+            val cardEmulation = tryNfcHceOperation("initialization") {
+                if (!packageManager.hasSystemFeature(PackageManager.FEATURE_NFC_HOST_CARD_EMULATION)) {
+                    return@tryNfcHceOperation null
+                }
+                CardEmulation.getInstance(nfcAdapter).also {
+                    if (!it.categoryAllowsForegroundPreference(CardEmulation.CATEGORY_OTHER)) {
+                        Napier.w("CardEmulation.categoryAllowsForegroundPreference(CATEGORY_OTHER) returned false")
+                    }
+                }
+            } ?: return@launch
             combine(
                 NfcTransferState.nfcDataTransferActive,
                 NfcTransferState.verifierNfcReaderModeActive,
@@ -144,33 +154,36 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
             ) { dataTransfer, verifierReaderMode, verifierTransfer, suppressionMode ->
                 arrayOf(dataTransfer, verifierReaderMode, verifierTransfer, suppressionMode != NfcDispatchSuppressionMode.NONE)
             }.collect { (dataTransfer, verifierReaderMode, verifierTransfer, suppressed) ->
-                if (verifierReaderMode || verifierTransfer) {
-                    Napier.i("Verifier NFC reader active; unsetting preferred NFC HCE service")
-                    if (!cardEmulation.unsetPreferredService(this@AbstractWalletActivity)) {
-                        Napier.w("CardEmulation.unsetPreferredService() returned false")
+                // Recover per emission so a platform failure does not stop later preference updates.
+                tryNfcHceOperation("preference update") {
+                    if (verifierReaderMode || verifierTransfer) {
+                        Napier.i("Verifier NFC reader active; unsetting preferred NFC HCE service")
+                        if (!cardEmulation.unsetPreferredService(this@AbstractWalletActivity)) {
+                            Napier.w("CardEmulation.unsetPreferredService() returned false")
+                        }
+                        return@tryNfcHceOperation
                     }
-                    return@collect
-                }
-                if (suppressed) {
-                    Napier.i("NFC dispatch suppressed; unsetting preferred NFC HCE service")
-                    if (!cardEmulation.unsetPreferredService(this@AbstractWalletActivity)) {
-                        Napier.w("CardEmulation.unsetPreferredService() returned false")
+                    if (suppressed) {
+                        Napier.i("NFC dispatch suppressed; unsetting preferred NFC HCE service")
+                        if (!cardEmulation.unsetPreferredService(this@AbstractWalletActivity)) {
+                            Napier.w("CardEmulation.unsetPreferredService() returned false")
+                        }
+                        return@tryNfcHceOperation
                     }
-                    return@collect
-                }
-                val serviceClass = if (dataTransfer) NfcDataRetrievalService::class.java
-                else NdefDeviceEngagementService::class.java
-                Napier.i(
-                    "Setting preferred NFC HCE service to ${serviceClass.simpleName}; dataTransfer=$dataTransfer"
-                )
-                if (!cardEmulation.setPreferredService(
-                        this@AbstractWalletActivity,
-                        ComponentName(this@AbstractWalletActivity, serviceClass)
+                    val serviceClass = if (dataTransfer) NfcDataRetrievalService::class.java
+                    else NdefDeviceEngagementService::class.java
+                    Napier.i(
+                        "Setting preferred NFC HCE service to ${serviceClass.simpleName}; dataTransfer=$dataTransfer"
                     )
-                ) {
-                    Napier.w("CardEmulation.setPreferredService() returned false for ${serviceClass.simpleName}")
-                } else {
-                    Napier.i("Preferred NFC HCE service set to ${serviceClass.simpleName}")
+                    if (!cardEmulation.setPreferredService(
+                            this@AbstractWalletActivity,
+                            ComponentName(this@AbstractWalletActivity, serviceClass)
+                        )
+                    ) {
+                        Napier.w("CardEmulation.setPreferredService() returned false for ${serviceClass.simpleName}")
+                    } else {
+                        Napier.i("Preferred NFC HCE service set to ${serviceClass.simpleName}")
+                    }
                 }
             }
         }
@@ -245,20 +258,27 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
         verifierNfcJob = null
         verifierTagDispatchJob?.cancel()
         verifierTagDispatchJob = null
-        NfcAdapter.getDefaultAdapter(this)?.let {
+        tryNfcHceOperation("adapter lookup") {
+            NfcAdapter.getDefaultAdapter(this)
+        }?.let {
             disableHolderForegroundDispatch(it)
-            val cardEmulation = CardEmulation.getInstance(it)
-            if (NfcTransferState.nfcDataTransferActive.value &&
-                !NfcTransferState.verifierNfcTransferActive.value &&
-                NfcTransferState.verifierNfcTagDispatchSuppressed.value == NfcDispatchSuppressionMode.NONE
-            ) {
-                Napier.i(
-                    "Activity paused during active NFC data transfer; keeping preferred NFC HCE service"
-                )
-            } else {
-                Napier.i("Activity paused; unsetting preferred NFC HCE service")
-                if (!cardEmulation.unsetPreferredService(this)) {
-                    Napier.w("CardEmulation.unsetPreferredService() returned false")
+            tryNfcHceOperation("preference cleanup") {
+                if (!packageManager.hasSystemFeature(PackageManager.FEATURE_NFC_HOST_CARD_EMULATION)) {
+                    return@tryNfcHceOperation
+                }
+                val cardEmulation = CardEmulation.getInstance(it)
+                if (NfcTransferState.nfcDataTransferActive.value &&
+                    !NfcTransferState.verifierNfcTransferActive.value &&
+                    NfcTransferState.verifierNfcTagDispatchSuppressed.value == NfcDispatchSuppressionMode.NONE
+                ) {
+                    Napier.i(
+                        "Activity paused during active NFC data transfer; keeping preferred NFC HCE service"
+                    )
+                } else {
+                    Napier.i("Activity paused; unsetting preferred NFC HCE service")
+                    if (!cardEmulation.unsetPreferredService(this)) {
+                        Napier.w("CardEmulation.unsetPreferredService() returned false")
+                    }
                 }
             }
             if (NfcTransferState.verifierNfcTransferActive.value ||
@@ -276,6 +296,16 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
                 it.disableReaderMode(this)
             }
         }
+    }
+
+    // NFC services can propagate ROM-specific runtime exceptions through Binder (see #554).
+    private inline fun <T> tryNfcHceOperation(operation: String, block: () -> T): T? = try {
+        block()
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: RuntimeException) {
+        Napier.w("NFC HCE $operation failed; continuing without guaranteed foreground preference", e)
+        null
     }
 
     private fun disableHolderForegroundDispatch(nfcAdapter: NfcAdapter) {
