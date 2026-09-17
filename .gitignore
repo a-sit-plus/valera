@@ -25,3 +25,4 @@ shared/shared.podspec
 ## User settings
 xcuserdata/
 metrics/
+gradle/gradle-daemon-jvm.properties
