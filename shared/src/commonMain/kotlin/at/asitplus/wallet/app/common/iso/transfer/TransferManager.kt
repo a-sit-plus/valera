@@ -143,20 +143,20 @@ class TransferManager(
     private val readerRootKey: EcPrivateKey by lazy {
         EcPrivateKey.fromPem(
             """
-                    -----BEGIN PRIVATE KEY-----
-                    MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgC42H+ZfAyMq4i3Na
-                    bUrYsgtqflPxsgheWe8eygZ0Xl+gCgYIKoZIzj0DAQehRANCAAQmm+pmyUxx/x2e
-                    D131E8HhvNkhsfYQXzefZlxgLXQPqCOxO+VPOXVOKL0dUy+kHyT5IP/NOAh038co
-                    AVOgGPT4
-                    -----END PRIVATE KEY-----
-                """.trimIndent().trim(),
+                -----BEGIN PRIVATE KEY-----
+                MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgx4vfra/ve0EbQnAH
+                t3Gfn40EeT2z3Mfkv5BvE4A+qRWgCgYIKoZIzj0DAQehRANCAASdK4GQW3l2JFTD
+                M5JkMuaf0mLd6A2CHo91FCHXyjG95iDe68e6wzeqgiltgi/KfIgESyolpgUVOuII
+                Mm1L04Dx
+                -----END PRIVATE KEY-----
+            """.trimIndent().trim(),
             EcPublicKey.fromPem(
                 """
                     -----BEGIN PUBLIC KEY-----
-                    MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEJpvqZslMcf8dng9d9RPB4bzZIbH2
-                    EF83n2ZcYC10D6gjsTvlTzl1Tii9HVMvpB8k+SD/zTgIdN/HKAFToBj0+A==
+                    MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnSuBkFt5diRUwzOSZDLmn9Ji3egN
+                    gh6PdRQh18oxveYg3uvHusM3qoIpbYIvynyIBEsqJaYFFTriCDJtS9OA8Q==
                     -----END PUBLIC KEY-----
-                    """.trimIndent().trim()
+                """.trimIndent().trim()
             )
         )
     }
@@ -165,18 +165,18 @@ class TransferManager(
         X509Cert.fromPem(
             """
                 -----BEGIN CERTIFICATE-----
-                MIICJzCCAc6gAwIBAgIUSvMftn/oM3etHjE7hdIBl6tWMV8wCgYIKoZIzj0EAwIw
+                MIICNDCCAdqgAwIBAgIUeOKIWTDNRbsbkVbpIrMBoK5R17gwCgYIKoZIzj0EAwIw
                 MzELMAkGA1UEBhMCQVQxDjAMBgNVBAoMBUEtU0lUMRQwEgYDVQQDDAtWYWxlcmEg
-                SUFDQTAeFw0yNTA2MjYwODI0MDJaFw0yNjA2MjYwODI0MDJaMDMxCzAJBgNVBAYT
+                SUFDQTAeFw0yNjA5MTcwNzQzMTRaFw0yODA5MTcwNzQzMTRaMDMxCzAJBgNVBAYT
                 AkFUMQ4wDAYDVQQKDAVBLVNJVDEUMBIGA1UEAwwLVmFsZXJhIElBQ0EwWTATBgcq
-                hkjOPQIBBggqhkjOPQMBBwNCAAQmm+pmyUxx/x2eD131E8HhvNkhsfYQXzefZlxg
-                LXQPqCOxO+VPOXVOKL0dUy+kHyT5IP/NOAh038coAVOgGPT4o4G/MIG8MBIGA1Ud
-                EwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMCIGA1UdEgQbMBmGF2h0dHBz
-                Oi8vd2FsbGV0LmEtc2l0LmF0MDIGA1UdHwQrMCkwJ6AloCOGIWh0dHBzOi8vd2Fs
-                bGV0LmEtc2l0LmF0L2NybC8xLmNybDAfBgNVHSMEGDAWgBSDGoj0XuXE3qEVTmPv
-                KSvIvR36ijAdBgNVHQ4EFgQUgxqI9F7lxN6hFU5j7ykryL0d+oowCgYIKoZIzj0E
-                AwIDRwAwRAIgS9XcYA4Be5gDIdHmMOgJ3AeS44gT4bgVgsg/D5+WXS8CIAxJgi3n
-                hGrVMj9SszehLorR2rR5FO5RZgITAaOIGSNP
+                hkjOPQIBBggqhkjOPQMBBwNCAASdK4GQW3l2JFTDM5JkMuaf0mLd6A2CHo91FCHX
+                yjG95iDe68e6wzeqgiltgi/KfIgESyolpgUVOuIIMm1L04Dxo4HLMIHIMBIGA1Ud
+                EwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMDwGA1UdHwQ1MDMwMaAvoC2G
+                K2h0dHA6Ly93YWxsZXQuYS1zaXQucGx1cy9jcmwvdmFsZXJhaWFjYS5jcmwwJAYD
+                VR0SBB0wG4YZaHR0cHM6Ly93YWxsZXQuYS1zaXQucGx1czAfBgNVHSMEGDAWgBQi
+                AXxnmzNZDQ+VlZxjgea3Di3X8TAdBgNVHQ4EFgQUIgF8Z5szWQ0PlZWcY4Hmtw4t
+                1/EwCgYIKoZIzj0EAwIDSAAwRQIgcNaDKFuh/nqbwHpO6XHV0vm5OKOPJAN22fJI
+                oXjKTOQCIQCGcCljcOcVCkEaH05wIKTIWIyVAOQqfIckwPt365Lnvg==
                 -----END CERTIFICATE-----
             """.trimIndent().trim()
         )
@@ -199,8 +199,8 @@ class TransferManager(
             readerKey = readerKey.publicKey,
             subject = X500Name.fromName("CN=Valera Reader Cert"),
             serial = ASN1Integer(1L),
-            validFrom = LocalDate.parse("2025-06-26").atTime(10, 0).toInstant(TimeZone.UTC),
-            validUntil = LocalDate.parse("2027-06-26").atStartOfDayIn(TimeZone.UTC),
+            validFrom = LocalDate.parse("2026-09-18").atStartOfDayIn(TimeZone.UTC),
+            validUntil = LocalDate.parse("2027-09-17").atStartOfDayIn(TimeZone.UTC),
             dnsName = "wallet.a-sit.plus",
         )
     }
