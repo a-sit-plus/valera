@@ -12,9 +12,8 @@ import at.asitplus.signum.indispensable.josef.JwsGeneral
 import at.asitplus.signum.indispensable.pki.CertificateChain
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.indispensable.pki.leaf
-import at.asitplus.wallet.lib.etsi.LoTEFilterCriteria
 import at.asitplus.wallet.lib.etsi.LoTEFilterService
-import at.asitplus.wallet.lib.etsi.LoTEServiceType
+import at.asitplus.wallet.lib.etsi.LoteProfile
 import at.asitplus.wallet.lib.etsi.isTrustedBy
 import at.asitplus.wallet.lib.jws.VerifyJwsObjectFun
 import at.asitplus.wallet.lib.jws.VerifyJwsObjectJades
@@ -68,7 +67,7 @@ class TrustListService(
     private val client = httpService.cachedResourceClient(dataStoreService, revalidate = true)
 
     // A-SIT trust list
-    private val aistIssuerCert = X509Certificate.decodeFromPem(asitRootPem).getOrThrow()
+    private val asitIssuerCert = X509Certificate.decodeFromPem(asitRootPem).getOrThrow()
     private val loTeFilterService: LoTEFilterService = LoTEFilterService()
 
     /**
@@ -80,7 +79,7 @@ class TrustListService(
         evaluate: suspend (T, Map<String, ListOfTrustedEntities>) -> TrustState
     ): Flow<TrustState> = combine(
         targetFlow,
-        persistentTrustListStore.observeTrustContainer(LoTEServiceType.defaultUrls)
+        persistentTrustListStore.observeTrustContainer(LoteProfile.defaultUrls)
     ) { target, trustLists ->
         if (target == null) return@combine TrustState.EVALUATING
 
@@ -107,7 +106,7 @@ class TrustListService(
             return@combineWithFreshTrustStore TrustState.UNKNOWN
         }
 
-        evaluateCertificate(issuer, freshTrustLists, LoTEServiceType.fromSchemeIdentifier(schemeIdentifier))
+        evaluateCertificate(issuer, freshTrustLists, LoteProfile.fromSchemeIdentifier(schemeIdentifier))
     }
 
 
@@ -117,14 +116,13 @@ class TrustListService(
     fun evaluateCertificate(
         issuer: X509Certificate,
         trustLists: Map<String, ListOfTrustedEntities>,
-        serviceType: LoTEServiceType
+        serviceProfile: LoteProfile
     ): TrustState = try {
-        if (issuer.isTrustedBy(listOf(aistIssuerCert)).isSuccess) {
+        if (issuer.isTrustedBy(listOf(asitIssuerCert)).isSuccess) {
             TrustState.TRUSTED
         } else {
-            val criteria = LoTEFilterCriteria(expectedServiceType = serviceType)
-            val certificateList: List<X509Certificate> = trustLists
-                .flatMap { (key, lote) -> loTeFilterService.extractTrustedCertificates(key, lote, criteria) }
+            val certificateList: List<X509Certificate> = trustLists.values
+                .flatMap {  lote -> loTeFilterService.extractIssuanceCertificates(lote, serviceProfile) }
                 .mapNotNull { it.certificate }
 
             if (certificateList.isEmpty()) {
@@ -151,7 +149,7 @@ class TrustListService(
     ): TrustState {
         val leaf = relyingPartyCertChain?.leaf
             ?: return TrustState.UNKNOWN
-        return evaluateCertificate(leaf, trustLists, LoTEServiceType.WRPAC)
+        return evaluateCertificate(leaf, trustLists, LoteProfile.WRPAC)
     }
 
     /**
@@ -178,10 +176,10 @@ class TrustListService(
             delay(5.seconds)
             while (isActive) {
                 val failed = refreshStaleEntries()
-                val cachedAt = LoTEServiceType.defaultUrls
+                val cachedAt = LoteProfile.defaultUrls
                     .mapNotNull { persistentTrustListStore.getCachedAt(it) }
                 delay(
-                    if (failed || cachedAt.size != LoTEServiceType.defaultUrls.size) retryInterval
+                    if (failed || cachedAt.size != LoteProfile.defaultUrls.size) retryInterval
                     else maxOf(
                         1.seconds,
                         cachedAt.nextRefreshIn(clock.now(), Configuration.CACHE_TTL_TRUST_LIST),
@@ -193,7 +191,7 @@ class TrustListService(
 
     private suspend fun refreshStaleEntries(): Boolean {
         val now = clock.now()
-        return LoTEServiceType.defaultUrls
+        return LoteProfile.defaultUrls
             .filter { url ->
                 val cachedAt = persistentTrustListStore.getCachedAt(url)
                 cachedAt == null || now - cachedAt >= Configuration.CACHE_TTL_TRUST_LIST
