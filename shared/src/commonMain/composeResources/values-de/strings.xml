@@ -479,6 +479,9 @@
     <string name="text_label_issued_by">Aussteller</string>
     <string name="text_label_trust_status">Status</string>
     <string name="text_label_thumbprint">Fingerabdruck</string>
+    <string name="text_label_trust_list_stage_acceptance">Abnahme</string>
+    <string name="text_label_trust_list_stage_development">Entwicklung</string>
+    <string name="text_label_trust_list_stage_production">Produktion</string>
     <string name="text_label_trust_list_urls">Vertrauenslisten-URLs</string>
 
 </resources>

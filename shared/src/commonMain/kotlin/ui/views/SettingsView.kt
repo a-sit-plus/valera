@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -69,11 +72,15 @@ import at.asitplus.valera.resources.section_heading_information
 import at.asitplus.valera.resources.text_label_build
 import at.asitplus.valera.resources.text_label_client_identifier
 import at.asitplus.valera.resources.text_label_openid4vp_allowed_origin_schemes
+import at.asitplus.valera.resources.text_label_trust_list_stage_acceptance
+import at.asitplus.valera.resources.text_label_trust_list_stage_development
+import at.asitplus.valera.resources.text_label_trust_list_stage_production
 import at.asitplus.valera.resources.text_label_trust_list_urls
 import at.asitplus.valera.resources.text_supporting_openid4vp_allowed_origin_schemes
 import at.asitplus.valera.resources.warning
 import at.asitplus.wallet.app.common.BuildType
-import at.asitplus.wallet.lib.etsi.LoTEServiceType
+import at.asitplus.wallet.lib.etsi.LoteStage
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -115,6 +122,8 @@ fun SettingsView(
             clientIdInput = TextFieldValue(clientIdInputValue)
         }
     }
+
+    val enabledTrustListStages by settingsViewModel.trustListStages.collectAsState()
 
     val originSchemesInputValue by settingsViewModel.openId4VpAllowedOriginSchemesInputState.collectAsState()
     var originSchemesInput by rememberSaveable(stateSaver = TextFieldValue.Saver) {
@@ -284,12 +293,13 @@ fun SettingsView(
                                 style = MaterialTheme.typography.titleSmall,
                                 modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
                             )
-                            LoTEServiceType.defaultUrls.forEach { url ->
-                                Text(
-                                    text = url,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(start = 32.dp, top = 2.dp, bottom = 2.dp)
+                            LoteStage.entries.forEach { stage ->
+                                TrustListStageListItem(
+                                    stage = stage,
+                                    enabled = stage in enabledTrustListStages,
+                                    onCheckedChange = { checked ->
+                                        settingsViewModel.setTrustListStageEnabled(stage, checked)
+                                    },
                                 )
                             }
                         }
@@ -463,3 +473,53 @@ private fun ResetAlert(
         }
     )
 }
+
+/**
+ * Checkbox toggling one stage of the trust infrastructure, listing the URLs it contributes while
+ * it is enabled.
+ */
+@Composable
+private fun TrustListStageListItem(
+    stage: LoteStage,
+    enabled: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .toggleable(
+                    value = enabled,
+                    onValueChange = onCheckedChange,
+                    role = Role.Checkbox,
+                )
+                .padding(top = 4.dp, end = 24.dp, bottom = 4.dp, start = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Checkbox(checked = enabled, onCheckedChange = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = stringResource(stage.label),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+        if (enabled) {
+            stage.fetchUrls.forEach { url ->
+                Text(
+                    text = url,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 56.dp, top = 2.dp, bottom = 2.dp)
+                )
+            }
+        }
+    }
+}
+
+private val LoteStage.label: StringResource
+    get() = when (this) {
+        LoteStage.DEVELOPMENT -> Res.string.text_label_trust_list_stage_development
+        LoteStage.ACCEPTANCE -> Res.string.text_label_trust_list_stage_acceptance
+        LoteStage.PRODUCTION -> Res.string.text_label_trust_list_stage_production
+    }

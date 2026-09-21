@@ -12,6 +12,7 @@
  * Local transfer: Replace the malformed Bluetooth graphic with the official Material icon
  * Presentation: Label the final confirmation action Submit
  * Display trust evaluation of the Relying Party
+ * Trust Lists: Load the Lists of Trusted Entities of the development stage as well as the acceptance stage, and let every stage (acceptance, development, production) be enabled separately in the settings
  * Presentation: Replace remaining Presentation Exchange flows with DCQL and ISO DeviceRequest, including proximity and ISO DC API requests
  * Presentation: Label and show the value of every attribute an ISO DeviceRequest discloses, on both the selection and the confirmation screen
  * Presentation: Keep every requested DCQL attribute visible even when its value cannot be rendered

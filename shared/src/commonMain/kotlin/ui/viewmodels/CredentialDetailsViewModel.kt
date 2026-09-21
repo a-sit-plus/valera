@@ -4,13 +4,8 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import at.asitplus.catchingUnwrapped
-import at.asitplus.etsi.ListOfTrustedEntities
-import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.decodeImage
-import at.asitplus.wallet.lib.etsi.LoTEFilterCriteria
-import at.asitplus.wallet.lib.etsi.LoTEFilterService
-import at.asitplus.wallet.lib.etsi.isTrustedBy
 import data.storage.StoreEntryId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
