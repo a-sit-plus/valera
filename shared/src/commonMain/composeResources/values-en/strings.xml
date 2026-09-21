@@ -473,6 +473,9 @@
     <string name="text_label_issued_by">Issuer</string>
     <string name="text_label_trust_status">Status</string>
     <string name="text_label_thumbprint">Fingerprint</string>
+    <string name="text_label_trust_list_stage_acceptance">Acceptance</string>
+    <string name="text_label_trust_list_stage_development">Development</string>
+    <string name="text_label_trust_list_stage_production">Production</string>
     <string name="text_label_trust_list_urls">Trust List URLs</string>
 
 </resources>
