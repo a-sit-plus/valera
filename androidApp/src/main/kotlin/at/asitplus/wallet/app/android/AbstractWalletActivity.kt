@@ -29,9 +29,6 @@ import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import at.asitplus.wallet.app.common.dcapi.data.ErrorResponse
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.combine
-import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.multipaz.context.initializeApplication
-import java.security.Security
 
 abstract class AbstractWalletActivity : AppCompatActivity() {
 
@@ -47,15 +44,6 @@ abstract class AbstractWalletActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         populateLink(intent)
-        initMultipaz()
-    }
-
-    private fun initMultipaz() {
-        // required for identity.Crypto classes
-        Security.removeProvider("BC")
-        Security.addProvider(BouncyCastleProvider())
-
-        initializeApplication(this.applicationContext)
     }
 
     @OptIn(ExperimentalDigitalCredentialApi::class)

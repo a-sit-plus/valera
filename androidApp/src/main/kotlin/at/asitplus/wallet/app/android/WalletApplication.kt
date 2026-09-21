@@ -9,10 +9,12 @@ import data.storage.AntilogAdapter
 import io.github.aakira.napier.Napier
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
+import org.multipaz.context.initializeApplication
 
 class WalletApplication : Application() {
     override fun onCreate() {
         super.onCreate()
+        initializeApplication(applicationContext)
         initializeLogging()
         startKoin {
             modules(appModule(), module { single { createAndroidBuildContext() } })
