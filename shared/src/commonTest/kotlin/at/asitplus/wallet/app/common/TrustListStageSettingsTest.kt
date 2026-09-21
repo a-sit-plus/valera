@@ -1,7 +1,7 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.wallet.lib.etsi.LoteProfile
-import at.asitplus.wallet.lib.etsi.LoteStage
+import at.asitplus.wallet.lib.etsi.LoTEStage
 import data.storage.DataStoreService
 import data.storage.DummyDataStoreService
 import data.storage.PersistentTrustListStore
@@ -11,7 +11,9 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Instant
 
 class TrustListStageSettingsTest {
 
@@ -20,7 +22,7 @@ class TrustListStageSettingsTest {
         val walletConfig = walletConfig()
 
         assertEquals(
-            setOf(LoteStage.ACCEPTANCE, LoteStage.DEVELOPMENT),
+            setOf(LoTEStage.ACCEPTANCE, LoTEStage.DEVELOPMENT),
             walletConfig.trustListStages.first(),
         )
     }
@@ -29,11 +31,11 @@ class TrustListStageSettingsTest {
     fun togglesOneStageWithoutTouchingTheOthers() = runTest {
         val walletConfig = walletConfig()
 
-        walletConfig.setTrustListStageEnabled(LoteStage.PRODUCTION, true).getOrThrow()
-        walletConfig.setTrustListStageEnabled(LoteStage.ACCEPTANCE, false).getOrThrow()
+        walletConfig.setTrustListStageEnabled(LoTEStage.PRODUCTION, true).getOrThrow()
+        walletConfig.setTrustListStageEnabled(LoTEStage.ACCEPTANCE, false).getOrThrow()
 
         assertEquals(
-            setOf(LoteStage.DEVELOPMENT, LoteStage.PRODUCTION),
+            setOf(LoTEStage.DEVELOPMENT, LoTEStage.PRODUCTION),
             walletConfig.trustListStages.first(),
         )
     }
@@ -42,7 +44,7 @@ class TrustListStageSettingsTest {
     fun keepsAnEmptySelectionInsteadOfFallingBackToTheDefault() = runTest {
         val walletConfig = walletConfig()
 
-        LoteStage.entries.forEach { walletConfig.setTrustListStageEnabled(it, false).getOrThrow() }
+        LoTEStage.entries.forEach { walletConfig.setTrustListStageEnabled(it, false).getOrThrow() }
 
         assertEquals(emptySet(), walletConfig.trustListStages.first())
         assertEquals(emptyList(), LoteProfile.fetchUrls(walletConfig.trustListStages.first()))
@@ -57,7 +59,7 @@ class TrustListStageSettingsTest {
         )
 
         assertEquals(
-            setOf(LoteStage.DEVELOPMENT),
+            setOf(LoTEStage.DEVELOPMENT),
             walletConfig(dataStoreService).trustListStages.first(),
         )
     }
@@ -65,13 +67,37 @@ class TrustListStageSettingsTest {
     @Test
     fun fetchesEveryListOfEveryEnabledStage() = runTest {
         val walletConfig = walletConfig()
-        walletConfig.setTrustListStageEnabled(LoteStage.ACCEPTANCE, false).getOrThrow()
+        walletConfig.setTrustListStageEnabled(LoTEStage.ACCEPTANCE, false).getOrThrow()
 
         val urls = LoteProfile.fetchUrls(walletConfig.trustListStages.first())
 
         assertEquals(LoteProfile.entries.size, urls.size)
         assertTrue(urls.contains("https://development.trust.tech.ec.europa.eu/lists/eudiw/pid-providers.json"))
         assertFalse(urls.any { it.contains("acceptance") })
+    }
+
+    @Test
+    fun prunesEveryListOfEveryDisabledStage() {
+        val enabled = LoTEStage.ACCEPTANCE.fetchUrls
+
+        val pruned = disabledTrustListUrls(enabled)
+
+        assertEquals(LoteProfile.entries.size * (LoTEStage.entries.size - 1), pruned.size)
+        assertTrue(pruned.containsAll(LoTEStage.DEVELOPMENT.fetchUrls))
+        assertTrue(pruned.none { it in enabled })
+    }
+
+    @Test
+    fun removesTheCachedListOfADisabledStage() = runTest {
+        val dataStoreService = DummyDataStoreService()
+        val store = PersistentTrustListStore(dataStoreService)
+        val url = LoTEStage.PRODUCTION.fetchUrl(LoteProfile.PID)
+        store.persistTrustList(url, "cached-trust-list", Instant.fromEpochMilliseconds(1_000))
+
+        assertTrue(store.removeTrustList(url))
+
+        assertNull(dataStoreService.getPreference(url).first())
+        assertFalse(store.removeTrustList(url))
     }
 
     @Test

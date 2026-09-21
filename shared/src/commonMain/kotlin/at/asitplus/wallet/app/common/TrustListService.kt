@@ -14,17 +14,20 @@ import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.indispensable.pki.leaf
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.lib.etsi.LoTEFilterService
+import at.asitplus.wallet.lib.etsi.LoTEStage
 import at.asitplus.wallet.lib.etsi.LoteProfile
 import at.asitplus.wallet.lib.etsi.isTrustedBy
 import at.asitplus.wallet.lib.jws.VerifyJwsObjectFun
 import at.asitplus.wallet.lib.jws.VerifyJwsObjectJades
 import data.storage.DataStoreService
+import data.storage.PersistentHttpCacheStorage
 import data.storage.PersistentTrustListStore
 import io.github.aakira.napier.Napier
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.Url
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -73,6 +76,9 @@ class TrustListService(
 ) {
     private var job: Job? = null
     private val client = httpService.cachedResourceClient(dataStoreService, revalidate = true)
+
+    // Same storage the client above caches into, to drop the raw responses of disabled stages as well.
+    private val cachedResponses = PersistentHttpCacheStorage(dataStoreService, Configuration.DATASTORE_KEY_HTTP_CACHE)
 
     // A-SIT trust list
     private val aistIssuerCert = X509Certificate.decodeFromPem(asitRootPem).getOrThrow()
@@ -194,6 +200,7 @@ class TrustListService(
         job = sessionCoroutineScope.launch {
             delay(5.seconds)
             trustListUrls.collectLatest { urls ->
+                pruneTrustListsOfDisabledStages(urls)
                 if (urls.isEmpty()) return@collectLatest
                 while (isActive) {
                     val failed = refreshStaleEntries(urls)
@@ -206,6 +213,27 @@ class TrustListService(
                         )
                     )
                 }
+            }
+        }
+    }
+
+    /**
+     * Removes the persisted lists, and their cached HTTP responses, of every stage that is not
+     * enabled, so that disabling a stage really drops its data instead of leaving it behind for
+     * the next session.
+     */
+    private suspend fun pruneTrustListsOfDisabledStages(enabledUrls: List<String>) {
+        disabledTrustListUrls(enabledUrls).forEach { url ->
+            catching {
+                if (persistentTrustListStore.removeTrustList(url)) {
+                    Napier.i("Removed cached Trust List of a disabled stage: $url")
+                }
+                val cachedUrl = Url(url)
+                if (cachedResponses.findAll(cachedUrl).isNotEmpty()) {
+                    cachedResponses.removeAll(cachedUrl)
+                }
+            }.onFailure { e ->
+                Napier.w("Could not remove cached Trust List: $url", e)
             }
         }
     }
@@ -245,6 +273,10 @@ class TrustListService(
         responseBody
     }
 }
+
+/** Every trust list URL of every known stage that [enabledUrls] does not cover. */
+internal fun disabledTrustListUrls(enabledUrls: Collection<String>): List<String> =
+    LoTEStage.entries.flatMap { it.fetchUrls }.filterNot { it in enabledUrls }
 
 /** Keeps only cache entries younger than [ttl], dropping the timestamp. Generic so it is trivially testable. */
 internal fun <T> Map<String, Pair<T, Instant>>.filterFresh(now: Instant, ttl: Duration): Map<String, T> =

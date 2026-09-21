@@ -27,6 +27,16 @@ class PersistentTrustListStore(
     suspend fun getCachedAt(url: String): Instant? =
         dataStoreService.getPreference(url).first()?.let(::parseStored)?.second
 
+    /**
+     * Drops the persisted list of [url], e.g. because the stage publishing it was disabled.
+     * Returns `true` if there was something to remove.
+     */
+    suspend fun removeTrustList(url: String): Boolean {
+        if (dataStoreService.getPreference(url).first() == null) return false
+        dataStoreService.deletePreference(url)
+        return true
+    }
+
     /** Emits each URL's trusted-entity list together with the time it was cached, for offline-TTL enforcement. */
     fun observeTrustContainer(urls: List<String>): Flow<Map<String, Pair<ListOfTrustedEntities, Instant>>> {
         // `combine` of no flows never emits, which would leave every observer waiting forever once
