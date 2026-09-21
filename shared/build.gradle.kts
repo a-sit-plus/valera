@@ -104,7 +104,7 @@ kotlin {
             implementation(ktor("serialization-kotlinx-json"))
             implementation(libs.datastore.preferences.core)
             implementation(libs.datastore.core.okio)
-            implementation(libs.multipaz) // This is the library bringing in Bouncy Castle
+            implementation(libs.multipaz)
             implementation(libs.multipaz.compose)
             implementation(libs.multipaz.doctypes)
             implementation(libs.navigation.compose)
