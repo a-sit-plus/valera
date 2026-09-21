@@ -45,7 +45,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -79,7 +78,7 @@ import at.asitplus.valera.resources.text_label_trust_list_urls
 import at.asitplus.valera.resources.text_supporting_openid4vp_allowed_origin_schemes
 import at.asitplus.valera.resources.warning
 import at.asitplus.wallet.app.common.BuildType
-import at.asitplus.wallet.lib.etsi.LoteStage
+import at.asitplus.wallet.lib.etsi.LoTEStage
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
@@ -88,7 +87,6 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope
 import ui.composables.CircularProgressIndicatorOverlay
 import ui.composables.DelayedComposable
-import ui.composables.LabeledText
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.buttons.NavigateUpButton
@@ -293,7 +291,7 @@ fun SettingsView(
                                 style = MaterialTheme.typography.titleSmall,
                                 modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
                             )
-                            LoteStage.entries.forEach { stage ->
+                            LoTEStage.entries.forEach { stage ->
                                 TrustListStageListItem(
                                     stage = stage,
                                     enabled = stage in enabledTrustListStages,
@@ -480,7 +478,7 @@ private fun ResetAlert(
  */
 @Composable
 private fun TrustListStageListItem(
-    stage: LoteStage,
+    stage: LoTEStage,
     enabled: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
@@ -517,9 +515,9 @@ private fun TrustListStageListItem(
     }
 }
 
-private val LoteStage.label: StringResource
+private val LoTEStage.label: StringResource
     get() = when (this) {
-        LoteStage.DEVELOPMENT -> Res.string.text_label_trust_list_stage_development
-        LoteStage.ACCEPTANCE -> Res.string.text_label_trust_list_stage_acceptance
-        LoteStage.PRODUCTION -> Res.string.text_label_trust_list_stage_production
+        LoTEStage.DEVELOPMENT -> Res.string.text_label_trust_list_stage_development
+        LoTEStage.ACCEPTANCE -> Res.string.text_label_trust_list_stage_acceptance
+        LoTEStage.PRODUCTION -> Res.string.text_label_trust_list_stage_production
     }

@@ -7,7 +7,7 @@ import at.asitplus.valera.resources.snackbar_clear_log_successfully
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
-import at.asitplus.wallet.lib.etsi.LoteStage
+import at.asitplus.wallet.lib.etsi.LoTEStage
 import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -100,7 +100,7 @@ class SettingsViewModel(
         openId4VpAllowedOriginSchemesInput.value = defaultOpenId4VpAllowedOriginSchemes.toInputString()
     }
 
-    fun setTrustListStageEnabled(stage: LoteStage, enabled: Boolean) = walletMain.scope.launch {
+    fun setTrustListStageEnabled(stage: LoTEStage, enabled: Boolean) = walletMain.scope.launch {
         walletMain.settingsRepository.setTrustListStageEnabled(stage, enabled)
     }
 

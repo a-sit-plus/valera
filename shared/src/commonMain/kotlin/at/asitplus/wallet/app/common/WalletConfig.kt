@@ -3,7 +3,7 @@ package at.asitplus.wallet.app.common
 import at.asitplus.catchingUnwrapped
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.data.SettingsRepository
-import at.asitplus.wallet.lib.etsi.LoteStage
+import at.asitplus.wallet.lib.etsi.LoTEStage
 import at.asitplus.wallet.lib.openid.OpenId4VpHolder
 import data.storage.DataStoreService
 import io.github.aakira.napier.Napier
@@ -61,13 +61,13 @@ class WalletConfig(
     override val openId4VpAllowedOriginSchemes: Flow<Set<String>> = config.map {
         it.openId4VpAllowedOriginSchemes ?: defaultOpenId4VpAllowedOriginSchemes
     }
-    override val defaultTrustListStages: Set<LoteStage> = setOf(LoteStage.ACCEPTANCE, LoteStage.DEVELOPMENT)
+    override val defaultTrustListStages: Set<LoTEStage> = setOf(LoTEStage.ACCEPTANCE, LoTEStage.DEVELOPMENT)
 
     // Stages are stored by name, so that a stage this version does not know about does not break
     // decoding the whole configuration.
-    override val trustListStages: Flow<Set<LoteStage>> = config.map { data ->
+    override val trustListStages: Flow<Set<LoTEStage>> = config.map { data ->
         data.trustListStages?.mapNotNullTo(mutableSetOf()) { name ->
-            LoteStage.entries.firstOrNull { it.name == name }
+            LoTEStage.entries.firstOrNull { it.name == name }
         } ?: defaultTrustListStages
     }
 
@@ -118,7 +118,7 @@ class WalletConfig(
             )
         }
 
-    override fun setTrustListStageEnabled(stage: LoteStage, enabled: Boolean): Result<Unit> =
+    override fun setTrustListStageEnabled(stage: LoTEStage, enabled: Boolean): Result<Unit> =
         updateConfig { current ->
             val stages = current.trustListStages
                 ?: defaultTrustListStages.mapTo(mutableSetOf()) { it.name }
@@ -266,6 +266,6 @@ private data class ConfigData(
     val readerAutomaticallySelectTransport: Boolean = true,
     val connectionTimeout: Duration = 30.seconds, // ISO 18013-5 9.4: "the time-out should be no less than 30 seconds"
     val openId4VpAllowedOriginSchemes: Set<String>? = null,
-    /** Names of the enabled [LoteStage]s; `null` means the default selection. */
+    /** Names of the enabled [LoTEStage]s; `null` means the default selection. */
     val trustListStages: Set<String>? = null,
 )

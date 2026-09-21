@@ -1,6 +1,6 @@
 package at.asitplus.wallet.app.common.data
 
-import at.asitplus.wallet.lib.etsi.LoteStage
+import at.asitplus.wallet.lib.etsi.LoTEStage
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.flow.Flow
@@ -47,8 +47,8 @@ interface SettingsRepository {
     val connectionTimeout: Flow<Duration>
     val openId4VpAllowedOriginSchemes: Flow<Set<String>>
     val defaultOpenId4VpAllowedOriginSchemes: Set<String>
-    val trustListStages: Flow<Set<LoteStage>>
-    val defaultTrustListStages: Set<LoteStage>
+    val trustListStages: Flow<Set<LoTEStage>>
+    val defaultTrustListStages: Set<LoTEStage>
 
     val presentmentNegotiatedHandoverPreferredOrder: List<String>
         get() = listOf(
@@ -64,7 +64,7 @@ interface SettingsRepository {
     fun setPresentmentBlePeripheralServerModeEnabled(enabled: Boolean): Result<Unit>
 
     /** Adds or removes [stage] from [trustListStages], leaving the other stages untouched. */
-    fun setTrustListStageEnabled(stage: LoteStage, enabled: Boolean): Result<Unit>
+    fun setTrustListStageEnabled(stage: LoTEStage, enabled: Boolean): Result<Unit>
 
     fun set(
         host: String? = null,
