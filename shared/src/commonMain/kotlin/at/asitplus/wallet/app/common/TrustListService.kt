@@ -30,6 +30,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import ui.composables.TrustState
@@ -68,7 +69,7 @@ class TrustListService(
     private val client = httpService.cachedResourceClient(dataStoreService, revalidate = true)
 
     // A-SIT trust list
-    private val aistIssuerCert = X509Certificate.decodeFromPem(asitRootPem).getOrThrow()
+    private val asitIssuerCert = X509Certificate.decodeFromPem(asitRootPem).getOrThrow()
     private val loTeFilterService: LoTEFilterService = LoTEFilterService()
 
     /**
@@ -119,7 +120,7 @@ class TrustListService(
         trustLists: Map<String, ListOfTrustedEntities>,
         serviceType: LoTEServiceType
     ): TrustState = try {
-        if (issuer.isTrustedBy(listOf(aistIssuerCert)).isSuccess) {
+        if (issuer.isTrustedBy(listOf(asitIssuerCert)).isSuccess) {
             TrustState.TRUSTED
         } else {
             val criteria = LoTEFilterCriteria(expectedServiceType = serviceType)
@@ -168,6 +169,18 @@ class TrustListService(
         certChainFlow: Flow<CertificateChain?>
     ): Flow<TrustState> = combineWithFreshTrustStore(certChainFlow) { certChain, freshTrustLists ->
         evaluateRelyingParty(certChain, freshTrustLists)
+    }
+
+    suspend fun getTrustList(
+        serviceType: LoTEServiceType
+    ) = catching {
+        persistentTrustListStore.observeTrustContainer(LoTEServiceType.defaultUrls).firstOrNull()?.let { trustLists ->
+            val criteria = LoTEFilterCriteria(expectedServiceType = serviceType)
+            val freshTrustLists = trustLists.filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
+            freshTrustLists
+                .flatMap { (key, lote) -> loTeFilterService.extractTrustedCertificates(key, lote, criteria) }
+                .mapNotNull { it.certificate } + asitIssuerCert
+        } ?: listOf(asitIssuerCert)
     }
 
     /** Refreshes missing or expired lists, then sleeps until the earliest cached list expires. */

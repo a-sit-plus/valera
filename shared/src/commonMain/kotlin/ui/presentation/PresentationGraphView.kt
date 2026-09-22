@@ -24,7 +24,7 @@ import at.asitplus.valera.resources.heading_label_authenticate_at_device_title
 import at.asitplus.valera.resources.heading_label_select_data
 import at.asitplus.valera.resources.heading_label_show_data
 import at.asitplus.wallet.app.common.TrustListService
-import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import org.jetbrains.compose.resources.stringResource
@@ -54,6 +54,7 @@ fun PresentationGraphView(
     showStartRoute: Boolean = true,
     trustListService: TrustListService,
     fixedCredentialSelection: Boolean = false,
+    wrpValidationResult: WrpValidationResult? = null,
 ) {
     LaunchedEffect(selectionProvider) {
         selectionProvider.let {
@@ -126,7 +127,8 @@ fun PresentationGraphView(
                     },
                     errorAction = onError,
                     trustListService = trustListService,
-                    request = request
+                    request = request,
+                    wrpValidationResult = wrpValidationResult,
                 )
             }
         }
@@ -162,7 +164,8 @@ fun PresentationGraphView(
                 },
                 trustListService = trustListService,
                 fixedCredentialSelection = fixedCredentialSelection,
-                request = request
+                request = request,
+                wrpValidationResult = wrpValidationResult,
             )
         }
 

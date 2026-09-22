@@ -16,7 +16,9 @@ import at.asitplus.openid.dcql.DCQLQuery
 import at.asitplus.wallet.app.common.DcqlConsentData
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.extractConsentData
+import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
 import at.asitplus.wallet.app.common.toCredentialQueryUiModel
+import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.WrpCredentialRequest
 
 /**
  * This composable displays an appropriate presentation selection view depending on current selections.
@@ -52,7 +54,8 @@ fun DCQLPresentationBuilderGraphViewContent(
     selectedOptionalCredentialSetQueryOptions: Map<UInt, UInt?>,
     confirmedOptionalCredentialSetQueryOptions: Map<UInt, UInt?>,
     trustListService: TrustListService,
-    request: RequestParametersFrom<*>
+    request: RequestParametersFrom<*>,
+    wrpValidationResult: WrpValidationResult? = null,
 ) {
     val credentialSetQueries = dcqlQuery.requestedCredentialSetQueries
     val progressStart = 1
@@ -97,8 +100,14 @@ fun DCQLPresentationBuilderGraphViewContent(
             dcqlQuery.credentials.associate { it.id to it.extractConsentData() }
         }.onFailure(errorAction).getOrNull()
     }
-    val credentialQueryUiModels = consentData?.mapValues {
-        it.value.toCredentialQueryUiModel()
+    val credentialQueryUiModels = consentData?.mapValues { entry ->
+        val matchedValidation = wrpValidationResult?.requestDataValidationResult?.filter {
+            (it.first as? WrpCredentialRequest.WrpDcqlCredentialQuery)?.let {
+                it.query.id.string == entry.key.string
+            } == true
+        }?.toList()?.firstOrNull()
+        val allowedAttributes = matchedValidation?.second?.credentialAttributesValidity
+        entry.value.toCredentialQueryUiModel(allowedAttributes)
     } ?: return
 
     requestedCredentialQueries.firstOrNull {

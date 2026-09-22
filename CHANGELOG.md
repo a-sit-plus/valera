@@ -13,6 +13,7 @@
  * Presentation: Label and show the value of every attribute an ISO DeviceRequest discloses, on both the selection and the confirmation screen
  * Presentation: Keep every requested DCQL attribute visible even when its value cannot be rendered
  * Presentation: Mark the requested attributes a verifier intends to retain beyond the transaction
+ * Add WRPAC and WRPRC validation
 
 # Release 5.8.2:
  * Networking: Use explicit CIO and Darwin HTTP engines and make Android debug trust configuration compatible with CIO
