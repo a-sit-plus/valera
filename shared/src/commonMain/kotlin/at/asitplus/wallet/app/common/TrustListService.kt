@@ -14,7 +14,9 @@ import at.asitplus.signum.indispensable.pki.CertificateChain
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.indispensable.pki.leaf
 import at.asitplus.wallet.app.common.data.SettingsRepository
+import at.asitplus.wallet.lib.etsi.LoTEFilterCriteria
 import at.asitplus.wallet.lib.etsi.LoTEFilterService
+import at.asitplus.wallet.lib.etsi.LoTEServiceType
 import at.asitplus.wallet.lib.etsi.LoTEStage
 import at.asitplus.wallet.lib.etsi.LoteProfile
 import at.asitplus.wallet.lib.etsi.isTrustedBy
@@ -37,6 +39,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
@@ -82,7 +85,7 @@ class TrustListService(
     private val cachedResponses = PersistentHttpCacheStorage(dataStoreService, Configuration.DATASTORE_KEY_HTTP_CACHE)
 
     // A-SIT trust list
-    private val aistIssuerCert = X509Certificate.decodeFromPem(asitRootPem).getOrThrow()
+    private val asitIssuerCert = X509Certificate.decodeFromPem(asitRootPem).getOrThrow()
     private val loTeFilterService: LoTEFilterService = LoTEFilterService()
 
     /** Every list of every trust infrastructure stage the user has enabled. */
@@ -141,7 +144,7 @@ class TrustListService(
         trustLists: Map<String, ListOfTrustedEntities>,
         profile: LoteProfile,
     ): TrustState = try {
-        if (issuer.isTrustedBy(listOf(aistIssuerCert)).isSuccess) {
+        if (issuer.isTrustedBy(listOf(asitIssuerCert)).isSuccess) {
             TrustState.TRUSTED
         } else {
             val certificateList: List<X509Certificate> = trustLists.values
@@ -272,6 +275,18 @@ class TrustListService(
         verifyJwsObject(jws.first).getOrThrow()
         Napier.i("Successfully validated Trust List signature from $url")
         responseBody
+    }
+
+    suspend fun getTrustList(
+        serviceType: LoTEServiceType
+    ) = catching {
+        persistentTrustListStore.observeTrustContainer(LoTEServiceType.defaultUrls).firstOrNull()?.let { trustLists ->
+            val criteria = LoTEFilterCriteria(expectedServiceType = serviceType)
+            val freshTrustLists = trustLists.filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
+            freshTrustLists
+                .flatMap { (key, lote) -> loTeFilterService.extractTrustedCertificates(key, lote, criteria) }
+                .mapNotNull { it.certificate } + asitIssuerCert
+        } ?: listOf(asitIssuerCert)
     }
 }
 
