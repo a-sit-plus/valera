@@ -1,11 +1,11 @@
 package at.asitplus.wallet.app.common.relyingParty
 
 import at.asitplus.etsi.relyingParty.WrpLangString
+import at.asitplus.wallet.lib.agent.validation.relyingParty.WrpRegistrationCertificate
 import at.asitplus.wallet.lib.agent.validation.relyingParty.accessCertificate.WrpacValidationResult
-import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.RequestDataValidationResult
+import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.RequestDataValidation
+import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.WrpRegistrationCertificateValidation
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.WrprcValidationResult
-import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.WrprcVerifierInfoValidationResult
-import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.getPayload
 import kotlinx.serialization.Serializable
 
 
@@ -14,40 +14,36 @@ data class WrpValidationResult(
     val displayInfo: WrpDisplayInfo?,
     val validAttributes: Boolean,
     val validCredentialType: Boolean,
-    val wrprcValid: Boolean,
-    val wrpacValid: Boolean,
-    val requestDataValidationResult: RequestDataValidationResult
+    val validCertificate: Boolean,
+    val requestDataValidationResult: RequestDataValidation
 ) {
     constructor(
         wrprcValidationResult: WrprcValidationResult,
         wrpacValidationResult: WrpacValidationResult
     ) : this(
-        displayInfo = wrprcValidationResult.verifierInfoValidationResult.getDisplayInfo(),
+        displayInfo = wrprcValidationResult.certificateValidation.getDisplayInfo(),
         validAttributes =
-            wrprcValidationResult.requestDataValidationResult.all { it.value?.credentialAttributesValidity?.all { it.second } == true },
-        validCredentialType = wrprcValidationResult.requestDataValidationResult.all { it.value?.credentialTypeValidity == true },
-        wrprcValid =
-            wrprcValidationResult.verifierInfoValidationResult.isNotEmpty() && wrprcValidationResult.verifierInfoValidationResult.all { it.value?.isValid() == true },
-        wrpacValid = wrpacValidationResult.hashValid && wrpacValidationResult.chainValid,
-        requestDataValidationResult = wrprcValidationResult.requestDataValidationResult
+            wrprcValidationResult.requestDataValidation.toMap()
+                .all { it.value.credentialAttributesValidity.all { it.second } },
+        validCredentialType = wrprcValidationResult.requestDataValidation.toMap()
+            .all { it.value.credentialTypeValidity },
+        validCertificate = wrprcValidationResult.certificateValidation.all { it.value?.isValid() == true } && wrpacValidationResult.validLinkage,
+        requestDataValidationResult = wrprcValidationResult.requestDataValidation
     )
 }
 
-fun WrprcVerifierInfoValidationResult.getDisplayInfo() = this.mapNotNull { (verifierInfo, validationResult) ->
-    if (validationResult?.isValid() == true) {
-        verifierInfo.getPayload()
-    } else {
-        null
-    }
-}.firstOrNull()?.let { validatedPayload ->
-    WrpDisplayInfo(
-        name = validatedPayload.name,
-        purpose = validatedPayload.purpose,
-        country = validatedPayload.country,
-        infoUri = validatedPayload.infoUri,
-        supportUri = validatedPayload.supportUri
-    )
-}
+fun Map<WrpRegistrationCertificate, WrpRegistrationCertificateValidation?>.getDisplayInfo() =
+    this.map { (registrationCertificate, validation) ->
+        registrationCertificate.payload.let { payload ->
+            WrpDisplayInfo(
+                name = payload.name,
+                purpose = payload.purpose,
+                country = payload.country,
+                infoUri = payload.infoUri,
+                supportUri = payload.supportUri
+            )
+        }
+    }.firstOrNull()
 
 @Serializable
 data class WrpDisplayInfo(

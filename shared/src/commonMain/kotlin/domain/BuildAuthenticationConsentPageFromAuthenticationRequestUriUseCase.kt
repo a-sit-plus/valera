@@ -17,7 +17,10 @@ class BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
         val preparationState = presentationService.startAuthorizationResponsePreparation(requestUri)
             .onFailure { Napier.e("Failure", it) }
             .getOrThrow()
-        val validationResult = wrpValidator.validate(preparationState.request).getOrNull()
+        val validationResult = wrpValidator.validate(preparationState.request).getOrElse {
+            Napier.w("WRP Validation failed, continuing without registration certificate.", throwable = it)
+            null
+        }
 
         AuthenticationViewRoute(
             authenticationRequest = preparationState.request,

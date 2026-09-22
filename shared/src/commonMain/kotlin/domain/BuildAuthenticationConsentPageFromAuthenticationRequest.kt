@@ -5,6 +5,7 @@ import at.asitplus.catching
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.PresentationService
+import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
 import at.asitplus.wallet.app.common.relyingParty.WrpValidator
 import io.github.aakira.napier.Napier
 import ui.navigation.routes.AuthenticationViewRoute
@@ -19,8 +20,10 @@ class BuildAuthenticationConsentPageFromAuthenticationRequest(
         val preparationState = presentationService.startAuthorizationResponsePreparation(request)
             .onFailure { Napier.e("Failure", it) }
             .getOrThrow()
-        val wrpRequestValidationResult = wrpValidator.validate(preparationState.request).getOrNull()
-
+        val wrpRequestValidationResult = wrpValidator.validate(preparationState.request).getOrElse {
+            Napier.w("WRP Validation failed, continuing without registration certificate.", throwable = it)
+            null
+        }
         AuthenticationViewRoute(
             authenticationRequest = preparationState.request,
             authorizationResponsePreparationState = preparationState,

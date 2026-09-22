@@ -255,7 +255,7 @@ data class WrprcRequestValidationData(
 fun WrpValidationResult.toWrprcRequestValidationData(): List<WrprcRequestValidationData> = listOf(
     WrprcRequestValidationData(
         text = Res.string.label_registration_cert,
-        validity = this.wrpacValid && this.wrprcValid,
+        validity = this.validCertificate,
         infoValid = Res.string.info_text_registration_cert_valid,
         infoInvalid = Res.string.info_text_registration_cert_invalid
     ),
