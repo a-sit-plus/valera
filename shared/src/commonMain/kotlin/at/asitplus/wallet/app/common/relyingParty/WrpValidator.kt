@@ -4,7 +4,10 @@ import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.TrustListService
+import at.asitplus.wallet.lib.agent.TrustedCertificates
 import at.asitplus.wallet.lib.agent.validation.StatusListTokenResolver
+import at.asitplus.wallet.lib.agent.validation.TokenStatusResolver
+import at.asitplus.wallet.lib.agent.validation.TokenStatusResolverNoop
 import at.asitplus.wallet.lib.agent.validation.relyingParty.WrpAuthenticationRequestValidator
 import at.asitplus.wallet.lib.agent.validation.relyingParty.accessCertificate.WrpacValidator
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.WrprcValidator
@@ -17,27 +20,23 @@ import at.asitplus.wallet.lib.etsi.LoTEServiceType
  **/
 class WrpValidator(
     val trustListService: TrustListService,
-    val statusListTokenResolver: StatusListTokenResolver
+    val tokenStatusResolver: TokenStatusResolver,
 ) {
-    val authenticationRequestValidator = WrpAuthenticationRequestValidator()
-    val accessCertValidator = WrpacValidator()
+    val accessCertValidator = WrpacValidator
     val registrationCertValidator = WrprcValidator()
 
     suspend fun validate(requestParametersFrom: RequestParametersFrom<*>): KmmResult<WrpValidationResult?> = catching {
-
-        val validationData = authenticationRequestValidator.invoke(requestParametersFrom).getOrThrow()
-
+        val validationData = WrpAuthenticationRequestValidator.invoke(requestParametersFrom).getOrThrow()
         val accessCertTrustList = trustListService.getTrustList(LoTEServiceType.WRPAC).getOrThrow()
-
-        val accessCertValidation =
-            accessCertValidator.invoke(validationData = validationData, accessCertTrustList).getOrThrow()
+        val accessCertValidation = accessCertValidator.invoke(validationData,
+            TrustedCertificates { accessCertTrustList.toSet() }).getOrThrow()
 
         val registrationCertValidation =
             registrationCertValidator.invoke(
                 identifierResult = accessCertValidation.identifierResult,
                 validationData = validationData,
-                statusListTokenResolver = statusListTokenResolver,
-                certificateTrustAnchors = accessCertTrustList
+                tokenStatusResolver = tokenStatusResolver,
+                certificateTrustAnchors = TrustedCertificates { accessCertTrustList.toSet() },
             ).getOrThrow()
 
         WrpValidationResult(registrationCertValidation, accessCertValidation)
