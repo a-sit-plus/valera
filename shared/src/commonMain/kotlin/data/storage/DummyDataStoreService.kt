@@ -25,6 +25,14 @@ class DummyDataStoreService: DataStoreService {
         }.update { null }
     }
 
+    override suspend fun deletePreferenceIfPresent(key: String): Boolean {
+        val preference = memory.getOrPut(key) { MutableStateFlow(null) }
+        while (true) {
+            val value = preference.value ?: return false
+            if (preference.compareAndSet(value, null)) return true
+        }
+    }
+
     override fun clearLog() {
     }
 }

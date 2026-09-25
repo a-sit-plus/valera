@@ -31,11 +31,7 @@ class PersistentTrustListStore(
      * Drops the persisted list of [url], e.g. because the stage publishing it was disabled.
      * Returns `true` if there was something to remove.
      */
-    suspend fun removeTrustList(url: String): Boolean {
-        if (dataStoreService.getPreference(url).first() == null) return false
-        dataStoreService.deletePreference(url)
-        return true
-    }
+    suspend fun removeTrustList(url: String): Boolean = dataStoreService.deletePreferenceIfPresent(url)
 
     /** Emits each URL's trusted-entity list together with the time it was cached, for offline-TTL enforcement. */
     fun observeTrustContainer(urls: List<String>): Flow<Map<String, Pair<ListOfTrustedEntities, Instant>>> {

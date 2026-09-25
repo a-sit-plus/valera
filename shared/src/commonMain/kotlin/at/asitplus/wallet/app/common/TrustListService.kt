@@ -2,6 +2,7 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.KmmResult
 import at.asitplus.catching
+import at.asitplus.catchingUnwrapped
 import at.asitplus.etsi.ListOfTrustedEntities
 import at.asitplus.etsi.TrustListPayload
 import at.asitplus.iso.DeviceRequest
@@ -224,7 +225,7 @@ class TrustListService(
      */
     private suspend fun pruneTrustListsOfDisabledStages(enabledUrls: List<String>) {
         disabledTrustListUrls(enabledUrls).forEach { url ->
-            catching {
+            catchingUnwrapped {
                 if (persistentTrustListStore.removeTrustList(url)) {
                     Napier.i("Removed cached Trust List of a disabled stage: $url")
                 }
