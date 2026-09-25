@@ -8,6 +8,7 @@ import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -26,8 +27,18 @@ class PersistentTrustListStore(
     suspend fun getCachedAt(url: String): Instant? =
         dataStoreService.getPreference(url).first()?.let(::parseStored)?.second
 
+    /**
+     * Drops the persisted list of [url], e.g. because the stage publishing it was disabled.
+     * Returns `true` if there was something to remove.
+     */
+    suspend fun removeTrustList(url: String): Boolean = dataStoreService.deletePreferenceIfPresent(url)
+
     /** Emits each URL's trusted-entity list together with the time it was cached, for offline-TTL enforcement. */
     fun observeTrustContainer(urls: List<String>): Flow<Map<String, Pair<ListOfTrustedEntities, Instant>>> {
+        // `combine` of no flows never emits, which would leave every observer waiting forever once
+        // the user disabled all trust list stages.
+        if (urls.isEmpty()) return flowOf(emptyMap())
+
         val flows: List<Flow<Pair<String, Pair<ListOfTrustedEntities, Instant>?>>> = urls.map { url ->
             dataStoreService.getPreference(url).map { stored ->
                 url to parseStored(stored)

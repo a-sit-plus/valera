@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common.data
 
+import at.asitplus.wallet.lib.etsi.LoTEStage
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.flow.Flow
@@ -23,6 +24,8 @@ import kotlin.time.Duration
  * @property connectionTimeout the timeout for closing a connection.
  * @property openId4VpAllowedOriginSchemes the origin scheme names or platform-origin prefixes accepted for
  * OpenID4VP requests over the Digital Credentials API.
+ * @property trustListStages the stages of the European Commission's trust infrastructure whose Lists of
+ * Trusted Entities are loaded and evaluated.
  * @property presentmentNegotiatedHandoverPreferredOrder a list specifying the preferred order of transport methods to use when creating an NFC negotiated handover.
  */
 
@@ -44,6 +47,8 @@ interface SettingsRepository {
     val connectionTimeout: Flow<Duration>
     val openId4VpAllowedOriginSchemes: Flow<Set<String>>
     val defaultOpenId4VpAllowedOriginSchemes: Set<String>
+    val trustListStages: Flow<Set<LoTEStage>>
+    val defaultTrustListStages: Set<LoTEStage>
 
     val presentmentNegotiatedHandoverPreferredOrder: List<String>
         get() = listOf(
@@ -57,6 +62,9 @@ interface SettingsRepository {
     fun setPresentmentBleCentralClientModeEnabled(enabled: Boolean): Result<Unit>
 
     fun setPresentmentBlePeripheralServerModeEnabled(enabled: Boolean): Result<Unit>
+
+    /** Adds or removes [stage] from [trustListStages], leaving the other stages untouched. */
+    fun setTrustListStageEnabled(stage: LoTEStage, enabled: Boolean): Result<Unit>
 
     fun set(
         host: String? = null,
