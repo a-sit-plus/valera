@@ -2,7 +2,7 @@
 
 ## Project overview
 
-Valera is a Kotlin/Compose Multiplatform identity wallet for Android and iOS, powered by VC-K. It supports credential issuance, storage, refresh, and presentation through OpenID4VCI, OpenID4VP, the Digital Credentials API, BLE, and NFC.
+Valera is a Kotlin/Compose Multiplatform identity wallet for Android and iOS, powered by VC-K. It supports credential issuance, storage, refresh, and presentation through OpenID4VCI, OpenID4VP, ISO 18013, the Digital Credentials API, BLE, and NFC.
 
 This is a technology demonstrator, not a production wallet. Never use or add real identity data, production secrets, signing credentials, or trust anchors.
 
