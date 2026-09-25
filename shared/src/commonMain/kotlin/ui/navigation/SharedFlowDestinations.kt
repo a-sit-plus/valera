@@ -595,7 +595,13 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
         AttestationSettingsView(
             onClickLogo = onClickLogo,
             onClickBack = { navigator.navigateBack() },
-            vm = remember { AttestationSettingsViewModel(walletMain.attestationService, walletMain.settingsRepository) },
+            vm = remember {
+                AttestationSettingsViewModel(
+                    walletMain.attestationService,
+                    walletMain.settingsRepository,
+                    walletMain.dataStoreService,
+                )
+            },
             onError = { walletMain.errorService.emit(it) }
         )
     }

@@ -279,8 +279,10 @@ class ProvisioningService(
             )
 
         try {
-            storedState.instanceAttestation?.let {
-                attestationService.restoreInstanceAttestation(it)
+            if (config.walletProviderAttestationEnabled.first()) {
+                storedState.instanceAttestation?.let {
+                    attestationService.restoreInstanceAttestation(it)
+                }
             }
             onProgress?.invoke(LoadingMessageKey.IssuingCredential)
             clearCaches(resetAttestation = false)
@@ -530,4 +532,3 @@ suspend fun SupportedCredentialFormat.resolveCredentialScheme(): CredentialSchem
     is SupportedCredentialFormatW3cVcJsonLd -> AttributeIndex.resolveIdentifierPlainJwt(credentialDefinition.type)
     is SupportedCredentialFormatW3cVcJwtJsonLd -> AttributeIndex.resolveIdentifierPlainJwt(credentialDefinition.type)
 }
-
