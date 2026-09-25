@@ -5,8 +5,13 @@ import at.asitplus.wallet.lib.etsi.LoTEStage
 import data.storage.DataStoreService
 import data.storage.DummyDataStoreService
 import data.storage.PersistentTrustListStore
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -98,6 +103,32 @@ class TrustListStageSettingsTest {
 
         assertNull(dataStoreService.getPreference(url).first())
         assertFalse(store.removeTrustList(url))
+    }
+
+    @Test
+    fun concurrentRemovalsReportOnlyOneRemoval() = runTest {
+        val backing = DummyDataStoreService()
+        val url = LoTEStage.PRODUCTION.fetchUrl(LoteProfile.PID)
+        val bothRead = CompletableDeferred<Unit>()
+        var reads = 0
+        val dataStore = object : DataStoreService by backing {
+            override fun getPreference(key: String): Flow<String?> = flow {
+                val value = backing.getPreference(key).first()
+                if (++reads == 2) bothRead.complete(Unit)
+                bothRead.await()
+                emit(value)
+            }
+        }
+        val store = PersistentTrustListStore(dataStore)
+        store.persistTrustList(url, "cached-trust-list", Instant.fromEpochMilliseconds(1_000))
+
+        val results = listOf(
+            async { store.removeTrustList(url) },
+            async { store.removeTrustList(url) },
+        ).awaitAll()
+
+        assertEquals(listOf(false, true), results.sorted())
+        assertNull(backing.getPreference(url).first())
     }
 
     @Test
