@@ -50,6 +50,7 @@ import org.multipaz.mdoc.connectionmethod.MdocConnectionMethod
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodBle
 import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodNfc
 import org.multipaz.mdoc.engagement.DeviceEngagement
+import org.multipaz.mdoc.nfc.MdocReaderNfcHandoverOptions
 import org.multipaz.mdoc.nfc.scanMdocReader
 import org.multipaz.mdoc.request.DeviceRequest
 import org.multipaz.mdoc.role.MdocRole
@@ -290,6 +291,9 @@ class TransferManager(
                 bleUseL2CAP = config.bleUseL2CAPEnabled.first(),
                 bleUseL2CAPInEngagement = config.bleUseL2CAPEnabled.first()
             ),
+            // NFCv2 engagement stays off: our own holder side (NdefDeviceEngagementService) only
+            // offers the ISO/IEC 18013-5:2021 NDEF engagement.
+            handoverOptions = MdocReaderNfcHandoverOptions(useNfcV2 = false),
             selectConnectionMethod = { connectionMethods ->
                 if (config.readerAutomaticallySelectTransport.first()) {
                     updateProgress("Auto-selected first from $connectionMethods")

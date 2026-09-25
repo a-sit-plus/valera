@@ -112,7 +112,6 @@ static constexpr uint8_t base64_lut[256][7] = {
     return ret;
 }
 
-
 [[nodiscard]] inline std::string to_base64(const void* data, size_t size_bytes) {
     return to_base64({ reinterpret_cast<const char*>(data), size_bytes });
 }
@@ -173,4 +172,19 @@ inline void from_base64_inplace(std::string& data) {
 
 [[nodiscard]] inline std::string from_base64(std::string_view data) {
     return from_base64(data.data(), data.size());
+}
+
+[[nodiscard]] inline std::string base64UrlDecode(const std::string& data) {
+    if (data.empty()) return "";
+    size_t len = data.size();
+    std::string s = data;
+    if (data[len - 1] != '=') {
+        size_t rem = len & 3;
+        if (rem == 2) {
+            s += "==";
+        } else if (rem == 3) {
+            s += "=";
+        }
+    }
+    return from_base64(s);
 }

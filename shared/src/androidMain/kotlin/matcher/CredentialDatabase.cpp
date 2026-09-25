@@ -19,6 +19,13 @@ CredentialDatabase::CredentialDatabase(const uint8_t* encodedDatabase, size_t en
     }
     auto topMap = item->asMap();
 
+    const auto& enforceIdentifierMatching =
+            topMap->get("enforceTrustedAuthorityAndReaderIdentifierMatching");
+    if (enforceIdentifierMatching != nullptr && enforceIdentifierMatching->asBool() != nullptr) {
+        enforceTrustedAuthorityAndReaderIdentifierMatching =
+                enforceIdentifierMatching->asBool()->value();
+    }
+
     std::vector<std::string> topProtocols;
     auto protocolsArray = topMap->get("protocols")->asArray();
     for (auto p = protocolsArray->begin(); p != protocolsArray->end(); ++p) {
@@ -36,6 +43,10 @@ CredentialDatabase::CredentialDatabase(const uint8_t* encodedDatabase, size_t en
         std::string mdocDoctype = "";
         std::string vcVct = "";
         std::vector<std::string> docProtocols = topProtocols;
+        std::vector<std::vector<uint8_t>> issuerIdentifiers;
+        std::vector<std::vector<uint8_t>> readerIdentifiers;
+        std::vector<std::string> keyAuthorizedNamespaces;
+        std::map<std::string, std::vector<std::string>> keyAuthorizedDataElements;
         std::map resultingClaims = std::map<std::string, Claim>();
 
         auto& docProtocolsPtr = cred->get("protocols");
@@ -54,6 +65,55 @@ CredentialDatabase::CredentialDatabase(const uint8_t* encodedDatabase, size_t en
             auto mdoc = mdocPtr->asMap();
             documentId = mdoc->get("documentId")->asTstr()->value();
             mdocDoctype = mdoc->get("docType")->asTstr()->value();
+
+            const auto& issuerIdentifiersPtr = mdoc->get("issuerIdentifiers");
+            if (issuerIdentifiersPtr != nullptr && issuerIdentifiersPtr->asArray() != nullptr) {
+                auto arr = issuerIdentifiersPtr->asArray();
+                for (auto it = arr->begin(); it != arr->end(); ++it) {
+                    if ((*it)->asBstr() != nullptr) {
+                        issuerIdentifiers.push_back((*it)->asBstr()->value());
+                    }
+                }
+            }
+
+            const auto& readerIdentifiersPtr = mdoc->get("readerIdentifiers");
+            if (readerIdentifiersPtr != nullptr && readerIdentifiersPtr->asArray() != nullptr) {
+                auto arr = readerIdentifiersPtr->asArray();
+                for (auto it = arr->begin(); it != arr->end(); ++it) {
+                    if ((*it)->asBstr() != nullptr) {
+                        readerIdentifiers.push_back((*it)->asBstr()->value());
+                    }
+                }
+            }
+
+            const auto& keyAuthPtr = mdoc->get("keyAuthorizations");
+            if (keyAuthPtr != nullptr && keyAuthPtr->asMap() != nullptr) {
+                auto keyAuthMap = keyAuthPtr->asMap();
+                const auto& nsArrPtr = keyAuthMap->get("nameSpaces");
+                if (nsArrPtr != nullptr && nsArrPtr->asArray() != nullptr) {
+                    auto arr = nsArrPtr->asArray();
+                    for (auto it = arr->begin(); it != arr->end(); ++it) {
+                        if ((*it)->asTstr() != nullptr) {
+                            keyAuthorizedNamespaces.push_back((*it)->asTstr()->value());
+                        }
+                    }
+                }
+                const auto& deMapPtr = keyAuthMap->get("dataElements");
+                if (deMapPtr != nullptr && deMapPtr->asMap() != nullptr) {
+                    auto deMap = deMapPtr->asMap();
+                    for (auto it = deMap->begin(); it != deMap->end(); ++it) {
+                        std::string nsName = it->first->asTstr()->value();
+                        auto deList = it->second->asArray();
+                        if (deList != nullptr) {
+                            for (auto deIt = deList->begin(); deIt != deList->end(); ++deIt) {
+                                if ((*deIt)->asTstr() != nullptr) {
+                                    keyAuthorizedDataElements[nsName].push_back((*deIt)->asTstr()->value());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             auto namespaces = mdoc->get("namespaces")->asMap();
             for (auto j = namespaces->begin(); j != namespaces->end(); ++j) {
@@ -79,6 +139,26 @@ CredentialDatabase::CredentialDatabase(const uint8_t* encodedDatabase, size_t en
             documentId = sdjwt->get("documentId")->asTstr()->value();
             vcVct = sdjwt->get("vct")->asTstr()->value();
 
+            const auto& issuerIdentifiersPtr = sdjwt->get("issuerIdentifiers");
+            if (issuerIdentifiersPtr != nullptr && issuerIdentifiersPtr->asArray() != nullptr) {
+                auto arr = issuerIdentifiersPtr->asArray();
+                for (auto it = arr->begin(); it != arr->end(); ++it) {
+                    if ((*it)->asBstr() != nullptr) {
+                        issuerIdentifiers.push_back((*it)->asBstr()->value());
+                    }
+                }
+            }
+
+            const auto& readerIdentifiersPtr = sdjwt->get("readerIdentifiers");
+            if (readerIdentifiersPtr != nullptr && readerIdentifiersPtr->asArray() != nullptr) {
+                auto arr = readerIdentifiersPtr->asArray();
+                for (auto it = arr->begin(); it != arr->end(); ++it) {
+                    if ((*it)->asBstr() != nullptr) {
+                        readerIdentifiers.push_back((*it)->asBstr()->value());
+                    }
+                }
+            }
+
             auto claims = sdjwt->get("claims")->asMap();
             for (auto j = claims->begin(); j != claims->end(); ++j) {
                 auto claimName = j->first->asTstr()->value();
@@ -98,6 +178,10 @@ CredentialDatabase::CredentialDatabase(const uint8_t* encodedDatabase, size_t en
                 mdocDoctype,
                 vcVct,
                 docProtocols,
+                issuerIdentifiers,
+                readerIdentifiers,
+                keyAuthorizedNamespaces,
+                keyAuthorizedDataElements,
                 resultingClaims
             )
         );
@@ -116,17 +200,52 @@ bool Credential::supportsProtocol(const std::string& protocol) {
 Claim* Credential::findMatchingClaim(const DcqlRequestedClaim& requestedClaim) {
     auto joinedPath = requestedClaim.joinPath();
     auto ret = claims.find(joinedPath);
-    if (ret == claims.end()) {
+    if (ret != claims.end()) {
+        // Perform value matching, if requested
+        if (!requestedClaim.values.empty()) {
+            const std::vector<std::string>& values = requestedClaim.values;
+            if (std::find(values.begin(), values.end(), ret->second.matchValue) == values.end()) {
+                return nullptr;
+            }
+        }
+        return &(ret->second);
+    }
+
+    if (!requestedClaim.values.empty()) {
         return nullptr;
     }
-    // Perform value matching, if requested
-    if (!requestedClaim.values.empty()) {
-        const std::vector<std::string>& values = requestedClaim.values;
-        if (std::find(values.begin(), values.end(), ret->second.matchValue) == values.end()) {
-            return nullptr;
+
+    // Check KeyAuthorizations for device-signed data elements
+    if (requestedClaim.path.size() == 2) {
+        const std::string& ns = requestedClaim.path[0];
+        const std::string& elem = requestedClaim.path[1];
+        bool authorized = false;
+        if (!vcVct.empty() && ns == "org.iso.transactiondata") {
+            authorized = true;
+        } else if (std::find(keyAuthorizedNamespaces.begin(), keyAuthorizedNamespaces.end(), ns) != keyAuthorizedNamespaces.end()) {
+            authorized = true;
+        } else {
+            auto it = keyAuthorizedDataElements.find(ns);
+            if (it != keyAuthorizedDataElements.end()) {
+                if (std::find(it->second.begin(), it->second.end(), elem) != it->second.end()) {
+                    authorized = true;
+                }
+            }
+        }
+        if (authorized) {
+            auto dynIt = dynamicDeviceClaims.find(joinedPath);
+            if (dynIt == dynamicDeviceClaims.end()) {
+                auto [newIt, _] = dynamicDeviceClaims.emplace(
+                    joinedPath,
+                    Claim(joinedPath, "", "", "", /* isDeviceSigned = */ true)
+                );
+                return &(newIt->second);
+            }
+            return &(dynIt->second);
         }
     }
-    return &(ret->second);
+
+    return nullptr;
 }
 
 void Combination::addToCredmanPicker(const Request& request) const {
@@ -198,6 +317,9 @@ void Combination::addToCredmanPicker(const Request& request) const {
             }
 
             for (const auto &claim: match.claims) {
+                if (claim->isDeviceSigned) {
+                    continue;
+                }
                 if (credmanRuntimeVersion >= 2) {
                     ::AddFieldToEntrySet(entryId,
                                          strdup(claim->displayName.c_str()),
