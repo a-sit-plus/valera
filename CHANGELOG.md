@@ -1,4 +1,5 @@
 # Release 5.9.0 (unreleased):
+ * Issuing and presentation: Accept Launchpad `eu-eaa-offer` and `eu-eaap` links on Android and iOS
  * Issuing: Clear stored and cached wallet attestations when wallet attestation is disabled in settings
  * Build: Downgrade the Gradle wrapper to 9.6.1
  * Build: Upgrade to the 20260828 conventions plugin and AGP 9, migrate the shared module to the new Kotlin Multiplatform Android library plugin API, and move the Android app to AGP built-in Kotlin

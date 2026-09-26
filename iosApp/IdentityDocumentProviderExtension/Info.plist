@@ -42,6 +42,16 @@
             <key>CFBundleTypeRole</key>
             <string>Viewer</string>
             <key>CFBundleURLName</key>
+            <string>presentation.eueaap</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>eu-eaap</string>
+            </array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>CFBundleURLName</key>
             <string>issuing</string>
             <key>CFBundleURLSchemes</key>
             <array>
@@ -96,6 +106,16 @@
             <key>CFBundleURLSchemes</key>
             <array>
                 <string>openid-credential-offer</string>
+            </array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>CFBundleURLName</key>
+            <string>issuance.eueaaoffer</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>eu-eaa-offer</string>
             </array>
         </dict>
         <dict>

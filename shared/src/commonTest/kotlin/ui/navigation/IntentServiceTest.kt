@@ -29,6 +29,20 @@ class IntentServiceTest {
     }
 
     @Test
+    fun `parseUrl recognizes Launchpad credential offer`() {
+        val url = "eu-eaa-offer://?credential_offer_uri=https%3A%2F%2Fissuer.example%2Foffer"
+
+        assertEquals(IntentService.IntentType.ProvisioningStartIntent, intentService.parseUrl(url))
+    }
+
+    @Test
+    fun `parseUrl recognizes Launchpad presentation request`() {
+        val url = "eu-eaap://?request_uri=https%3A%2F%2Fverifier.example%2Frequest&client_id=verifier.example"
+
+        assertEquals(IntentService.IntentType.AuthorizationIntent, intentService.parseUrl(url))
+    }
+
+    @Test
     fun `parseUrl recognizes auth-request issuing URL`() {
         val url = "eudi-openid4ci://authorize?credential_issuer=https%3A%2F%2Fissuer.example"
 
