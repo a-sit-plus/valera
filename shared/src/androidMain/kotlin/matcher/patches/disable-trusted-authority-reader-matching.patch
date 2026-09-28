@@ -1,0 +1,51 @@
+diff --git a/shared/src/androidMain/kotlin/matcher/CredentialDatabase.cpp b/shared/src/androidMain/kotlin/matcher/CredentialDatabase.cpp
+--- a/shared/src/androidMain/kotlin/matcher/CredentialDatabase.cpp
++++ b/shared/src/androidMain/kotlin/matcher/CredentialDatabase.cpp
+@@ -18,6 +18,13 @@ CredentialDatabase::CredentialDatabase(const uint8_t* encodedDatabase, size_t en
+         return;
+     }
+     auto topMap = item->asMap();
++
++    const auto& enforceIdentifierMatching =
++            topMap->get("enforceTrustedAuthorityAndReaderIdentifierMatching");
++    if (enforceIdentifierMatching != nullptr && enforceIdentifierMatching->asBool() != nullptr) {
++        enforceTrustedAuthorityAndReaderIdentifierMatching =
++                enforceIdentifierMatching->asBool()->value();
++    }
+ 
+     std::vector<std::string> topProtocols;
+     auto protocolsArray = topMap->get("protocols")->asArray();
+diff --git a/shared/src/androidMain/kotlin/matcher/CredentialDatabase.h b/shared/src/androidMain/kotlin/matcher/CredentialDatabase.h
+--- a/shared/src/androidMain/kotlin/matcher/CredentialDatabase.h
++++ b/shared/src/androidMain/kotlin/matcher/CredentialDatabase.h
+@@ -97,6 +97,7 @@ struct Credential {
+ 
+ struct CredentialDatabase {
+     CredentialDatabase(const uint8_t* encodedDatabase, size_t encodedDatabaseLength);
++    bool enforceTrustedAuthorityAndReaderIdentifierMatching = false;
+     //std::vector<std::string> protocols;
+     std::vector<Credential> credentials;
+ };
+diff --git a/shared/src/androidMain/kotlin/matcher/dcql.cpp b/shared/src/androidMain/kotlin/matcher/dcql.cpp
+--- a/shared/src/androidMain/kotlin/matcher/dcql.cpp
++++ b/shared/src/androidMain/kotlin/matcher/dcql.cpp
+@@ -245,7 +245,8 @@ std::optional<DcqlResponse> DcqlQuery::execute(CredentialDatabase* credentialDat
+                     continue;
+                 }
+             }
+-            if (!cred.readerIdentifiers.empty()) {
++            if (credentialDatabase->enforceTrustedAuthorityAndReaderIdentifierMatching &&
++                    !cred.readerIdentifiers.empty()) {
+                 if (query.readerAuthAkis.empty()) {
+                     continue;
+                 }
+@@ -263,7 +264,8 @@ std::optional<DcqlResponse> DcqlQuery::execute(CredentialDatabase* credentialDat
+                     continue;
+                 }
+             }
+-            if (!query.issuerIdentifiers.empty()) {
++            if (credentialDatabase->enforceTrustedAuthorityAndReaderIdentifierMatching &&
++                    !query.issuerIdentifiers.empty()) {
+                 bool matchesIssuer = false;
+                 for (const auto& requestedId : query.issuerIdentifiers) {
+                     for (const auto& credId : cred.issuerIdentifiers) {
