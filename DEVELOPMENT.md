@@ -4,6 +4,50 @@
 
 Development happens in branch `development`. The `main` branch always tracks the latest release. Hence, create PRs against `development`. Use dedicated `release/x.y.z` branches to prepare releases and create release PRs against `main`, which will then be merged back into `development`.
 
+### Using published VC-K dependencies
+
+When a sibling `../vck` checkout exists, the build automatically includes it as a Gradle composite build. This is useful when developing Valera and VC-K together.
+
+Set `disableVckComposite=true` when you instead want to use the published VC-K dependencies while keeping the sibling checkout in place. The option can be supplied as an environment variable:
+
+```bash
+disableVckComposite=true ./gradlew :androidApp:assembleDebug
+```
+
+It can also be passed as a Gradle project property:
+
+```bash
+./gradlew -PdisableVckComposite=true :androidApp:assembleDebug
+```
+
+For a persistent local setting, add the following to the root `local.properties` or `gradle.properties` file:
+
+```properties
+disableVckComposite=true
+```
+
+### Disabling Apple targets
+
+Set `disableAppleTargets=true` when only Android/JVM targets are needed, such as for Android-only development on a non-macOS host. This prevents the shared module from declaring Apple targets and omits the `cinterop` and `interop` modules that bridge the Apple Digital Credentials API.
+
+The option can be supplied as an environment variable:
+
+```bash
+disableAppleTargets=true ./gradlew :androidApp:assembleDebug
+```
+
+It can also be passed as a Gradle project property:
+
+```bash
+./gradlew -PdisableAppleTargets=true :androidApp:assembleDebug
+```
+
+For a persistent local setting, add it to the root `local.properties` or `gradle.properties` file:
+
+```properties
+disableAppleTargets=true
+```
+
 ## Local deployments
 
 Building of the Android App locally requires a signer certificate to be configured. To do this you will need to generate a keystore file and add the keystore's password to your `local.properties` file.
