@@ -1,5 +1,6 @@
 # Release 5.9.1 (unreleased):
  * Presentation: Show why the WRPAC or WRPRC of a relying party is invalid, e.g. because the WRPRC could not be parsed, is revoked or suspended, its status could not be checked, or it is not linked to a valid WRPAC, and evaluate each of them even if the other one is invalid. A WRPAC or WRPRC missing from the request is shown as not provided instead of invalid
+ * DC API: Support and match multisigned OpenID4VP requests on Android
 
 # Release 5.9.0:
  * Issuing and presentation: Accept Launchpad `eu-eaa-offer` and `eu-eaap` links on Android and iOS
@@ -12,7 +13,6 @@
  * Credentials: Move expensive credential-list preparation and trust evaluation off the UI thread
  * DC API: Register unknown credential schemes with fallback metadata and preserve claim comparison values
  * DC API: Update the Android verification matcher from upstream Multipaz
- * DC API: Support multisigned OpenID4VP requests on Android
  * DC API: Improve request grouping, fixed selections, loading and error handling, and credential selection layout
  * DC API: Match requests without claim constraints and display their mandatory attributes
  * Local transfer: Replace the malformed Bluetooth graphic with the official Material icon
