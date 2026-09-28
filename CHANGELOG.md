@@ -9,6 +9,7 @@
  * DC API: Update the Android verification matcher from upstream Multipaz
  * DC API: Improve request grouping, fixed selections, loading and error handling, and credential selection layout
  * DC API: Match requests without claim constraints and display their mandatory attributes
+ * Local transfer: Replace the malformed Bluetooth graphic with the official Material icon
  * Presentation: Label the final confirmation action Submit
  * Display trust evaluation of the Relying Party
  * Presentation: Replace remaining Presentation Exchange flows with DCQL and ISO DeviceRequest, including proximity and ISO DC API requests
