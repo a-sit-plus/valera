@@ -60,6 +60,6 @@ val vckBuildFile = file("../vck/build.gradle.kts")
 if (!disableVckComposite && vckDir.isDirectory && vckBuildFile.exists()) {
     logger.warn("Detected VC-K in ${vckDir.absolutePath}.")
     logger.warn("Including VC-K as composite build.")
-    logger.warn("Set DISABLE_VCK_COMPOSITE=true to use published VC-K artifacts instead.")
+    logger.warn("Set disableVckComposite=true to use published VC-K artifacts instead.")
     includeBuild("../vck")
 }
