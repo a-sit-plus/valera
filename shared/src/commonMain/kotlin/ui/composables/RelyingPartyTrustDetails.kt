@@ -1,16 +1,25 @@
 package ui.composables
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -46,6 +55,10 @@ import at.asitplus.valera.resources.text_label_valid_to
 import at.asitplus.valera.resources.trust_certificate_details
 import at.asitplus.valera.resources.trust_certificate_details_description
 import at.asitplus.valera.resources.trust_signer
+import at.asitplus.valera.resources.signature_status_invalid
+import at.asitplus.valera.resources.signature_status_invalid_summary
+import at.asitplus.valera.resources.signature_status_unsupported
+import at.asitplus.valera.resources.signature_status_untrusted
 import at.asitplus.valera.resources.trust_signer_fallback
 import at.asitplus.valera.resources.trust_signer_hide_details
 import at.asitplus.valera.resources.trust_signer_show_details
@@ -61,6 +74,8 @@ import at.asitplus.valera.resources.trust_status_untrusted_verifier
 import at.asitplus.wallet.app.common.RelyingPartySignerTrust
 import at.asitplus.wallet.app.common.RelyingPartyTrustResult
 import at.asitplus.wallet.app.common.RelyingPartyTrustSummary
+import at.asitplus.wallet.lib.openid.VerifierSignature
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -97,10 +112,25 @@ fun RelyingPartyDataDisplaySection(
                     modifier = Modifier.padding(bottom = 16.dp),
                 )
             }
+            // A request-level problem, so it is shown without expanding, and apart from the trust decision
+            val invalidSignatures = trustResult.signers.count {
+                it.signatureStatus == VerifierSignature.Status.INVALID
+            }
+            if (invalidSignatures > 0) {
+                SignatureStatusBanner(
+                    status = VerifierSignature.Status.INVALID,
+                    text = stringResource(
+                        Res.string.signature_status_invalid_summary,
+                        invalidSignatures,
+                        trustResult.signers.size,
+                    ),
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
+            }
             TrustStatusBanner(
                 trustState = trustResult.summary.bannerState,
                 text = trustResult.summary.summaryText(trustResult.signers.isNotEmpty()),
-                modifier = Modifier.padding(bottom = 16.dp),
+                modifier = Modifier.padding(bottom = if (signerDetailsExpanded) 8.dp else 16.dp),
                 onClick = if (hasSignerDetails) {
                     { signerDetailsExpanded = !signerDetailsExpanded }
                 } else {
@@ -167,14 +197,34 @@ private val RelyingPartyTrustSummary.bannerState: TrustState
 private fun RelyingPartySignerDetails(signers: List<RelyingPartySignerTrust>) {
     var selectedCertificate by remember { mutableStateOf<Pair<String, X509Certificate>?>(null) }
 
-    signers.forEach { signer ->
-        val displayId = signer.clientId
-            ?: stringResource(Res.string.trust_signer_fallback, signer.signatureIndex + 1)
-        SignerTrustCard(
-            signer = signer,
-            displayId = displayId,
-            onShowCertificate = { certificate -> selectedCertificate = displayId to certificate },
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min)
+            .padding(start = 16.dp, bottom = 16.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(3.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                    shape = RoundedCornerShape(100),
+                ),
         )
+        Spacer(Modifier.width(10.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            signers.forEachIndexed { index, signer ->
+                val displayId = signer.clientId
+                    ?: stringResource(Res.string.trust_signer_fallback, signer.signatureIndex + 1)
+                SignerTrustCard(
+                    signer = signer,
+                    displayId = displayId,
+                    onShowCertificate = { certificate -> selectedCertificate = displayId to certificate },
+                    modifier = Modifier.padding(bottom = if (index < signers.lastIndex) 8.dp else 0.dp),
+                )
+            }
+        }
     }
 
     selectedCertificate?.let { (signerId, certificate) ->
@@ -191,9 +241,10 @@ private fun SignerTrustCard(
     signer: RelyingPartySignerTrust,
     displayId: String,
     onShowCertificate: (X509Certificate) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     OutlinedCard(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+        modifier = modifier.fillMaxWidth(),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(12.dp),
@@ -212,11 +263,21 @@ private fun SignerTrustCard(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                TrustStatusBanner(
-                    trustState = signer.trustState,
-                    text = stringResource(signer.trustState.displayVerifierText),
-                    modifier = Modifier.padding(top = 10.dp),
-                )
+                val trustState = signer.trustState
+                if (signer.authenticated && trustState != null) {
+                    TrustStatusBanner(
+                        trustState = trustState,
+                        text = stringResource(trustState.displayVerifierText),
+                        modifier = Modifier.padding(top = 10.dp),
+                    )
+                } else {
+                    // the certificate of a signer that did not sign is irrelevant, whatever it would evaluate to
+                    SignatureStatusBanner(
+                        status = signer.signatureStatus,
+                        text = stringResource(signer.signatureStatus.displayText),
+                        modifier = Modifier.padding(top = 10.dp),
+                    )
+                }
             }
             signer.certificate?.let { certificate ->
                 Spacer(Modifier.width(8.dp))
@@ -233,6 +294,49 @@ private fun SignerTrustCard(
         }
     }
 }
+
+/**
+ * Whether a signature authenticates its signer, kept apart from [TrustStatusBanner]: an outlined banner states a fact
+ * about the request, a filled one the wallet's trust decision.
+ */
+@Composable
+private fun SignatureStatusBanner(
+    status: VerifierSignature.Status,
+    text: String,
+    modifier: Modifier = Modifier,
+) {
+    val (contentColor, icon) = when (status) {
+        VerifierSignature.Status.INVALID -> MaterialTheme.colorScheme.error to Icons.Filled.Close
+        VerifierSignature.Status.UNTRUSTED -> MaterialTheme.colorScheme.error to Icons.Filled.Warning
+        VerifierSignature.Status.UNSUPPORTED,
+        VerifierSignature.Status.AUTHENTICATED -> MaterialTheme.colorScheme.onSurfaceVariant to Icons.Outlined.Info
+    }
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .border(1.dp, contentColor, RoundedCornerShape(8.dp))
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(imageVector = icon, contentDescription = null, tint = contentColor)
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = text,
+            color = contentColor,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+private val VerifierSignature.Status.displayText: StringResource
+    get() = when (this) {
+        VerifierSignature.Status.INVALID -> Res.string.signature_status_invalid
+        VerifierSignature.Status.UNSUPPORTED -> Res.string.signature_status_unsupported
+        VerifierSignature.Status.UNTRUSTED -> Res.string.signature_status_untrusted
+        // only non-authenticated statuses are displayed as a signature status
+        VerifierSignature.Status.AUTHENTICATED -> Res.string.signature_status_unsupported
+    }
 
 @Composable
 private fun CertificateDetailsDialog(
