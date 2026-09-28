@@ -10,6 +10,7 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.josef.JwsCompact
 import at.asitplus.signum.indispensable.josef.JwsFlattened
 import at.asitplus.signum.indispensable.josef.JwsGeneral
+import at.asitplus.signum.indispensable.josef.protectedHeaders
 import at.asitplus.signum.indispensable.pki.CertificateChain
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.indispensable.pki.leaf
@@ -66,6 +67,31 @@ val asitRootPem = "-----BEGIN CERTIFICATE-----\n" +
         "SjDUnmneMAoGCCqGSM49BAMCA0cAMEQCIDMQ328z1NWGUK6wcLC8JmgTkKxt3Ycw\n" +
         "BapSKA9Qxhd6AiANUlRcM5BT5JKZL3yNSvUlERYXqcEYs50sxwE60SVkEw==\n" +
         "-----END CERTIFICATE-----\n"
+
+enum class RelyingPartyTrustSummary {
+    EVALUATING,
+    TRUSTED,
+    UNTRUSTED,
+    UNKNOWN,
+    MIXED_WITH_TRUSTED,
+    MIXED_WITHOUT_TRUSTED,
+}
+
+data class RelyingPartySignerTrust(
+    val signatureIndex: Int,
+    val clientId: String?,
+    val certificate: X509Certificate?,
+    val trustState: TrustState,
+)
+
+data class RelyingPartyTrustResult(
+    val summary: RelyingPartyTrustSummary,
+    val signers: List<RelyingPartySignerTrust> = emptyList(),
+) {
+    companion object {
+        val Evaluating = RelyingPartyTrustResult(RelyingPartyTrustSummary.EVALUATING)
+    }
+}
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class TrustListService(
@@ -177,14 +203,56 @@ class TrustListService(
         return evaluateCertificate(leaf, trustLists, LoteProfile.WRPAC)
     }
 
+    /** Evaluates every protected signer identity for a multisigned request. */
+    fun evaluateRelyingParty(
+        request: RequestParametersFrom<*>,
+        trustLists: Map<String, ListOfTrustedEntities>,
+    ): RelyingPartyTrustResult {
+        if (request is RequestParametersFrom.OpenId4VpDcApiMultiSigned) {
+            val signers = request.jwsTyped.jws.protectedHeaders.mapIndexed { index, header ->
+                val certificate = header?.certificateChain?.firstOrNull()
+                RelyingPartySignerTrust(
+                    signatureIndex = index,
+                    clientId = header?.clientId,
+                    certificate = certificate,
+                    trustState = certificate?.let {
+                        evaluateCertificate(it, trustLists, LoteProfile.WRPAC)
+                    } ?: TrustState.UNKNOWN,
+                )
+            }
+            return RelyingPartyTrustResult(
+                summary = aggregateRelyingPartyTrust(signers.map { it.trustState }),
+                signers = signers,
+            )
+        }
+
+        val state = evaluateRelyingParty(request.extractRelyingPartyCertificateChains(), trustLists)
+        return RelyingPartyTrustResult(
+            summary = when (state) {
+                TrustState.TRUSTED -> RelyingPartyTrustSummary.TRUSTED
+                TrustState.UNTRUSTED -> RelyingPartyTrustSummary.UNTRUSTED
+                TrustState.UNKNOWN -> RelyingPartyTrustSummary.UNKNOWN
+                TrustState.EVALUATING -> RelyingPartyTrustSummary.EVALUATING
+            }
+        )
+    }
+
     /**
      * Flow variant, analogous to [observeTrustStateForEntry], for reactively evaluating a
      * relying party's trust state as fresh trust lists come in.
      */
-    fun observeTrustStateForRelyingParty(
+    fun observeRelyingPartyTrust(
         requestFlow: Flow<RequestParametersFrom<*>?>
-    ): Flow<TrustState> = combineWithFreshTrustStore(requestFlow) { request, freshTrustLists ->
-        evaluateRelyingParty(request.extractRelyingPartyCertificateChains(), freshTrustLists)
+    ): Flow<RelyingPartyTrustResult> = combine(
+        requestFlow,
+        trustListUrls.flatMapLatest { persistentTrustListStore.observeTrustContainer(it) },
+    ) { request, trustLists ->
+        if (request == null) return@combine RelyingPartyTrustResult.Evaluating
+
+        evaluateRelyingParty(
+            request,
+            trustLists.filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST),
+        )
     }
 
     fun observeTrustStateForCertChain(
@@ -291,6 +359,25 @@ class TrustListService(
 /** Every trust list URL of every known stage that [enabledUrls] does not cover. */
 internal fun disabledTrustListUrls(enabledUrls: Collection<String>): List<String> =
     LoTEStage.entries.flatMap { it.fetchUrls }.filterNot { it in enabledUrls }
+
+internal fun aggregateRelyingPartyTrust(states: List<TrustState>): RelyingPartyTrustSummary {
+    if (states.isEmpty()) return RelyingPartyTrustSummary.UNKNOWN
+
+    val distinct = states.toSet()
+    if (distinct.size == 1) {
+        return when (distinct.single()) {
+            TrustState.TRUSTED -> RelyingPartyTrustSummary.TRUSTED
+            TrustState.UNTRUSTED -> RelyingPartyTrustSummary.UNTRUSTED
+            TrustState.UNKNOWN -> RelyingPartyTrustSummary.UNKNOWN
+            TrustState.EVALUATING -> RelyingPartyTrustSummary.EVALUATING
+        }
+    }
+    return if (TrustState.TRUSTED in distinct) {
+        RelyingPartyTrustSummary.MIXED_WITH_TRUSTED
+    } else {
+        RelyingPartyTrustSummary.MIXED_WITHOUT_TRUSTED
+    }
+}
 
 /** Keeps only cache entries younger than [ttl], dropping the timestamp. Generic so it is trivially testable. */
 internal fun <T> Map<String, Pair<T, Instant>>.filterFresh(now: Instant, ttl: Duration): Map<String, T> =

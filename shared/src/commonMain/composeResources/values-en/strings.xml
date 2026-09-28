@@ -466,7 +466,22 @@
     <string name="trust_status_evaluating">Evaluating Trust…</string>
     <string name="trust_status_trusted_verifier">Trusted Relying Party</string>
     <string name="trust_status_untrusted_verifier">Untrusted Relying Party</string>
+    <string name="trust_status_unknown_verifier">Relying Party Trust Status Unknown</string>
+    <string name="trust_status_evaluating_verifier">Evaluating Relying Party Trust…</string>
+    <string name="trust_status_all_signers_trusted">All relying-party signers are trusted</string>
+    <string name="trust_status_some_signers_trusted">Some relying-party signers are trusted</string>
+    <string name="trust_status_all_signers_untrusted">All relying-party signers are untrusted</string>
+    <string name="trust_status_no_signer_trusted_unknown">No relying-party signer is trusted; some trust states are unknown</string>
+    <string name="trust_status_signers_unknown">Relying-party signer trust is unknown</string>
     <string name="trust_status_title">Trust State</string>
+    <string name="trust_signer_details">Relying-party signer trust details</string>
+    <string name="trust_signer">Relying-party signer</string>
+    <string name="trust_signer_fallback">Relying-party signer %1$d</string>
+    <string name="trust_signer_show_details">Show relying-party signer trust details</string>
+    <string name="trust_signer_hide_details">Hide relying-party signer trust details</string>
+    <string name="trust_certificate_details">Relying-party certificate details</string>
+    <string name="trust_certificate_details_description">Show relying-party certificate details for %1$s</string>
+    <string name="text_label_subject">Subject</string>
 
     <string name="section_heading_issuer_trust">Issuer Trust Details</string>
     <string name="section_heading_issuer_trust_icon_text">ITD</string>

@@ -1,6 +1,7 @@
 package ui.composables
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,20 +12,24 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.trust_status_evaluating
+import at.asitplus.valera.resources.trust_status_evaluating_verifier
 import at.asitplus.valera.resources.trust_status_trusted
 import at.asitplus.valera.resources.trust_status_trusted_verifier
 import at.asitplus.valera.resources.trust_status_unknown
+import at.asitplus.valera.resources.trust_status_unknown_verifier
 import at.asitplus.valera.resources.trust_status_untrusted
 import at.asitplus.valera.resources.trust_status_untrusted_verifier
 import org.jetbrains.compose.resources.StringResource
@@ -32,44 +37,73 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun TrustStatusBanner(trustState: TrustState, modifier: Modifier = Modifier) {
-    val (backgroundColor, contentColor, icon, text) = when (trustState) {
-        TrustState.TRUSTED -> listOf(
-            colorScheme.primaryContainer, colorScheme.onPrimaryContainer,
-            Icons.Filled.CheckCircle, Res.string.trust_status_trusted
-        )
-        TrustState.UNTRUSTED -> listOf(
-            colorScheme.errorContainer, colorScheme.onErrorContainer,
-            Icons.Filled.Warning, Res.string.trust_status_untrusted
-        )
-        TrustState.UNKNOWN -> listOf(
-            colorScheme.tertiaryContainer, colorScheme.onTertiaryContainer,
-            Icons.Filled.Warning, Res.string.trust_status_unknown
-        )
-        TrustState.EVALUATING -> listOf(
-            colorScheme.surfaceVariant, colorScheme.onSurfaceVariant,
-            Icons.Filled.Warning, Res.string.trust_status_evaluating
-        )
+    val text = stringResource(
+        when (trustState) {
+            TrustState.TRUSTED -> Res.string.trust_status_trusted
+            TrustState.UNTRUSTED -> Res.string.trust_status_untrusted
+            TrustState.UNKNOWN -> Res.string.trust_status_unknown
+            TrustState.EVALUATING -> Res.string.trust_status_evaluating
+        }
+    )
+    TrustStatusBanner(trustState = trustState, text = text, modifier = modifier)
+}
+
+@Composable
+fun TrustStatusBanner(
+    trustState: TrustState,
+    text: String,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    onClickLabel: String? = null,
+    trailingContent: (@Composable () -> Unit)? = null,
+) {
+    val (backgroundColor, contentColor) = when (trustState) {
+        TrustState.TRUSTED -> colorScheme.primaryContainer to colorScheme.onPrimaryContainer
+        TrustState.UNTRUSTED -> colorScheme.errorContainer to colorScheme.onErrorContainer
+        TrustState.UNKNOWN -> colorScheme.tertiaryContainer to colorScheme.onTertiaryContainer
+        TrustState.EVALUATING -> colorScheme.surfaceVariant to colorScheme.onSurfaceVariant
+    }
+    val icon = when (trustState) {
+        TrustState.TRUSTED -> Icons.Filled.CheckCircle
+        TrustState.UNTRUSTED, TrustState.UNKNOWN, TrustState.EVALUATING -> Icons.Filled.Warning
     }
 
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
-            .background(backgroundColor as Color)
+            .background(backgroundColor)
+            .then(
+                if (onClick != null) {
+                    Modifier.clickable(
+                        onClickLabel = onClickLabel,
+                        role = Role.Button,
+                        onClick = onClick,
+                    )
+                } else {
+                    Modifier
+                }
+            )
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = icon as androidx.compose.ui.graphics.vector.ImageVector,
+            imageVector = icon,
             contentDescription = null,
-            tint = contentColor as Color
+            tint = contentColor
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = stringResource(text as StringResource),
+            text = text,
             color = contentColor,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f),
         )
+        trailingContent?.let {
+            CompositionLocalProvider(LocalContentColor provides contentColor) {
+                it()
+            }
+        }
     }
 }
 
@@ -81,6 +115,6 @@ val TrustState.displayVerifierText: StringResource
     get() = when (this) {
         TrustState.TRUSTED -> Res.string.trust_status_trusted_verifier
         TrustState.UNTRUSTED -> Res.string.trust_status_untrusted_verifier
-        TrustState.UNKNOWN -> Res.string.trust_status_unknown
-        TrustState.EVALUATING -> Res.string.trust_status_evaluating
+        TrustState.UNKNOWN -> Res.string.trust_status_unknown_verifier
+        TrustState.EVALUATING -> Res.string.trust_status_evaluating_verifier
     }

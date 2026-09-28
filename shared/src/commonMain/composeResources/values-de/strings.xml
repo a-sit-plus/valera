@@ -472,7 +472,22 @@
     <string name="trust_status_evaluating">Vertrauensstatus wird geprüft…</string>
     <string name="trust_status_trusted_verifier">Vertrauenswürdiger Service Provider</string>
     <string name="trust_status_untrusted_verifier">Nicht vertrauenswürdiger Service Provider</string>
+    <string name="trust_status_unknown_verifier">Vertrauensstatus des Service Providers unbekannt</string>
+    <string name="trust_status_evaluating_verifier">Vertrauensstatus des Service Providers wird geprüft…</string>
+    <string name="trust_status_all_signers_trusted">Alle Unterzeichner des Service Providers sind vertrauenswürdig</string>
+    <string name="trust_status_some_signers_trusted">Einige Unterzeichner des Service Providers sind vertrauenswürdig</string>
+    <string name="trust_status_all_signers_untrusted">Alle Unterzeichner des Service Providers sind nicht vertrauenswürdig</string>
+    <string name="trust_status_no_signer_trusted_unknown">Kein Unterzeichner des Service Providers ist vertrauenswürdig; einige Vertrauensstatus sind unbekannt</string>
+    <string name="trust_status_signers_unknown">Der Vertrauensstatus der Unterzeichner des Service Providers ist unbekannt</string>
     <string name="trust_status_title">Vertrauensstatus</string>
+    <string name="trust_signer_details">Vertrauensdetails der Unterzeichner des Service Providers</string>
+    <string name="trust_signer">Unterzeichner des Service Providers</string>
+    <string name="trust_signer_fallback">Unterzeichner %1$d des Service Providers</string>
+    <string name="trust_signer_show_details">Vertrauensdetails der Unterzeichner des Service Providers anzeigen</string>
+    <string name="trust_signer_hide_details">Vertrauensdetails der Unterzeichner des Service Providers ausblenden</string>
+    <string name="trust_certificate_details">Zertifikatsdetails des Service Providers</string>
+    <string name="trust_certificate_details_description">Zertifikatsdetails des Service Providers für %1$s anzeigen</string>
+    <string name="text_label_subject">Subjekt</string>
 
     <string name="section_heading_issuer_trust">Aussteller-Vertrauensdetails</string>
     <string name="section_heading_issuer_trust_icon_text">ITD</string>
