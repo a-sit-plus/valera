@@ -2,6 +2,8 @@
  * Presentation: Show why the WRPAC or WRPRC of a relying party is invalid, e.g. because the WRPRC could not be parsed, is revoked or suspended, its status could not be checked, or it is not linked to a valid WRPAC, and evaluate each of them even if the other one is invalid. A WRPAC or WRPRC missing from the request is shown as not provided instead of invalid
  * DC API: Support and match multisigned OpenID4VP requests on Android
  * Presentation: Evaluate and display every signer in multisigned OpenID4VP requests
+ * Presentation: Only evaluate trust in multisigned OpenID4VP signers whose signature was verified, and show invalid and unevaluated signatures separately from the trust decision
+ * Trust: Show untrusted parties in orange and unknown trust in yellow, reserving red for invalid signatures
 
 # Release 5.9.0:
  * Issuing and presentation: Accept Launchpad `eu-eaa-offer` and `eu-eaap` links on Android and iOS

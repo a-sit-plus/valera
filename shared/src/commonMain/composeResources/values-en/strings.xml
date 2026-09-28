@@ -476,6 +476,10 @@
     <string name="trust_status_title">Trust State</string>
     <string name="trust_signer_details">Relying-party signer trust details</string>
     <string name="trust_signer">Relying-party signer</string>
+    <string name="signature_status_invalid_summary">%1$d of %2$d signatures of this request are invalid. The relying parties they name did not sign it.</string>
+    <string name="signature_status_invalid">Invalid signature: this relying party did not sign the request</string>
+    <string name="signature_status_unsupported">Signature not evaluated: this wallet does not support the identifier type</string>
+    <string name="signature_status_untrusted">Signature rejected by the trust configuration of this wallet</string>
     <string name="trust_signer_fallback">Relying-party signer %1$d</string>
     <string name="trust_signer_show_details">Show relying-party signer trust details</string>
     <string name="trust_signer_hide_details">Hide relying-party signer trust details</string>

@@ -21,6 +21,7 @@ import at.asitplus.wallet.lib.agent.DCQLMatchingResult
 import at.asitplus.wallet.lib.agent.IsoDeviceRetrievalMatchingResult
 import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.openid.VerifierSignature
 import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.DCQLCredentialQuerySubmissionSelectionOption
@@ -55,6 +56,7 @@ fun PresentationBuilderGraphView(
     onSubmit: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>) -> Unit,
     trustListService: TrustListService,
     request: RequestParametersFrom<*>,
+    verifierSignatures: List<VerifierSignature>?,
     fixedCredentialSelection: Boolean = false,
     wrpValidationResult: WrpValidationResult? = null,
 ) {
@@ -122,7 +124,8 @@ fun PresentationBuilderGraphView(
                                 onSubmit(DCQLCredentialSubmissions(fixedSubmissions))
                             },
                             trustListService = trustListService,
-                            request = request
+                            request = request,
+                            verifierSignatures = verifierSignatures,
                         )
                     } else {
                         DCQLPresentationBuilderGraphView(
@@ -166,6 +169,7 @@ fun PresentationBuilderGraphView(
                             trustListService = trustListService,
                             request = request,
                             wrpValidationResult = wrpValidationResult,
+                            verifierSignatures = verifierSignatures,
                         )
                     }
                 }
@@ -192,6 +196,7 @@ fun PresentationBuilderGraphView(
                             submissions = fixedSubmissions,
                             trustListService = trustListService,
                             request = request,
+                            verifierSignatures = verifierSignatures,
                             authenticateAtRelyingParty = authenticateAtRelyingParty,
                             serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
                             serviceProviderLocalizedName = serviceProviderLocalizedName,

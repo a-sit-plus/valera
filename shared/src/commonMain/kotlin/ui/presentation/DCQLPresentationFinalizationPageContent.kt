@@ -34,6 +34,7 @@ import at.asitplus.valera.resources.heading_label_show_data_third_party
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.wallet.app.common.RelyingPartyTrustResult
 import at.asitplus.wallet.app.common.TrustListService
+import at.asitplus.wallet.lib.openid.VerifierSignature
 import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.PresentationRequestLoadingIndicator
@@ -52,7 +53,8 @@ fun DCQLPresentationFinalizationPageContent(
     onSubmit: () -> Unit,
     serviceProviderLogo: ImageBitmap? = null,
     trustListService: TrustListService,
-    request: RequestParametersFrom<*>
+    request: RequestParametersFrom<*>,
+    verifierSignatures: List<VerifierSignature>?,
 ) {
     val cards = remember(selections) {
         selections.entries.sortedBy { it.key.string }.flatMap { it.value }
@@ -74,7 +76,8 @@ fun DCQLPresentationFinalizationPageContent(
         isContinueEnabled = !isLoading && !hasLoadingError,
         serviceProviderLogo = serviceProviderLogo,
         trustListService = trustListService,
-        request = request
+        request = request,
+        verifierSignatures = verifierSignatures,
     ) {
         if (isLoading) {
             PresentationRequestLoadingIndicator()
@@ -109,11 +112,12 @@ fun PresentationFinalizationPageContent(
     serviceProviderLogo: ImageBitmap? = null,
     trustListService: TrustListService,
     request: RequestParametersFrom<*>,
+    verifierSignatures: List<VerifierSignature>?,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val relyingPartyTrust by trustListService
-        .observeRelyingPartyTrust(flowOf(request))
-        .collectAsState(initial = RelyingPartyTrustResult.Evaluating)
+    val relyingPartyTrust by remember(request, verifierSignatures) {
+        trustListService.observeRelyingPartyTrust(flowOf(request), verifierSignatures)
+    }.collectAsState(initial = RelyingPartyTrustResult.Evaluating)
     Scaffold(
         bottomBar = {
             CommonBottomButtonsAbortContinue(

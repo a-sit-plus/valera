@@ -1,7 +1,6 @@
 package ui.composables
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -296,8 +295,8 @@ private fun SignerTrustCard(
 }
 
 /**
- * Whether a signature authenticates its signer, kept apart from [TrustStatusBanner]: an outlined banner states a fact
- * about the request, a filled one the wallet's trust decision.
+ * Whether a signature authenticates its signer, kept apart from [TrustStatusBanner] but in the same design. An invalid
+ * signature is a fault of the request, so it is red, unlike any trust decision.
  */
 @Composable
 private fun SignatureStatusBanner(
@@ -305,28 +304,24 @@ private fun SignatureStatusBanner(
     text: String,
     modifier: Modifier = Modifier,
 ) {
-    val (contentColor, icon) = when (status) {
-        VerifierSignature.Status.INVALID -> MaterialTheme.colorScheme.error to Icons.Filled.Close
-        VerifierSignature.Status.UNTRUSTED -> MaterialTheme.colorScheme.error to Icons.Filled.Warning
+    val colorScheme = MaterialTheme.colorScheme
+    val (backgroundColor, contentColor, icon) = when (status) {
+        VerifierSignature.Status.INVALID ->
+            Triple(colorScheme.errorContainer, colorScheme.onErrorContainer, Icons.Filled.Close)
+        // rejected by the wallet's trust configuration, i.e. a trust decision
+        VerifierSignature.Status.UNTRUSTED ->
+            Triple(colorScheme.tertiaryContainer, colorScheme.onTertiaryContainer, Icons.Filled.Warning)
         VerifierSignature.Status.UNSUPPORTED,
-        VerifierSignature.Status.AUTHENTICATED -> MaterialTheme.colorScheme.onSurfaceVariant to Icons.Outlined.Info
+        VerifierSignature.Status.AUTHENTICATED ->
+            Triple(colorScheme.surfaceVariant, colorScheme.onSurfaceVariant, Icons.Outlined.Info)
     }
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .border(1.dp, contentColor, RoundedCornerShape(8.dp))
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(imageVector = icon, contentDescription = null, tint = contentColor)
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = text,
-            color = contentColor,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.weight(1f),
-        )
-    }
+    StatusBanner(
+        backgroundColor = backgroundColor,
+        contentColor = contentColor,
+        icon = icon,
+        text = text,
+        modifier = modifier,
+    )
 }
 
 private val VerifierSignature.Status.displayText: StringResource

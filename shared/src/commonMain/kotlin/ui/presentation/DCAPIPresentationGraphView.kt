@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.lib.agent.DCQLMatchingResult
+import at.asitplus.wallet.lib.openid.DcApiPreparationState
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope
 
@@ -33,8 +34,10 @@ fun DCAPIPresentationGraphView(
     val authenticateAtRelyingParty = spLocation != "Local Presentation"
 
     val matchingResult by viewModel.selectionProvider.collectAsState()
-    val queryMatchingResult = (matchingResult as? UiStateSuccess)?.value
-        ?.selectionProvider?.queryMatchingResult
+    val preparedState = (matchingResult as? UiStateSuccess)?.value
+    val queryMatchingResult = preparedState?.selectionProvider?.queryMatchingResult
+    val verifierSignatures = (preparedState?.preparationState as? DcApiPreparationState.OpenId4Vp)
+        ?.state?.verifierSignatures
     val selectedCredentialQueryIds = if (dcApiRequest.credentialIds?.isNotEmpty() == true) {
         (queryMatchingResult as? DCQLMatchingResult<*>)
             ?.matchingResult?.credentialQueryMatches
@@ -85,5 +88,6 @@ fun DCAPIPresentationGraphView(
         trustListService = viewModel.trustListService,
         request = dcApiRequest,
         wrpValidationResult = viewModel.wrpValidationResult,
+        verifierSignatures = verifierSignatures,
     )
 }

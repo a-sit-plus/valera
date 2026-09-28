@@ -21,6 +21,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
@@ -34,6 +36,7 @@ import at.asitplus.valera.resources.trust_status_untrusted
 import at.asitplus.valera.resources.trust_status_untrusted_verifier
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
+import ui.theme.LocalExtendedColors
 
 @Composable
 fun TrustStatusBanner(trustState: TrustState, modifier: Modifier = Modifier) {
@@ -57,17 +60,42 @@ fun TrustStatusBanner(
     onClickLabel: String? = null,
     trailingContent: (@Composable () -> Unit)? = null,
 ) {
+    // Trust decisions are warnings, never errors: red is reserved for faults such as invalid signatures
+    val extendedColors = LocalExtendedColors.current
     val (backgroundColor, contentColor) = when (trustState) {
         TrustState.TRUSTED -> colorScheme.primaryContainer to colorScheme.onPrimaryContainer
-        TrustState.UNTRUSTED -> colorScheme.errorContainer to colorScheme.onErrorContainer
-        TrustState.UNKNOWN -> colorScheme.tertiaryContainer to colorScheme.onTertiaryContainer
+        TrustState.UNTRUSTED -> colorScheme.tertiaryContainer to colorScheme.onTertiaryContainer
+        TrustState.UNKNOWN -> extendedColors.cautionContainer to extendedColors.onCautionContainer
         TrustState.EVALUATING -> colorScheme.surfaceVariant to colorScheme.onSurfaceVariant
     }
     val icon = when (trustState) {
         TrustState.TRUSTED -> Icons.Filled.CheckCircle
         TrustState.UNTRUSTED, TrustState.UNKNOWN, TrustState.EVALUATING -> Icons.Filled.Warning
     }
+    StatusBanner(
+        backgroundColor = backgroundColor,
+        contentColor = contentColor,
+        icon = icon,
+        text = text,
+        modifier = modifier,
+        onClick = onClick,
+        onClickLabel = onClickLabel,
+        trailingContent = trailingContent,
+    )
+}
 
+/** Layout shared by status banners, e.g. of trust or of signature validity. */
+@Composable
+internal fun StatusBanner(
+    backgroundColor: Color,
+    contentColor: Color,
+    icon: ImageVector,
+    text: String,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    onClickLabel: String? = null,
+    trailingContent: (@Composable () -> Unit)? = null,
+) {
     Row(
         modifier = modifier
             .fillMaxWidth()

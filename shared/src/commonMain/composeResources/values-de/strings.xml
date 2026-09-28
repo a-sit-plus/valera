@@ -482,6 +482,10 @@
     <string name="trust_status_title">Vertrauensstatus</string>
     <string name="trust_signer_details">Vertrauensdetails der Unterzeichner des Service Providers</string>
     <string name="trust_signer">Unterzeichner des Service Providers</string>
+    <string name="signature_status_invalid_summary">%1$d von %2$d Signaturen dieser Anfrage sind ungültig. Die darin genannten Service Provider haben sie nicht unterzeichnet.</string>
+    <string name="signature_status_invalid">Ungültige Signatur: Dieser Service Provider hat die Anfrage nicht unterzeichnet</string>
+    <string name="signature_status_unsupported">Signatur nicht geprüft: Diese Wallet unterstützt den Identifikatortyp nicht</string>
+    <string name="signature_status_untrusted">Signatur von der Vertrauenskonfiguration dieser Wallet abgelehnt</string>
     <string name="trust_signer_fallback">Unterzeichner %1$d des Service Providers</string>
     <string name="trust_signer_show_details">Vertrauensdetails der Unterzeichner des Service Providers anzeigen</string>
     <string name="trust_signer_hide_details">Vertrauensdetails der Unterzeichner des Service Providers ausblenden</string>

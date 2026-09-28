@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,6 +54,7 @@ import at.asitplus.wallet.app.common.relyingParty.ui.WrprcRequestValidation
 import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
 import at.asitplus.wallet.app.common.toCredentialQueryUiModel
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
+import at.asitplus.wallet.lib.openid.VerifierSignature
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.flowOf
@@ -78,10 +80,12 @@ fun AuthenticationReceivedStartPageContent(
     trustListService: TrustListService,
     request: RequestParametersFrom<*>? = null,
     wrpValidationResult: WrpValidationResult? = null,
+    /** For a multisigned request, which of its signatures the wallet authenticated. */
+    verifierSignatures: List<VerifierSignature>? = null,
 ) {
-    val relyingPartyTrust by trustListService
-        .observeRelyingPartyTrust(flowOf(request))
-        .collectAsState(initial = RelyingPartyTrustResult.Evaluating)
+    val relyingPartyTrust by remember(request, verifierSignatures) {
+        trustListService.observeRelyingPartyTrust(flowOf(request), verifierSignatures)
+    }.collectAsState(initial = RelyingPartyTrustResult.Evaluating)
 
     Scaffold(
         bottomBar = {
