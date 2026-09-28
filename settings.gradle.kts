@@ -33,6 +33,17 @@ val disableAppleTargets: String? = System.getenv("disableAppleTargets")
         properties.getProperty("disableAppleTargets")
     }
 
+val disableVckComposite: Boolean = (System.getenv("disableVckComposite")
+    ?: startParameter.projectProperties["disableVckComposite"]
+    ?: run {
+        val properties = java.util.Properties()
+        listOf("gradle.properties", "local.properties").forEach { name ->
+            val file = File(rootDir, name)
+            if (file.exists()) file.inputStream().use { properties.load(it) }
+        }
+        properties.getProperty("disableVckComposite")
+    }).toBoolean()
+
 include(":androidApp")
 include(":shared")
 
@@ -46,9 +57,9 @@ if ("true" != disableAppleTargets) {
 
 val vckDir = file("../vck")
 val vckBuildFile = file("../vck/build.gradle.kts")
-if (vckDir.isDirectory && vckBuildFile.exists()) {
+if (!disableVckComposite && vckDir.isDirectory && vckBuildFile.exists()) {
     logger.warn("Detected VC-K in ${vckDir.absolutePath}.")
     logger.warn("Including VC-K as composite build.")
-    logger.warn("If you do not want this, move the VC-K to another location!")
+    logger.warn("Set DISABLE_VCK_COMPOSITE=true to use published VC-K artifacts instead.")
     includeBuild("../vck")
 }
