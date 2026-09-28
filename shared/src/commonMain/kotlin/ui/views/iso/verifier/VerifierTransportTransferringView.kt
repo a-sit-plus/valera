@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Bluetooth
 import androidx.compose.material.icons.outlined.Nfc
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,11 +26,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_nfc_transfer
-import at.asitplus.valera.resources.icon_bluetooth
 import at.asitplus.valera.resources.info_text_ble_data_transfer
 import at.asitplus.valera.resources.info_text_nfc_data_transfer
 import at.asitplus.wallet.app.common.iso.transfer.state.TransferTransport
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.ScreenHeading
 import ui.composables.buttons.CancelButton
@@ -73,7 +73,7 @@ fun VerifierTransportTransferringView(
                             modifier = Modifier.size(80.dp)
                         )
                         TransferTransport.BLUETOOTH -> Icon(
-                            painter = painterResource(Res.drawable.icon_bluetooth),
+                            imageVector = Icons.Outlined.Bluetooth,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(80.dp)
