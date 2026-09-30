@@ -14,9 +14,6 @@ import at.asitplus.signum.indispensable.pki.CertificateChain
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.indispensable.pki.leaf
 import at.asitplus.wallet.app.common.data.SettingsRepository
-import at.asitplus.wallet.lib.etsi.LoTEFilterCriteria
-import at.asitplus.wallet.lib.etsi.LoTEFilterService
-import at.asitplus.wallet.lib.etsi.LoTEServiceType
 import at.asitplus.wallet.lib.etsi.LoTEStage
 import at.asitplus.wallet.lib.etsi.LoTETrustAnchorProvider
 import at.asitplus.wallet.lib.etsi.LoteProfile
@@ -88,7 +85,6 @@ class TrustListService(
 
     // A-SIT trust list
     private val asitIssuerCert = X509Certificate.decodeFromPem(asitRootPem).getOrThrow()
-    private val loTeFilterService: LoTEFilterService = LoTEFilterService()
 
     /** Every list of every trust infrastructure stage the user has enabled. */
     private val trustListUrls: Flow<List<String>> = settingsRepository.trustListStages
@@ -295,16 +291,18 @@ class TrustListService(
         responseBody
     }
 
-    suspend fun getTrustList(
-        serviceType: LoTEServiceType
-    ) = catching {
-        persistentTrustListStore.observeTrustContainer(LoTEServiceType.defaultUrls).firstOrNull()?.let { trustLists ->
-            val criteria = LoTEFilterCriteria(expectedServiceType = serviceType)
-            val freshTrustLists = trustLists.filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
-            freshTrustLists
-                .flatMap { (key, lote) -> loTeFilterService.extractTrustedCertificates(key, lote, criteria) }
-                .mapNotNull { it.certificate } + asitIssuerCert
-        } ?: listOf(asitIssuerCert)
+    /**
+     * Issuance anchors of every fresh, cached list of [profile], plus the A-SIT root — the same set
+     * [evaluateCertificate] checks against, for callers that need the certificates themselves.
+     */
+    suspend fun getTrustList(profile: LoteProfile): KmmResult<List<X509Certificate>> = catching {
+        anchorsOf(freshTrustLists()).issuanceAnchors(profile)
+    }
+
+    private suspend fun freshTrustLists(): Map<String, ListOfTrustedEntities> {
+        val urls = trustListUrls.firstOrNull().orEmpty()
+        return persistentTrustListStore.observeTrustContainer(urls).firstOrNull().orEmpty()
+            .filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
     }
 }
 
