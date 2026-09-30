@@ -14,11 +14,10 @@ import at.asitplus.signum.indispensable.pki.CertificateChain
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.indispensable.pki.leaf
 import at.asitplus.wallet.app.common.data.SettingsRepository
-import at.asitplus.wallet.lib.etsi.LoTEFilterCriteria
-import at.asitplus.wallet.lib.etsi.LoTEFilterService
-import at.asitplus.wallet.lib.etsi.LoTEServiceType
 import at.asitplus.wallet.lib.etsi.LoTEStage
+import at.asitplus.wallet.lib.etsi.LoTETrustAnchorProvider
 import at.asitplus.wallet.lib.etsi.LoteProfile
+import at.asitplus.wallet.lib.etsi.TrustAnchorProvider
 import at.asitplus.wallet.lib.etsi.isTrustedBy
 import at.asitplus.wallet.lib.jws.VerifyJwsObjectFun
 import at.asitplus.wallet.lib.jws.VerifyJwsObjectJades
@@ -86,12 +85,21 @@ class TrustListService(
 
     // A-SIT trust list
     private val asitIssuerCert = X509Certificate.decodeFromPem(asitRootPem).getOrThrow()
-    private val loTeFilterService: LoTEFilterService = LoTEFilterService()
 
     /** Every list of every trust infrastructure stage the user has enabled. */
     private val trustListUrls: Flow<List<String>> = settingsRepository.trustListStages
         .map { stages -> LoteProfile.fetchUrls(stages) }
         .distinctUntilChanged()
+
+    /**
+     * Trust anchors of the lists passed in, plus the A-SIT root, which is trusted unconditionally.
+     * The provider only holds lambdas, so one is built per evaluation
+     */
+    private fun anchorsOf(trustLists: Map<String, ListOfTrustedEntities>): TrustAnchorProvider =
+        LoTETrustAnchorProvider(
+            trustLists = { trustLists.values },
+            additionalAnchors = listOf(asitIssuerCert),
+        )
 
     /**
      * Internal generic helper to observe a target flow alongside fresh trust lists.
@@ -129,35 +137,41 @@ class TrustListService(
             return@combineWithFreshTrustStore TrustState.UNKNOWN
         }
 
-        evaluateCertificate(issuer, freshTrustLists, LoteProfile.fromSchemeIdentifier(schemeIdentifier))
+        evaluateIssuer(issuer, freshTrustLists, schemeIdentifier)
     }
 
+    /**
+     * Evaluates if the issuer of a credential of type [credentialIdentifier] (e.g. `urn:eudi:pid:1`) is trusted
+     */
+    suspend fun evaluateIssuer(
+        issuer: X509Certificate,
+        trustLists: Map<String, ListOfTrustedEntities>,
+        credentialIdentifier: String,
+    ): TrustState = evaluateAgainst(issuer, anchorsOf(trustLists).issuanceAnchors(credentialIdentifier))
 
     /**
-     * Evaluates if a given issuer is trusted based on the internal root cert and LoTEs.
+     * Evaluates if a given issuer is trusted based on the internal root cert and the LoTEs of [profile].
      *
      * Lists not matching [profile] contribute no certificates, so passing every cached list of every
      * enabled stage is fine.
      */
-    fun evaluateCertificate(
+    suspend fun evaluateCertificate(
         issuer: X509Certificate,
         trustLists: Map<String, ListOfTrustedEntities>,
         profile: LoteProfile,
-    ): TrustState = try {
-        if (issuer.isTrustedBy(listOf(asitIssuerCert)).isSuccess) {
-            TrustState.TRUSTED
-        } else {
-            val certificateList: List<X509Certificate> = trustLists.values
-                .flatMap { lote -> loTeFilterService.extractIssuanceCertificates(lote, profile) }
-                .mapNotNull { it.certificate }
+    ): TrustState = evaluateAgainst(issuer, anchorsOf(trustLists).issuanceAnchors(profile))
 
-            if (certificateList.isEmpty()) {
-                TrustState.UNTRUSTED
-            } else if (issuer.isTrustedBy(certificateList).isSuccess) {
-                TrustState.TRUSTED
-            } else {
-                TrustState.UNTRUSTED
-            }
+    /**
+     * Decides the trust state of [issuer] against already resolved [anchors].
+     */
+    fun evaluateAgainst(
+        issuer: X509Certificate,
+        anchors: List<X509Certificate>,
+    ): TrustState = try {
+        when {
+            anchors.isEmpty() -> TrustState.UNTRUSTED
+            issuer.isTrustedBy(anchors).isSuccess -> TrustState.TRUSTED
+            else -> TrustState.UNTRUSTED
         }
     } catch (e: Exception) {
         Napier.e("Failed to evaluate issuer trust status due to unexpected error", e)
@@ -169,7 +183,7 @@ class TrustListService(
      * leaf certificate from the [RequestParametersFrom] chain, checked against the internal
      * A-SIT root and any WRPAC(Wallet Relying Party Access Certificate) entries in [trustLists].
      */
-    fun evaluateRelyingParty(
+    suspend fun evaluateRelyingParty(
         relyingPartyCertChain: CertificateChain?,
         trustLists: Map<String, ListOfTrustedEntities>,
     ): TrustState {
@@ -277,16 +291,18 @@ class TrustListService(
         responseBody
     }
 
-    suspend fun getTrustList(
-        serviceType: LoTEServiceType
-    ) = catching {
-        persistentTrustListStore.observeTrustContainer(LoTEServiceType.defaultUrls).firstOrNull()?.let { trustLists ->
-            val criteria = LoTEFilterCriteria(expectedServiceType = serviceType)
-            val freshTrustLists = trustLists.filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
-            freshTrustLists
-                .flatMap { (key, lote) -> loTeFilterService.extractTrustedCertificates(key, lote, criteria) }
-                .mapNotNull { it.certificate } + asitIssuerCert
-        } ?: listOf(asitIssuerCert)
+    /**
+     * Issuance anchors of every fresh, cached list of [profile], plus the A-SIT root — the same set
+     * [evaluateCertificate] checks against, for callers that need the certificates themselves.
+     */
+    suspend fun getTrustList(profile: LoteProfile): KmmResult<List<X509Certificate>> = catching {
+        anchorsOf(freshTrustLists()).issuanceAnchors(profile)
+    }
+
+    private suspend fun freshTrustLists(): Map<String, ListOfTrustedEntities> {
+        val urls = trustListUrls.firstOrNull().orEmpty()
+        return persistentTrustListStore.observeTrustContainer(urls).firstOrNull().orEmpty()
+            .filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
     }
 }
 
