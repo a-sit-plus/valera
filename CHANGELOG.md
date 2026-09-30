@@ -4,7 +4,7 @@
  * Build: Downgrade the Gradle wrapper to 9.6.1
  * Build: Upgrade to the 20260828 conventions plugin and AGP 9, migrate the shared module to the new Kotlin Multiplatform Android library plugin API, and move the Android app to AGP built-in Kotlin
  * Build: Drop unused Android dependencies from the shared module and declare the Android app's own entry-point dependencies explicitly
- * Update to VC-K 8.0.0-SNAPSHOT
+ * Update to VC-K 8.0.0-RC1
  * Update to Multipaz 0.101.0
  * Credentials: Move expensive credential-list preparation and trust evaluation off the UI thread
  * DC API: Register unknown credential schemes with fallback metadata and preserve claim comparison values
