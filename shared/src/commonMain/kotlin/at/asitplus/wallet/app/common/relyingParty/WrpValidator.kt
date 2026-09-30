@@ -5,13 +5,11 @@ import at.asitplus.catching
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.lib.agent.TrustedCertificates
-import at.asitplus.wallet.lib.agent.validation.StatusListTokenResolver
 import at.asitplus.wallet.lib.agent.validation.TokenStatusResolver
-import at.asitplus.wallet.lib.agent.validation.TokenStatusResolverNoop
 import at.asitplus.wallet.lib.agent.validation.relyingParty.WrpAuthenticationRequestValidator
 import at.asitplus.wallet.lib.agent.validation.relyingParty.accessCertificate.WrpacValidator
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.WrprcValidator
-import at.asitplus.wallet.lib.etsi.LoTEServiceType
+import at.asitplus.wallet.lib.etsi.LoteProfile
 
 /**
  * Class to verify data sent from a relying party during a presentation request.
@@ -27,7 +25,7 @@ class WrpValidator(
 
     suspend fun validate(requestParametersFrom: RequestParametersFrom<*>): KmmResult<WrpValidationResult?> = catching {
         val validationData = WrpAuthenticationRequestValidator.invoke(requestParametersFrom).getOrThrow()
-        val accessCertTrustList = trustListService.getTrustList(LoTEServiceType.WRPAC).getOrThrow()
+        val accessCertTrustList = trustListService.getTrustList(LoteProfile.WRPAC).getOrThrow()
         val accessCertValidation = accessCertValidator.invoke(validationData,
             TrustedCertificates { accessCertTrustList.toSet() }).getOrThrow()
 

@@ -14,9 +14,7 @@ import at.asitplus.signum.indispensable.pki.CertificateChain
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.indispensable.pki.leaf
 import at.asitplus.wallet.app.common.data.SettingsRepository
-import at.asitplus.wallet.lib.etsi.LoTEFilterCriteria
 import at.asitplus.wallet.lib.etsi.LoTEFilterService
-import at.asitplus.wallet.lib.etsi.LoTEServiceType
 import at.asitplus.wallet.lib.etsi.LoTEStage
 import at.asitplus.wallet.lib.etsi.LoteProfile
 import at.asitplus.wallet.lib.etsi.isTrustedBy
@@ -39,6 +37,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -278,13 +277,12 @@ class TrustListService(
     }
 
     suspend fun getTrustList(
-        serviceType: LoTEServiceType
+        profile: LoteProfile
     ) = catching {
-        persistentTrustListStore.observeTrustContainer(LoTEServiceType.defaultUrls).firstOrNull()?.let { trustLists ->
-            val criteria = LoTEFilterCriteria(expectedServiceType = serviceType)
+        persistentTrustListStore.observeTrustContainer(trustListUrls.first()).firstOrNull()?.let { trustLists ->
             val freshTrustLists = trustLists.filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
-            freshTrustLists
-                .flatMap { (key, lote) -> loTeFilterService.extractTrustedCertificates(key, lote, criteria) }
+            freshTrustLists.values
+                .flatMap { lote -> loTeFilterService.extractIssuanceCertificates(lote, profile) }
                 .mapNotNull { it.certificate } + asitIssuerCert
         } ?: listOf(asitIssuerCert)
     }
