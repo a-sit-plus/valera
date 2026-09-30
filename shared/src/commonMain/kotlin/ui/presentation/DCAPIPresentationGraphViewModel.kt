@@ -40,6 +40,7 @@ class DCAPIPresentationGraphViewModel(
     val wrpValidationResult = route.wrpRequestValidationResultSerialized?.let {
         catchingUnwrapped { joseCompliantSerializer.decodeFromString<WrpValidationResult>(it) }.getOrNull()
     }
+    val wrpValidationFailure = route.wrpValidationFailure
 
     val selectionProvider = MutableStateFlow<UiState<DcApiPresentationUiState>>(
         UiStateLoading

@@ -503,6 +503,8 @@
     <string name="info_text_registration_cert_missing">Der Service Provider hat kein Zertifikat zu dieser Anfrage mitgesendet</string>
     <string name="info_text_registration_cert_valid">Der Service Provider hat ein gültiges Zertifikat</string>
     <string name="info_text_registration_cert_invalid">Das Zertifikat des Service Provider ist ungültig!</string>
+    <string name="info_text_registration_cert_status_unavailable">Der Status des Zertifikats des Service Providers konnte nicht geprüft werden!</string>
+    <string name="info_text_registration_cert_unsupported">Zertifikate des Service Providers können bei dieser Art von Anfrage nicht geprüft werden.</string>
     <string name="info_text_registration_cert_typ_valid">Die angefragten Credential-Typen sind erlaubt</string>
     <string name="info_text_registration_cert_typ_invalid">Es werden andere Credential-Typen abgefragt als erlaubt!</string>
     <string name="info_text_registration_cert_identifier_valid">Identifikation des Service Provider ist korrekt</string>

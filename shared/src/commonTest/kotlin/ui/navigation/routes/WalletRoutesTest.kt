@@ -4,8 +4,10 @@ import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.LoadingMessageKey
+import at.asitplus.wallet.app.common.relyingParty.WrpValidationFailure
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import ui.viewmodels.QrCodeScannerMode
 
@@ -63,5 +65,25 @@ class WalletRoutesTest {
         val route = DCAPIPresentationViewRoute(request)
 
         assertEquals(request, route.request)
+        assertNull(route.wrpValidationFailure)
+    }
+
+    @Test
+    fun dcApiPresentationRoutePreservesWrpValidationFailure() {
+        val parameters = AuthenticationRequestParameters(nonce = "test-nonce")
+        val request = RequestParametersFrom.OpenId4VpDcApiUnsigned(
+            parameters = parameters,
+            jsonString = joseCompliantSerializer.encodeToString(parameters),
+            credentialIds = listOf("test-credential"),
+            callingPackageName = "com.example.verifier",
+            callingOrigin = "https://verifier.example.com",
+        )
+        val failure = WrpValidationFailure(WrpValidationFailure.Reason.MALFORMED, "Field 'status' is required")
+
+        val route = joseCompliantSerializer.decodeFromString<DCAPIPresentationViewRoute>(
+            joseCompliantSerializer.encodeToString(DCAPIPresentationViewRoute(request, wrpValidationFailure = failure))
+        )
+
+        assertEquals(failure, route.wrpValidationFailure)
     }
 }

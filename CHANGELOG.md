@@ -21,6 +21,7 @@
  * Presentation: Keep every requested DCQL attribute visible even when its value cannot be rendered
  * Presentation: Mark the requested attributes a verifier intends to retain beyond the transaction
  * Add WRPAC and WRPRC validation
+ * Presentation: Show why a registration certificate is invalid or could not be checked, instead of reporting it as missing
 
 # Release 5.8.2:
  * Networking: Use explicit CIO and Darwin HTTP engines and make Android debug trust configuration compatible with CIO

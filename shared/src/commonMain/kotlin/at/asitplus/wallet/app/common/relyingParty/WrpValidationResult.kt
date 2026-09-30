@@ -14,8 +14,13 @@ data class WrpValidationResult(
     val displayInfo: WrpDisplayInfo?,
     val validAttributes: Boolean,
     val validCredentialType: Boolean,
+    /** Whether the registration certificate is valid, apart from its binding to the relying party, see [validIdentifier]. */
     val validCertificate: Boolean,
-    val requestDataValidationResult: RequestDataValidation
+    val requestDataValidationResult: RequestDataValidation,
+    /** Whether the registration certificate names the relying party identified by the access certificate. */
+    val validIdentifier: Boolean = true,
+    /** Whether the status of a registration certificate could not be obtained, e.g. from an unreachable status list. */
+    val statusListUnresolved: Boolean = false,
 ) {
     constructor(
         wrprcValidationResult: WrprcValidationResult,
@@ -27,8 +32,13 @@ data class WrpValidationResult(
                 .all { it.value.credentialAttributesValidity.all { it.second } },
         validCredentialType = wrprcValidationResult.requestDataValidation.toMap()
             .all { it.value.credentialTypeValidity },
-        validCertificate = wrprcValidationResult.certificateValidation.all { it.value?.isValid() == true } && wrpacValidationResult.validLinkage,
-        requestDataValidationResult = wrprcValidationResult.requestDataValidation
+        validCertificate = wrprcValidationResult.certificateValidation.values.all {
+            it != null && it.validHeader && it.validSignature && it.validChain && it.validPayload && it.validStatusList
+        },
+        requestDataValidationResult = wrprcValidationResult.requestDataValidation,
+        validIdentifier = wrprcValidationResult.certificateValidation.values.all { it?.validLinkage == true } &&
+                wrpacValidationResult.validLinkage && wrpacValidationResult.identifierResult != null,
+        statusListUnresolved = wrprcValidationResult.certificateValidation.values.any { it?.statusListResolved == false },
     )
 }
 

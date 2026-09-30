@@ -497,6 +497,8 @@
     <string name="info_text_registration_cert_missing">No registration certificate has been provided in the request.</string>
     <string name="info_text_registration_cert_valid">The certificate of the service provider is valid</string>
     <string name="info_text_registration_cert_invalid">The certificate of the service provider is invalid!</string>
+    <string name="info_text_registration_cert_status_unavailable">The status of the certificate of the service provider could not be checked!</string>
+    <string name="info_text_registration_cert_unsupported">Registration certificates cannot be checked for this type of request.</string>
     <string name="info_text_registration_cert_typ_valid">The requested credential types are valid</string>
     <string name="info_text_registration_cert_typ_invalid">The requested credential types are invalid</string>
     <string name="info_text_registration_cert_identifier_invalid">The service provider uses a different identifier than registered!</string>

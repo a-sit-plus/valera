@@ -24,6 +24,7 @@ import at.asitplus.valera.resources.heading_label_authenticate_at_device_title
 import at.asitplus.valera.resources.heading_label_select_data
 import at.asitplus.valera.resources.heading_label_show_data
 import at.asitplus.wallet.app.common.TrustListService
+import at.asitplus.wallet.app.common.relyingParty.WrpValidationFailure
 import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
@@ -55,6 +56,7 @@ fun PresentationGraphView(
     trustListService: TrustListService,
     fixedCredentialSelection: Boolean = false,
     wrpValidationResult: WrpValidationResult? = null,
+    wrpValidationFailure: WrpValidationFailure? = null,
 ) {
     LaunchedEffect(selectionProvider) {
         selectionProvider.let {
@@ -129,6 +131,7 @@ fun PresentationGraphView(
                     trustListService = trustListService,
                     request = request,
                     wrpValidationResult = wrpValidationResult,
+                    wrpValidationFailure = wrpValidationFailure,
                 )
             }
         }

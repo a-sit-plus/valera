@@ -40,6 +40,8 @@ import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_name
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
 import at.asitplus.valera.resources.heading_label_show_data_third_party
 import at.asitplus.valera.resources.info_text_registration_cert_missing
+import at.asitplus.valera.resources.info_text_registration_cert_unsupported
+import at.asitplus.valera.resources.info_text_registration_cert_invalid
 import at.asitplus.valera.resources.label_registration_cert_request
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
@@ -53,6 +55,7 @@ import at.asitplus.wallet.app.common.DcqlConsentData
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.extractConsentData
 import at.asitplus.wallet.app.common.relyingParty.ui.WrprcRequestValidation
+import at.asitplus.wallet.app.common.relyingParty.WrpValidationFailure
 import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
 import at.asitplus.wallet.app.common.toCredentialQueryUiModel
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
@@ -82,6 +85,8 @@ fun AuthenticationReceivedStartPageContent(
     trustListService: TrustListService,
     request: RequestParametersFrom<*>? = null,
     wrpValidationResult: WrpValidationResult? = null,
+    /** Why no [wrpValidationResult] could be obtained, if it could not. */
+    wrpValidationFailure: WrpValidationFailure? = null,
 ) {
     val relyingPartyTrustState by trustListService
         .observeTrustStateForRelyingParty(flowOf(request))
@@ -145,9 +150,28 @@ fun AuthenticationReceivedStartPageContent(
                     } ?: run {
                         Column(modifier = Modifier.padding(vertical = 20.dp)) {
                             Text(
-                                stringResource(Res.string.info_text_registration_cert_missing),
+                                stringResource(
+                                    when (wrpValidationFailure?.reason) {
+                                        null, WrpValidationFailure.Reason.NOT_PROVIDED ->
+                                            Res.string.info_text_registration_cert_missing
+
+                                        WrpValidationFailure.Reason.MALFORMED ->
+                                            Res.string.info_text_registration_cert_invalid
+
+                                        WrpValidationFailure.Reason.UNSUPPORTED ->
+                                            Res.string.info_text_registration_cert_unsupported
+                                    }
+                                ),
                                 fontWeight = FontWeight.Bold
                             )
+                            wrpValidationFailure?.detail?.let {
+                                Text(
+                                    text = it,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(top = 4.dp),
+                                )
+                            }
                         }
                     }
 

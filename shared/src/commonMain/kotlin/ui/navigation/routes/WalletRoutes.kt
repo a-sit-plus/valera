@@ -1,11 +1,13 @@
 package ui.navigation.routes
 
+import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.openid.SignatureRequestParameters
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.LoadingMessageKey
+import at.asitplus.wallet.app.common.relyingParty.WrpValidationFailure
 import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import data.storage.StoreEntryId
@@ -130,20 +132,23 @@ data class AuthenticationViewRoute(
     val authorizationPreparationStateSerialized: String,
     val recipientLocation: String,
     val isCrossDeviceFlow: Boolean,
-    val wrpRequestValidationResultSerialized: String?
+    val wrpRequestValidationResultSerialized: String?,
+    val wrpValidationFailureSerialized: String? = null,
 ) : Route() {
     constructor(
         authenticationRequest: RequestParametersFrom<AuthenticationRequestParameters>,
         authorizationResponsePreparationState: AuthorizationResponsePreparationState,
         recipientLocation: String,
         isCrossDeviceFlow: Boolean,
-        wrpValidationResult: WrpValidationResult? = null
+        wrpValidationResult: WrpValidationResult? = null,
+        wrpValidationFailure: WrpValidationFailure? = null,
     ) : this(
         authenticationRequestParametersFromSerialized = joseCompliantSerializer.encodeToString(authenticationRequest),
         authorizationPreparationStateSerialized = joseCompliantSerializer.encodeToString(authorizationResponsePreparationState),
         recipientLocation = recipientLocation,
         isCrossDeviceFlow = isCrossDeviceFlow,
-        wrpRequestValidationResultSerialized = joseCompliantSerializer.encodeToString(wrpValidationResult)
+        wrpRequestValidationResultSerialized = joseCompliantSerializer.encodeToString(wrpValidationResult),
+        wrpValidationFailureSerialized = wrpValidationFailure?.let { joseCompliantSerializer.encodeToString(it) },
     )
 
     val authenticationRequest: RequestParametersFrom<AuthenticationRequestParameters>
@@ -152,16 +157,24 @@ data class AuthenticationViewRoute(
         get() = joseCompliantSerializer.decodeFromString(authorizationPreparationStateSerialized)
     val wrpValidationResult: WrpValidationResult?
         get() = wrpRequestValidationResultSerialized?.let { joseCompliantSerializer.decodeFromString(it) }
+    val wrpValidationFailure: WrpValidationFailure?
+        get() = wrpValidationFailureSerialized.decodeWrpValidationFailure()
 }
 
 @Serializable
 data class DCAPIPresentationViewRoute(
     val apiRequestSerialized: String,
-    val wrpRequestValidationResultSerialized: String?
+    val wrpRequestValidationResultSerialized: String?,
+    val wrpValidationFailureSerialized: String? = null,
 ) : Route() {
-    constructor(request: RequestParametersFrom.DcApiRequest, wrpValidationResult: WrpValidationResult? = null) : this(
+    constructor(
+        request: RequestParametersFrom.DcApiRequest,
+        wrpValidationResult: WrpValidationResult? = null,
+        wrpValidationFailure: WrpValidationFailure? = null,
+    ) : this(
         apiRequestSerialized = joseCompliantSerializer.encodeToString<RequestParametersFrom.DcApiRequest>(request),
-        wrpRequestValidationResultSerialized = joseCompliantSerializer.encodeToString(wrpValidationResult)
+        wrpRequestValidationResultSerialized = joseCompliantSerializer.encodeToString(wrpValidationResult),
+        wrpValidationFailureSerialized = wrpValidationFailure?.let { joseCompliantSerializer.encodeToString(it) },
     )
 
     val request: RequestParametersFrom.DcApiRequest
@@ -169,7 +182,12 @@ data class DCAPIPresentationViewRoute(
 
     val wrpValidationResult: WrpValidationResult?
         get() = wrpRequestValidationResultSerialized?.let { joseCompliantSerializer.decodeFromString(it) }
+    val wrpValidationFailure: WrpValidationFailure?
+        get() = wrpValidationFailureSerialized.decodeWrpValidationFailure()
 }
+
+private fun String?.decodeWrpValidationFailure(): WrpValidationFailure? =
+    this?.let { catchingUnwrapped { joseCompliantSerializer.decodeFromString<WrpValidationFailure>(it) }.getOrNull() }
 
 @Serializable
 object LocalPresentationAuthenticationConsentRoute : Route()

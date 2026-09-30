@@ -85,5 +85,6 @@ fun DCAPIPresentationGraphView(
         trustListService = viewModel.trustListService,
         request = dcApiRequest,
         wrpValidationResult = viewModel.wrpValidationResult,
+        wrpValidationFailure = viewModel.wrpValidationFailure,
     )
 }

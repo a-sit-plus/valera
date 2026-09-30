@@ -82,7 +82,8 @@ class QrCodeScannerViewModel(
             authorizationResponsePreparationState = page.authorizationResponsePreparationState,
             recipientLocation = page.recipientLocation,
             isCrossDeviceFlow = true,
-            wrpValidationResult = page.wrpValidationResult
+            wrpValidationResult = page.wrpValidationResult,
+            wrpValidationFailure = page.wrpValidationFailure,
         )
     }
 

@@ -36,6 +36,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_registration_cert_invalid
+import at.asitplus.valera.resources.label_registration_cert_identifier
+import at.asitplus.valera.resources.info_text_registration_cert_status_unavailable
+import at.asitplus.valera.resources.info_text_registration_cert_identifier_valid
+import at.asitplus.valera.resources.info_text_registration_cert_identifier_invalid
 import at.asitplus.valera.resources.info_text_registration_cert_requested_claim_invalid
 import at.asitplus.valera.resources.info_text_registration_cert_requested_claim_valid
 import at.asitplus.valera.resources.info_text_registration_cert_typ_invalid
@@ -257,7 +261,17 @@ fun WrpValidationResult.toWrprcRequestValidationData(): List<WrprcRequestValidat
         text = Res.string.label_registration_cert,
         validity = this.validCertificate,
         infoValid = Res.string.info_text_registration_cert_valid,
-        infoInvalid = Res.string.info_text_registration_cert_invalid
+        infoInvalid = if (statusListUnresolved) {
+            Res.string.info_text_registration_cert_status_unavailable
+        } else {
+            Res.string.info_text_registration_cert_invalid
+        }
+    ),
+    WrprcRequestValidationData(
+        text = Res.string.label_registration_cert_identifier,
+        validity = this.validIdentifier,
+        infoValid = Res.string.info_text_registration_cert_identifier_valid,
+        infoInvalid = Res.string.info_text_registration_cert_identifier_invalid
     ),
     WrprcRequestValidationData(
         text = Res.string.label_registration_cert_credential_typ,
