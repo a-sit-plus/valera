@@ -11,6 +11,9 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.di.dataModule
 import at.asitplus.wallet.app.common.domain.di.domainModule
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
+import at.asitplus.wallet.app.common.relyingParty.WrpValidator
+import at.asitplus.wallet.lib.agent.validation.StatusListTokenResolver
+import at.asitplus.wallet.lib.agent.validation.TokenStatusResolverImpl
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.scopedOf
 import org.koin.core.module.dsl.singleOf
@@ -49,6 +52,7 @@ fun appModule(): Module = module {
                 attestationService = get(),
                 sessionCoroutineScope = get(),
                 trustListService = get(),
+                wrpValidator = get()
             )
         }
         scopedOf(::ErrorService)
@@ -65,7 +69,15 @@ fun appModule(): Module = module {
                 sessionCoroutineScope = get()
             )
         }
-
+        scoped {
+            val statusListTokenResolver: StatusListTokenResolver by inject()
+            WrpValidator(
+                trustListService = get(),
+                tokenStatusResolver = TokenStatusResolverImpl(
+                    resolveStatusListToken = statusListTokenResolver::invoke
+                )
+            )
+        }
     }
 
     includes(dataModule())
