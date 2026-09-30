@@ -9,17 +9,19 @@ import at.asitplus.valera.resources.jwt_claim_label_exp
 import at.asitplus.valera.resources.jwt_claim_label_iss
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.eupid.EU_PID_DOCTYPE
-import at.asitplus.wallet.eupid.EuPidDataElements as EuPidMdocElements
 import at.asitplus.wallet.eupidsdjwt.EU_PID_SD_JWT_VCT
-import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements as EuPidSdJwtElements
 import at.asitplus.wallet.lib.data.ExtractedIsoMdocCredentialScheme
 import at.asitplus.wallet.lib.data.ExtractedSdJwtCredentialScheme
+import at.asitplus.wallet.lib.data.JsonClaimReference
+import at.asitplus.wallet.lib.data.MdocClaimReference
 import at.asitplus.wallet.mdl.MDL_DOCTYPE
 import at.asitplus.wallet.mdl.MDL_NAMESPACE
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import at.asitplus.wallet.eupid.EuPidDataElements as EuPidMdocElements
+import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements as EuPidSdJwtElements
 
 class MetadataCredentialRenderingTest {
     @Test
