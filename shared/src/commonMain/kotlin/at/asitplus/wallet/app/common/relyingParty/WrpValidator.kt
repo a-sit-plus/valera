@@ -3,13 +3,14 @@ package at.asitplus.wallet.app.common.relyingParty
 import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.openid.AuthenticationRequestParameters
-import at.asitplus.openid.OpenIdConstants.VerifierInfo.REGISTRATION_CERT_FORMAT
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.extractRelyingPartyCertificateChains
 import at.asitplus.wallet.lib.agent.TrustedCertificates
 import at.asitplus.wallet.lib.agent.validation.TokenStatusResolver
+import at.asitplus.wallet.lib.agent.validation.relyingParty.MissingRegistrationCertificateException
 import at.asitplus.wallet.lib.agent.validation.relyingParty.ReaderAuthenticationVerifier
+import at.asitplus.wallet.lib.agent.validation.relyingParty.UnsupportedWrpRequestException
 import at.asitplus.wallet.lib.agent.validation.relyingParty.WrpAccessCertificate
 import at.asitplus.wallet.lib.agent.validation.relyingParty.WrpAuthenticationRequestValidator
 import at.asitplus.wallet.lib.agent.validation.relyingParty.WrpRequestData
@@ -43,8 +44,7 @@ class WrpValidator(
         val accessCertValidation = requestParametersFrom.toWrpacRequestData()?.transform {
             accessCertValidator.invoke(validationData = it, certificateTrustAnchors = trustAnchors)
         }?.onFailure { Napier.w("WRPAC validation failed", it) }
-        val registrationCertValidation = requestParametersFrom.takeIf { it.hasRegistrationCertificate() }
-            ?.toWrpRequestData()
+        val registrationCertValidation = requestParametersFrom.toWrprcRequestData()
             ?.transform {
                 registrationCertValidator.invoke(
                     identifierResult = accessCertValidation?.getOrNull()?.identifierResult,
@@ -100,12 +100,13 @@ internal suspend fun RequestParametersFrom<*>.toWrpacRequestData(): KmmResult<Wr
     }
 }
 
-internal fun RequestParametersFrom<*>.hasRegistrationCertificate(): Boolean = when (this) {
-    is RequestParametersFrom.IsoMdocDcApi -> parameters.isoMdocRequest.deviceRequest.docRequests.any {
-        it.itemsRequest.value.requestInfo?.euWrprc != null
+/**
+ * Data to validate the WRPRC, or `null` if the request does not contain one ([MissingRegistrationCertificateException]).
+ * Requests that can not be validated for a relying party at all ([UnsupportedWrpRequestException]), e.g. unsigned
+ * ones, count as not containing a WRPRC either.
+ */
+internal suspend fun RequestParametersFrom<*>.toWrprcRequestData(): KmmResult<WrpRequestData>? =
+    toWrpRequestData().takeUnless {
+        val error = it.exceptionOrNull()
+        error is MissingRegistrationCertificateException || error is UnsupportedWrpRequestException
     }
-
-    else -> (parameters as? AuthenticationRequestParameters)?.verifierInfo.orEmpty().any {
-        it.format.equals(REGISTRATION_CERT_FORMAT, ignoreCase = true)
-    }
-}

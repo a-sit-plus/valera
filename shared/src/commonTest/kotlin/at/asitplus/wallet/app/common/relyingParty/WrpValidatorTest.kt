@@ -17,24 +17,21 @@ import at.asitplus.openid.VerifierInfo
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.cosef.toCoseKey
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import at.asitplus.wallet.lib.agent.EphemeralKeyWithSelfSignedCert
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
+import at.asitplus.wallet.lib.agent.validation.relyingParty.InvalidRegistrationCertificateException
+import at.asitplus.wallet.lib.jws.JwsHeaderCertOrJwk
+import at.asitplus.wallet.lib.jws.SignJwt
 import io.github.z4kn4fein.semver.Version
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
-import kotlin.test.assertEquals
+import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 class WrpValidatorTest {
     @Test
-    fun unsignedRequestWithoutVerifierInfoHasNoCertificates() = runTest {
-        val request = dcApiRequest(AuthenticationRequestParameters(nonce = "nonce"))
-
-        assertNull(request.toWrpacRequestData())
-        assertEquals(false, request.hasRegistrationCertificate())
-    }
-
-    @Test
-    fun registrationCertificateIsPresentEvenIfItCanNotBeParsed() {
+    fun unsignedRequestHasNoCertificates() = runTest {
         val request = dcApiRequest(
             AuthenticationRequestParameters(
                 nonce = "nonce",
@@ -42,7 +39,29 @@ class WrpValidatorTest {
             )
         )
 
-        assertEquals(true, request.hasRegistrationCertificate())
+        assertNull(request.toWrpacRequestData())
+        assertNull(request.toWrprcRequestData())
+    }
+
+    @Test
+    fun signedRequestWithoutWrprcHasNoRegistrationCertificate() = runTest {
+        val request = signedRequest(AuthenticationRequestParameters(clientId = "x509_hash:abc", nonce = "nonce"))
+
+        assertNotNull(request.toWrpacRequestData())
+        assertNull(request.toWrprcRequestData())
+    }
+
+    @Test
+    fun unparseableWrprcIsNotMissing() = runTest {
+        val request = signedRequest(
+            AuthenticationRequestParameters(
+                clientId = "x509_hash:abc",
+                nonce = "nonce",
+                verifierInfo = nonEmptyListOf(VerifierInfo(REGISTRATION_CERT_FORMAT, "not-a-jws")),
+            )
+        )
+
+        assertIs<InvalidRegistrationCertificateException>(request.toWrprcRequestData()?.exceptionOrNull())
     }
 
     @Test
@@ -50,15 +69,22 @@ class WrpValidatorTest {
         val request = isoRequest(docRequest(euWrprc = null))
 
         assertNull(request.toWrpacRequestData())
-        assertEquals(false, request.hasRegistrationCertificate())
+        assertNull(request.toWrprcRequestData())
     }
 
     @Test
     fun isoRequestWithWrprcHasRegistrationCertificate() = runTest {
         val request = isoRequest(docRequest(euWrprc = byteArrayOf(1, 2, 3)))
 
-        assertEquals(true, request.hasRegistrationCertificate())
+        assertNotNull(request.toWrprcRequestData()?.exceptionOrNull())
     }
+
+    private suspend fun signedRequest(parameters: AuthenticationRequestParameters) =
+        SignJwt<AuthenticationRequestParameters>(EphemeralKeyWithSelfSignedCert(), JwsHeaderCertOrJwk())(
+            type = "oauth-authz-req+jwt",
+            payload = parameters,
+            serializer = AuthenticationRequestParameters.serializer(),
+        ).getOrThrow().let { RequestParametersFrom.Jws(jws = it.jws, parameters = parameters) }
 
     private fun dcApiRequest(parameters: AuthenticationRequestParameters) =
         RequestParametersFrom.OpenId4VpDcApiUnsigned(
