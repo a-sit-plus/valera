@@ -4,6 +4,7 @@
  * Presentation: Evaluate and display every signer in multisigned OpenID4VP requests
  * Presentation: Only evaluate trust in multisigned OpenID4VP signers whose signature was verified, and show invalid and unevaluated signatures separately from the trust decision
  * Trust: Show untrusted parties in orange and unknown trust in yellow, reserving red for invalid signatures
+ * Presentation: Show trust and request validation as matching collapsible cards in their own sections, name the first failed check in the request header, and show technical error details only on request
 
 # Release 5.9.0:
  * Issuing and presentation: Accept Launchpad `eu-eaa-offer` and `eu-eaap` links on Android and iOS

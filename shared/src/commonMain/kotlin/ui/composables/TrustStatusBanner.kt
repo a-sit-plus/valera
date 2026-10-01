@@ -60,22 +60,11 @@ fun TrustStatusBanner(
     onClickLabel: String? = null,
     trailingContent: (@Composable () -> Unit)? = null,
 ) {
-    // Trust decisions are warnings, never errors: red is reserved for faults such as invalid signatures
-    val extendedColors = LocalExtendedColors.current
-    val (backgroundColor, contentColor) = when (trustState) {
-        TrustState.TRUSTED -> colorScheme.primaryContainer to colorScheme.onPrimaryContainer
-        TrustState.UNTRUSTED -> colorScheme.tertiaryContainer to colorScheme.onTertiaryContainer
-        TrustState.UNKNOWN -> extendedColors.cautionContainer to extendedColors.onCautionContainer
-        TrustState.EVALUATING -> colorScheme.surfaceVariant to colorScheme.onSurfaceVariant
-    }
-    val icon = when (trustState) {
-        TrustState.TRUSTED -> Icons.Filled.CheckCircle
-        TrustState.UNTRUSTED, TrustState.UNKNOWN, TrustState.EVALUATING -> Icons.Filled.Warning
-    }
+    val (backgroundColor, contentColor) = trustState.statusColors()
     StatusBanner(
         backgroundColor = backgroundColor,
         contentColor = contentColor,
-        icon = icon,
+        icon = trustState.statusIcon,
         text = text,
         modifier = modifier,
         onClick = onClick,
@@ -83,6 +72,25 @@ fun TrustStatusBanner(
         trailingContent = trailingContent,
     )
 }
+
+/** Container and content color of [this] trust state, also used for other statuses shown next to it. */
+@Composable
+internal fun TrustState.statusColors(): Pair<Color, Color> {
+    // Trust decisions are warnings, never errors: red is reserved for faults such as invalid signatures
+    val extendedColors = LocalExtendedColors.current
+    return when (this) {
+        TrustState.TRUSTED -> colorScheme.primaryContainer to colorScheme.onPrimaryContainer
+        TrustState.UNTRUSTED -> colorScheme.tertiaryContainer to colorScheme.onTertiaryContainer
+        TrustState.UNKNOWN -> extendedColors.cautionContainer to extendedColors.onCautionContainer
+        TrustState.EVALUATING -> colorScheme.surfaceVariant to colorScheme.onSurfaceVariant
+    }
+}
+
+internal val TrustState.statusIcon: ImageVector
+    get() = when (this) {
+        TrustState.TRUSTED -> Icons.Filled.CheckCircle
+        TrustState.UNTRUSTED, TrustState.UNKNOWN, TrustState.EVALUATING -> Icons.Filled.Warning
+    }
 
 /** Layout shared by status banners, e.g. of trust or of signature validity. */
 @Composable

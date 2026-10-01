@@ -1,22 +1,14 @@
 package ui.composables
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Info
@@ -28,6 +20,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +40,7 @@ import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_locat
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_name
 import at.asitplus.valera.resources.button_label_close
 import at.asitplus.valera.resources.section_heading_data_recipient
+import at.asitplus.valera.resources.section_heading_trust
 import at.asitplus.valera.resources.text_label_subject
 import at.asitplus.valera.resources.text_label_thumbprint
 import at.asitplus.valera.resources.text_label_valid_from
@@ -84,75 +78,68 @@ fun RelyingPartyDataDisplaySection(
     trustResult: RelyingPartyTrustResult,
     modifier: Modifier = Modifier,
 ) {
-    var signerDetailsExpanded by remember(trustResult.signers) { mutableStateOf(false) }
     val hasSignerDetails = trustResult.signers.isNotEmpty()
-    val signerDetailsActionDescription = if (signerDetailsExpanded) {
-        stringResource(Res.string.trust_signer_hide_details)
-    } else {
-        stringResource(Res.string.trust_signer_show_details)
-    }
 
-    DataDisplaySection(
-        title = stringResource(Res.string.section_heading_data_recipient),
-        modifier = modifier,
-    ) {
-        Column(modifier = Modifier.padding(start = 32.dp)) {
-            serviceProviderName?.let {
-                LabeledText(
-                    label = stringResource(Res.string.attribute_friendly_name_data_recipient_name),
-                    text = it,
-                    modifier = Modifier.padding(bottom = 16.dp),
-                )
+    Column(modifier = modifier) {
+        DataDisplaySection(
+            title = stringResource(Res.string.section_heading_data_recipient),
+        ) {
+            Column(modifier = Modifier.padding(start = 32.dp)) {
+                serviceProviderName?.let {
+                    LabeledText(
+                        label = stringResource(Res.string.attribute_friendly_name_data_recipient_name),
+                        text = it,
+                        modifier = Modifier.padding(bottom = 16.dp),
+                    )
+                }
+                serviceProviderLocation?.takeIf { it.isNotBlank() }?.let {
+                    LabeledText(
+                        label = stringResource(Res.string.attribute_friendly_name_data_recipient_location),
+                        text = it,
+                        modifier = Modifier.padding(bottom = 16.dp),
+                    )
+                }
             }
-            serviceProviderLocation?.takeIf { it.isNotBlank() }?.let {
-                LabeledText(
-                    label = stringResource(Res.string.attribute_friendly_name_data_recipient_location),
-                    text = it,
-                    modifier = Modifier.padding(bottom = 16.dp),
-                )
-            }
-            // A request-level problem, so it is shown without expanding, and apart from the trust decision
-            val invalidSignatures = trustResult.signers.count {
-                it.signatureStatus == VerifierSignature.Status.INVALID
-            }
-            if (invalidSignatures > 0) {
-                SignatureStatusBanner(
-                    status = VerifierSignature.Status.INVALID,
-                    text = stringResource(
-                        Res.string.signature_status_invalid_summary,
-                        invalidSignatures,
-                        trustResult.signers.size,
-                    ),
-                    modifier = Modifier.padding(bottom = 8.dp),
-                )
-            }
-            TrustStatusBanner(
-                trustState = trustResult.summary.bannerState,
-                text = trustResult.summary.summaryText(trustResult.signers.isNotEmpty()),
-                modifier = Modifier.padding(bottom = if (signerDetailsExpanded) 8.dp else 16.dp),
-                onClick = if (hasSignerDetails) {
-                    { signerDetailsExpanded = !signerDetailsExpanded }
-                } else {
-                    null
-                },
-                onClickLabel = signerDetailsActionDescription.takeIf { hasSignerDetails },
-                trailingContent = if (hasSignerDetails) {
-                    {
-                        Icon(
-                            imageVector = if (signerDetailsExpanded) {
-                                Icons.Filled.ArrowDropUp
-                            } else {
-                                Icons.Filled.ArrowDropDown
-                            },
-                            contentDescription = null,
-                        )
-                    }
-                } else {
-                    null
-                },
-            )
-            if (signerDetailsExpanded) {
-                RelyingPartySignerDetails(trustResult.signers)
+        }
+        // Its cards span the section, like the one of the request validation
+        DataDisplaySection(
+            title = stringResource(Res.string.section_heading_trust),
+        ) {
+            Column {
+                // A request-level problem, so it is shown without expanding, and apart from the trust decision
+                val invalidSignatures = trustResult.signers.count {
+                    it.signatureStatus == VerifierSignature.Status.INVALID
+                }
+                if (invalidSignatures > 0) {
+                    SignatureStatusBanner(
+                        status = VerifierSignature.Status.INVALID,
+                        text = stringResource(
+                            Res.string.signature_status_invalid_summary,
+                            invalidSignatures,
+                            trustResult.signers.size,
+                        ),
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
+                }
+                val trustState = trustResult.summary.bannerState
+                val (containerColor, contentColor) = trustState.statusColors()
+                // Keyed by the signers, so that the card starts collapsed again once they are evaluated
+                key(trustResult.signers) {
+                    ExpandableCard(
+                        text = trustResult.summary.summaryText(hasSignerDetails),
+                        icon = trustState.statusIcon,
+                        expanded = false,
+                        containerColor = containerColor,
+                        contentColor = contentColor,
+                        expandLabel = stringResource(Res.string.trust_signer_show_details),
+                        collapseLabel = stringResource(Res.string.trust_signer_hide_details),
+                        content = if (hasSignerDetails) {
+                            { RelyingPartySignerDetails(trustResult.signers) }
+                        } else {
+                            null
+                        },
+                    )
+                }
             }
         }
     }
@@ -196,33 +183,17 @@ private val RelyingPartyTrustSummary.bannerState: TrustState
 private fun RelyingPartySignerDetails(signers: List<RelyingPartySignerTrust>) {
     var selectedCertificate by remember { mutableStateOf<Pair<String, X509Certificate>?>(null) }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min)
-            .padding(start = 16.dp, bottom = 16.dp),
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .width(3.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                    shape = RoundedCornerShape(100),
-                ),
-        )
-        Spacer(Modifier.width(10.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            signers.forEachIndexed { index, signer ->
-                val displayId = signer.clientId
-                    ?: stringResource(Res.string.trust_signer_fallback, signer.signatureIndex + 1)
-                SignerTrustCard(
-                    signer = signer,
-                    displayId = displayId,
-                    onShowCertificate = { certificate -> selectedCertificate = displayId to certificate },
-                    modifier = Modifier.padding(bottom = if (index < signers.lastIndex) 8.dp else 0.dp),
-                )
-            }
+    // Indented like the rows of the registration certificate card
+    Column(modifier = Modifier.fillMaxWidth().padding(start = 20.dp, top = 12.dp, bottom = 12.dp)) {
+        signers.forEachIndexed { index, signer ->
+            val displayId = signer.clientId
+                ?: stringResource(Res.string.trust_signer_fallback, signer.signatureIndex + 1)
+            SignerTrustCard(
+                signer = signer,
+                displayId = displayId,
+                onShowCertificate = { certificate -> selectedCertificate = displayId to certificate },
+                modifier = Modifier.padding(bottom = if (index < signers.lastIndex) 8.dp else 0.dp),
+            )
         }
     }
 
