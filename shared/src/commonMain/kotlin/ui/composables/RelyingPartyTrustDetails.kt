@@ -126,7 +126,7 @@ fun RelyingPartyDataDisplaySection(
                 // Keyed by the signers, so that the card starts collapsed again once they are evaluated
                 key(trustResult.signers) {
                     ExpandableCard(
-                        text = trustResult.summary.summaryText(hasSignerDetails),
+                        text = trustResult.summary.summaryText(trustResult.multiSigned),
                         icon = trustState.statusIcon,
                         expanded = false,
                         containerColor = containerColor,

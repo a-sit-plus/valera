@@ -6,6 +6,7 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.etsi.ListOfTrustedEntities
 import at.asitplus.etsi.TrustListPayload
 import at.asitplus.iso.DeviceRequest
+import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.josef.JwsCompact
 import at.asitplus.signum.indispensable.josef.JwsFlattened
@@ -95,7 +96,9 @@ data class RelyingPartySignerTrust(
 data class RelyingPartyTrustResult(
     /** Trust in the authenticated signers only, see [RelyingPartySignerTrust.signatureStatus] for the others. */
     val summary: RelyingPartyTrustSummary,
+    /** Every signer of the request, a single one for a signed request, none for an unsigned one. */
     val signers: List<RelyingPartySignerTrust> = emptyList(),
+    val multiSigned: Boolean = false,
 ) {
     companion object {
         val Evaluating = RelyingPartyTrustResult(RelyingPartyTrustSummary.EVALUATING)
@@ -230,14 +233,11 @@ class TrustListService(
             ) { evaluateCertificate(it, trustLists, LoteProfile.WRPAC) }
         }
 
-        val state = evaluateRelyingParty(request.extractRelyingPartyCertificateChains(), trustLists)
-        return RelyingPartyTrustResult(
-            summary = when (state) {
-                TrustState.TRUSTED -> RelyingPartyTrustSummary.TRUSTED
-                TrustState.UNTRUSTED -> RelyingPartyTrustSummary.UNTRUSTED
-                TrustState.UNKNOWN -> RelyingPartyTrustSummary.UNKNOWN
-                TrustState.EVALUATING -> RelyingPartyTrustSummary.EVALUATING
-            }
+        val certificateChain = request.extractRelyingPartyCertificateChains()
+        return evaluateSingleSignedRelyingParty(
+            clientId = (request.parameters as? AuthenticationRequestParameters)?.clientId,
+            certificateChain = certificateChain,
+            state = evaluateRelyingParty(certificateChain, trustLists),
         )
     }
 
@@ -396,8 +396,36 @@ internal fun evaluateMultiSignedRelyingParty(
     return RelyingPartyTrustResult(
         summary = aggregateRelyingPartyTrust(signers.filter { it.authenticated }.mapNotNull { it.trustState }),
         signers = signers,
+        multiSigned = true,
     )
 }
+
+/**
+ * Trust in the relying party behind a request with at most one signature, [state] of its [certificateChain].
+ * Its signer, if the request carries a certificate, is listed only to show the certificate, with the same trust state:
+ * as before, the single signature is checked when the request is prepared, not as part of this evaluation.
+ */
+internal fun evaluateSingleSignedRelyingParty(
+    clientId: String?,
+    certificateChain: List<X509Certificate>?,
+    state: TrustState,
+): RelyingPartyTrustResult = RelyingPartyTrustResult(
+    summary = when (state) {
+        TrustState.TRUSTED -> RelyingPartyTrustSummary.TRUSTED
+        TrustState.UNTRUSTED -> RelyingPartyTrustSummary.UNTRUSTED
+        TrustState.UNKNOWN -> RelyingPartyTrustSummary.UNKNOWN
+        TrustState.EVALUATING -> RelyingPartyTrustSummary.EVALUATING
+    },
+    signers = listOfNotNull(certificateChain?.firstOrNull()?.let { certificate ->
+        RelyingPartySignerTrust(
+            signatureIndex = 0,
+            clientId = clientId,
+            certificate = certificate,
+            signatureStatus = VerifierSignature.Status.AUTHENTICATED,
+            trustState = state,
+        )
+    }),
+)
 
 internal fun aggregateRelyingPartyTrust(states: List<TrustState>): RelyingPartyTrustSummary {
     if (states.isEmpty()) return RelyingPartyTrustSummary.UNKNOWN
