@@ -8,6 +8,7 @@ import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertific
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.WrpCredentialRequest
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.WrprcValidationResult
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.isValid
+import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
 import kotlinx.serialization.Serializable
 
 /**
@@ -54,12 +55,32 @@ data class WrpacValidation(
 @Serializable
 data class WrprcValidation(
     val displayInfo: WrpDisplayInfo?,
-    /** Whether each registration certificate is valid, `false` also if it could not be validated at all. */
-    val validCertificates: List<Boolean>,
-    /** Why registration certificates could not be validated at all. */
-    val certificateErrors: List<String>,
+    val certificates: List<WrprcCertificateValidation>,
     val requestDataValidationResults: List<WrpRequestDataValidation>,
 )
+
+/** Validation of one registration certificate. */
+@Serializable
+data class WrprcCertificateValidation(
+    val valid: Boolean,
+    /** Why the certificate could not be validated at all, then the other properties are not evaluated. */
+    val error: String? = null,
+    /** Whether the certificate is linked to a valid access certificate of the relying party. */
+    val validLinkage: Boolean = true,
+    /** Status from the status list, `null` if it could not be obtained, see [tokenStatusError]. */
+    val tokenStatus: WrpTokenStatus? = null,
+    val tokenStatusError: String? = null,
+)
+
+@Serializable
+enum class WrpTokenStatus {
+    VALID,
+    REVOKED,
+    SUSPENDED,
+
+    /** An application-specific status, which is not valid either. */
+    OTHER,
+}
 
 /** Validity of a credential request against the WRPRC, `null` with an [error] if it could not be validated. */
 @Serializable
@@ -73,8 +94,19 @@ fun WrpacValidationResult.toWrpacValidation() = WrpacValidation(validLinkage = v
 
 fun WrprcValidationResult.toWrprcValidation() = WrprcValidation(
     displayInfo = certificateValidationResults.keys.getDisplayInfo(),
-    validCertificates = certificateValidationResults.values.map { it.getOrNull()?.isValid() == true },
-    certificateErrors = certificateValidationResults.values.mapNotNull { it.exceptionOrNull()?.displayText() },
+    certificates = certificateValidationResults.values.map { result ->
+        result.fold(
+            onSuccess = { validation ->
+                WrprcCertificateValidation(
+                    valid = validation.isValid(),
+                    validLinkage = validation.validLinkage,
+                    tokenStatus = validation.tokenStatus.getOrNull()?.toWrpTokenStatus(),
+                    tokenStatusError = validation.tokenStatus.exceptionOrNull()?.displayText(),
+                )
+            },
+            onFailure = { WrprcCertificateValidation(valid = false, error = it.displayText()) },
+        )
+    },
     requestDataValidationResults = requestDataValidationResults.map { (request, result) ->
         WrpRequestDataValidation(
             request = request,
@@ -83,6 +115,13 @@ fun WrprcValidationResult.toWrprcValidation() = WrprcValidation(
         )
     },
 )
+
+private fun TokenStatus.toWrpTokenStatus() = when (this) {
+    TokenStatus.Valid -> WrpTokenStatus.VALID
+    TokenStatus.Invalid -> WrpTokenStatus.REVOKED
+    TokenStatus.Suspended -> WrpTokenStatus.SUSPENDED
+    else -> WrpTokenStatus.OTHER
+}
 
 /** Messages of this exception and its causes, e.g. the parsing error that caused a validation to fail. */
 internal fun Throwable.displayText(): String = generateSequence(this) { it.cause }

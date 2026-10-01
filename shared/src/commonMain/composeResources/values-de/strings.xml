@@ -502,16 +502,21 @@
 
     <string name="info_text_registration_cert_missing">Der Service Provider hat kein Zertifikat zu dieser Anfrage mitgesendet</string>
     <string name="info_text_registration_cert_valid">Der Service Provider hat ein gültiges Zertifikat</string>
-    <string name="info_text_registration_cert_invalid">Das Zertifikat des Service Provider ist ungültig!</string>
+    <string name="info_text_registration_cert_invalid">Das Zertifikat des Service Provider ist ungültig</string>
     <string name="label_access_cert">Zugangszertifikat</string>
     <string name="info_text_access_cert_valid">Das Zugangszertifikat des Service Provider ist gültig</string>
-    <string name="info_text_access_cert_invalid">Das Zugangszertifikat des Service Provider ist ungültig!</string>
+    <string name="info_text_access_cert_invalid">Das Zugangszertifikat des Service Provider ist ungültig</string>
     <string name="info_text_access_cert_missing">Der Service Provider hat kein Zugangszertifikat mitgesendet</string>
-    <string name="info_text_registration_cert_not_evaluated">Das Registrierungszertifikat des Service Provider konnte nicht ausgewertet werden!</string>
+    <string name="info_text_registration_cert_not_evaluated">Das Registrierungszertifikat des Service Provider konnte nicht ausgewertet werden</string>
+    <string name="info_text_registration_cert_not_linked">Das Registrierungszertifikat ist nicht mit einem gültigen Zugangszertifikat des Service Provider verknüpft</string>
+    <string name="info_text_registration_cert_revoked">Das Registrierungszertifikat wurde widerrufen</string>
+    <string name="info_text_registration_cert_suspended">Das Registrierungszertifikat wurde vorübergehend ausgesetzt</string>
+    <string name="info_text_registration_cert_status_invalid">Das Registrierungszertifikat hat einen ungültigen Status</string>
+    <string name="info_text_registration_cert_status_unknown">Der Status des Registrierungszertifikats konnte nicht geprüft werden</string>
     <string name="info_text_registration_cert_typ_valid">Die angefragten Credential-Typen sind erlaubt</string>
-    <string name="info_text_registration_cert_typ_invalid">Es werden andere Credential-Typen abgefragt als erlaubt!</string>
+    <string name="info_text_registration_cert_typ_invalid">Es werden andere Credential-Typen abgefragt als erlaubt</string>
     <string name="info_text_registration_cert_identifier_valid">Identifikation des Service Provider ist korrekt</string>
-    <string name="info_text_registration_cert_identifier_invalid">Der Service Provider verwendet eine andere Identifikation als registriert wurde!</string>
-    <string name="info_text_registration_cert_requested_claim_invalid">Es werden mehr Attribute abgefragt als erlaubt!</string>
+    <string name="info_text_registration_cert_identifier_invalid">Der Service Provider verwendet eine andere Identifikation als registriert wurde</string>
+    <string name="info_text_registration_cert_requested_claim_invalid">Es werden mehr Attribute abgefragt als erlaubt</string>
     <string name="info_text_registration_cert_requested_claim_valid">Die abgefragten Attribute sind erlaubt</string>
 </resources>

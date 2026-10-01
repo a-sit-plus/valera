@@ -11,6 +11,8 @@ import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
 import at.asitplus.wallet.app.common.relyingParty.WrpRequestDataValidation
+import at.asitplus.wallet.app.common.relyingParty.WrpTokenStatus
+import at.asitplus.wallet.app.common.relyingParty.WrprcCertificateValidation
 import at.asitplus.wallet.app.common.relyingParty.WrprcValidation
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.RequestDataValidity
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.WrpCredentialRequest
@@ -98,8 +100,9 @@ class WalletRoutesTest {
             accessCertificateError = "untrusted WRPAC",
             registrationCertificate = WrprcValidation(
                 displayInfo = null,
-                validCertificates = listOf(true),
-                certificateErrors = emptyList(),
+                certificates = listOf(
+                    WrprcCertificateValidation(valid = false, validLinkage = false, tokenStatus = WrpTokenStatus.REVOKED)
+                ),
                 requestDataValidationResults = listOf(
                     WrpRequestDataValidation(WrpCredentialRequest.WrpDocRequest(docRequest), requestDataValidity)
                 ),

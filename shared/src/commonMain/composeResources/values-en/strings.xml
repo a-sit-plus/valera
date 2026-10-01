@@ -496,16 +496,21 @@
 
     <string name="info_text_registration_cert_missing">No registration certificate has been provided in the request.</string>
     <string name="info_text_registration_cert_valid">The certificate of the service provider is valid</string>
-    <string name="info_text_registration_cert_invalid">The certificate of the service provider is invalid!</string>
+    <string name="info_text_registration_cert_invalid">The certificate of the service provider is invalid</string>
     <string name="label_access_cert">Access certificate</string>
     <string name="info_text_access_cert_valid">The access certificate of the service provider is valid</string>
-    <string name="info_text_access_cert_invalid">The access certificate of the service provider is invalid!</string>
+    <string name="info_text_access_cert_invalid">The access certificate of the service provider is invalid</string>
     <string name="info_text_access_cert_missing">The service provider has not sent an access certificate.</string>
-    <string name="info_text_registration_cert_not_evaluated">The registration certificate of the service provider could not be evaluated!</string>
+    <string name="info_text_registration_cert_not_evaluated">The registration certificate of the service provider could not be evaluated</string>
+    <string name="info_text_registration_cert_not_linked">The registration certificate is not linked to a valid access certificate of the service provider</string>
+    <string name="info_text_registration_cert_revoked">The registration certificate has been revoked</string>
+    <string name="info_text_registration_cert_suspended">The registration certificate has been suspended</string>
+    <string name="info_text_registration_cert_status_invalid">The registration certificate has an invalid status</string>
+    <string name="info_text_registration_cert_status_unknown">The status of the registration certificate could not be checked</string>
     <string name="info_text_registration_cert_typ_valid">The requested credential types are valid</string>
     <string name="info_text_registration_cert_typ_invalid">The requested credential types are invalid</string>
-    <string name="info_text_registration_cert_identifier_invalid">The service provider uses a different identifier than registered!</string>
+    <string name="info_text_registration_cert_identifier_invalid">The service provider uses a different identifier than registered</string>
     <string name="info_text_registration_cert_identifier_valid">The identifier of the service provider is correct</string>
-    <string name="info_text_registration_cert_requested_claim_invalid">The service provider requests more attributes than registered!</string>
+    <string name="info_text_registration_cert_requested_claim_invalid">The service provider requests more attributes than registered</string>
     <string name="info_text_registration_cert_requested_claim_valid">The requested attributes are correct</string>
 </resources>
