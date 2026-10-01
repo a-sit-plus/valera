@@ -39,7 +39,7 @@ class DisclosedAttributeLabelingTest {
         val credential = storeIsoCredential(scheme)
         // rebuild the paths the way the matching layer does: equal in value to the credential's own, but not identical
         val requested = credential.toGenericAttributeList()
-            .map { (path, _) -> path.segments.fold(NormalizedJsonPath()) { rebuilt, segment -> rebuilt + segment } }
+            .map { (path, _) -> path.fold(NormalizedJsonPath()) { rebuilt, segment -> rebuilt + segment } }
         assertEquals(2, requested.size, "test credential should carry both issued data elements")
 
         val labeled = credential.labeledDisclosedAttributes(scheme, requested) { Result.failure(NotImplementedError()) }

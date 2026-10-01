@@ -22,7 +22,7 @@ fun CredentialScheme.metadataLabel(path: NormalizedJsonPath, locale: String = "e
 
 /** Last-resort claim label when no metadata localization exists: the dot-joined claim path itself. */
 fun NormalizedJsonPath.genericLabel(): String =
-    (0 until segments.size).mapNotNull { memberName(it) }.joinToString(".").ifEmpty { toString() }
+    (0 until size).mapNotNull { memberName(it) }.joinToString(".").ifEmpty { toString() }
 
 /** Registered JWT claims rendered in dedicated cards (or not at all) rather than in attribute lists. */
 val HIDDEN_TOP_LEVEL_CLAIMS = setOf("status", "cnf", "vct", "iat", "iss", "nbf", "exp", "sub")
@@ -49,7 +49,7 @@ private fun CredentialScheme.metadataLabelCandidatePaths(path: NormalizedJsonPat
 
 private fun NormalizedJsonPath.expandSingleDottedName(): NormalizedJsonPath =
     memberName(0)
-        ?.takeIf { segments.size == 1 && "." in it }
+        ?.takeIf { size == 1 && "." in it }
         ?.split(".")
         ?.fold(NormalizedJsonPath()) { path, segment -> path + segment }
         ?: this

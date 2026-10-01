@@ -181,7 +181,7 @@ class ConsentDataResolutionTest {
         val (familyName, givenName) = consentData.attributes
         assertEquals(
             listOf("family_name", "given_name"),
-            consentData.attributes.map { (it.segments.last() as NameSegment).memberName },
+            consentData.attributes.map { (it.last() as NameSegment).memberName },
         )
         assertTrue(consentData.intendsToRetain(familyName))
         assertFalse(consentData.intendsToRetain(givenName))

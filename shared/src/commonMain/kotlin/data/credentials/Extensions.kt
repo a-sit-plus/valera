@@ -63,7 +63,7 @@ fun CredentialAdapter.labeledPresentationAttributes(
         val attribute = catchingUnwrapped { getAttribute(path) }.getOrNull()
             ?: Attribute.fromValue(value)
         val label = scheme.getLocalization(path)
-            ?: path.segments.lastOrNull()?.let { scheme.getLocalization(NormalizedJsonPath(it)) }
+            ?: path.lastOrNull()?.let { scheme.getLocalization(NormalizedJsonPath(it)) }
             ?: path.genericLabel()
         label to attribute
     }
@@ -93,7 +93,7 @@ fun SubjectCredentialStore.StoreEntry.labeledDisclosedAttributes(
         val attribute = catchingUnwrapped { adapter.getAttribute(path) }.getOrNull()
             ?: storedValues[path.toString()]?.let { Attribute.fromValue(it) }
         val label = scheme.getLocalization(path)
-            ?: path.segments.lastOrNull()?.let { scheme.getLocalization(NormalizedJsonPath(it)) }
+            ?: path.lastOrNull()?.let { scheme.getLocalization(NormalizedJsonPath(it)) }
             ?: path.genericLabel()
         label to attribute
     }

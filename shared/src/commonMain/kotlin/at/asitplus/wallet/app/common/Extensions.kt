@@ -243,11 +243,11 @@ private fun JsonObjectBuilder.addSdJwtDummyMetadata() {
 
 // Only NameSegments carry a member name; IndexSegments (e.g. [0] in array paths) are skipped.
 fun NormalizedJsonPath.memberName(id: Int) =
-    this.segments.filterIsInstance<NameSegment>().map { it.memberName }.getOrNull(id)
+    this.filterIsInstance<NameSegment>().map { it.memberName }.getOrNull(id)
 
 // Removes NameSegments whose name matches [name]; IndexSegments are passed through unchanged.
 fun NormalizedJsonPath.minus(name: String) =
-    NormalizedJsonPath(this.segments.filter { it !is NameSegment || it.memberName != name })
+    NormalizedJsonPath(this.filter { it !is NameSegment || it.memberName != name })
 
 @Composable
 fun Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimReference?>?>.toCredentialQueryUiModel(
@@ -292,7 +292,7 @@ fun SingleClaimReference.displayPath(): String = when (this) {
 fun ConstantIndex.CredentialRepresentation.getMetadataLocalization(
     claimReference: SingleClaimReference
 ) = when (claimReference) {
-    is JsonClaimReference -> claimReference.normalizedJsonPath.segments.filterIsInstance<NameSegment>()
+    is JsonClaimReference -> claimReference.normalizedJsonPath.filterIsInstance<NameSegment>()
         .firstOrNull()
         ?.takeIf { this != ISO_MDOC }
         ?.let { jwtClaimLabel(it.memberName) }

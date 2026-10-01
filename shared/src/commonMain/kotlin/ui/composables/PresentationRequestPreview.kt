@@ -174,7 +174,7 @@ fun RequestedCredentialPreview(
 }
 
 fun ConstantIndex.CredentialRepresentation.getMetadataLocalization(path: NormalizedJsonPath): StringResource? {
-    val firstSegment = path.segments.firstOrNull()?.let {
+    val firstSegment = path.firstOrNull()?.let {
         it as? NormalizedJsonPathSegment.NameSegment
     } ?: return null
     return if (this == ConstantIndex.CredentialRepresentation.ISO_MDOC) null else jwtClaimLabel(firstSegment.memberName)
