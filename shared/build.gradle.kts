@@ -92,6 +92,7 @@ kotlin {
             implementation(libs.compose.material3)
             implementation(libs.compose.material.icons.core)
             api(libs.vck.openid.ktor)
+            implementation(libs.vck.longfellow)
             api(libs.atomicfu)
             // All credential data classes are bundled in vck core or resolved from remote type metadata now.
             api(napier())

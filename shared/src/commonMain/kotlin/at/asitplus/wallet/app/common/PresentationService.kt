@@ -5,6 +5,7 @@ import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.app.common.data.SettingsRepository
+import at.asitplus.wallet.app.common.presentation.LongfellowZkRegistration
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.PresentationRequestParameters
 import at.asitplus.wallet.lib.agent.PresentationResponseParameters
@@ -50,16 +51,20 @@ class PresentationService(
     suspend fun finalizeAuthorizationResponse(
         credentialPresentation: CredentialPresentation,
         preparationState: AuthorizationResponsePreparationState,
-    ) = presentationService.finalizeAuthorizationResponse(
-        credentialPresentation = credentialPresentation,
-        preparationState = preparationState
-    ).getOrThrow()
+    ): OpenId4VpWallet.AuthenticationResult {
+        LongfellowZkRegistration.ensureRegistered()
+        return presentationService.finalizeAuthorizationResponse(
+            credentialPresentation = credentialPresentation,
+            preparationState = preparationState
+        ).getOrThrow()
+    }
 
     suspend fun finalizeDcApiPresentation(
         credentialPresentation: CredentialPresentation,
         preparationState: DcApiPreparationState,
     ) {
         Napier.d("Finalizing DCAPI response")
+        LongfellowZkRegistration.ensureRegistered()
         val response = presentationService.finalizeDcApiResponse(
             state = preparationState,
             credentialPresentation = credentialPresentation,
@@ -74,6 +79,7 @@ class PresentationService(
         sessionTranscript: SessionTranscript
     ) {
         Napier.d("Finalizing local response")
+        LongfellowZkRegistration.ensureRegistered()
 
         val presentationResult = holderAgent.createPresentation(
             request = PresentationRequestParameters(

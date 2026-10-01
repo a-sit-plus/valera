@@ -81,6 +81,7 @@ compose-ui-test = { module = "org.jetbrains.compose.ui:ui-test", version.ref = "
 vck = {group= "at.asitplus.wallet", name="vck", version.ref = "vck"}
 vck-openid = {group= "at.asitplus.wallet", name="vck-openid", version.ref = "vck"}
 vck-openid-ktor = {group= "at.asitplus.wallet", name="vck-openid-ktor", version.ref = "vck"}
+vck-longfellow = {group= "at.asitplus.wallet", name="vck-longfellow", version.ref = "vck"}
 warden-supreme = { module = "at.asitplus.warden:supreme-client", version.ref = "warden-supreme" }
 
 #multipazz workaround

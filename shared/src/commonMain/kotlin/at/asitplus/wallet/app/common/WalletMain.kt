@@ -13,6 +13,7 @@ import at.asitplus.wallet.app.common.dcapi.DCAPIExportService
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
+import at.asitplus.wallet.app.common.presentation.LongfellowZkRegistration
 import at.asitplus.wallet.app.common.relyingParty.WrpValidator
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -89,6 +90,8 @@ class WalletMain(
     init {
         credentialValidityService.startChecking()
         trustListService.startChecking()
+        // Load the ZK circuits ahead of the first presentation, which waits for them
+        scope.launch { LongfellowZkRegistration.ensureRegistered() }
         if (keyMaterial.keyMaterial is FallBackKeyMaterial) {
             Napier.e("FallBackKeyMaterial: ${keyMaterial.keyMaterial.reason}")
         }
