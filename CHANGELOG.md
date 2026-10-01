@@ -1,4 +1,4 @@
-# Release 5.9.0 (unreleased):
+# Release 5.9.0:
  * Issuing and presentation: Accept Launchpad `eu-eaa-offer` and `eu-eaap` links on Android and iOS
  * Issuing: Clear stored and cached wallet attestations when wallet attestation is disabled in settings
  * Build: Downgrade the Gradle wrapper to 9.6.1
