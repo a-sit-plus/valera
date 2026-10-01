@@ -14,7 +14,9 @@ import at.asitplus.wallet.lib.agent.validation.relyingParty.UnsupportedWrpReques
 import at.asitplus.wallet.lib.agent.validation.relyingParty.WrpAccessCertificate
 import at.asitplus.wallet.lib.agent.validation.relyingParty.WrpAuthenticationRequestValidator
 import at.asitplus.wallet.lib.agent.validation.relyingParty.WrpRequestData
+import at.asitplus.wallet.lib.agent.validation.relyingParty.accessCertificate.WrpacValidationResult
 import at.asitplus.wallet.lib.agent.validation.relyingParty.accessCertificate.WrpacValidator
+import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.WrprcValidationResult
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.WrprcValidator
 import at.asitplus.wallet.lib.etsi.LoteProfile
 import at.asitplus.wallet.lib.openid.IsoMdocDcapiResponseBuilder
@@ -36,9 +38,10 @@ class WrpValidator(
     /**
      * Validates the WRPAC and the WRPRC of [requestParametersFrom], each independently of the other one, so that the
      * WRPRC is also validated when the WRPAC is invalid (its linkage to the WRPAC is invalid then).
-     * A certificate missing from the request is not validated at all.
+     * A certificate missing from the request is not validated at all. Never fails, so that the consent page opens
+     * also if the relying party could not be checked.
      */
-    suspend fun validate(requestParametersFrom: RequestParametersFrom<*>): WrpValidationResult {
+    suspend fun validate(requestParametersFrom: RequestParametersFrom<*>): WrpValidationResult = catching {
         val accessCertTrustList = trustListService.getTrustList(LoteProfile.WRPAC)
         val trustAnchors = TrustedCertificates { accessCertTrustList.getOrThrow().toSet() }
         val accessCertValidation = requestParametersFrom.toWrpacRequestData()?.transform {
@@ -54,9 +57,15 @@ class WrpValidator(
                 )
             }?.onFailure { Napier.w("WRPRC validation failed", it) }
 
-        return WrpValidationResult(
+        WrpValidationResult(
             accessCertificate = accessCertValidation,
             registrationCertificate = registrationCertValidation,
+        )
+    }.getOrElse {
+        Napier.w("WRP validation failed", it)
+        WrpValidationResult(
+            accessCertificate = KmmResult.failure<WrpacValidationResult>(it),
+            registrationCertificate = KmmResult.failure<WrprcValidationResult>(it),
         )
     }
 }
@@ -89,15 +98,20 @@ internal suspend fun RequestParametersFrom<*>.toWrpacRequestData(): KmmResult<Wr
         }
     }
 
-    else -> extractRelyingPartyCertificateChains()?.let { chain ->
-        KmmResult.success(
-            WrpRequestData(
-                clientId = (parameters as? AuthenticationRequestParameters)?.clientId,
-                accessCertificate = WrpAccessCertificate(chain),
-                registrationCertificate = emptyMap(),
-            )
-        )
-    }
+    else -> catching { extractRelyingPartyCertificateChains() }.fold(
+        onSuccess = { chain ->
+            chain?.let {
+                KmmResult.success(
+                    WrpRequestData(
+                        clientId = (parameters as? AuthenticationRequestParameters)?.clientId,
+                        accessCertificate = WrpAccessCertificate(it),
+                        registrationCertificate = emptyMap(),
+                    )
+                )
+            }
+        },
+        onFailure = { KmmResult.failure(it) },
+    )
 }
 
 /**
