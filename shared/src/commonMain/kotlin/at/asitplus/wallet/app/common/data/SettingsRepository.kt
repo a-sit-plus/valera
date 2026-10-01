@@ -110,7 +110,7 @@ interface SettingsRepository {
     suspend fun reset()
 
     companion object {
-        const val DEFAULT_CLIENT_ID = "https://wallet.a-sit.at/app"
+        const val DEFAULT_CLIENT_ID = "https://wallet.a-sit.plus/app"
         const val DEFAULT_PRESENTMENT_DEVICE_ENGAGEMENT_METHOD = "QR_CODE"
         private const val BLE_CENTRAL_CLIENT_MODE = "ble:central_client_mode:"
         private const val BLE_PERIPHERAL_SERVER_MODE = "ble:peripheral_server_mode:"

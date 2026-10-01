@@ -452,7 +452,7 @@ val defaultSigningConfig = SigningConfig(
             "EGIZ",
             "https://apps.egiz.gv.at/qtsp/csc/v2",
             "https://apps.egiz.gv.at/qtsp",
-            "https://wallet.a-sit.at/app",
+            "https://wallet.a-sit.plus/app",
             allowPreload = true
         ),
         QtspConfig(
@@ -466,7 +466,7 @@ val defaultSigningConfig = SigningConfig(
             "PRIMESIGN",
             "https://qs.primesign-test.com/csc/v2",
             "https://id.primesign-test.com/realms/qs-staging",
-            "https://wallet.a-sit.at/app",
+            "https://wallet.a-sit.plus/app",
             allowPreload = false
         ),
         QtspConfig(

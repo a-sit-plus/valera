@@ -37,7 +37,7 @@ class WalletConfig(
 
     override val host: Flow<String> = config.map {
         // Rewrite old issuing service to new instance
-        if (it.host == "https://wallet.a-sit.at/m6" || it.host == "https://wallet.a-sit.at/m7") "https://wallet-issuer.a-sit.plus" else it.host
+        if (it.host.startsWith("https://wallet.a-sit.at")) "https://wallet-issuer.a-sit.plus" else it.host
     }
     override val clientId: Flow<String> = config.map { it.clientId }
 

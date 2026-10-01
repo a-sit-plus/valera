@@ -182,28 +182,8 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:host="wallet.a-sit.at"
-                    android:pathPrefix="/mobile"
-                    android:scheme="https" />
-            </intent-filter>
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
                     android:host="wallet.a-sit.plus"
                     android:pathPrefix="/mobile"
-                    android:scheme="https" />
-            </intent-filter>
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:host="wallet.a-sit.at"
-                    android:pathPrefix="/remote"
                     android:scheme="https" />
             </intent-filter>
             <intent-filter android:autoVerify="true">
