@@ -22,12 +22,12 @@ data class WrpValidationResult(
         wrpacValidationResult: WrpacValidationResult
     ) : this(
         displayInfo = wrprcValidationResult.certificateValidation.getDisplayInfo(),
-        validAttributes =
-            wrprcValidationResult.requestDataValidation.toMap()
-                .all { it.value.credentialAttributesValidity.all { it.second } },
+        validAttributes = wrprcValidationResult.requestDataValidation.toMap()
+            .all { it.value.credentialAttributesValidity.all { it.second } },
         validCredentialType = wrprcValidationResult.requestDataValidation.toMap()
             .all { it.value.credentialTypeValidity },
-        validCertificate = wrprcValidationResult.certificateValidation.all { it.value?.isValid() == true } && wrpacValidationResult.validLinkage,
+        validCertificate = wrprcValidationResult.certificateValidation.all { it.value?.isValid() == true }
+                && wrpacValidationResult.validLinkage,
         requestDataValidationResult = wrprcValidationResult.requestDataValidation
     )
 }
