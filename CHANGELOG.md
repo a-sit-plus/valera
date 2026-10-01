@@ -24,6 +24,7 @@
  * Presentation: Keep every requested DCQL attribute visible even when its value cannot be rendered
  * Presentation: Mark the requested attributes a verifier intends to retain beyond the transaction
  * Add WRPAC and WRPRC validation
+ * Presentation: Show why the WRPAC or WRPRC of a relying party is invalid, e.g. because the WRPRC could not be parsed, and evaluate the WRPRC even if the WRPAC is invalid
  * Presentation: Answer ISO mdoc zero-knowledge proof requests with the Longfellow-ZK backend of `vck-longfellow`
  * DC API: Validate WRPAC and WRPRC of ISO mdoc requests against the DC API session transcript
 

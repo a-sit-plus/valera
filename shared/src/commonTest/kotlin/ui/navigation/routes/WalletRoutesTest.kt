@@ -10,6 +10,8 @@ import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
+import at.asitplus.wallet.app.common.relyingParty.WrpRequestDataValidation
+import at.asitplus.wallet.app.common.relyingParty.WrprcValidation
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.RequestDataValidity
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.WrpCredentialRequest
 import at.asitplus.wallet.lib.data.MdocClaimReference
@@ -87,16 +89,20 @@ class WalletRoutesTest {
                 )
             )
         )
+        val requestDataValidity = RequestDataValidity(
+            credentialTypeValidity = true,
+            credentialAttributesValidity = listOf(MdocClaimReference(docType, "given_name") to true),
+        )
         val wrpValidationResult = WrpValidationResult(
-            displayInfo = null,
-            validAttributes = true,
-            validCredentialType = true,
-            validCertificate = true,
-            requestDataValidationResult = listOf(
-                WrpCredentialRequest.WrpDocRequest(docRequest) to RequestDataValidity(
-                    credentialTypeValidity = true,
-                    credentialAttributesValidity = listOf(MdocClaimReference(docType, "given_name") to true),
-                )
+            accessCertificate = null,
+            accessCertificateError = "untrusted WRPAC",
+            registrationCertificate = WrprcValidation(
+                displayInfo = null,
+                validCertificates = listOf(true),
+                certificateErrors = emptyList(),
+                requestDataValidationResults = listOf(
+                    WrpRequestDataValidation(WrpCredentialRequest.WrpDocRequest(docRequest), requestDataValidity)
+                ),
             ),
         )
         val parameters = AuthenticationRequestParameters(nonce = "test-nonce")

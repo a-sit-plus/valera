@@ -23,6 +23,7 @@ import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -35,12 +36,16 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.info_text_access_cert_invalid
+import at.asitplus.valera.resources.info_text_access_cert_valid
 import at.asitplus.valera.resources.info_text_registration_cert_invalid
+import at.asitplus.valera.resources.info_text_registration_cert_not_evaluated
 import at.asitplus.valera.resources.info_text_registration_cert_requested_claim_invalid
 import at.asitplus.valera.resources.info_text_registration_cert_requested_claim_valid
 import at.asitplus.valera.resources.info_text_registration_cert_typ_invalid
 import at.asitplus.valera.resources.info_text_registration_cert_typ_valid
 import at.asitplus.valera.resources.info_text_registration_cert_valid
+import at.asitplus.valera.resources.label_access_cert
 import at.asitplus.valera.resources.label_registration_cert
 import at.asitplus.valera.resources.label_registration_cert_attributes
 import at.asitplus.valera.resources.label_registration_cert_credential_typ
@@ -122,6 +127,9 @@ fun WrprcRequestValidationDataCard(data: WrprcRequestValidationData) {
                                 else -> stringResource(data.infoInvalid)
                             }
                         )
+                        data.errors.forEach {
+                            Text(text = it, style = MaterialTheme.typography.bodySmall)
+                        }
                     }
 
                 }
@@ -248,27 +256,54 @@ data class WrprcRequestValidationData(
     val text: StringResource,
     val validity: Boolean,
     val infoValid: StringResource,
-    val infoInvalid: StringResource
+    val infoInvalid: StringResource,
+    /** Why the validation failed, e.g. that the certificate could not be parsed */
+    val errors: List<String> = emptyList(),
 )
 
 
-fun WrpValidationResult.toWrprcRequestValidationData(): List<WrprcRequestValidationData> = listOf(
-    WrprcRequestValidationData(
-        text = Res.string.label_registration_cert,
-        validity = this.validCertificate,
-        infoValid = Res.string.info_text_registration_cert_valid,
-        infoInvalid = Res.string.info_text_registration_cert_invalid
-    ),
-    WrprcRequestValidationData(
-        text = Res.string.label_registration_cert_credential_typ,
-        validity = this.validCredentialType,
-        infoValid = Res.string.info_text_registration_cert_typ_valid,
-        infoInvalid = Res.string.info_text_registration_cert_typ_invalid
-    ),
-    WrprcRequestValidationData(
-        text = Res.string.label_registration_cert_attributes,
-        validity = this.validAttributes,
-        infoValid = Res.string.info_text_registration_cert_requested_claim_valid,
-        infoInvalid = Res.string.info_text_registration_cert_requested_claim_invalid
-    ),
-)
+fun WrpValidationResult.toWrprcRequestValidationData(): List<WrprcRequestValidationData> {
+    val accessCertificateData = WrprcRequestValidationData(
+        text = Res.string.label_access_cert,
+        validity = accessCertificate?.validLinkage == true,
+        infoValid = Res.string.info_text_access_cert_valid,
+        infoInvalid = Res.string.info_text_access_cert_invalid,
+        errors = listOfNotNull(accessCertificateError),
+    )
+    val registrationCertificate = registrationCertificate ?: return listOf(
+        accessCertificateData,
+        WrprcRequestValidationData(
+            text = Res.string.label_registration_cert,
+            validity = false,
+            infoValid = Res.string.info_text_registration_cert_valid,
+            infoInvalid = Res.string.info_text_registration_cert_not_evaluated,
+            errors = listOfNotNull(registrationCertificateError),
+        ),
+    )
+    val requestResults = registrationCertificate.requestDataValidationResults
+    return listOf(
+        accessCertificateData,
+        WrprcRequestValidationData(
+            text = Res.string.label_registration_cert,
+            validity = registrationCertificate.validCertificates.all { it },
+            infoValid = Res.string.info_text_registration_cert_valid,
+            infoInvalid = Res.string.info_text_registration_cert_invalid,
+            errors = registrationCertificate.certificateErrors,
+        ),
+        WrprcRequestValidationData(
+            text = Res.string.label_registration_cert_credential_typ,
+            validity = requestResults.all { it.validity?.credentialTypeValidity == true },
+            infoValid = Res.string.info_text_registration_cert_typ_valid,
+            infoInvalid = Res.string.info_text_registration_cert_typ_invalid,
+            errors = requestResults.mapNotNull { it.error },
+        ),
+        WrprcRequestValidationData(
+            text = Res.string.label_registration_cert_attributes,
+            validity = requestResults.all { result ->
+                result.validity?.credentialAttributesValidity?.all { it.second } == true
+            },
+            infoValid = Res.string.info_text_registration_cert_requested_claim_valid,
+            infoInvalid = Res.string.info_text_registration_cert_requested_claim_invalid,
+        ),
+    )
+}
