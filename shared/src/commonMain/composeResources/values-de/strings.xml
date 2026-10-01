@@ -506,6 +506,7 @@
     <string name="label_access_cert">Zugangszertifikat</string>
     <string name="info_text_access_cert_valid">Das Zugangszertifikat des Service Provider ist gültig</string>
     <string name="info_text_access_cert_invalid">Das Zugangszertifikat des Service Provider ist ungültig!</string>
+    <string name="info_text_access_cert_missing">Der Service Provider hat kein Zugangszertifikat mitgesendet</string>
     <string name="info_text_registration_cert_not_evaluated">Das Registrierungszertifikat des Service Provider konnte nicht ausgewertet werden!</string>
     <string name="info_text_registration_cert_typ_valid">Die angefragten Credential-Typen sind erlaubt</string>
     <string name="info_text_registration_cert_typ_invalid">Es werden andere Credential-Typen abgefragt als erlaubt!</string>

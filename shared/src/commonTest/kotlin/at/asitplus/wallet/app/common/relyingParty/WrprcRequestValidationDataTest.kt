@@ -2,6 +2,8 @@ package at.asitplus.wallet.app.common.relyingParty
 
 import at.asitplus.KmmResult
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.info_text_access_cert_missing
+import at.asitplus.valera.resources.info_text_registration_cert_missing
 import at.asitplus.valera.resources.info_text_registration_cert_not_evaluated
 import at.asitplus.valera.resources.label_access_cert
 import at.asitplus.valera.resources.label_registration_cert
@@ -63,5 +65,19 @@ class WrprcRequestValidationDataTest {
         assertEquals(false, data[1].validity)
         assertEquals(listOf("no certificate chain"), data[1].errors)
         assertEquals(4, data.size)
+    }
+
+    @Test
+    fun missingCertificatesAreNeutral() {
+        val result = WrpValidationResult(accessCertificate = null, registrationCertificate = null as WrprcValidation?)
+
+        val data = result.toWrprcRequestValidationData()
+
+        assertEquals(true, result.accessCertificateMissing && result.registrationCertificateMissing)
+        assertEquals(listOf(null, null), data.map { it.validity })
+        assertEquals(
+            listOf(Res.string.info_text_access_cert_missing, Res.string.info_text_registration_cert_missing),
+            data.map { it.infoMissing },
+        )
     }
 }

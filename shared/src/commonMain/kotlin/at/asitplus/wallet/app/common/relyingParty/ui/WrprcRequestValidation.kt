@@ -37,8 +37,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_access_cert_invalid
+import at.asitplus.valera.resources.info_text_access_cert_missing
 import at.asitplus.valera.resources.info_text_access_cert_valid
 import at.asitplus.valera.resources.info_text_registration_cert_invalid
+import at.asitplus.valera.resources.info_text_registration_cert_missing
 import at.asitplus.valera.resources.info_text_registration_cert_not_evaluated
 import at.asitplus.valera.resources.info_text_registration_cert_requested_claim_invalid
 import at.asitplus.valera.resources.info_text_registration_cert_requested_claim_valid
@@ -78,7 +80,7 @@ fun WrprcRequestValidationSummary(list: List<WrprcRequestValidationData>) {
 
 @Composable
 fun WrprcRequestValidationDataCard(data: WrprcRequestValidationData) {
-    val expanded = remember { mutableStateOf(!data.validity) }
+    val expanded = remember { mutableStateOf(data.validity == false) }
     Column(
         modifier = Modifier
             .clickable(onClick = { expanded.value = !expanded.value })
@@ -87,7 +89,8 @@ fun WrprcRequestValidationDataCard(data: WrprcRequestValidationData) {
         Row {
             val (color, icon) = when (data.validity) {
                 true -> Pair(LocalExtendedColors.current.validationDark.valid, Icons.Outlined.Check)
-                else -> Pair(LocalExtendedColors.current.validationDark.invalid, Icons.Outlined.Clear)
+                false -> Pair(LocalExtendedColors.current.validationDark.invalid, Icons.Outlined.Clear)
+                null -> Pair(MaterialTheme.colorScheme.onSurfaceVariant, Icons.Outlined.Info)
             }
 
             Column {
@@ -124,7 +127,8 @@ fun WrprcRequestValidationDataCard(data: WrprcRequestValidationData) {
                         Text(
                             when (data.validity) {
                                 true -> stringResource(data.infoValid)
-                                else -> stringResource(data.infoInvalid)
+                                false -> stringResource(data.infoInvalid)
+                                null -> stringResource(data.infoMissing ?: data.infoInvalid)
                             }
                         )
                         data.errors.forEach {
@@ -160,7 +164,7 @@ fun WrprcRequestValidation(wrpValidationResult: WrpValidationResult? = null) {
     }
     wrpValidationResult?.toWrprcRequestValidationData()?.let { list ->
         val expanded = list.any {
-            !it.validity
+            it.validity == false
         }
         Column(modifier = Modifier.padding(start = 0.dp)) {
             val extendedColors = LocalExtendedColors.current
@@ -254,9 +258,11 @@ data class WrprcRequestValidationHeadingData(
 
 data class WrprcRequestValidationData(
     val text: StringResource,
-    val validity: Boolean,
+    /** `null` if the request does not contain what is validated, which is not an error */
+    val validity: Boolean?,
     val infoValid: StringResource,
     val infoInvalid: StringResource,
+    val infoMissing: StringResource? = null,
     /** Why the validation failed, e.g. that the certificate could not be parsed */
     val errors: List<String> = emptyList(),
 )
@@ -265,10 +271,21 @@ data class WrprcRequestValidationData(
 fun WrpValidationResult.toWrprcRequestValidationData(): List<WrprcRequestValidationData> {
     val accessCertificateData = WrprcRequestValidationData(
         text = Res.string.label_access_cert,
-        validity = accessCertificate?.validLinkage == true,
+        validity = if (accessCertificateMissing) null else accessCertificate?.validLinkage == true,
         infoValid = Res.string.info_text_access_cert_valid,
         infoInvalid = Res.string.info_text_access_cert_invalid,
+        infoMissing = Res.string.info_text_access_cert_missing,
         errors = listOfNotNull(accessCertificateError),
+    )
+    if (registrationCertificateMissing) return listOf(
+        accessCertificateData,
+        WrprcRequestValidationData(
+            text = Res.string.label_registration_cert,
+            validity = null,
+            infoValid = Res.string.info_text_registration_cert_valid,
+            infoInvalid = Res.string.info_text_registration_cert_invalid,
+            infoMissing = Res.string.info_text_registration_cert_missing,
+        ),
     )
     val registrationCertificate = registrationCertificate ?: return listOf(
         accessCertificateData,
