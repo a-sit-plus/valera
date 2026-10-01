@@ -1,3 +1,6 @@
+# Release 5.9.1 (unreleased):
+ * tbd
+
 # Release 5.9.0:
  * Issuing and presentation: Accept Launchpad `eu-eaa-offer` and `eu-eaap` links on Android and iOS
  * Issuing: Clear stored and cached wallet attestations when wallet attestation is disabled in settings
