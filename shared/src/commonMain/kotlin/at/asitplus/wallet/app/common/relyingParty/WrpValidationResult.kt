@@ -13,7 +13,7 @@ import kotlinx.serialization.Serializable
 /**
  * Validation of the access certificate (WRPAC) and the registration certificate (WRPRC) of a relying party.
  * When a certificate could not be validated at all, e.g. because it could not be parsed, its validation is `null`
- * and its error says why.
+ * and its error says why. When the request does not contain a certificate, its validation and its error are `null`.
  */
 @Serializable
 data class WrpValidationResult(
@@ -22,15 +22,22 @@ data class WrpValidationResult(
     val registrationCertificate: WrprcValidation?,
     val registrationCertificateError: String? = null,
 ) {
+    /** Results are `null` for certificates the request does not contain. */
     constructor(
-        accessCertificate: KmmResult<WrpacValidationResult>,
-        registrationCertificate: KmmResult<WrprcValidationResult>,
+        accessCertificate: KmmResult<WrpacValidationResult>?,
+        registrationCertificate: KmmResult<WrprcValidationResult>?,
     ) : this(
-        accessCertificate = accessCertificate.getOrNull()?.toWrpacValidation(),
-        accessCertificateError = accessCertificate.exceptionOrNull()?.displayText(),
-        registrationCertificate = registrationCertificate.getOrNull()?.toWrprcValidation(),
-        registrationCertificateError = registrationCertificate.exceptionOrNull()?.displayText(),
+        accessCertificate = accessCertificate?.getOrNull()?.toWrpacValidation(),
+        accessCertificateError = accessCertificate?.exceptionOrNull()?.displayText(),
+        registrationCertificate = registrationCertificate?.getOrNull()?.toWrprcValidation(),
+        registrationCertificateError = registrationCertificate?.exceptionOrNull()?.displayText(),
     )
+
+    val accessCertificateMissing: Boolean
+        get() = accessCertificate == null && accessCertificateError == null
+
+    val registrationCertificateMissing: Boolean
+        get() = registrationCertificate == null && registrationCertificateError == null
 
     val displayInfo: WrpDisplayInfo?
         get() = registrationCertificate?.displayInfo

@@ -137,7 +137,9 @@ fun AuthenticationReceivedStartPageContent(
                         ),
                     )
 
-                    wrpValidationResult?.let {
+                    wrpValidationResult?.takeUnless {
+                        it.accessCertificateMissing && it.registrationCertificateMissing
+                    }?.let {
                         DataDisplaySection(
                             title = stringResource(Res.string.label_registration_cert_request),
                         ) {
