@@ -109,7 +109,7 @@ private fun CredentialScheme.isFallback() = this is VcFallbackCredentialScheme
 suspend fun DCQLCredentialQuery.extractConsentData(): DcqlConsentData {
     val representation = when (format) {
         CredentialFormatEnum.DC_SD_JWT -> SD_JWT
-        CredentialFormatEnum.MSO_MDOC -> ISO_MDOC
+        CredentialFormatEnum.MSO_MDOC, CredentialFormatEnum.MSO_MDOC_ZK -> ISO_MDOC
         else -> PLAIN_JWT
     }
 
@@ -123,7 +123,7 @@ suspend fun DCQLCredentialQuery.extractConsentData(): DcqlConsentData {
             meta.typeValues.list.flatten().filterNot { it == VERIFIABLE_CREDENTIAL },
         )
 
-        is DCQLIsoMdocZkCredentialQuery -> TODO()
+        is DCQLIsoMdocZkCredentialQuery -> resolveConsentScheme(ISO_MDOC, listOf(meta.doctypeValue))
     }
 
     // assuming all claims path pointers are single claim references
