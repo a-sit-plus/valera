@@ -526,6 +526,17 @@
     <string name="heading_wrp_attributes_invalid">More attributes requested than registered</string>
     <string name="heading_wrp_more_failures">%1$s (+%2$d)</string>
     <string name="label_wrp_technical_details">Technical details</string>
+    <string name="label_wrp_signers">Signers</string>
+    <string name="label_wrp_registered_credentials">Registered credentials</string>
+    <string name="heading_wrp_signers_not_checked">Signers not checked</string>
+    <string name="heading_wrp_different_relying_parties">Signers identify different relying parties</string>
+    <string name="info_text_wrp_signers_not_checked">The signers of the request could not be checked.</string>
+    <string name="info_text_wrp_different_relying_parties">The access certificates of the signers belong to different relying parties.</string>
+    <string name="info_text_wrp_credentials_not_covered">Some requested credentials are not covered by a registration certificate, e.g. because they belong to another trust framework.</string>
+    <string name="text_wrp_non_eudi_signers">Signers without EU access or registration certificate: %1$s</string>
+    <string name="heading_wrp_evaluating">Evaluating the relying party registration…</string>
+    <string name="heading_wrp_not_provided">No registration certificate</string>
+    <string name="content_description_certificate_details">Show certificate details of %1$s</string>
     <string name="label_access_cert">Access certificate</string>
     <string name="info_text_access_cert_valid">The access certificate of the service provider is valid</string>
     <string name="info_text_access_cert_invalid">The access certificate of the service provider is invalid</string>

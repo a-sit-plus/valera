@@ -305,8 +305,9 @@ private val VerifierSignature.Status.displayText: StringResource
     }
 
 @Composable
-private fun CertificateDetailsDialog(
-    signerId: String,
+internal fun CertificateDetailsDialog(
+    /** The signer using [certificate], or `null` if the certificate belongs to someone else, e.g. a registrar. */
+    signerId: String?,
     certificate: X509Certificate,
     onDismiss: () -> Unit,
 ) {
@@ -316,11 +317,13 @@ private fun CertificateDetailsDialog(
         title = { Text(stringResource(Res.string.trust_certificate_details)) },
         text = {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                LabeledText(
-                    label = stringResource(Res.string.trust_signer),
-                    text = signerId,
-                    modifier = Modifier.padding(bottom = 16.dp),
-                )
+                signerId?.let {
+                    LabeledText(
+                        label = stringResource(Res.string.trust_signer),
+                        text = it,
+                        modifier = Modifier.padding(bottom = 16.dp),
+                    )
+                }
                 LabeledText(
                     label = stringResource(Res.string.text_label_subject),
                     text = details.subject,

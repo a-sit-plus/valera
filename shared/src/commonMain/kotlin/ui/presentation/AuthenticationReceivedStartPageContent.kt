@@ -38,7 +38,6 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
 import at.asitplus.valera.resources.heading_label_show_data_third_party
-import at.asitplus.valera.resources.info_text_registration_cert_missing
 import at.asitplus.valera.resources.label_registration_cert_request
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_requested_data
@@ -51,6 +50,7 @@ import at.asitplus.wallet.app.common.RelyingPartyTrustResult
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.extractConsentData
 import at.asitplus.wallet.app.common.relyingParty.ui.WrprcRequestValidation
+import at.asitplus.wallet.app.common.relyingParty.ui.WrprcRequestValidationEvaluating
 import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
 import at.asitplus.wallet.app.common.toCredentialQueryUiModel
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
@@ -80,6 +80,8 @@ fun AuthenticationReceivedStartPageContent(
     trustListService: TrustListService,
     request: RequestParametersFrom<*>? = null,
     wrpValidationResult: WrpValidationResult? = null,
+    /** Whether [wrpValidationResult] is still being evaluated, shown like the trust evaluation. */
+    wrpValidationPending: Boolean = false,
     /** For a multisigned request, which of its signatures the wallet authenticated. */
     verifierSignatures: List<VerifierSignature>? = null,
 ) {
@@ -129,20 +131,13 @@ fun AuthenticationReceivedStartPageContent(
                         trustResult = relyingPartyTrust,
                     )
 
-                    wrpValidationResult?.takeUnless {
-                        it.accessCertificateMissing && it.registrationCertificateMissing
-                    }?.let {
-                        DataDisplaySection(
-                            title = stringResource(Res.string.label_registration_cert_request),
-                        ) {
-                            WrprcRequestValidation(it)
-                        }
-                    } ?: run {
-                        Column(modifier = Modifier.padding(vertical = 20.dp)) {
-                            Text(
-                                stringResource(Res.string.info_text_registration_cert_missing),
-                                fontWeight = FontWeight.Bold
-                            )
+                    DataDisplaySection(
+                        title = stringResource(Res.string.label_registration_cert_request),
+                    ) {
+                        if (wrpValidationPending) {
+                            WrprcRequestValidationEvaluating()
+                        } else {
+                            WrprcRequestValidation(wrpValidationResult)
                         }
                     }
 

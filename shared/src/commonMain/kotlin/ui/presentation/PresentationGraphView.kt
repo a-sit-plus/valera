@@ -57,6 +57,8 @@ fun PresentationGraphView(
     trustListService: TrustListService,
     fixedCredentialSelection: Boolean = false,
     wrpValidationResult: WrpValidationResult? = null,
+    /** Whether [wrpValidationResult] is still being evaluated, e.g. until the request is validated. */
+    wrpValidationPending: Boolean = false,
 ) {
     LaunchedEffect(selectionProvider) {
         selectionProvider.let {
@@ -131,6 +133,7 @@ fun PresentationGraphView(
                     trustListService = trustListService,
                     request = request,
                     wrpValidationResult = wrpValidationResult,
+                    wrpValidationPending = wrpValidationPending,
                     verifierSignatures = verifierSignatures,
                 )
             }

@@ -18,7 +18,6 @@ import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.extractConsentData
 import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
 import at.asitplus.wallet.app.common.toCredentialQueryUiModel
-import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.WrpCredentialRequest
 import at.asitplus.wallet.lib.openid.VerifierSignature
 
 /**
@@ -103,12 +102,8 @@ fun DCQLPresentationBuilderGraphViewContent(
         }.onFailure(errorAction).getOrNull()
     }
     val credentialQueryUiModels = consentData?.mapValues { entry ->
-        val matchedValidation = wrpValidationResult?.requestDataValidationResults?.firstOrNull {
-            (it.request as? WrpCredentialRequest.WrpDcqlCredentialQuery)?.let {
-                it.query.id.string == entry.key.string
-            } == true
-        }
-        val allowedAttributes = matchedValidation?.validity?.credentialAttributesValidity
+        // allowed by every registration certificate that applies, e.g. of each signer of a multisigned request
+        val allowedAttributes = wrpValidationResult?.allowedAttributes(entry.key.string)
         entry.value.toCredentialQueryUiModel(allowedAttributes)
     } ?: return
 

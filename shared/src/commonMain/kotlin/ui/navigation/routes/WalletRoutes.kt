@@ -157,18 +157,13 @@ data class AuthenticationViewRoute(
 @Serializable
 data class DCAPIPresentationViewRoute(
     val apiRequestSerialized: String,
-    val wrpRequestValidationResultSerialized: String?
 ) : Route() {
-    constructor(request: RequestParametersFrom.DcApiRequest, wrpValidationResult: WrpValidationResult? = null) : this(
+    constructor(request: RequestParametersFrom.DcApiRequest) : this(
         apiRequestSerialized = joseCompliantSerializer.encodeToString<RequestParametersFrom.DcApiRequest>(request),
-        wrpRequestValidationResultSerialized = joseCompliantSerializer.encodeToString(wrpValidationResult)
     )
 
     val request: RequestParametersFrom.DcApiRequest
         get() = joseCompliantSerializer.decodeFromString(apiRequestSerialized)
-
-    val wrpValidationResult: WrpValidationResult?
-        get() = wrpRequestValidationResultSerialized?.let { joseCompliantSerializer.decodeFromString(it) }
 }
 
 @Serializable

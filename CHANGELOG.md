@@ -6,6 +6,7 @@
  * Trust: Show untrusted parties in orange and unknown trust in yellow, reserving red for invalid signatures
  * Presentation: Show trust and request validation as matching collapsible cards in their own sections, name the first failed check in the request header, and show technical error details only on request
  * Presentation: Show the signer and its certificate details also for single-signed requests
+ * Presentation: Check WRPAC and WRPRC of every authenticated signer of multisigned requests, requiring all EU signers to pass, and validate the relying party of DC API requests only once the request is validated
 
 # Release 5.9.0:
  * Issuing and presentation: Accept Launchpad `eu-eaa-offer` and `eu-eaap` links on Android and iOS

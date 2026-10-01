@@ -532,6 +532,17 @@
     <string name="heading_wrp_attributes_invalid">Mehr Attribute angefragt als registriert</string>
     <string name="heading_wrp_more_failures">%1$s (+%2$d)</string>
     <string name="label_wrp_technical_details">Technische Details</string>
+    <string name="label_wrp_signers">Signierende</string>
+    <string name="label_wrp_registered_credentials">Registrierte Credentials</string>
+    <string name="heading_wrp_signers_not_checked">Signierende nicht geprüft</string>
+    <string name="heading_wrp_different_relying_parties">Signierende identifizieren unterschiedliche Service Provider</string>
+    <string name="info_text_wrp_signers_not_checked">Die Signierenden der Anfrage konnten nicht geprüft werden.</string>
+    <string name="info_text_wrp_different_relying_parties">Die Zugangszertifikate der Signierenden gehören zu unterschiedlichen Service Providern.</string>
+    <string name="info_text_wrp_credentials_not_covered">Einige angefragte Credentials sind von keinem Registrierungszertifikat abgedeckt, z. B. weil sie zu einem anderen Vertrauensrahmen gehören.</string>
+    <string name="text_wrp_non_eudi_signers">Signierende ohne EU-Zugangs- oder Registrierungszertifikat: %1$s</string>
+    <string name="heading_wrp_evaluating">Registrierung des Service Providers wird geprüft…</string>
+    <string name="heading_wrp_not_provided">Kein Registrierungszertifikat</string>
+    <string name="content_description_certificate_details">Zertifikatsdetails von %1$s anzeigen</string>
     <string name="label_access_cert">Zugangszertifikat</string>
     <string name="info_text_access_cert_valid">Das Zugangszertifikat des Service Provider ist gültig</string>
     <string name="info_text_access_cert_invalid">Das Zugangszertifikat des Service Provider ist ungültig</string>
