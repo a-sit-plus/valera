@@ -13,6 +13,7 @@ import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.data.IsoMdocCredentialScheme
 import at.asitplus.wallet.lib.data.SdJwtCredentialScheme
 import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
+import at.asitplus.wallet.lib.data.VcDataModelConstants.VERIFIABLE_CREDENTIAL
 import at.asitplus.wallet.lib.data.VcJwtCredentialScheme
 import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
@@ -170,10 +171,11 @@ class PersistentSubjectCredentialStore(
                     is ExportableStoreEntry.Iso -> {
                         SubjectCredentialStore.StoreEntry.Iso(
                             issuerSigned = storeEntry.issuerSigned,
-                            schemaUri = "not relevant",
                             renewalInfo = storeEntry.renewalInfo,
-                            schemeIdentifier = storeEntry.schemeIdentifier,
-                            issuer = storeEntry.issuer
+                            issuer = storeEntry.issuer,
+                            schemeIdentifier = storeEntry.schemeIdentifier
+                                ?: storeEntry.issuerSigned.issuerAuth.payload?.docType
+                                ?: "unknown",
                         )
                     }
 
@@ -182,10 +184,10 @@ class PersistentSubjectCredentialStore(
                             vcSerialized = storeEntry.vcSerialized,
                             sdJwt = storeEntry.sdJwt,
                             disclosures = storeEntry.disclosures,
-                            schemaUri = "not relevant",
                             renewalInfo = storeEntry.renewalInfo,
-                            schemeIdentifier = storeEntry.schemeIdentifier,
-                            issuer = storeEntry.issuer
+                            issuer = storeEntry.issuer,
+                            schemeIdentifier = storeEntry.schemeIdentifier
+                                ?: storeEntry.sdJwt.verifiableCredentialType,
                         )
                     }
 
@@ -193,10 +195,11 @@ class PersistentSubjectCredentialStore(
                         SubjectCredentialStore.StoreEntry.Vc(
                             vcSerialized = storeEntry.vcSerialized,
                             vc = storeEntry.vc,
-                            schemaUri = "not relevant",
                             renewalInfo = storeEntry.renewalInfo,
-                            schemeIdentifier = storeEntry.schemeIdentifier,
-                            issuer = storeEntry.issuer
+                            issuer = storeEntry.issuer,
+                            schemeIdentifier = storeEntry.schemeIdentifier
+                                ?: storeEntry.vc.vc.type.filterNot { it == VERIFIABLE_CREDENTIAL }.firstOrNull()
+                                ?: "unknown",
                         )
                     }
                 }

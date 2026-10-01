@@ -27,6 +27,7 @@ fun CredentialSetQueryOptionSelectionCard(
     colors: CardColors? = null,
     isSelectedForPresentation: Boolean = false,
     isFaded: Boolean = false,
+    credentialAllowedAttributes:  Map<String, Boolean>? = null,
 ) {
 // No credentials available, show the query that didn't match against anything
     ElevatedCard(
@@ -57,6 +58,7 @@ fun CredentialSetQueryOptionSelectionCard(
                 credentialRepresentationLocalized = credentialRepresentationLocalized,
                 credentialSchemeLocalized = credentialSchemeLocalized,
                 credentialAttributesLocalized = credentialAttributesLocalized,
+                credentialAllowedAttributes = credentialAllowedAttributes
             )
         }
     }

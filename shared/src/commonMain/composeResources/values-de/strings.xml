@@ -34,6 +34,7 @@
     <string name="button_label_cancel">Abbrechen</string>
     <string name="button_label_consent">Zustimmen</string>
     <string name="button_label_continue">Weiter</string>
+    <string name="button_label_submit">Übermitteln</string>
     <string name="button_label_details">Details</string>
     <string name="button_label_delete_credential">Löschen</string>
     <string name="button_label_share">Teilen</string>
@@ -138,7 +139,7 @@
     <string name="text_label_valid_to">Gültig bis</string>
     <string name="text_label_optional">Optional</string>
     <string name="text_label_all_claims_requested">Alle Attribute</string>
-    <string name="text_label_check_all">Alle auswählen</string>
+    <string name="text_label_intent_to_retain">wird gespeichert</string>
     <string name="text_label_powered_by">POWERED BY</string>
     <string name="text_label_certificate">Zertifikat</string>
     <string name="text_label_vda">VDA</string>
@@ -207,7 +208,6 @@
     <string name="error_credential_status_invalid">UNGÜLTIG</string>
     <string name="error_credential_timeliness_expired">ABGELAUFEN</string>
     <string name="error_credential_timeliness_not_yet_valid">NOCH NICHT GÜLTIG</string>
-    <string name="error_credential_selection_error_invalid_request_id">Keine Auswahl mit requestId</string>
     <string name="error_credential_scheme_not_supported">Credential Schema wird nicht unterstützt</string>
     <string name="error_authentication_at_sp_failed">Anmeldung fehlgeschlagen</string>
     <string name="error_biometric_error_no_hardware">Keine kryptografische Hardware gefunden.</string>
@@ -233,7 +233,6 @@
     <string name="error_qr_code_scanning_invalid_metadata_jws_object_signature">Ungültige Metadaten Signatur</string>
     <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">Client-ID ist nicht in den Metadaten unter `redirect_uris` enthalten.</string>
     <string name="error_missing_value">Fehler es sind keine Daten gegeben</string>
-    <string name="error_no_requests">Es sind keine Anfragen vorhanden</string>
     <string name="error_clearing_log_failed">Log konnte nicht gelöscht werden.</string>
     <string name="error_resetting_app_failed">App konnte nicht zurückgesetzt werden.</string>
 
@@ -471,12 +470,43 @@
     <string name="trust_status_untrusted">Nicht vertrauenswürdiger Aussteller</string>
     <string name="trust_status_unknown">Vertrauensstatus unbekannt</string>
     <string name="trust_status_evaluating">Vertrauensstatus wird geprüft…</string>
+    <string name="trust_status_trusted_verifier">Vertrauenswürdiger Service Provider</string>
+    <string name="trust_status_untrusted_verifier">Nicht vertrauenswürdiger Service Provider</string>
+    <string name="trust_status_title">Vertrauensstatus</string>
 
     <string name="section_heading_issuer_trust">Aussteller-Vertrauensdetails</string>
     <string name="section_heading_issuer_trust_icon_text">ITD</string>
     <string name="text_label_issued_by">Aussteller</string>
     <string name="text_label_trust_status">Status</string>
     <string name="text_label_thumbprint">Fingerabdruck</string>
+    <string name="text_label_trust_list_stage_acceptance">Abnahme</string>
+    <string name="text_label_trust_list_stage_development">Entwicklung</string>
+    <string name="text_label_trust_list_stage_production">Produktion</string>
     <string name="text_label_trust_list_urls">Vertrauenslisten-URLs</string>
 
+    <!-- Access / Registration Certificate -->
+    <string name="label_registration_cert_request">Abfrage</string>
+    <string name="label_registration_cert_valid">Gültig</string>
+    <string name="label_registration_cert_invalid">Ungültig</string>
+    <string name="label_registration_cert">Zertifikat</string>
+    <string name="label_registration_cert_credential_typ">Credential-Typ</string>
+    <string name="label_registration_cert_attributes">Attribute</string>
+    <string name="label_registration_cert_identifier">Identifikation</string>
+    <string name="label_registration_cert_details_trade_name">Handelsbezeichnung</string>
+    <string name="label_registration_cert_details_purpose">Zweck</string>
+    <string name="label_registration_cert_details_country">Land</string>
+    <string name="label_registration_cert_details_service_description">Service-Beschreibung</string>
+    <string name="label_registration_cert_more_details">Mehr Details</string>
+    <string name="label_registration_cert_info_uri">Info URL</string>
+    <string name="label_registration_cert_support_uri">Support URL</string>
+
+    <string name="info_text_registration_cert_missing">Der Service Provider hat kein Zertifikat zu dieser Anfrage mitgesendet</string>
+    <string name="info_text_registration_cert_valid">Der Service Provider hat ein gültiges Zertifikat</string>
+    <string name="info_text_registration_cert_invalid">Das Zertifikat des Service Provider ist ungültig!</string>
+    <string name="info_text_registration_cert_typ_valid">Die angefragten Credential-Typen sind erlaubt</string>
+    <string name="info_text_registration_cert_typ_invalid">Es werden andere Credential-Typen abgefragt als erlaubt!</string>
+    <string name="info_text_registration_cert_identifier_valid">Identifikation des Service Provider ist korrekt</string>
+    <string name="info_text_registration_cert_identifier_invalid">Der Service Provider verwendet eine andere Identifikation als registriert wurde!</string>
+    <string name="info_text_registration_cert_requested_claim_invalid">Es werden mehr Attribute abgefragt als erlaubt!</string>
+    <string name="info_text_registration_cert_requested_claim_valid">Die abgefragten Attribute sind erlaubt</string>
 </resources>

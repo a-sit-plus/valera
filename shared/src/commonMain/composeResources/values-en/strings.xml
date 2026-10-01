@@ -34,6 +34,7 @@
     <string name="button_label_cancel">Cancel</string>
     <string name="button_label_consent">Consent</string>
     <string name="button_label_continue">Continue</string>
+    <string name="button_label_submit">Submit</string>
     <string name="button_label_details">Details</string>
     <string name="button_label_delete_credential">Delete</string>
     <string name="button_label_share">Share</string>
@@ -143,7 +144,7 @@
     <string name="text_label_mandatory_dataset_description">The service requires one of the following datasets</string>
     <string name="text_label_optional_dataset">Optional dataset</string>
     <string name="text_label_optional_dataset_description">Optionally the service requests one of the following datasets</string>
-    <string name="text_label_check_all">Check all</string>
+    <string name="text_label_intent_to_retain">will be stored</string>
     <string name="text_label_powered_by">POWERED BY</string>
     <string name="text_label_certificate">Certificate</string>
     <string name="text_label_vda">VDA</string>
@@ -238,7 +239,6 @@
     <string name="error_qr_code_scanning_invalid_metadata_jws_object_signature">Invalid metadataJws signature</string>
     <string name="error_qr_code_scanning_client_id_not_in_redirect_uris">Client id not in client metadata redirect uris</string>
     <string name="error_missing_value">Error no value given</string>
-    <string name="error_no_requests">No requests found</string>
     <string name="error_clearing_log_failed">Deleting log failed.</string>
     <string name="error_resetting_app_failed">Resetting the app failed.</string>
 
@@ -464,12 +464,43 @@
     <string name="trust_status_untrusted">Untrusted Issuer</string>
     <string name="trust_status_unknown">Trust Status Unknown</string>
     <string name="trust_status_evaluating">Evaluating Trust…</string>
+    <string name="trust_status_trusted_verifier">Trusted Relying Party</string>
+    <string name="trust_status_untrusted_verifier">Untrusted Relying Party</string>
+    <string name="trust_status_title">Trust State</string>
 
     <string name="section_heading_issuer_trust">Issuer Trust Details</string>
     <string name="section_heading_issuer_trust_icon_text">ITD</string>
     <string name="text_label_issued_by">Issuer</string>
     <string name="text_label_trust_status">Status</string>
     <string name="text_label_thumbprint">Fingerprint</string>
+    <string name="text_label_trust_list_stage_acceptance">Acceptance</string>
+    <string name="text_label_trust_list_stage_development">Development</string>
+    <string name="text_label_trust_list_stage_production">Production</string>
     <string name="text_label_trust_list_urls">Trust List URLs</string>
 
+    <!-- Access / Registration Certificate -->
+    <string name="label_registration_cert_request">Request</string>
+    <string name="label_registration_cert_valid">Valid</string>
+    <string name="label_registration_cert_invalid">Invalid</string>
+    <string name="label_registration_cert">Certificate</string>
+    <string name="label_registration_cert_credential_typ">Credential type</string>
+    <string name="label_registration_cert_attributes">Attributes</string>
+    <string name="label_registration_cert_identifier">Identifier</string>
+    <string name="label_registration_cert_details_trade_name">Trade name</string>
+    <string name="label_registration_cert_details_purpose">Purpose</string>
+    <string name="label_registration_cert_details_country">Country</string>
+    <string name="label_registration_cert_details_service_description">Service description</string>
+    <string name="label_registration_cert_more_details">More details</string>
+    <string name="label_registration_cert_info_uri">Info uri</string>
+    <string name="label_registration_cert_support_uri">Support uri</string>
+
+    <string name="info_text_registration_cert_missing">No registration certificate has been provided in the request.</string>
+    <string name="info_text_registration_cert_valid">The certificate of the service provider is valid</string>
+    <string name="info_text_registration_cert_invalid">The certificate of the service provider is invalid!</string>
+    <string name="info_text_registration_cert_typ_valid">The requested credential types are valid</string>
+    <string name="info_text_registration_cert_typ_invalid">The requested credential types are invalid</string>
+    <string name="info_text_registration_cert_identifier_invalid">The service provider uses a different identifier than registered!</string>
+    <string name="info_text_registration_cert_identifier_valid">The identifier of the service provider is correct</string>
+    <string name="info_text_registration_cert_requested_claim_invalid">The service provider requests more attributes than registered!</string>
+    <string name="info_text_registration_cert_requested_claim_valid">The requested attributes are correct</string>
 </resources>

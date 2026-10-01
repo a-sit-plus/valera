@@ -7,7 +7,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_error_action_reset_app
 import at.asitplus.valera.resources.info_text_error_action_start_screen
 import at.asitplus.valera.resources.info_text_error_cause_reset_app
-import at.asitplus.wallet.app.common.enrichMessage
+import at.asitplus.wallet.lib.ktor.openid.HttpErrorResponseException
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
@@ -19,14 +19,16 @@ class ErrorViewModel(
     val throwable: Throwable,
     val onClickLogo: () -> Unit,
     val onClickSettings: () -> Unit
-){
+) {
     var onClickButton: () -> Unit
     var actionDescription: StringResource
     var textCause: String?
 
     private val displayThrowable = (throwable as? ErrorHandlingOverrideException)?.cause ?: throwable
-    val message = displayThrowable.enrichMessage()
-    val cause = displayThrowable.cause?.toString()
+    val message = displayThrowable.message ?: displayThrowable.toString()
+    val cause = (displayThrowable as? HttpErrorResponseException)?.let {
+        it.oauth2Error?.toString() ?: it.problemDetails?.toString() ?: it.responseBody.take(200)
+    } ?: displayThrowable.cause?.toString()
     private val isAppResetRequired = message == AppResetRequiredException.toString()
 
     init {
@@ -42,6 +44,7 @@ class ErrorViewModel(
                 actionDescription = Res.string.info_text_error_action_reset_app
                 textCause = runBlocking { getString(Res.string.info_text_error_cause_reset_app) }
             }
+
             exceptionOverride?.hasUiOverride == true -> {
                 onClickButton = {
                     clearError()
@@ -51,6 +54,7 @@ class ErrorViewModel(
                 actionDescription = exceptionOverride.actionDescriptionOverride!!
                 textCause = cause
             }
+
             else -> {
                 onClickButton = {
                     clearError()

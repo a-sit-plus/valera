@@ -29,8 +29,7 @@ import at.asitplus.valera.resources.presentation_waiting_for_request
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.presentation.MdocPresentmentMechanism
-import at.asitplus.wallet.lib.openid.DCQLMatchingResult
-import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
+import at.asitplus.wallet.lib.agent.IsoDeviceRetrievalMatchingResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -41,14 +40,14 @@ import org.multipaz.compose.permissions.rememberBluetoothPermissionState
 import ui.composables.buttons.CancelButton
 import ui.viewmodels.authentication.AuthenticationConsentViewModel
 import ui.viewmodels.authentication.AuthenticationNoCredentialViewModel
-import ui.viewmodels.authentication.AuthenticationSelectionPresentationExchangeViewModel
+import ui.viewmodels.authentication.AuthenticationSelectionIsoDeviceRequestViewModel
 import ui.viewmodels.authentication.AuthenticationViewState
 import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.authentication.PresentationViewModel
 import ui.views.LoadingView
 import ui.views.authentication.AuthenticationConsentView
 import ui.views.authentication.AuthenticationNoCredentialView
-import ui.views.authentication.AuthenticationSelectionPresentationExchangeView
+import ui.views.authentication.AuthenticationSelectionIsoDeviceRequestView
 import ui.views.authentication.AuthenticationSelectionViewScaffold
 import kotlin.time.Duration.Companion.seconds
 
@@ -136,9 +135,11 @@ fun PresentationView(
                             walletMain = presentationViewModel.walletMain,
                             presentationRequest = presentationViewModel.presentationRequest,
                             onClickLogo = presentationViewModel.onClickLogo,
-                            onUnauthenticated = {}
+                            onUnauthenticated = {},
+                            verifierCertificateChain = presentationViewModel.verifierCertificateChain
                         ),
-                        onError = onError
+                        onError = onError,
+                        trustListService = trustListService
                     )
                 }
 
@@ -151,7 +152,7 @@ fun PresentationView(
 
                 AuthenticationViewState.Selection -> {
                     when (val matching = presentationViewModel.matchingCredentials) {
-                        is DCQLMatchingResult -> {
+                        is at.asitplus.wallet.lib.agent.DCQLMatchingResult -> {
                             AuthenticationSelectionViewScaffold(
                                 title = stringResource(Res.string.heading_label_select_data),
                                 onNavigateUp = presentationViewModel.navigateUp,
@@ -168,19 +169,22 @@ fun PresentationView(
                             }
                         }
 
-                        is PresentationExchangeMatchingResult -> {
-                            AuthenticationSelectionPresentationExchangeView(
-                                vm = AuthenticationSelectionPresentationExchangeViewModel(
+                        is IsoDeviceRetrievalMatchingResult -> {
+                            AuthenticationSelectionIsoDeviceRequestView(
+                                vm = AuthenticationSelectionIsoDeviceRequestViewModel(
                                     confirmSelections = { selections ->
                                         presentationViewModel.confirmSelection(selections)
                                     },
                                     navigateUp = { presentationViewModel.viewState = AuthenticationViewState.Consent },
                                     credentialMatchingResult = matching
                                 ),
-                                onError = onError,
                                 onClickLogo = presentationViewModel.onClickLogo,
                                 trustListService = trustListService
                             )
+                        }
+
+                        else -> LaunchedEffect(matching::class.simpleName) {
+                            onError(UnsupportedOperationException("Unsupported credential matching result: ${matching::class.simpleName}"))
                         }
                     }
                 }

@@ -13,6 +13,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.button_label_continue
+import org.jetbrains.compose.resources.StringResource
 import ui.composables.buttons.BackButton
 import ui.composables.buttons.CancelButton
 import ui.composables.buttons.ContinueButton
@@ -23,6 +26,7 @@ fun CommonBottomButtonsAbortContinue(
     onAbort: () -> Unit,
     onContinue: (() -> Unit)?,
     useBackButton: Boolean = false,
+    continueButtonLabel: StringResource = Res.string.button_label_continue,
 ) {
     Surface(
         color = NavigationBarDefaults.containerColor,
@@ -51,7 +55,7 @@ fun CommonBottomButtonsAbortContinue(
                 } else {
                     CancelButton(onAbort)
                 }
-                ContinueButton(onContinue)
+                ContinueButton(onContinue, label = continueButtonLabel)
             }
         }
     }

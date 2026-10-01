@@ -4,16 +4,18 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import at.asitplus.openid.RequestParametersFrom
-import at.asitplus.wallet.lib.openid.DCQLMatchingResult
+import at.asitplus.wallet.lib.agent.DCQLMatchingResult
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope
 
+@OptIn(ExperimentalComposeUiApi::class)
 @ExperimentalMaterial3Api
 @Composable
 fun DCAPIPresentationGraphView(
     onNavigateUp: () -> Unit,
-    onError: (Throwable) -> Unit,
+    errorAction: (Throwable) -> Unit,
     onClickLogo: () -> Unit,
     koinScope: Scope,
     showStartRoute: Boolean = true,
@@ -22,7 +24,7 @@ fun DCAPIPresentationGraphView(
     val dcApiRequest = try {
         viewModel.dcApiWalletRequest.getOrThrow()
     } catch (it: Throwable) {
-        return onError(it)
+        return errorAction(it)
     }
 
     val spName = dcApiRequest.callingPackageName
@@ -49,7 +51,7 @@ fun DCAPIPresentationGraphView(
         serviceProviderLocationLocalized = spLocation,
         authenticateAtRelyingParty = authenticateAtRelyingParty,
         onNavigateUp = onNavigateUp,
-        onError = onError,
+        onError = errorAction,
         onClickLogo = onClickLogo,
         navigateUpIsClose = true,
         selectionProvider = matchingResult.map {
@@ -58,7 +60,7 @@ fun DCAPIPresentationGraphView(
         submitPresentation = { it, navigate ->
             viewModel.confirmSelection(
                 credentialPresentationSubmissions = it,
-                onFailure = onError,
+                onFailure = errorAction,
                 onSuccess = {
                     navigate(
                         PresentationSuccessRoute(
@@ -80,6 +82,8 @@ fun DCAPIPresentationGraphView(
         credentialQueryIdsSelectedForPresentation = selectedCredentialQueryIds,
         showStartRoute = showStartRoute,
         fixedCredentialSelection = dcApiRequest.credentialIds?.isNotEmpty() == true,
-        trustListService = viewModel.trustListService
+        trustListService = viewModel.trustListService,
+        request = dcApiRequest,
+        wrpValidationResult = viewModel.wrpValidationResult,
     )
 }

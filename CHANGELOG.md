@@ -1,8 +1,28 @@
-# Release 5.8.3:
+# Release 5.9.0:
+ * Issuing and presentation: Accept Launchpad `eu-eaa-offer` and `eu-eaap` links on Android and iOS
+ * Issuing: Clear stored and cached wallet attestations when wallet attestation is disabled in settings
+ * Build: Downgrade the Gradle wrapper to 9.6.1
+ * Build: Upgrade to the 20260828 conventions plugin and AGP 9, migrate the shared module to the new Kotlin Multiplatform Android library plugin API, and move the Android app to AGP built-in Kotlin
+ * Build: Drop unused Android dependencies from the shared module and declare the Android app's own entry-point dependencies explicitly
+ * Update to VC-K 8.0.0
+ * Update to Multipaz 0.101.0
  * Credentials: Move expensive credential-list preparation and trust evaluation off the UI thread
  * DC API: Register unknown credential schemes with fallback metadata and preserve claim comparison values
+ * DC API: Update the Android verification matcher from upstream Multipaz
  * DC API: Improve request grouping, fixed selections, loading and error handling, and credential selection layout
  * DC API: Match requests without claim constraints and display their mandatory attributes
+ * Local transfer: Replace the malformed Bluetooth graphic with the official Material icon
+ * Presentation: Label the final confirmation action Submit
+ * Display trust evaluation of the Relying Party
+ * Trust Lists: Load the Lists of Trusted Entities of the development stage as well as the acceptance stage, let every stage (acceptance, development, production) be enabled separately in the settings, and drop the cached lists of a stage when it is disabled
+ * Trust Lists: Remove disabled-stage cache entries atomically when multiple wallet sessions access the store
+ * Presentation: Replace remaining Presentation Exchange flows with DCQL and ISO DeviceRequest, including proximity and ISO DC API requests
+ * Presentation: Label and show the value of every attribute an ISO DeviceRequest discloses, on both the selection and the confirmation screen
+ * Presentation: Keep every requested DCQL attribute visible even when its value cannot be rendered
+ * Presentation: Mark the requested attributes a verifier intends to retain beyond the transaction
+ * Add WRPAC and WRPRC validation
+ * Presentation: Answer ISO mdoc zero-knowledge proof requests with the Longfellow-ZK backend of `vck-longfellow`
+ * DC API: Validate WRPAC and WRPRC of ISO mdoc requests against the DC API session transcript
 
 # Release 5.8.2:
  * Networking: Use explicit CIO and Darwin HTTP engines and make Android debug trust configuration compatible with CIO

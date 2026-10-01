@@ -3,7 +3,6 @@ package at.asitplus.wallet.app.common.domain.vck.di
 import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.domain.vck.JsonWebKeySetResolver
 import at.asitplus.wallet.app.common.domain.vck.PublicKeyResolver
-import at.asitplus.wallet.app.common.domain.vck.tokenStatusList.StatusListTokenResolver
 import at.asitplus.wallet.app.common.domain.vck.tokenStatusList.di.tokenStatusListModule
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
@@ -11,8 +10,9 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.agent.ValidatorSdJwt
 import at.asitplus.wallet.lib.agent.ValidatorVcJws
+import at.asitplus.wallet.lib.agent.validation.StatusListTokenResolver
 import at.asitplus.wallet.lib.agent.validation.TokenStatusResolverImpl
-import at.asitplus.wallet.lib.jws.VerifyJwsObject
+import at.asitplus.wallet.lib.jws.VerifyJwsObjectTrusted
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -40,8 +40,8 @@ fun vckModule() = module {
                 keyMaterial = keyMaterial,
                 subjectCredentialStore = subjectCredentialStore,
                 validator = validator,
-                validatorVcJws = ValidatorVcJws(verifyJwsObject = VerifyJwsObject(publicKeyLookup = publicKeyResolver::invoke)),
-                validatorSdJwt = ValidatorSdJwt(verifyJwsObject = VerifyJwsObject(publicKeyLookup = publicKeyResolver::invoke))
+                validatorVcJws = ValidatorVcJws(verifyJwsObject = VerifyJwsObjectTrusted(trustedKeys = publicKeyResolver::invoke)),
+                validatorSdJwt = ValidatorSdJwt(verifyJwsObject = VerifyJwsObjectTrusted(trustedKeys = publicKeyResolver::invoke))
             )
         }
         scoped<CredentialFreshnessSummaryModelEvaluator> {

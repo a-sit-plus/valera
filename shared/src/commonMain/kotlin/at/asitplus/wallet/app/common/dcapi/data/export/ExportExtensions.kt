@@ -19,7 +19,7 @@ internal fun String.toJsonPath() = NormalizedJsonPath(
 )
 
 internal fun NormalizedJsonPath.toDcqlPathKey() =
-    segments.filterIsInstance<NormalizedJsonPathSegment.NameSegment>()
+    filterIsInstance<NormalizedJsonPathSegment.NameSegment>()
         .joinToString(".") { it.memberName }
         .ifEmpty { toString() }
 

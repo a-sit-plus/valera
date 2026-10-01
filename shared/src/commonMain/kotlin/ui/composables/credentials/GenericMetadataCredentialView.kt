@@ -41,7 +41,7 @@ fun GenericMetadataCredentialView(
         grouped.forEach { (groupKey, items) ->
             // Show a group header only when there are multiple groups and this one has nested sub-claims
             // (e.g. address.region, address.locality). A single group would just duplicate the credential heading.
-            if (grouped.size > 1 && items.any { it.first.segments.size > 1 }) {
+            if (grouped.size > 1 && items.any { it.first.size > 1 }) {
                 val groupLabel = credential.scheme.metadataLabel(NormalizedJsonPath() + groupKey) ?: groupKey
                 PersonAttributeDetailCardHeading(
                     title = groupLabel,

@@ -2,6 +2,7 @@ package ui.viewmodels.authentication
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.openid.TransactionDataBase64Url
+import at.asitplus.signum.indispensable.pki.CertificateChain
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 
@@ -16,7 +17,8 @@ class AuthenticationConsentViewModel(
     val walletMain: WalletMain,
     val presentationRequest: CredentialPresentationRequest,
     val onClickLogo: () -> Unit,
-    val onUnauthenticated: () -> Unit = navigateUp
+    val onUnauthenticated: () -> Unit = navigateUp,
+    val verifierCertificateChain: CertificateChain? = null
 ) {
     val consentToDataTransmission: () -> Unit = {
         buttonConsent()

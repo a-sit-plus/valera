@@ -242,6 +242,7 @@ private fun TransientFlowNavHost(
             IosDcApiPreRequestView(
                 intentState = intentState,
                 onError = onError,
+                trustListService = walletMain.trustListService
             )
         }
 

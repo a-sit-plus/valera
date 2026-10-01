@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import at.asitplus.KmmResult
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.catching
 import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.openid.dcql.DCQLCredentialQueryMatchingResult
@@ -16,9 +17,10 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.unexpected_screen_text
 import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.TrustListService
+import at.asitplus.wallet.lib.agent.DCQLMatchingResult
+import at.asitplus.wallet.lib.agent.IsoDeviceRetrievalMatchingResult
+import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.openid.DCQLMatchingResult
-import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
 import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.DCQLCredentialQuerySubmissionSelectionOption
@@ -27,8 +29,10 @@ import ui.models.CredentialFreshnessValidationStateUiModel
 import ui.viewmodels.authentication.AuthenticationNoCredentialViewModel
 import ui.viewmodels.authentication.CredentialPresentationSubmissions
 import ui.viewmodels.authentication.DCQLCredentialSubmissions
+import ui.viewmodels.authentication.AuthenticationSelectionIsoDeviceRequestViewModel
 import ui.views.LoadingView
 import ui.views.authentication.AuthenticationNoCredentialView
+import ui.views.authentication.AuthenticationSelectionIsoDeviceRequestView
 import kotlin.time.Duration.Companion.seconds
 
 private typealias FixedDcApiSubmissions = Map<
@@ -50,7 +54,9 @@ fun PresentationBuilderGraphView(
     onNavigateToPresentationStart: () -> Unit,
     onSubmit: (CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>) -> Unit,
     trustListService: TrustListService,
+    request: RequestParametersFrom<*>,
     fixedCredentialSelection: Boolean = false,
+    wrpValidationResult: WrpValidationResult? = null,
 ) {
     when (selectionProvider) {
         is UiStateError -> CommonPresentationPageScaffold(
@@ -115,6 +121,8 @@ fun PresentationBuilderGraphView(
                             onSubmit = {
                                 onSubmit(DCQLCredentialSubmissions(fixedSubmissions))
                             },
+                            trustListService = trustListService,
+                            request = request
                         )
                     } else {
                         DCQLPresentationBuilderGraphView(
@@ -132,15 +140,20 @@ fun PresentationBuilderGraphView(
                             selectableCredentialSubmissionCards = selectableCredentialSubmissionCards,
                             onSubmit = {
                                 val submissions = it.mapValues { (queryId, submissionIndices) ->
-                                    val matches = selectionProvider.value.queryMatchingResult.matchingResult.dcqlQueryMatchingResult.credentialMatchingResults[queryId]
-                                        ?: return@DCQLPresentationBuilderGraphView onError(IllegalStateException("Failed to find submission options for unknown credential query identifier $queryId"))
+                                    val matches =
+                                        selectionProvider.value.queryMatchingResult.matchingResult.dcqlQueryMatchingResult.credentialMatchingResults[queryId]
+                                            ?: return@DCQLPresentationBuilderGraphView onError(IllegalStateException("Failed to find submission options for unknown credential query identifier $queryId"))
                                     submissionIndices.map {
-                                        val credentialMatchingResult = matches.getOrNull(it.toInt())?.getOrNull() ?: return@DCQLPresentationBuilderGraphView onError(
-                                            IllegalStateException("Failed to find submission option index $it for credential query identifier $queryId")
-                                        )
-                                        val credential = selectionProvider.value.queryMatchingResult.matchingResult.credentials.getOrNull(it.toInt()) ?: return@DCQLPresentationBuilderGraphView onError(
-                                            IllegalStateException("Failed to find credential at index $it")
-                                        )
+                                        val credentialMatchingResult = matches.getOrNull(it.toInt())?.getOrNull()
+                                            ?: return@DCQLPresentationBuilderGraphView onError(
+                                                IllegalStateException("Failed to find submission option index $it for credential query identifier $queryId")
+                                            )
+                                        val credential =
+                                            selectionProvider.value.queryMatchingResult.matchingResult.credentials.getOrNull(
+                                                it.toInt()
+                                            ) ?: return@DCQLPresentationBuilderGraphView onError(
+                                                IllegalStateException("Failed to find credential at index $it")
+                                            )
                                         DCQLCredentialSubmissionOption(
                                             credential = credential,
                                             matchingResult = credentialMatchingResult,
@@ -149,15 +162,16 @@ fun PresentationBuilderGraphView(
                                 }
 
                                 onSubmit(DCQLCredentialSubmissions(submissions))
-                            }
+                            },
+                            trustListService = trustListService,
+                            request = request,
+                            wrpValidationResult = wrpValidationResult,
                         )
                     }
                 }
 
-                is PresentationExchangeMatchingResult -> if (
-                    hasMissingPresentationExchangeInputDescriptorMatches(
-                        queryMatchingResult.matchingResult.inputDescriptorMatches
-                    )
+                is IsoDeviceRetrievalMatchingResult -> if (
+                    queryMatchingResult.matchingResult.hasUnsatisfiedDocumentRequest()
                 ) {
                     AuthenticationNoCredentialView(
                         AuthenticationNoCredentialViewModel(
@@ -166,43 +180,40 @@ fun PresentationBuilderGraphView(
                     )
                 } else {
                     if (fixedCredentialSelection) {
-                        val fixedSubmissions = queryMatchingResult.matchingResult.toDefaultSubmission()
-                        if (fixedSubmissions.isEmpty()) {
-                            LaunchedEffect(Unit) {
-                                onError(
-                                    IllegalStateException(
-                                        "No credential matching the fixed DC API selection was found"
-                                    )
-                                )
-                            }
+                        val fixedSubmissionsResult = queryMatchingResult.matchingResult.toDefaultSubmission()
+                        val fixedSubmissions = fixedSubmissionsResult.getOrNull()
+                        if (fixedSubmissions == null) {
+                            LaunchedEffect(Unit) { onError(requireNotNull(fixedSubmissionsResult.exceptionOrNull())) }
                             return
                         }
-                        PresentationExchangeFinalizationPageContent(
+                        IsoDeviceRequestFinalizationPageContent(
                             matchingResult = queryMatchingResult,
                             credentialFreshnessProviders = selectionProvider.value.credentialFreshnessProviders,
-                            inputDescriptorSubmissions = fixedSubmissions,
+                            submissions = fixedSubmissions,
                             trustListService = trustListService,
+                            request = request,
                             authenticateAtRelyingParty = authenticateAtRelyingParty,
                             serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
                             serviceProviderLocalizedName = serviceProviderLocalizedName,
                             onError = onError,
                             onAbort = onNavigateToPresentationStart,
-                            onSubmit = {
-                                onSubmit(it)
-                            },
+                            onSubmit = onSubmit,
                         )
                     } else {
-                        PresentationExchangePresentationBuilderGraphView(
-                            authenticateAtRelyingParty = authenticateAtRelyingParty,
-                            serviceProviderLocalizedLocation = serviceProviderLocalizedLocation,
-                            serviceProviderLocalizedName = serviceProviderLocalizedName,
+                        AuthenticationSelectionIsoDeviceRequestView(
+                            vm = AuthenticationSelectionIsoDeviceRequestViewModel(
+                                credentialMatchingResult = queryMatchingResult,
+                                confirmSelections = onSubmit,
+                                navigateUp = onNavigateToPresentationStart,
+                            ),
                             onClickLogo = onClickLogo,
-                            matchingResult = selectionProvider.value.queryMatchingResult,
-                            onError = onError,
-                            onNavigateUp = onNavigateToPresentationStart,
-                            onSubmit = onSubmit,
-                        trustListService = trustListService)
+                            trustListService = trustListService,
+                        )
                     }
+                }
+
+                else -> LaunchedEffect(queryMatchingResult::class.simpleName) {
+                    onError(UnsupportedOperationException("Unsupported credential matching result: ${queryMatchingResult::class.simpleName}"))
                 }
             }
         }

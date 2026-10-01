@@ -16,6 +16,7 @@ interface DataStoreService {
     suspend fun setPreference(value: String, key: String)
     fun getPreference(key: String): Flow<String?>
     suspend fun deletePreference(key: String)
+    suspend fun deletePreferenceIfPresent(key: String): Boolean
     fun clearLog()
 }
 
@@ -54,6 +55,16 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>, privat
         }
 
     }
+
+    override suspend fun deletePreferenceIfPresent(key: String): Boolean {
+        val dataStoreKey = stringPreferencesKey(key)
+        var removed = false
+        dataStore.edit { preferences ->
+            removed = preferences.remove(dataStoreKey) != null
+        }
+        return removed
+    }
+
     override fun clearLog() {
         platformAdapter.clearFile(fileName = "log.txt", folderName = "logs")
     }

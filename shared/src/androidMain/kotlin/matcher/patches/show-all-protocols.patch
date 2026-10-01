@@ -1,0 +1,37 @@
+diff --git a/shared/src/androidMain/kotlin/matcher/CredentialDatabase.cpp b/shared/src/androidMain/kotlin/matcher/CredentialDatabase.cpp
+--- a/shared/src/androidMain/kotlin/matcher/CredentialDatabase.cpp
++++ b/shared/src/androidMain/kotlin/matcher/CredentialDatabase.cpp
+@@ -268,12 +268,13 @@ void Combination::addToCredmanPicker(const Request& request) const {
+                 memcpy(icon, credential->bitmap.data(), credential->bitmap.size());
+             }
+             if (credmanRuntimeVersion >= 2) {
++                std::string subtitle = credential->subtitle + " (via " + request.protocol + ")";
+                 ::AddEntryToSet(
+                         entryId,
+                         (char *) icon,
+                         credential->bitmap.size(),
+                         (char *) strdup(credential->title.c_str()),
+-                        (char *) strdup(credential->subtitle.c_str()),
++                        (char *) strdup(subtitle.c_str()),
+                         nullptr,
+                         nullptr,
+                         nullptr,
+diff --git a/shared/src/androidMain/kotlin/matcher/matcher.cpp b/shared/src/androidMain/kotlin/matcher/matcher.cpp
+--- a/shared/src/androidMain/kotlin/matcher/matcher.cpp
++++ b/shared/src/androidMain/kotlin/matcher/matcher.cpp
+@@ -52,7 +52,6 @@ extern "C" void matcher(void) {
+                         for (auto const &combination: combinations) {
+                             combination.addToCredmanPicker(*request);
+                         }
+-                        break;
+                     }
+                 }
+ 
+@@ -63,7 +62,6 @@ extern "C" void matcher(void) {
+                     for (auto const &combination: combinations) {
+                         combination.addToCredmanPicker(*request);
+                     }
+-                    break;
+                 }
+             }
+         }

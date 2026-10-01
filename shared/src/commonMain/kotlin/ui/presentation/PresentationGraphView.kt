@@ -16,6 +16,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.openid.TransactionDataBase64Url
 import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.valera.resources.Res
@@ -23,7 +24,7 @@ import at.asitplus.valera.resources.heading_label_authenticate_at_device_title
 import at.asitplus.valera.resources.heading_label_select_data
 import at.asitplus.valera.resources.heading_label_show_data
 import at.asitplus.wallet.app.common.TrustListService
-import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import org.jetbrains.compose.resources.stringResource
@@ -48,10 +49,12 @@ fun PresentationGraphView(
     transactionData: TransactionDataBase64Url?,
     presentationRequest: CredentialPresentationRequest?,
     credentialQueryIdsSelectedForPresentation: Set<DCQLCredentialQueryIdentifier> = emptySet(),
+    request: RequestParametersFrom<*>,
     navigateUpIsClose: Boolean = false,
     showStartRoute: Boolean = true,
     trustListService: TrustListService,
     fixedCredentialSelection: Boolean = false,
+    wrpValidationResult: WrpValidationResult? = null,
 ) {
     LaunchedEffect(selectionProvider) {
         selectionProvider.let {
@@ -122,7 +125,10 @@ fun PresentationGraphView(
                     } else {
                         null
                     },
-                    onError = onError,
+                    errorAction = onError,
+                    trustListService = trustListService,
+                    request = request,
+                    wrpValidationResult = wrpValidationResult,
                 )
             }
         }
@@ -158,6 +164,8 @@ fun PresentationGraphView(
                 },
                 trustListService = trustListService,
                 fixedCredentialSelection = fixedCredentialSelection,
+                request = request,
+                wrpValidationResult = wrpValidationResult,
             )
         }
 

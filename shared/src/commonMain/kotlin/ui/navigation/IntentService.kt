@@ -47,6 +47,8 @@ class IntentService(
         when {
             startsWith(SIGNING_CALLBACK_URI) -> IntentType.SigningResumeIntent
             startsWith(PROVISIONING_CALLBACK_URI) -> IntentType.ProvisioningResumeIntent
+            startsWith("eu-eaa-offer://", ignoreCase = true) -> IntentType.ProvisioningStartIntent
+            startsWith("eu-eaap://", ignoreCase = true) -> IntentType.AuthorizationIntent
             contains(SIGNING_REQUEST_INTENT) -> IntentType.SigningIntent
             startsWith(OPENID4CI_AUTHORIZATION_REQUEST_URI_PREFIX) -> IntentType.ProvisioningAuthRequestIntent
             equals(GET_CREDENTIALS_INTENT) || equals(GET_CREDENTIAL_INTENT) || equals(IOS_DC_API_CALL) -> IntentType.DCAPIAuthorizationIntent

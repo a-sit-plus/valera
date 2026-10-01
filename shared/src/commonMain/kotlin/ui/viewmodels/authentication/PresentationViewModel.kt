@@ -2,21 +2,19 @@ package ui.viewmodels.authentication
 
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.catchingUnwrapped
-import at.asitplus.dcapi.request.toDifInputDescriptors
-import at.asitplus.dif.DifInputDescriptor
-import at.asitplus.dif.PresentationDefinition
 import at.asitplus.iso.DeviceRequest
 import at.asitplus.iso.SessionTranscript
+import at.asitplus.signum.indispensable.pki.CertificateChain
+import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.supreme.UserInitiatedCancellationReason
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.warning_authentication_cancelled
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.extractCertificateChain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
-import at.asitplus.wallet.lib.openid.CredentialMatchingResult
-import at.asitplus.wallet.lib.openid.PresentationExchangeMatchingResult
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 
@@ -38,51 +36,39 @@ class PresentationViewModel(
     walletMain,
     onClickLogo
 ) {
-    private var descriptors: List<DifInputDescriptor> = listOf()
+    private var deviceRequest: DeviceRequest? = null
     private var finishFunction: ((ByteArray) -> Unit)? = null
     private var sessionTranscript: SessionTranscript? = null
+    var verifierCertificateChain: CertificateChain? = null
 
     fun initWithDeviceRequest(
         parsedRequest: DeviceRequest,
         finishFunction: (ByteArray) -> Unit,
         sessionTranscript: SessionTranscript?
     ) {
-        descriptors = parsedRequest.docRequests.toDifInputDescriptors()
+        deviceRequest = parsedRequest
         this.finishFunction = finishFunction
         this.sessionTranscript = sessionTranscript
+        this.verifierCertificateChain = parsedRequest.extractCertificateChain()
     }
 
     override val transactionData = null
 
-    override val presentationRequest: CredentialPresentationRequest.PresentationExchangeRequest
-        get() = CredentialPresentationRequest.PresentationExchangeRequest(
-            presentationDefinition = PresentationDefinition(
-                inputDescriptors = descriptors
-            )
+    override val presentationRequest: CredentialPresentationRequest.IsoDeviceRetrieval
+        get() = CredentialPresentationRequest.IsoDeviceRetrieval(
+            requireNotNull(deviceRequest) { "No ISO device request initialized" }
         )
 
-    override suspend fun findMatchingCredentials(): Result<CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> =
+    override suspend fun findMatchingCredentials(): Result<at.asitplus.wallet.lib.agent.CredentialMatchingResult<SubjectCredentialStore.StoreEntry>> =
         catchingUnwrapped {
-            PresentationExchangeMatchingResult(
-                presentationRequest = CredentialPresentationRequest.PresentationExchangeRequest(
-                    presentationDefinition = PresentationDefinition(
-                        inputDescriptors = presentationRequest.presentationDefinition.inputDescriptors,
-                    )
-                ),
-                matchingResult = walletMain.holderAgent.matchInputDescriptorsAgainstCredentialStoreV2(
-                    inputDescriptors = presentationRequest.presentationDefinition.inputDescriptors,
-                    fallbackFormatHolder = null,
-                ).getOrThrow()
-            )
+            walletMain.holderAgent.matchPresentationRequestAgainstCredentialStore(presentationRequest).getOrThrow()
         }
 
     override suspend fun finalizationMethod(credentialPresentation: CredentialPresentation) =
         finishFunction?.let {
             walletMain.presentationService.finalizeLocalPresentation(
-                credentialPresentation = when (credentialPresentation) {
-                    is CredentialPresentation.PresentationExchangePresentation -> credentialPresentation
-                    else -> throw IllegalArgumentException()
-                },
+                credentialPresentation = credentialPresentation as? CredentialPresentation.IsoDeviceRetrievalPresentation
+                    ?: throw IllegalArgumentException("ISO proximity presentation requires a DeviceRequest submission"),
                 it,
                 spName,
                 sessionTranscript!!

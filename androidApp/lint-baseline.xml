@@ -5,7 +5,7 @@
         id="NotificationPermission"
         message="When targeting Android 13 or higher, posting a permission requires holding the `POST_NOTIFICATIONS` permission (usage from org.multipaz.compose.notifications.NotificationManagerAndroid)">
         <location
-            file="src/androidMain/AndroidManifest.xml"/>
+            file="src/main/AndroidManifest.xml"/>
     </issue>
 
 </issues>

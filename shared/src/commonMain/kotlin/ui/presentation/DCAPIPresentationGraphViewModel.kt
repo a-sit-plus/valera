@@ -6,11 +6,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import at.asitplus.catching
+import at.asitplus.catchingUnwrapped
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.signum.supreme.UserInitiatedCancellationReason
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
 import at.asitplus.valera.resources.warning_authentication_cancelled
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
@@ -22,7 +25,7 @@ import org.jetbrains.compose.resources.getString
 import ui.navigation.routes.DCAPIPresentationViewRoute
 import ui.viewmodels.authentication.CredentialPresentationSubmissions
 import ui.viewmodels.authentication.DCQLCredentialSubmissions
-import ui.viewmodels.authentication.PresentationExchangeCredentialSubmissions
+import ui.viewmodels.authentication.IsoDeviceRequestCredentialSubmissions
 
 class DCAPIPresentationGraphViewModel(
     savedStateHandle: SavedStateHandle,
@@ -33,6 +36,10 @@ class DCAPIPresentationGraphViewModel(
     val dcApiWalletRequest = catching { route.request }
 
     val trustListService = walletMain.trustListService
+
+    val wrpValidationResult = route.wrpRequestValidationResultSerialized?.let {
+        catchingUnwrapped { joseCompliantSerializer.decodeFromString<WrpValidationResult>(it) }.getOrNull()
+    }
 
     val selectionProvider = MutableStateFlow<UiState<DcApiPresentationUiState>>(
         UiStateLoading
@@ -85,9 +92,9 @@ class DCAPIPresentationGraphViewModel(
                     credentialQuerySubmissions = credentialPresentationSubmissions.credentialQuerySubmissions
                 )
 
-                is PresentationExchangeCredentialSubmissions -> CredentialPresentation.PresentationExchangePresentation(
-                    presentationRequest = presentationRequest as CredentialPresentationRequest.PresentationExchangeRequest,
-                    inputDescriptorSubmissions = credentialPresentationSubmissions.inputDescriptorSubmissions
+                is IsoDeviceRequestCredentialSubmissions -> CredentialPresentation.IsoDeviceRetrievalPresentation(
+                    presentationRequest = presentationRequest as CredentialPresentationRequest.IsoDeviceRetrieval,
+                    submissions = credentialPresentationSubmissions.submissions,
                 )
             }
         } catch (it: Throwable) {
@@ -126,4 +133,5 @@ class DCAPIPresentationGraphViewModel(
 data class DcApiPresentationUiState(
     val preparationState: DcApiPreparationState,
     val selectionProvider: CredentialSelectionProvider<SubjectCredentialStore.StoreEntry>,
+    val wrpValidationResult: WrpValidationResult? = null
 )

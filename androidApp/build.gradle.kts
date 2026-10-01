@@ -1,27 +1,8 @@
 plugins {
-    kotlin("multiplatform")
     id("com.android.application")
     id("at.asitplus.gradle.conventions")
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
-}
-
-
-kotlin {
-    jvmToolchain(17)
-    androidTarget()
-    sourceSets {
-        androidMain.dependencies {
-            implementation(project(":shared"))
-            implementation(libs.androidx.credentials)
-            implementation(libs.androidx.credentials.registry.provider)
-            implementation(libs.koin.core)
-
-            implementation(libs.multipaz)
-            implementation(libs.datastore.preferences.core)
-        }
-    }
-    jvmToolchain(17)
 }
 
 val apkSignerPassword =
@@ -29,8 +10,6 @@ val apkSignerPassword =
 
 android {
     namespace = "at.asitplus.wallet.app.android"
-
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
 
     signingConfigs {
         getByName("debug") {
@@ -69,6 +48,7 @@ android {
         resources.excludes += ("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
         resources.excludes += ("META-INF/AL2.0")
         resources.excludes += ("META-INF/LGPL2.1")
+        resources.excludes += ("META-INF/LICENSE.md")
     }
     // post_permissions for mulitpaz
     lint {
@@ -76,5 +56,14 @@ android {
     }
 }
 dependencies {
+    implementation(project(":shared"))
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.registry.provider)
+    implementation(libs.koin.core)
+    implementation(libs.multipaz)
+    implementation(libs.datastore.preferences.core)
     implementation(libs.core.splashscreen)
 }

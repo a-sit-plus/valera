@@ -5,9 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import at.asitplus.catching
+import at.asitplus.catchingUnwrapped
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.data.CredentialPresentation
@@ -19,7 +22,7 @@ import org.jetbrains.compose.resources.getString
 import ui.navigation.routes.AuthenticationViewRoute
 import ui.viewmodels.authentication.CredentialPresentationSubmissions
 import ui.viewmodels.authentication.DCQLCredentialSubmissions
-import ui.viewmodels.authentication.PresentationExchangeCredentialSubmissions
+import ui.viewmodels.authentication.IsoDeviceRequestCredentialSubmissions
 
 class DefaultPresentationGraphViewModel(
     savedStateHandle: SavedStateHandle,
@@ -32,6 +35,9 @@ class DefaultPresentationGraphViewModel(
         route.authorizationResponsePreparationState
     }
 
+    val wrpValidationResult = route.wrpRequestValidationResultSerialized?.let {
+        catchingUnwrapped { joseCompliantSerializer.decodeFromString<WrpValidationResult>(it) }.getOrNull()
+    }
     val selectionProvider = MutableStateFlow<UiState<CredentialSelectionProvider<SubjectCredentialStore.StoreEntry>>>(
         UiStateLoading
     ).apply {
@@ -67,9 +73,9 @@ class DefaultPresentationGraphViewModel(
                     credentialQuerySubmissions = credentialPresentationSubmissions.credentialQuerySubmissions
                 )
 
-                is PresentationExchangeCredentialSubmissions -> CredentialPresentation.PresentationExchangePresentation(
-                    presentationRequest = presentationRequest as CredentialPresentationRequest.PresentationExchangeRequest,
-                    inputDescriptorSubmissions = credentialPresentationSubmissions.inputDescriptorSubmissions
+                is IsoDeviceRequestCredentialSubmissions -> CredentialPresentation.IsoDeviceRetrievalPresentation(
+                    presentationRequest = presentationRequest as CredentialPresentationRequest.IsoDeviceRetrieval,
+                    submissions = credentialPresentationSubmissions.submissions,
                 )
             }
         } catch (it: Throwable) {

@@ -32,9 +32,13 @@ fun StoreEntry.toFallbackResolvedCredential() = ResolvedCredential(
  * Mirrors VC-K's legacy fallback scheme behavior without reading deprecated StoreEntry.scheme.
  */
 private fun StoreEntry.fallbackScheme(): CredentialScheme = when (this) {
-    is StoreEntry.Vc -> VcFallbackCredentialScheme(vc.vc.type.first { it != VERIFIABLE_CREDENTIAL })
-    is StoreEntry.SdJwt -> SdJwtFallbackCredentialScheme(sdJwt.verifiableCredentialType)
+    is StoreEntry.Vc ->
+        VcFallbackCredentialScheme(vc.vc.type.first { it != VERIFIABLE_CREDENTIAL })
+
+    is StoreEntry.SdJwt ->
+        SdJwtFallbackCredentialScheme(sdJwt.verifiableCredentialType)
+
     is StoreEntry.Iso -> issuerSigned.issuerAuth.payload?.docType
         ?.let { IsoMdocFallbackCredentialScheme(it) }
-        ?: IsoMdocFallbackCredentialScheme
+        ?: IsoMdocFallbackCredentialScheme("unknown")
 }

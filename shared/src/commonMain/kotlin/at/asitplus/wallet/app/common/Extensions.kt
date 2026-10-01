@@ -2,9 +2,8 @@ package at.asitplus.wallet.app.common
 
 import androidx.compose.runtime.Composable
 import at.asitplus.catchingUnwrapped
-import at.asitplus.dif.ConstraintField
-import at.asitplus.dif.ConstraintFilter
-import at.asitplus.dif.InputDescriptor
+import at.asitplus.iso.DeviceRequest
+import at.asitplus.iso.DocRequest
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.IndexSegment
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.NameSegment
@@ -17,26 +16,26 @@ import at.asitplus.openid.dcql.DCQLClaimsPathPointerSegment
 import at.asitplus.openid.dcql.DCQLCredentialQuery
 import at.asitplus.openid.dcql.DCQLIsoMdocClaimsQuery
 import at.asitplus.openid.dcql.DCQLIsoMdocCredentialQuery
+import at.asitplus.openid.dcql.DCQLIsoMdocZkCredentialQuery
 import at.asitplus.openid.dcql.DCQLJsonClaimsQuery
 import at.asitplus.openid.dcql.DCQLJwtVcCredentialQuery
 import at.asitplus.openid.dcql.DCQLSdJwtCredentialQuery
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
+import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.RequestCredentialAttributesValidity
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.*
 import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme
+import at.asitplus.wallet.lib.data.JsonClaimReference
+import at.asitplus.wallet.lib.data.MdocClaimReference
 import at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme
+import at.asitplus.wallet.lib.data.SingleClaimReference
 import at.asitplus.wallet.lib.data.VcDataModelConstants.VERIFIABLE_CREDENTIAL
 import at.asitplus.wallet.lib.data.VcFallbackCredentialScheme
-import at.asitplus.wallet.lib.data.dif.ConstraintFieldsEvaluationException
-import at.asitplus.wallet.lib.data.dif.PresentationExchangeInputEvaluator
 import at.asitplus.wallet.lib.oidvci.toFormat
-import data.credentials.JsonClaimReference
-import data.credentials.MdocClaimReference
-import data.credentials.SingleClaimReference
 import data.credentials.jwtClaimLabel
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -50,55 +49,39 @@ import org.jetbrains.compose.resources.stringResource
 import ui.presentation.DCQLCredentialQueryUiModel
 import ui.presentation.DCQLCredentialQueryUiModelAttributeLabels
 
-typealias PresentationExchangeConsentData = Triple<CredentialRepresentation, CredentialScheme, Map<NormalizedJsonPath, Boolean>>
 typealias DcqlConsentData = Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimReference?>?>
 
-suspend fun InputDescriptor.extractConsentData(): PresentationExchangeConsentData {
-    @Suppress("DEPRECATION")
-    val credentialRepresentation = when {
-        this.format == null -> throw IllegalStateException("Format of input descriptor must be set")
-        this.format?.sdJwt != null -> SD_JWT
-        this.format?.msoMdoc != null -> ISO_MDOC
-        else -> PLAIN_JWT
-    }
-    val credentialIdentifiers = when (credentialRepresentation) {
-        PLAIN_JWT -> throw Throwable("PLAIN_JWT not implemented")
-        SD_JWT -> vctConstraint()?.filter?.referenceValues()
-        ISO_MDOC -> listOf(this.id)
-    } ?: throw Throwable("Missing Pattern")
-    check(credentialIdentifiers.isNotEmpty()) {
-        "Presentation definition input descriptor '$id' does not declare any credential identifier"
-    }
-
-    val scheme = resolveConsentScheme(credentialRepresentation, credentialIdentifiers)
-
-    val matchedCredentialIdentifier = when (credentialRepresentation) {
-        PLAIN_JWT -> throw Throwable("PLAIN_JWT not implemented")
-        SD_JWT -> if (scheme.sdJwtType in credentialIdentifiers) scheme.sdJwtType else scheme.isoNamespace
-        ISO_MDOC -> scheme.isoDocType
-    }
-
-    val requestedElements = constraints?.fields?.map {
-        (it.toNormalizedJsonPath()?.segments?.last() as NameSegment).memberName
-    }
-
-    val constraintsMap = PresentationExchangeInputEvaluator.evaluateInputDescriptorAgainstCredential(
-        inputDescriptor = this,
-        credentialClaimStructure = scheme.toCredentialClaimStructure(credentialRepresentation, requestedElements),
-        credentialFormat = credentialRepresentation.toFormat(),
-        credentialScheme = matchedCredentialIdentifier,
-        fallbackFormatHolder = this.format,
-        pathAuthorizationValidator = { true },
-    ).getOrThrow()
-
-    val attributes = constraintsMap.mapNotNull {
-        val path = it.value.map { it.normalizedJsonPath }.firstOrNull() ?: return@mapNotNull null
-        val optional = it.key.optional == true
-        path to optional
-    }.toMap()
-
-    return Triple(credentialRepresentation, scheme, attributes)
+data class IsoDeviceRequestConsentData(
+    val scheme: CredentialScheme,
+    val attributes: List<NormalizedJsonPath>,
+    /**
+     * The elements the verifier declared it intends to keep beyond the transaction (ISO/IEC 18013-5
+     * `IntentToRetain`), so consent can say so rather than implying a one-off read. Held as normalized path
+     * strings because [NormalizedJsonPath] has no value equality; use [intendsToRetain] to query it.
+     */
+    val retainedAttributePaths: Set<String>,
+) {
+    fun intendsToRetain(path: NormalizedJsonPath) = path.toString() in retainedAttributePaths
 }
+
+/** Resolves one ISO document request and preserves namespace and element order. */
+suspend fun DocRequest.extractConsentData(): IsoDeviceRequestConsentData {
+    val request = itemsRequest.value
+    val elements = request.namespaces.flatMap { (namespace, elements) ->
+        elements.entries.map { element ->
+            (NormalizedJsonPath() + namespace + element.dataElementIdentifier) to element.intentToRetain
+        }
+    }
+    return IsoDeviceRequestConsentData(
+        scheme = resolveConsentScheme(ISO_MDOC, listOf(request.docType)),
+        attributes = elements.map { it.first },
+        retainedAttributePaths = elements.filter { it.second }.mapTo(mutableSetOf()) { it.first.toString() },
+    )
+}
+
+/** Resolves every ISO document request independently and preserves request, namespace, and element order. */
+suspend fun DeviceRequest.extractConsentData(): List<IsoDeviceRequestConsentData> =
+    docRequests.map { it.extractConsentData() }
 
 /**
  * Resolves the first identifier yielding a scheme with known type metadata, triggering (cached)
@@ -118,12 +101,6 @@ private suspend fun resolveConsentScheme(
 private fun CredentialScheme.isFallback() = this is VcFallbackCredentialScheme
         || this is SdJwtFallbackCredentialScheme
         || this is IsoMdocFallbackCredentialScheme
-
-private fun InputDescriptor.vctConstraint() =
-    constraints?.fields?.firstOrNull { it.path.toString().contains("vct") }
-
-private fun ConstraintFilter.referenceValues() =
-    (pattern ?: const?.content)?.let { listOf(it) } ?: enum
 
 /**
  * assumes json claim path pointers don't contain `null`, otherwise only the prefix is shown
@@ -145,6 +122,8 @@ suspend fun DCQLCredentialQuery.extractConsentData(): DcqlConsentData {
             PLAIN_JWT,
             meta.typeValues.list.flatten().filterNot { it == VERIFIABLE_CREDENTIAL },
         )
+
+        is DCQLIsoMdocZkCredentialQuery -> TODO()
     }
 
     // assuming all claims path pointers are single claim references
@@ -262,48 +241,18 @@ private fun JsonObjectBuilder.addSdJwtDummyMetadata() {
     put("status", buildJsonObject { })
 }
 
-fun Throwable.enrichMessage() = when (this) {
-    is ConstraintFieldsEvaluationException -> "$message ${constraintFieldExceptions.keys}"
-    else -> message ?: toString()
-}
-
-// TODO Replace with function from JSONPath
-private fun ConstraintField.toNormalizedJsonPath(): NormalizedJsonPath? =
-    path.firstOrNull()?.removePrefix("$")?.run {
-        NormalizedJsonPath(
-            if (contains("[")) {
-                segmentsByAngle()
-            } else if (contains(".")) {
-                segmentsByDot()
-            } else {
-                fallback()
-            }
-        )
-    }
-
-private fun String.segmentsByAngle() = split("[")
-    .filter { it.isNotEmpty() }
-    .map { NameSegment(it.removeSuffix("]").unquote()) }
-
-private fun String.segmentsByDot() = split(".")
-    .filter { it.isNotEmpty() }
-    .map { NameSegment(it) }
-
-private fun String.unquote() = removePrefix("'").removePrefix("\"")
-    .removeSuffix("\"").removeSuffix("'")
-
-private fun String.fallback(): List<NameSegment> = listOf(NameSegment(this))
-
 // Only NameSegments carry a member name; IndexSegments (e.g. [0] in array paths) are skipped.
 fun NormalizedJsonPath.memberName(id: Int) =
-    this.segments.filterIsInstance<NameSegment>().map { it.memberName }.getOrNull(id)
+    this.filterIsInstance<NameSegment>().map { it.memberName }.getOrNull(id)
 
 // Removes NameSegments whose name matches [name]; IndexSegments are passed through unchanged.
 fun NormalizedJsonPath.minus(name: String) =
-    NormalizedJsonPath(this.segments.filter { it !is NameSegment || it.memberName != name })
+    NormalizedJsonPath(this.filter { it !is NameSegment || it.memberName != name })
 
 @Composable
-fun Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimReference?>?>.toCredentialQueryUiModel(): DCQLCredentialQueryUiModel {
+fun Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimReference?>?>.toCredentialQueryUiModel(
+    allowedAttributes:  RequestCredentialAttributesValidity? = null
+): DCQLCredentialQueryUiModel {
     val (representation, scheme, attributePaths) = this
     return DCQLCredentialQueryUiModel(
         credentialRepresentationLocalized = representation.uiLabel(),
@@ -317,7 +266,14 @@ fun Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimRef
                             ?: representation.getMetadataLocalization(path)?.let { stringResource(it) }
                             ?: path.displayPath()
                     }.getOrElse { path.displayPath() }
-                }
+                },
+                allowedAttributes = allowedAttributes?.toMap()?.mapNotNull { (path, allowed) ->
+                    catchingUnwrapped {
+                        scheme.getLocalization(path)
+                            ?: representation.getMetadataLocalization(path)?.let { stringResource(it) }
+                            ?: path.displayPath()
+                    }.getOrElse { path.displayPath() } to allowed
+                }?.toMap()
             )
         },
     )
@@ -336,7 +292,7 @@ fun SingleClaimReference.displayPath(): String = when (this) {
 fun ConstantIndex.CredentialRepresentation.getMetadataLocalization(
     claimReference: SingleClaimReference
 ) = when (claimReference) {
-    is JsonClaimReference -> claimReference.normalizedJsonPath.segments.filterIsInstance<NameSegment>()
+    is JsonClaimReference -> claimReference.normalizedJsonPath.filterIsInstance<NameSegment>()
         .firstOrNull()
         ?.takeIf { this != ISO_MDOC }
         ?.let { jwtClaimLabel(it.memberName) }

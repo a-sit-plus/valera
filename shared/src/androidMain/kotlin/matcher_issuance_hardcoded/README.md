@@ -11,4 +11,4 @@ $ make clean && make -j && make copy
 ```
 
 This produces `build/dcapimatcher_issuing_hardcoded.wasm` and copies it to
-`../../../../../androidApp/src/androidMain/assets/dcapimatcher_issuing_hardcoded.wasm`.
+`../../../../../androidApp/src/main/assets/dcapimatcher_issuing_hardcoded.wasm`.

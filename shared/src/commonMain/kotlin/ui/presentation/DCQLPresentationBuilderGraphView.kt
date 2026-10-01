@@ -7,8 +7,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.openid.dcql.DCQLQuery
+import at.asitplus.wallet.app.common.TrustListService
+import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
 
 @ExperimentalMaterial3Api
 @Composable
@@ -28,6 +31,9 @@ fun DCQLPresentationBuilderGraphView(
     onError: (Throwable) -> Unit,
     onNavigateUp: () -> Unit,
     onSubmit: (Map<DCQLCredentialQueryIdentifier, Set<UInt>>) -> Unit,
+    trustListService: TrustListService,
+    request: RequestParametersFrom<*>,
+    wrpValidationResult: WrpValidationResult? = null,
 ) {
     val navigationManager = rememberSaveable(saver = DCQLPresentationBuilderGraphViewNavigationManager.Saver) {
         DCQLPresentationBuilderGraphViewNavigationManager(listOf())
@@ -109,10 +115,13 @@ fun DCQLPresentationBuilderGraphView(
                         onNavigateUp()
                     }
                 },
-                onError = onError,
+                errorAction = onError,
                 onSubmit = {
                     onSubmit(selectedSubmissionIndices)
                 },
+                trustListService = trustListService,
+                request = request,
+                wrpValidationResult = wrpValidationResult,
             )
         }
     }

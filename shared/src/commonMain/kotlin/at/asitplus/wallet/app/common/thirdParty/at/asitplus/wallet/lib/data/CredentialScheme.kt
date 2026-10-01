@@ -9,10 +9,10 @@ import at.asitplus.valera.resources.credential_scheme_label_eu_pid
 import at.asitplus.valera.resources.credential_scheme_label_eu_pid_sdjwt
 import at.asitplus.valera.resources.credential_scheme_label_mdl
 import at.asitplus.wallet.app.common.CredentialMetadataDisplayNames
+import at.asitplus.wallet.lib.data.JsonClaimReference
+import at.asitplus.wallet.lib.data.MdocClaimReference
+import at.asitplus.wallet.lib.data.SingleClaimReference
 import at.asitplus.wallet.lib.data.CredentialScheme
-import data.credentials.JsonClaimReference
-import data.credentials.MdocClaimReference
-import data.credentials.SingleClaimReference
 import data.credentials.metadataLabel
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource

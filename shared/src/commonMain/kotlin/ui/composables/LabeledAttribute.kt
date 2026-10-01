@@ -19,3 +19,22 @@ fun LabeledAttribute(
         Label(label)
     }
 }
+
+/**
+ * One row of a consent list. Renders the value where the credential has a displayable one, and the label on its own
+ * otherwise, so an attribute that is about to be disclosed is never omitted just because it cannot be rendered.
+ */
+@Composable
+fun DisclosedAttribute(
+    label: String,
+    attribute: Attribute?,
+    modifier: Modifier = Modifier,
+) {
+    if (attribute != null) {
+        LabeledAttribute(label = label, attribute = attribute, modifier = modifier)
+    } else {
+        Column(modifier = modifier) {
+            Label(label)
+        }
+    }
+}

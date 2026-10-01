@@ -20,6 +20,8 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
@@ -29,14 +31,16 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.catchingUnwrapped
-import at.asitplus.dif.InputDescriptor
 import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.openid.dcql.DCQLCredentialSetQuery
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_location
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_name
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
 import at.asitplus.valera.resources.heading_label_show_data_third_party
+import at.asitplus.valera.resources.info_text_registration_cert_missing
+import at.asitplus.valera.resources.label_registration_cert_request
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
 import at.asitplus.valera.resources.section_heading_requested_data
@@ -44,18 +48,24 @@ import at.asitplus.valera.resources.text_label_credential_request_and
 import at.asitplus.valera.resources.text_label_credential_request_or
 import at.asitplus.valera.resources.text_label_mandatory_dataset
 import at.asitplus.valera.resources.text_label_optional_dataset
+import at.asitplus.valera.resources.trust_status_title
 import at.asitplus.wallet.app.common.DcqlConsentData
+import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.extractConsentData
+import at.asitplus.wallet.app.common.relyingParty.ui.WrprcRequestValidation
+import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
 import at.asitplus.wallet.app.common.toCredentialQueryUiModel
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.DataDisplaySection
-import ui.composables.InputDescriptorPreview
 import ui.composables.PresentationRequestPreview
 import ui.composables.PresentationRequestLoadingIndicator
 import ui.composables.ScreenHeading
+import ui.composables.TrustState
+import ui.composables.displayVerifierText
 
 @Composable
 fun AuthenticationReceivedStartPageContent(
@@ -67,10 +77,16 @@ fun AuthenticationReceivedStartPageContent(
     onAbort: () -> Unit,
     onContinue: () -> Unit,
     presentationRequest: CredentialPresentationRequest?,
-    inputDescriptors: List<InputDescriptor>? = null,
     credentialQueryIdsSelectedForPresentation: Set<DCQLCredentialQueryIdentifier> = emptySet(),
-    onError: (Throwable) -> Unit,
+    errorAction: (Throwable) -> Unit,
+    trustListService: TrustListService,
+    request: RequestParametersFrom<*>? = null,
+    wrpValidationResult: WrpValidationResult? = null,
 ) {
+    val relyingPartyTrustState by trustListService
+        .observeTrustStateForRelyingParty(flowOf(request))
+        .collectAsState(initial = TrustState.EVALUATING)
+
     Scaffold(
         bottomBar = {
             CommonBottomButtonsAbortContinue(
@@ -97,12 +113,12 @@ fun AuthenticationReceivedStartPageContent(
                         .padding(bottom = 8.dp),
                 ) {
                     if (serviceProviderLogo != null) {
-                        Box(Modifier.Companion.fillMaxWidth(), contentAlignment = Alignment.Companion.Center) {
+                        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                             Image(
                                 bitmap = serviceProviderLogo,
                                 contentDescription = null,
-                                contentScale = ContentScale.Companion.Fit,
-                                modifier = Modifier.Companion.height(64.dp),
+                                contentScale = ContentScale.Fit,
+                                modifier = Modifier.height(64.dp),
                             )
                         }
                     }
@@ -116,8 +132,24 @@ fun AuthenticationReceivedStartPageContent(
                             serviceProviderLocalizedLocation?.takeIf { value -> value.isNotBlank() }?.let {
                                 stringResource(Res.string.attribute_friendly_name_data_recipient_location) to it
                             },
+                            stringResource(Res.string.trust_status_title) to stringResource(relyingPartyTrustState.displayVerifierText)
                         ),
                     )
+
+                    wrpValidationResult?.let {
+                        DataDisplaySection(
+                            title = stringResource(Res.string.label_registration_cert_request),
+                        ) {
+                            WrprcRequestValidation(it)
+                        }
+                    } ?: run {
+                        Column(modifier = Modifier.padding(vertical = 20.dp)) {
+                            Text(
+                                stringResource(Res.string.info_text_registration_cert_missing),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
 
                     DataDisplaySection(
                         title = stringResource(Res.string.section_heading_requested_data),
@@ -138,7 +170,7 @@ fun AuthenticationReceivedStartPageContent(
                                                 it.id to it.extractConsentData()
                                             }
                                         }
-                                    }.onFailure(onError).getOrNull()
+                                    }.onFailure(errorAction).getOrNull()
                                 }
                                 if (consentData == null) {
                                     PresentationRequestLoadingIndicator()
@@ -152,15 +184,17 @@ fun AuthenticationReceivedStartPageContent(
                                 }
                             }
 
-                            is CredentialPresentationRequest.PresentationExchangeRequest -> PresentationRequestPreview(
+                            is CredentialPresentationRequest.IsoDeviceRetrieval -> PresentationRequestPreview(
                                 presentationRequest = presentationRequest,
-                                onError = onError
+                                errorAction = errorAction,
                             )
-
-                            null -> if (inputDescriptors != null) {
-                                InputDescriptorPreview(inputDescriptors, onError = onError)
-                            } else {
-                                PresentationRequestLoadingIndicator()
+                            null -> PresentationRequestLoadingIndicator()
+                            else -> LaunchedEffect(presentationRequest) {
+                                errorAction(
+                                    UnsupportedOperationException(
+                                        "Unsupported presentation request: ${presentationRequest::class.simpleName}"
+                                    )
+                                )
                             }
                         }
                     }

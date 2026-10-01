@@ -204,7 +204,7 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
 
     composable<AuthenticationViewRoute> {
         DefaultPresentationGraphView(
-            onError = onError,
+            errorAction = onError,
             onClickLogo = onClickLogo,
             koinScope = koinScope,
             onNavigateUp = navigator::invocationAwareBack,
@@ -214,7 +214,7 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
 
     composable<DCAPIPresentationViewRoute> {
         DCAPIPresentationGraphView(
-            onError = onError,
+            errorAction = onError,
             onClickLogo = onClickLogo,
             koinScope = koinScope,
             onNavigateUp = navigator::invocationAwareBack,
@@ -595,7 +595,13 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
         AttestationSettingsView(
             onClickLogo = onClickLogo,
             onClickBack = { navigator.navigateBack() },
-            vm = remember { AttestationSettingsViewModel(walletMain.attestationService, walletMain.settingsRepository) },
+            vm = remember {
+                AttestationSettingsViewModel(
+                    walletMain.attestationService,
+                    walletMain.settingsRepository,
+                    walletMain.dataStoreService,
+                )
+            },
             onError = { walletMain.errorService.emit(it) }
         )
     }
