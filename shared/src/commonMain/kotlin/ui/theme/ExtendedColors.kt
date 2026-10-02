@@ -11,6 +11,11 @@ data class ExtendedColors(
     val onSuccessContainer: Color,
     val validationLight: ValidationColor,
     val validationDark: ValidationColor,
+    /** Yellow, e.g. for states that could not be determined. */
+    val caution: Color,
+    val onCaution: Color,
+    val cautionContainer: Color,
+    val onCautionContainer: Color,
 )
 
 val lightExtendedColors = ExtendedColors(
@@ -26,6 +31,10 @@ val lightExtendedColors = ExtendedColors(
         valid = Color(red = 0, green = 150, blue = 0),
         invalid = Color(red = 150, green = 0, blue = 0)
     ),
+    caution = Color(0xFF6E5E00),
+    onCaution = Color(0xFFFFFFFF),
+    cautionContainer = Color(0xFFFFE170),
+    onCautionContainer = Color(0xFF221B00),
 )
 
 val darkExtendedColors = ExtendedColors(
@@ -33,7 +42,6 @@ val darkExtendedColors = ExtendedColors(
     onSuccess = Color(0xFF00391F),
     successContainer = Color(0xFF005231),
     onSuccessContainer = Color(0xFFA6F4C0),
-
     validationLight = ValidationColor(
         valid = Color(red = 0, green = 150, blue = 0),
         invalid = Color(red = 150, green = 0, blue = 0),
@@ -42,9 +50,13 @@ val darkExtendedColors = ExtendedColors(
         valid = Color(red = 235, green = 255, blue = 235),
         invalid = Color(red = 255, green = 235, blue = 235)
     ),
+    caution = Color(0xFFE5C400),
+    onCaution = Color(0xFF3A3000),
+    cautionContainer = Color(0xFF544600),
+    onCautionContainer = Color(0xFFFFE170),
 )
 
 data class ValidationColor(
     val valid: Color,
-    val invalid: Color
+    val invalid: Color,
 )

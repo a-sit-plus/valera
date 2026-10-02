@@ -91,7 +91,6 @@ private fun registerBundledCredentialMetadata() {
     )
 }
 
-@OptIn(ExperimentalTime::class)
 private fun registerRemoteCredentialMetadata(dataStoreService: DataStoreService, httpService: HttpService) {
     val remote = RemoteCredentialMetadataRegistry(
         httpClient = httpService.cachedResourceClient(dataStoreService, revalidate = true),

@@ -20,6 +20,7 @@ import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
 import at.asitplus.wallet.lib.agent.DeviceRequestCredentialDisclosure
 import at.asitplus.wallet.lib.agent.IsoDeviceRetrievalMatchingResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.openid.VerifierSignature
 import data.credentials.labeledDisclosedAttributes
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -43,6 +44,7 @@ fun IsoDeviceRequestFinalizationPageContent(
     submissions: Collection<DeviceRequestCredentialDisclosure<SubjectCredentialStore.StoreEntry>>,
     trustListService: TrustListService,
     request: RequestParametersFrom<*>,
+    verifierSignatures: List<VerifierSignature>?,
     authenticateAtRelyingParty: Boolean,
     serviceProviderLocalizedName: String?,
     serviceProviderLocalizedLocation: String,
@@ -65,6 +67,7 @@ fun IsoDeviceRequestFinalizationPageContent(
         onAbort = onAbort,
         trustListService = trustListService,
         request = request,
+        verifierSignatures = verifierSignatures,
         onSubmit = { onSubmit(IsoDeviceRequestCredentialSubmissions(orderedSubmissions)) },
     ) {
         orderedSubmissions.forEach { disclosure ->

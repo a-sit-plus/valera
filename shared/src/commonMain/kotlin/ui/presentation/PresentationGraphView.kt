@@ -27,6 +27,7 @@ import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
+import at.asitplus.wallet.lib.openid.VerifierSignature
 import org.jetbrains.compose.resources.stringResource
 import org.koin.core.scope.Scope
 import ui.views.authentication.AuthenticationSuccessView
@@ -50,11 +51,14 @@ fun PresentationGraphView(
     presentationRequest: CredentialPresentationRequest?,
     credentialQueryIdsSelectedForPresentation: Set<DCQLCredentialQueryIdentifier> = emptySet(),
     request: RequestParametersFrom<*>,
+    verifierSignatures: List<VerifierSignature>?,
     navigateUpIsClose: Boolean = false,
     showStartRoute: Boolean = true,
     trustListService: TrustListService,
     fixedCredentialSelection: Boolean = false,
     wrpValidationResult: WrpValidationResult? = null,
+    /** Whether [wrpValidationResult] is still being evaluated, e.g. until the request is validated. */
+    wrpValidationPending: Boolean = false,
 ) {
     LaunchedEffect(selectionProvider) {
         selectionProvider.let {
@@ -129,6 +133,8 @@ fun PresentationGraphView(
                     trustListService = trustListService,
                     request = request,
                     wrpValidationResult = wrpValidationResult,
+                    wrpValidationPending = wrpValidationPending,
+                    verifierSignatures = verifierSignatures,
                 )
             }
         }
@@ -166,6 +172,7 @@ fun PresentationGraphView(
                 fixedCredentialSelection = fixedCredentialSelection,
                 request = request,
                 wrpValidationResult = wrpValidationResult,
+                verifierSignatures = verifierSignatures,
             )
         }
 
