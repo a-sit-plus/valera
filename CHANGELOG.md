@@ -1,5 +1,6 @@
 # Release 5.9.1 (unreleased):
- * tbd
+ * Presentation: Show mdoc data elements that have no type metadata by their element identifier instead of the full
+  namespaced path, and note on the consent screen that an age check may be answered with a different age confirmation
 
 # Release 5.9.0:
  * Issuing and presentation: Accept Launchpad `eu-eaa-offer` and `eu-eaap` links on Android and iOS
