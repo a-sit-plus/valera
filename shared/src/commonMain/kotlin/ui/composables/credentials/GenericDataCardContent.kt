@@ -10,6 +10,7 @@ import at.asitplus.wallet.lib.data.CredentialScheme
 import data.PersonalDataCategory
 import data.credentials.CredentialAdapter
 import data.credentials.CredentialAttributeCategorization
+import data.credentials.genericLabel
 import data.credentials.metadataLabel
 import ui.composables.AttributeRepresentation
 import ui.composables.LabeledContent
@@ -24,7 +25,7 @@ fun GenericDataCardContent(
     Column(modifier = modifier) {
         attributes.mapIndexed { index, it ->
             LabeledContent(
-                label = credentialScheme.metadataLabel(it.first) ?: it.first.toString(),
+                label = credentialScheme.metadataLabel(it.first) ?: it.first.genericLabel(),
                 content = it.second,
                 modifier = if (index == attributes.lastIndex) {
                     Modifier

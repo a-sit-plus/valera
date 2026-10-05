@@ -283,10 +283,7 @@ fun Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimRef
 // not the value-class wrapper (path.toString() would print "JsonClaimReference(normalizedJsonPath=$['family_name'])").
 fun SingleClaimReference.displayPath(): String = when (this) {
     is JsonClaimReference -> normalizedJsonPath.toShorthandNameSegmentNotationWherePossible().removePrefix("$.")
-    is MdocClaimReference -> NormalizedJsonPath(
-        NameSegment(namespace),
-        NameSegment(claimName)
-    ).toShorthandNameSegmentNotationWherePossible().removePrefix("$.")
+    is MdocClaimReference -> claimName
 }
 
 fun ConstantIndex.CredentialRepresentation.getMetadataLocalization(

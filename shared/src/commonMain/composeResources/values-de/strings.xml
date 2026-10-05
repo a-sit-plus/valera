@@ -464,6 +464,7 @@
     <string name="text_label_attestation_status_expiration">Status gültig bis</string>
     <string name="text_label_attestation_storage_type">Schlüsselspeicher</string>
     <string name="text_label_attestation_user_authentication">Authentifizierung</string>
+    <string name="text_label_age_attestation_substitution">Eine Altersabfrage wird mit der nächstgelegenen in Ihrem Nachweis enthaltenen Altersbestätigung beantwortet. Die gesendete Bestätigung kann daher ein anderes Alter nennen.</string>
 
     <!-- Trust Evaluation -->
     <string name="trust_status_trusted">Vertrauenswürdiger Aussteller</string>

@@ -14,12 +14,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.catchingUnwrapped
+import at.asitplus.iso.AgeAttestation
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_complex_dcql_query
 import at.asitplus.valera.resources.error_invalid_dcql_query
 import at.asitplus.valera.resources.text_label_intent_to_retain
+import at.asitplus.valera.resources.text_label_age_attestation_substitution
 import at.asitplus.wallet.app.common.DcqlConsentData
 import at.asitplus.wallet.app.common.IsoDeviceRequestConsentData
 import at.asitplus.wallet.app.common.extractConsentData
@@ -31,6 +33,7 @@ import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest.DCQLRequest
 import at.asitplus.wallet.lib.data.CredentialScheme
+import data.credentials.genericLabel
 import data.credentials.jwtClaimLabel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -149,6 +152,7 @@ fun RequestedCredentialPreview(
     val schemeName = scheme.uiLabel()
     val format = representation.name
     val intentToRetainText = stringResource(Res.string.text_label_intent_to_retain)
+    val ageAttestationNote = stringResource(Res.string.text_label_age_attestation_substitution)
     val localizations = attributes?.let { claimReferences ->
         val otherClaims = claimReferences.count {
             it.key == null
@@ -162,14 +166,20 @@ fun RequestedCredentialPreview(
             val label = catchingUnwrapped {
                 scheme.getLocalization(path)
                     ?: representation.getMetadataLocalization(path)?.let { stringResource(it) }
-                    ?: path.toShorthandNameSegmentNotationWherePossible().removePrefix("$.")
-            }.getOrElse { path.toShorthandNameSegmentNotationWherePossible().removePrefix("$.") }
+                    ?: path.genericLabel()
+            }.getOrElse { path.genericLabel() }
             if (intendsToRetain(path)) "$label ($intentToRetainText)" else label
         }
     }
+    // ISO/IEC 18013-5, 7.2.5: a requested age_over_NN is answered with the nearest attestation the credential
+    // actually carries, so the element finally disclosed can differ from the one listed here.
+    val requestsAgeAttestation = attributes.orEmpty().keys.any { path ->
+        path?.let { AgeAttestation.isAgeAttestation(it.genericLabel()) } == true
+    }
     ConsentAttributesSection(
         title = "$schemeName (${format})",
-        attributes = localizations
+        attributes = localizations,
+        note = ageAttestationNote.takeIf { requestsAgeAttestation },
     )
 }
 
