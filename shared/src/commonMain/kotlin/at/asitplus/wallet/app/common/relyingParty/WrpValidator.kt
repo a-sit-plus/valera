@@ -2,15 +2,26 @@ package at.asitplus.wallet.app.common.relyingParty
 
 import at.asitplus.KmmResult
 import at.asitplus.catching
+import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.TrustListService
+import at.asitplus.wallet.app.common.extractRelyingPartyCertificateChains
 import at.asitplus.wallet.lib.agent.TrustedCertificates
 import at.asitplus.wallet.lib.agent.validation.TokenStatusResolver
+import at.asitplus.wallet.lib.agent.validation.relyingParty.MissingRegistrationCertificateException
+import at.asitplus.wallet.lib.agent.validation.relyingParty.ReaderAuthenticationVerifier
+import at.asitplus.wallet.lib.agent.validation.relyingParty.UnsupportedWrpRequestException
+import at.asitplus.wallet.lib.agent.validation.relyingParty.WrpAccessCertificate
 import at.asitplus.wallet.lib.agent.validation.relyingParty.WrpAuthenticationRequestValidator
+import at.asitplus.wallet.lib.agent.validation.relyingParty.WrpRequestData
+import at.asitplus.wallet.lib.agent.validation.relyingParty.accessCertificate.WrpacValidationResult
 import at.asitplus.wallet.lib.agent.validation.relyingParty.accessCertificate.WrpacValidator
+import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.WrprcValidationResult
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.WrprcValidator
 import at.asitplus.wallet.lib.etsi.LoteProfile
+import at.asitplus.wallet.lib.openid.IsoMdocDcapiResponseBuilder
 import at.asitplus.wallet.lib.openid.validateWrpAuthenticationRequest
+import io.github.aakira.napier.Napier
 
 /**
  * Class to verify data sent from a relying party during a presentation request.
@@ -24,24 +35,92 @@ class WrpValidator(
     val accessCertValidator = WrpacValidator
     val registrationCertValidator = WrprcValidator()
 
-    suspend fun validate(requestParametersFrom: RequestParametersFrom<*>): KmmResult<WrpValidationResult?> = catching {
-        val validationData = when (requestParametersFrom) {
-            // Reader authentication signs over the DC API session transcript, which the plain overload cannot build
-            is RequestParametersFrom.IsoMdocDcApi -> requestParametersFrom.validateWrpAuthenticationRequest()
-            else -> WrpAuthenticationRequestValidator.invoke(requestParametersFrom)
-        }.getOrThrow()
-        val accessCertTrustList = trustListService.getTrustList(LoteProfile.WRPAC).getOrThrow()
-        val accessCertValidation = accessCertValidator.invoke(validationData,
-            TrustedCertificates { accessCertTrustList.toSet() }).getOrThrow()
+    /**
+     * Validates the WRPAC and the WRPRC of [requestParametersFrom], each independently of the other one, so that the
+     * WRPRC is also validated when the WRPAC is invalid (its linkage to the WRPAC is invalid then).
+     * A certificate missing from the request is not validated at all. Never fails, so that the consent page opens
+     * also if the relying party could not be checked.
+     */
+    suspend fun validate(requestParametersFrom: RequestParametersFrom<*>): WrpValidationResult = catching {
+        val accessCertTrustList = trustListService.getTrustList(LoteProfile.WRPAC)
+        val trustAnchors = TrustedCertificates { accessCertTrustList.getOrThrow().toSet() }
+        val accessCertValidation = requestParametersFrom.toWrpacRequestData()?.transform {
+            accessCertValidator.invoke(validationData = it, certificateTrustAnchors = trustAnchors)
+        }?.onFailure { Napier.w("WRPAC validation failed", it) }
+        val registrationCertValidation = requestParametersFrom.toWrprcRequestData()
+            ?.transform {
+                registrationCertValidator.invoke(
+                    identifierResult = accessCertValidation?.getOrNull()?.identifierResult,
+                    validationData = it,
+                    tokenStatusResolver = tokenStatusResolver,
+                    certificateTrustAnchors = trustAnchors,
+                )
+            }?.onFailure { Napier.w("WRPRC validation failed", it) }
 
-        val registrationCertValidation =
-            registrationCertValidator.invoke(
-                identifierResult = accessCertValidation.identifierResult,
-                validationData = validationData,
-                tokenStatusResolver = tokenStatusResolver,
-                certificateTrustAnchors = TrustedCertificates { accessCertTrustList.toSet() },
-            ).getOrThrow()
-
-        WrpValidationResult(registrationCertValidation, accessCertValidation)
+        WrpValidationResult(
+            accessCertificate = accessCertValidation,
+            registrationCertificate = registrationCertValidation,
+        )
+    }.getOrElse {
+        Napier.w("WRP validation failed", it)
+        WrpValidationResult(
+            accessCertificate = KmmResult.failure<WrpacValidationResult>(it),
+            registrationCertificate = KmmResult.failure<WrprcValidationResult>(it),
+        )
     }
 }
+
+private suspend fun RequestParametersFrom<*>.toWrpRequestData(): KmmResult<WrpRequestData> = catching {
+    when (this) {
+        // Reader authentication signs over the DC API session transcript, which the plain overload cannot build
+        is RequestParametersFrom.IsoMdocDcApi -> validateWrpAuthenticationRequest()
+        else -> WrpAuthenticationRequestValidator.invoke(this)
+    }.getOrThrow()
+}
+
+/**
+ * Data to validate only the WRPAC, which [WrpAuthenticationRequestValidator] can not provide without a parseable
+ * WRPRC, or `null` if the request does not contain a WRPAC.
+ */
+internal suspend fun RequestParametersFrom<*>.toWrpacRequestData(): KmmResult<WrpRequestData>? = when (this) {
+    is RequestParametersFrom.IsoMdocDcApi -> {
+        val deviceRequest = parameters.isoMdocRequest.deviceRequest
+        if (deviceRequest.readerAuthAll.isNullOrEmpty() && deviceRequest.docRequests.all { it.readerAuth == null }) {
+            null
+        } else catching {
+            val transcript = IsoMdocDcapiResponseBuilder.sessionTranscriptFor(this)
+            WrpRequestData(
+                accessCertificate = WrpAccessCertificate(
+                    ReaderAuthenticationVerifier().invoke(deviceRequest, transcript).getOrThrow()
+                ),
+                registrationCertificate = emptyMap(),
+            )
+        }
+    }
+
+    else -> catching { extractRelyingPartyCertificateChains() }.fold(
+        onSuccess = { chain ->
+            chain?.let {
+                KmmResult.success(
+                    WrpRequestData(
+                        clientId = (parameters as? AuthenticationRequestParameters)?.clientId,
+                        accessCertificate = WrpAccessCertificate(it),
+                        registrationCertificate = emptyMap(),
+                    )
+                )
+            }
+        },
+        onFailure = { KmmResult.failure(it) },
+    )
+}
+
+/**
+ * Data to validate the WRPRC, or `null` if the request does not contain one ([MissingRegistrationCertificateException]).
+ * Requests that can not be validated for a relying party at all ([UnsupportedWrpRequestException]), e.g. unsigned
+ * ones, count as not containing a WRPRC either.
+ */
+internal suspend fun RequestParametersFrom<*>.toWrprcRequestData(): KmmResult<WrpRequestData>? =
+    toWrpRequestData().takeUnless {
+        val error = it.exceptionOrNull()
+        error is MissingRegistrationCertificateException || error is UnsupportedWrpRequestException
+    }
