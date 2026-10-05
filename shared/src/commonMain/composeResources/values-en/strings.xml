@@ -458,6 +458,7 @@
     <string name="text_label_attestation_status_expiration">Status expires</string>
     <string name="text_label_attestation_storage_type">Key storage</string>
     <string name="text_label_attestation_user_authentication">User authentication</string>
+    <string name="text_label_age_attestation_substitution">An age check is answered with the closest age confirmation your credential contains, so the confirmation that is sent may name a different age.</string>
 
     <!-- Trust Evaluation -->
     <string name="trust_status_trusted">Trusted Issuer</string>

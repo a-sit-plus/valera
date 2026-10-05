@@ -19,6 +19,8 @@ fun ConsentAttributesSection(
     title: String,
     attributes: Pair<Int, Map<String, Boolean>>?, //<key = attribute name, value = optional>
     modifier: Modifier = Modifier,
+    /** Explanatory line shown below the attribute list, e.g. that an age check may be answered differently. */
+    note: String? = null,
 ) {
     val optionalText = stringResource(Res.string.text_label_optional)
 
@@ -45,6 +47,14 @@ fun ConsentAttributesSection(
                 // TODO: do we want to show how many non-single claim queries exist?
             } ?: run {
                 Text(stringResource(Res.string.text_label_all_attributes))
+            }
+            note?.let {
+                Text(
+                    text = it,
+                    modifier = Modifier.padding(top = 8.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }

@@ -20,9 +20,24 @@ fun OpenId4VciClaimsPathPointer.toNormalizedJsonPathOrNull(): NormalizedJsonPath
 fun CredentialScheme.metadataLabel(path: NormalizedJsonPath, locale: String = "en"): String? =
     metadataLabelCandidatePaths(path).firstNotNullOfOrNull { metadataLabelExact(it, locale) }
 
-/** Last-resort claim label when no metadata localization exists: the dot-joined claim path itself. */
-fun NormalizedJsonPath.genericLabel(): String =
-    (0 until size).mapNotNull { memberName(it) }.joinToString(".").ifEmpty { toString() }
+/**
+ * Last-resort claim label when no metadata localization exists: the dot-joined claim path.
+ *
+ * An mdoc data element is addressed as `[namespace, elementIdentifier]`. The namespace carries no information for a
+ * reader and makes an element that has no type-metadata entry look unlike the declared ones next to it: a requested
+ * `age_over_23`, which an issuer need not provision and which is resolved per ISO/IEC 18013-5, 7.2.5, would read as
+ * `org.iso.18013.5.1.age_over_23` while `age_over_21` right above it reads as `age_over_21`. Show the element
+ * identifier alone for those, so declared and undeclared elements are labelled the same way.
+ */
+fun NormalizedJsonPath.genericLabel(): String {
+    val names = (0 until size).mapNotNull { memberName(it) }
+    return when {
+        names.isEmpty() -> toString()
+        // A dot in the first segment marks an mdoc namespace; SD-JWT paths like [address, formatted] keep both.
+        names.size == 2 && '.' in names.first() -> names.last()
+        else -> names.joinToString(".")
+    }
+}
 
 /** Registered JWT claims rendered in dedicated cards (or not at all) rather than in attribute lists. */
 val HIDDEN_TOP_LEVEL_CLAIMS = setOf("status", "cnf", "vct", "iat", "iss", "nbf", "exp", "sub")
