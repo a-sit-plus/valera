@@ -18,7 +18,7 @@ import at.asitplus.wallet.app.common.relyingParty.WrpValidator
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
-import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
+import at.asitplus.wallet.lib.oidvci.CredentialIdentifierInfo
 import data.storage.DataStoreService
 import data.storage.WalletSubjectCredentialStore
 import io.github.aakira.napier.Napier

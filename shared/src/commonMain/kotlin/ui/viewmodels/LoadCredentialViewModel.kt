@@ -6,7 +6,7 @@ import at.asitplus.openid.CredentialOffer
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
+import at.asitplus.wallet.lib.oidvci.CredentialIdentifierInfo
 import kotlinx.coroutines.async
 
 /**

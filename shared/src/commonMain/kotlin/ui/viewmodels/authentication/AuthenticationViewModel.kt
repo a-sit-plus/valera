@@ -15,7 +15,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentation.*
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
+import at.asitplus.wallet.lib.ktor.openid.OpenId4VpKtorHolder
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -111,9 +111,9 @@ abstract class AuthenticationViewModel(
     }
 
 
-    abstract suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpWallet.AuthenticationResult
+    abstract suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpKtorHolder.AuthenticationResult
 
-    protected open fun handleAuthenticationSuccess(result: OpenId4VpWallet.AuthenticationSuccess) {
+    protected open fun handleAuthenticationSuccess(result: OpenId4VpKtorHolder.AuthenticationSuccess) {
         navigateUp()
         onAuthenticationSuccess(result.redirectUri)
     }
@@ -122,7 +122,7 @@ abstract class AuthenticationViewModel(
         catchingUnwrapped {
             walletMain.keyMaterial.promptText =
                 getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
-            finalizationMethod(credentialPresentation) as OpenId4VpWallet.AuthenticationSuccess
+            finalizationMethod(credentialPresentation) as OpenId4VpKtorHolder.AuthenticationSuccess
         }.onSuccess {
             handleAuthenticationSuccess(it)
         }.onFailure {

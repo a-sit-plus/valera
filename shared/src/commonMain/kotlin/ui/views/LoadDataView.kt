@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
+import at.asitplus.wallet.lib.oidvci.CredentialIdentifierInfo
 import ui.composables.buttons.LoadDataButton
 import ui.composables.forms.StatefulLoadDataForm
 
