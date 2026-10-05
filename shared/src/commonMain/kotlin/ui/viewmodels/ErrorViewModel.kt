@@ -7,7 +7,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_error_action_reset_app
 import at.asitplus.valera.resources.info_text_error_action_start_screen
 import at.asitplus.valera.resources.info_text_error_cause_reset_app
-import at.asitplus.wallet.lib.ktor.openid.HttpErrorResponseException
+import at.asitplus.wallet.lib.HttpErrorResponseException
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString

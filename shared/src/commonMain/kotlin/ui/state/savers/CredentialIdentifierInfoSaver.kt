@@ -1,7 +1,7 @@
 package ui.state.savers
 
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
-import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
+import at.asitplus.wallet.lib.oidvci.CredentialIdentifierInfo
 
 class CredentialIdentifierInfoSaver : ReusableSaver<CredentialIdentifierInfo, String>() {
     override fun prepareSaveable(value: CredentialIdentifierInfo) =
