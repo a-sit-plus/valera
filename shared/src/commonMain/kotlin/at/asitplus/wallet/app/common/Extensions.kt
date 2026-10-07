@@ -35,7 +35,6 @@ import at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme
 import at.asitplus.wallet.lib.data.SingleClaimReference
 import at.asitplus.wallet.lib.data.VcDataModelConstants.VERIFIABLE_CREDENTIAL
 import at.asitplus.wallet.lib.data.VcFallbackCredentialScheme
-import at.asitplus.wallet.lib.oidvci.toFormat
 import data.credentials.jwtClaimLabel
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -49,7 +48,36 @@ import org.jetbrains.compose.resources.stringResource
 import ui.presentation.DCQLCredentialQueryUiModel
 import ui.presentation.DCQLCredentialQueryUiModelAttributeLabels
 
-typealias DcqlConsentData = Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimReference?>?>
+/** How a verifier asks for an ISO mdoc: as a plain mdoc, or as a zero-knowledge proof with or without plain fallback. */
+enum class ZkMode {
+    /** Not shown: the format has no zero-knowledge variant, or the request does not say how it is asked for. */
+    UNKNOWN,
+
+    PLAIN,
+
+    /** A zero-knowledge proof is requested, but the wallet may answer with a plain mdoc if it cannot create one. */
+    ZK_WITH_PLAIN_FALLBACK,
+
+    /** A zero-knowledge proof is mandatory; the presentation fails if it cannot be created. */
+    ZK_REQUIRED,
+}
+
+/**
+ * Maps the zero-knowledge request of a verifier to a [ZkMode]. It is given as plain values, as the request comes in
+ * different representations, e.g. a [DocRequest] of a [DeviceRequest] or a [DCQLIsoMdocZkCredentialQuery].
+ */
+private fun zkModeOf(hasZkSystems: Boolean, zkRequired: Boolean): ZkMode = when {
+    zkRequired -> ZkMode.ZK_REQUIRED
+    !hasZkSystems -> ZkMode.PLAIN
+    else -> ZkMode.ZK_WITH_PLAIN_FALLBACK
+}
+
+data class DcqlConsentData(
+    val representation: CredentialRepresentation,
+    val scheme: CredentialScheme,
+    val claimReferences: Collection<SingleClaimReference?>?,
+    val zkMode: ZkMode = ZkMode.UNKNOWN,
+)
 
 data class IsoDeviceRequestConsentData(
     val scheme: CredentialScheme,
@@ -60,9 +88,14 @@ data class IsoDeviceRequestConsentData(
      * strings because [NormalizedJsonPath] has no value equality; use [intendsToRetain] to query it.
      */
     val retainedAttributePaths: Set<String>,
+    val zkMode: ZkMode = ZkMode.UNKNOWN,
 ) {
     fun intendsToRetain(path: NormalizedJsonPath) = path.toString() in retainedAttributePaths
 }
+
+/** How the verifier asks for this document: as a plain mdoc, or as a zero-knowledge proof. */
+internal fun DocRequest.zkMode(): ZkMode = itemsRequest.value.requestInfo?.zkRequest
+    ?.let { zkModeOf(it.systemSpecs.isNotEmpty(), it.zkRequired) } ?: ZkMode.PLAIN
 
 /** Resolves one ISO document request and preserves namespace and element order. */
 suspend fun DocRequest.extractConsentData(): IsoDeviceRequestConsentData {
@@ -76,6 +109,7 @@ suspend fun DocRequest.extractConsentData(): IsoDeviceRequestConsentData {
         scheme = resolveConsentScheme(ISO_MDOC, listOf(request.docType)),
         attributes = elements.map { it.first },
         retainedAttributePaths = elements.filter { it.second }.mapTo(mutableSetOf()) { it.first.toString() },
+        zkMode = zkMode(),
     )
 }
 
@@ -146,7 +180,15 @@ suspend fun DCQLCredentialQuery.extractConsentData(): DcqlConsentData {
             is DCQLAmbiguousClaimsQuery -> throw IllegalStateException("Unsupported claims query format: $it")
         }
     }
-    return Triple(representation, scheme, singleReferenceClaimsQueries?.values)
+    return DcqlConsentData(representation, scheme, singleReferenceClaimsQueries?.values, zkMode())
+}
+
+/** How the verifier asks for this credential, [ZkMode.UNKNOWN] for formats without a zero-knowledge variant. */
+internal fun DCQLCredentialQuery.zkMode(): ZkMode = when (this) {
+    is DCQLIsoMdocZkCredentialQuery ->
+        zkModeOf(meta.zkSystemType.systemSpecs.isNotEmpty(), meta.zkSystemType.zkRequired)
+    is DCQLIsoMdocCredentialQuery -> ZkMode.PLAIN
+    else -> ZkMode.UNKNOWN
 }
 
 private fun CredentialScheme.toCredentialClaimStructure(
@@ -250,11 +292,12 @@ fun NormalizedJsonPath.minus(name: String) =
     NormalizedJsonPath(this.filter { it !is NameSegment || it.memberName != name })
 
 @Composable
-fun Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimReference?>?>.toCredentialQueryUiModel(
+fun DcqlConsentData.toCredentialQueryUiModel(
     allowedAttributes:  RequestCredentialAttributesValidity? = null
 ): DCQLCredentialQueryUiModel {
     val (representation, scheme, attributePaths) = this
     return DCQLCredentialQueryUiModel(
+        zkMode = zkMode,
         credentialRepresentationLocalized = representation.uiLabel(),
         credentialSchemeLocalized = scheme.uiLabel(),
         requestedAttributesLocalized = attributePaths?.let { claimReferences ->

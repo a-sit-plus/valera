@@ -140,6 +140,9 @@
     <string name="text_label_optional">Optional</string>
     <string name="text_label_all_claims_requested">Alle Attribute</string>
     <string name="text_label_intent_to_retain">wird gespeichert</string>
+    <string name="zk_mode_badge_plain">Klassisch</string>
+    <string name="zk_mode_badge_zk_with_plain_fallback">ZK versuchen</string>
+    <string name="zk_mode_badge_zk_required">ZK erzwingen</string>
     <string name="text_label_powered_by">POWERED BY</string>
     <string name="text_label_certificate">Zertifikat</string>
     <string name="text_label_vda">VDA</string>

@@ -22,6 +22,7 @@ import at.asitplus.valera.resources.error_invalid_dcql_query
 import at.asitplus.valera.resources.text_label_intent_to_retain
 import at.asitplus.wallet.app.common.DcqlConsentData
 import at.asitplus.wallet.app.common.IsoDeviceRequestConsentData
+import at.asitplus.wallet.app.common.ZkMode
 import at.asitplus.wallet.app.common.extractConsentData
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
@@ -55,6 +56,8 @@ fun PresentationRequestPreview(
 fun IsoDeviceRequestPreview(
     presentationRequest: CredentialPresentationRequest.IsoDeviceRetrieval,
     errorAction: (Throwable) -> Unit,
+    /** `false` if the request is only a summary without zero-knowledge information. */
+    showZkMode: Boolean = true,
 ) {
     // Resolved in a coroutine: scheme resolution may fetch type metadata (from the persistent cache or remotely)
     // when the in-memory scheme index is still cold, e.g. right after the iOS identity provider extension process
@@ -76,6 +79,7 @@ fun IsoDeviceRequestPreview(
             representation = ConstantIndex.CredentialRepresentation.ISO_MDOC,
             attributes = request.attributes.associateWith { false },
             intendsToRetain = request::intendsToRetain,
+            zkMode = if (showZkMode) request.zkMode else ZkMode.UNKNOWN,
         )
         Spacer(modifier = Modifier.height(16.dp))
     }
@@ -114,10 +118,11 @@ fun DcqlRequestPreview(
     if (consentData == null) {
         PresentationRequestLoadingIndicator()
     }
-    consentData?.forEach { (representation, scheme, attributePaths) ->
+    consentData?.forEach { (representation, scheme, attributePaths, zkMode) ->
         RequestedCredentialPreview(
             scheme = scheme,
             representation = representation,
+            zkMode = zkMode,
             attributes = attributePaths?.map {
                 when (it) {
                     is MdocClaimReference -> NormalizedJsonPath() + it.namespace + it.claimName
@@ -145,6 +150,7 @@ fun RequestedCredentialPreview(
     representation: ConstantIndex.CredentialRepresentation,
     attributes: Map<NormalizedJsonPath?, Boolean>?,
     intendsToRetain: (NormalizedJsonPath) -> Boolean = { false },
+    zkMode: ZkMode = ZkMode.UNKNOWN,
 ) {
     val schemeName = scheme.uiLabel()
     val format = representation.name
@@ -169,7 +175,8 @@ fun RequestedCredentialPreview(
     }
     ConsentAttributesSection(
         title = "$schemeName (${format})",
-        attributes = localizations
+        attributes = localizations,
+        zkMode = zkMode,
     )
 }
 

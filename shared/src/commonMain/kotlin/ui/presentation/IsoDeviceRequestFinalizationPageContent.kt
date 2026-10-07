@@ -17,6 +17,7 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
+import at.asitplus.wallet.app.common.zkMode
 import at.asitplus.wallet.lib.agent.DeviceRequestCredentialDisclosure
 import at.asitplus.wallet.lib.agent.IsoDeviceRetrievalMatchingResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -27,6 +28,7 @@ import org.koin.compose.koinInject
 import ui.composables.DisclosedAttribute
 import ui.composables.TrustState
 import ui.composables.TrustStatusBanner
+import ui.composables.ZkModeBadgeAboveCard
 import ui.composables.credentials.CredentialSelectionCardHeader
 import ui.composables.credentials.CredentialSelectionCardLayout
 import ui.composables.credentials.CredentialSummaryCardContent
@@ -69,6 +71,9 @@ fun IsoDeviceRequestFinalizationPageContent(
     ) {
         orderedSubmissions.forEach { disclosure ->
             Spacer(Modifier.height(8.dp))
+            ZkModeBadgeAboveCard(
+                matchingResult.presentationRequest.deviceRequest.docRequests[disclosure.docRequestIndex].zkMode()
+            )
             IsoSubmissionSummaryCard(
                 disclosure,
                 requireNotNull(freshnessByCredential[disclosure.credential]),
