@@ -145,6 +145,9 @@
     <string name="text_label_optional_dataset">Optional dataset</string>
     <string name="text_label_optional_dataset_description">Optionally the service requests one of the following datasets</string>
     <string name="text_label_intent_to_retain">will be stored</string>
+    <string name="zk_mode_badge_plain">Plain</string>
+    <string name="zk_mode_badge_zk_with_plain_fallback">Try ZK</string>
+    <string name="zk_mode_badge_zk_required">Enforce ZK</string>
     <string name="text_label_powered_by">POWERED BY</string>
     <string name="text_label_certificate">Certificate</string>
     <string name="text_label_vda">VDA</string>

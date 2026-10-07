@@ -38,12 +38,15 @@ import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
 import at.asitplus.valera.resources.trust_status_title
 import at.asitplus.wallet.app.common.TrustListService
+import at.asitplus.wallet.app.common.ZkMode
+import at.asitplus.wallet.app.common.zkMode
 import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.DataDisplaySection
 import ui.composables.PresentationRequestLoadingIndicator
 import ui.composables.ScreenHeading
 import ui.composables.TrustState
+import ui.composables.ZkModeBadgeAboveCard
 import ui.composables.displayVerifierText
 
 @Composable
@@ -60,9 +63,13 @@ fun DCQLPresentationFinalizationPageContent(
     trustListService: TrustListService,
     request: RequestParametersFrom<*>
 ) {
-    val cards = remember(selections) {
-        selections.entries.sortedBy { it.key.string }.flatMap { it.value }
+    val cardsWithZkMode = remember(selections, dcqlQuery) {
+        selections.entries.sortedBy { it.key.string }.flatMap { (queryId, queryCards) ->
+            val zkMode = dcqlQuery.credentials.firstOrNull { it.id == queryId }?.zkMode() ?: ZkMode.UNKNOWN
+            queryCards.map { it to zkMode }
+        }
     }
+    val cards = remember(cardsWithZkMode) { cardsWithZkMode.map { it.first } }
     val loadingCards = remember(cards) {
         mutableStateMapOf<SelectableCredentialSubmissionCard, Boolean>().apply {
             cards.forEach { put(it, true) }
@@ -85,8 +92,9 @@ fun DCQLPresentationFinalizationPageContent(
         if (isLoading) {
             PresentationRequestLoadingIndicator()
         }
-        cards.forEach { card ->
+        cardsWithZkMode.forEach { (card, zkMode) ->
             Spacer(modifier = Modifier.height(8.dp))
+            ZkModeBadgeAboveCard(zkMode)
             // TODO: good enough or should we have separate cards for final submissions?
             //  - if these cards should be reused, then allowMultiSelection shouldn't be relevant with (isSelected, onToggleSelection) = (true, null)
             //  - Cards should therefore implicitly handle the case (true, *, null) to show the card without any selection specific semantics UI

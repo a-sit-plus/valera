@@ -59,6 +59,9 @@ fun IosDcApiPreRequestView(
         onContinue = currentData.onContinue,
         presentationRequest = CredentialPresentationRequest.IsoDeviceRetrieval(parsedSummary.toDeviceRequest()),
         errorAction = onError,
-        trustListService = trustListService
+        trustListService = trustListService,
+        // Apple's parsed request does not expose zero-knowledge information,
+        // the full request is only available after continuing
+        showZkMode = false,
     )
 }
