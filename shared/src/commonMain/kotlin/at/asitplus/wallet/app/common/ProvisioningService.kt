@@ -17,19 +17,20 @@ import at.asitplus.signum.indispensable.josef.toJsonWebKey
 import at.asitplus.wallet.app.common.attestation.AttestationService
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
+import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.ISO_MDOC
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.SD_JWT
 import at.asitplus.wallet.lib.data.CredentialScheme
-import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult
-import at.asitplus.wallet.lib.ktor.openid.OAuth2KtorClient
-import at.asitplus.wallet.lib.ktor.openid.OpenId4VciClient
+import at.asitplus.wallet.lib.ktor.openid.OpenId4VciKtorClient
 import at.asitplus.wallet.lib.ktor.openid.ProvisioningContext
+import at.asitplus.wallet.lib.oauth2.ClientAttestation
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
-import at.asitplus.wallet.lib.oidvci.WalletService
+import at.asitplus.wallet.lib.oidvci.CredentialIdentifierInfo
+import at.asitplus.wallet.lib.oidvci.OpenId4VciClient
 import at.asitplus.wallet.lib.utils.MapStore
 import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
@@ -37,19 +38,15 @@ import data.storage.StoreEntryId
 import data.storage.WalletSubjectCredentialStore
 import data.storage.persistentStringMapStore
 import io.github.aakira.napier.Napier
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.URLBuilder
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import ui.navigation.IntentService
-import kotlin.time.Duration.Companion.milliseconds
 
 
 class ProvisioningService(
@@ -61,7 +58,7 @@ class ProvisioningService(
     private val subjectCredentialStore: WalletSubjectCredentialStore,
     private val config: SettingsRepository,
     private val errorService: ErrorService,
-    private val httpService: HttpService,
+    httpService: HttpService,
     private val attestationService: AttestationService
 ) {
     data class StoredCredentialIssuanceResult(
@@ -92,9 +89,16 @@ class ProvisioningService(
     private var cachedClientId: String? = null
     private var cachedWalletProviderAttestationEnabled: Boolean? = null
 
-    private var openId4VciClientCached = null as OpenId4VciClient?
-    private var walletServiceCached = null as WalletService?
+    private var openId4VciClientCached = null as OpenId4VciKtorClient?
+    private var vciClientCached = null as OpenId4VciClient?
     private val provisioningFlowMutex = Mutex()
+
+    fun close() {
+        client.close()
+        // HttpService supplies a dedicated engine; cancelling it also stops VC-K's client copies.
+        client.engine.close()
+        client.engine.cancel()
+    }
 
     private suspend fun currentClientId(): String {
         val clientId = config.clientId.first()
@@ -121,25 +125,15 @@ class ProvisioningService(
             Napier.w("Keeping instance attestation while a provisioning browser flow is active")
         }
         openId4VciClientCached = null
-        walletServiceCached = null
+        vciClientCached = null
     }
 
-    private suspend fun walletService(): WalletService = walletServiceCached ?: run {
-        val clientId = currentClientId()
-        currentWalletProviderAttestationEnabled()
-        WalletService(
-            clientId = clientId,
-            loadKeyAttestation = attestationService::loadKeyAttestation,
-            keyMaterial = keyMaterial,
-            remoteResourceRetriever = { data ->
-                withContext(Dispatchers.IO) {
-                    client.get(data.url).bodyAsText()
-                }
-            }
-        )
-    }.also { walletServiceCached = it }
+    private suspend fun vciClient(): OpenId4VciClient = vciClientCached ?: OpenId4VciClient(
+        loadKeyAttestation = attestationService::loadKeyAttestation,
+        keyMaterial = keyMaterial,
+    ).also { vciClientCached = it }
 
-    private suspend fun openId4VciClient(): OpenId4VciClient {
+    private suspend fun openId4VciClient(): OpenId4VciKtorClient {
         assertProofKeyConsistent()
         return openId4VciClientCached ?: buildOpenId4VciClient()
     }
@@ -171,7 +165,7 @@ class ProvisioningService(
         }
     }
 
-    private suspend fun buildOpenId4VciClient(): OpenId4VciClient = run {
+    private suspend fun buildOpenId4VciClient(): OpenId4VciKtorClient = run {
         val clientId = currentClientId()
         val walletProviderAttestationEnabled = currentWalletProviderAttestationEnabled()
         val oAuth2Client = OAuth2Client(
@@ -179,29 +173,18 @@ class ProvisioningService(
             redirectUrl = redirectUrl,
             stateToCodeStore = stateToCodeStore
         )
-        val oAuth2KtorClient = if (walletProviderAttestationEnabled) {
-            OAuth2KtorClient(
-                engine = client.engine,
-                cookiesStorage = cookieStorage,
-                oAuth2Client = oAuth2Client,
-                httpClientConfig = httpService.loggingConfig,
+        val clientAttestation = if (walletProviderAttestationEnabled) {
+            ClientAttestation(
+                keyMaterial = attestationService.getInstanceAttestationKeyMaterial(),
                 loadInstanceAttestation = attestationService::loadInstanceAttestation,
-                keyMaterial = attestationService.getInstanceAttestationKeyMaterial()
             )
-        } else {
-            OAuth2KtorClient(
-                engine = client.engine,
-                cookiesStorage = cookieStorage,
-                oAuth2Client = oAuth2Client,
-                httpClientConfig = httpService.loggingConfig,
-            )
-        }
-        OpenId4VciClient(
-            engine = client.engine,
-            cookiesStorage = cookieStorage,
-            httpClientConfig = httpService.loggingConfig,
-            oauth2Client = oAuth2KtorClient,
-            oid4vciService = walletService()
+        } else null
+        OpenId4VciKtorClient(
+            httpClient = client,
+            oauth2Client = oAuth2Client,
+            vciClient = vciClient(),
+            clientAttestation = clientAttestation,
+            dpopKeyMaterial = clientAttestation?.keyMaterial ?: EphemeralKeyWithoutCert(),
         ).also { openId4VciClientCached = it }
     }
 
@@ -418,7 +401,7 @@ class ProvisioningService(
         qrCodeContent: String
     ): CredentialOffer {
         clearCaches()
-        return walletService().parseCredentialOffer(qrCodeContent).getOrThrow()
+        return openId4VciClient().loadCredentialOffer(qrCodeContent).getOrThrow()
     }
 
     /**

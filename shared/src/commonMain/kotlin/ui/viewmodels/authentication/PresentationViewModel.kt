@@ -14,7 +14,7 @@ import at.asitplus.wallet.app.common.extractCertificateChain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
+import at.asitplus.wallet.lib.ktor.openid.OpenId4VpKtorHolder
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 
@@ -73,7 +73,7 @@ class PresentationViewModel(
                 spName,
                 sessionTranscript!!
             )
-            OpenId4VpWallet.AuthenticationSuccess(null)
+            OpenId4VpKtorHolder.AuthenticationSuccess(null)
         } ?: throw IllegalStateException("No finish method found")
 
     override fun onCancel() {
@@ -99,7 +99,7 @@ class PresentationViewModel(
                     current.message?.contains("No signature from native code", ignoreCase = true) == true
         }
 
-    override fun handleAuthenticationSuccess(result: OpenId4VpWallet.AuthenticationSuccess) {
+    override fun handleAuthenticationSuccess(result: OpenId4VpKtorHolder.AuthenticationSuccess) {
         // Local presentment must keep the sheet alive until the presenter coroutine has sent the
         // device response and the transport flow completes.
     }

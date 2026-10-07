@@ -9,7 +9,7 @@ import at.asitplus.valera.resources.text_label_id_identifier
 import at.asitplus.wallet.app.common.resolveCredentialScheme
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.data.CredentialScheme
-import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
+import at.asitplus.wallet.lib.oidvci.CredentialIdentifierInfo
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

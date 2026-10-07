@@ -27,7 +27,7 @@ import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme
 import at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme
 import at.asitplus.wallet.lib.data.rfc3986.toUri
-import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
+import at.asitplus.wallet.lib.ktor.openid.OpenId4VpKtorHolder
 import at.asitplus.wallet.lib.openid.AuthnResponseResult
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import at.asitplus.wallet.lib.openid.ClientIdScheme
@@ -42,6 +42,7 @@ import data.credentials.labeledPresentationAttributes
 import data.credentials.toGenericAttributeList
 import data.storage.DummyDataStoreService
 import data.storage.PersistentSubjectCredentialStore
+import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respondError
 import io.ktor.client.engine.mock.respondOk
@@ -139,75 +140,80 @@ class UnknownSchemeDcqlPresentationTest {
         ).getOrThrow().url
 
         var responseValidation: KmmResult<AuthnResponseResult>? = null
-        val wallet = OpenId4VpWallet(
-            engine = MockEngine { request ->
-                if (request.url.toString().startsWith(RESPONSE_URL)) {
-                    responseValidation = verifier.validateAuthnResponse(request.body.toByteArray().decodeToString())
-                    respondOk()
-                } else respondError(HttpStatusCode.NotFound)
-            },
-            keyMaterial = keyMaterial,
-            holderAgent = holderAgent,
-        )
-
-        // the app serializes the preparation state into the navigation route (AuthenticationViewRoute)
-        val preparationState = joseCompliantSerializer.decodeFromString<AuthorizationResponsePreparationState>(
-            joseCompliantSerializer.encodeToString(
-                wallet.startAuthorizationResponsePreparation(requestUrl).getOrThrow()
+        val httpClient = HttpClient(MockEngine { request ->
+            if (request.url.toString().startsWith(RESPONSE_URL)) {
+                responseValidation = verifier.validateAuthnResponse(request.body.toByteArray().decodeToString())
+                respondOk()
+            } else respondError(HttpStatusCode.NotFound)
+        })
+        try {
+            val wallet = OpenId4VpKtorHolder(
+                httpClient = httpClient,
+                keyMaterial = keyMaterial,
+                holder = holderAgent,
             )
-        )
-        val matching = assertIs<DCQLMatchingResult<SubjectCredentialStore.StoreEntry>>(
-            wallet.getMatchingCredentials(preparationState).getOrThrow()
-        )
 
-        // the selection cards must at least list the credential's claims, like the details view does
-        val storedCredential = matching.matchingResult.credentials.single()
-        val genericAttributes = storedCredential.toGenericAttributeList()
-        val labels = FallbackCredentialAdapter(genericAttributes, storedCredential, scheme)
-            .labeledPresentationAttributes(genericAttributes)
-            .map { it.first }
-        assertTrue(
-            labels.any { it.endsWith("family_name") } && labels.any { it.endsWith("given_name") },
-            "selection card should label all claims of a credential with unknown scheme, got: $labels"
-        )
+            // the app serializes the preparation state into the navigation route (AuthenticationViewRoute)
+            val preparationState = joseCompliantSerializer.decodeFromString<AuthorizationResponsePreparationState>(
+                joseCompliantSerializer.encodeToString(
+                    wallet.startAuthorizationResponsePreparation(requestUrl).getOrThrow()
+                )
+            )
+            val matching = assertIs<DCQLMatchingResult<SubjectCredentialStore.StoreEntry>>(
+                wallet.getMatchingCredentials(preparationState).getOrThrow()
+            )
 
-        // as PresentationBuilderGraphView.onSubmit does, with every matching credential selected
-        val submissions = matching.matchingResult.dcqlQueryMatchingResult.credentialMatchingResults
-            .mapValues { (_, matches) ->
-                matches.mapIndexedNotNull { index, match ->
-                    match.getOrNull()?.let {
-                        DCQLCredentialSubmissionOption(
-                            credential = matching.matchingResult.credentials[index],
-                            matchingResult = it,
-                        )
+            // the selection cards must at least list the credential's claims, like the details view does
+            val storedCredential = matching.matchingResult.credentials.single()
+            val genericAttributes = storedCredential.toGenericAttributeList()
+            val labels = FallbackCredentialAdapter(genericAttributes, storedCredential, scheme)
+                .labeledPresentationAttributes(genericAttributes)
+                .map { it.first }
+            assertTrue(
+                labels.any { it.endsWith("family_name") } && labels.any { it.endsWith("given_name") },
+                "selection card should label all claims of a credential with unknown scheme, got: $labels"
+            )
+
+            // as PresentationBuilderGraphView.onSubmit does, with every matching credential selected
+            val submissions = matching.matchingResult.dcqlQueryMatchingResult.credentialMatchingResults
+                .mapValues { (_, matches) ->
+                    matches.mapIndexedNotNull { index, match ->
+                        match.getOrNull()?.let {
+                            DCQLCredentialSubmissionOption(
+                                credential = matching.matchingResult.credentials[index],
+                                matchingResult = it,
+                            )
+                        }
                     }
                 }
+            assertTrue(
+                submissions.isNotEmpty() && submissions.values.all { it.isNotEmpty() },
+                "credential with unknown scheme should match the DCQL query"
+            )
+
+            wallet.finalizeAuthorizationResponse(
+                preparationState,
+                CredentialPresentation.DCQLPresentation(
+                    presentationRequest = matching.presentationRequest,
+                    credentialQuerySubmissions = submissions,
+                ),
+            ).getOrThrow()
+
+            val validated = assertNotNull(responseValidation, "relying party should have received a response").getOrThrow()
+            val presentationResult = assertIs<VpTokenValidationResultDCQL>(
+                assertNotNull(validated.vpTokenValidationResult).getOrThrow()
+            ).credentialQueryResponseValidations.values.single().single().getOrThrow()
+            val disclosedClaims = when (presentationResult) {
+                is Verifier.VerifyPresentationResult.SuccessSdJwt -> presentationResult.disclosures.map { it.claimName }
+                is Verifier.VerifyPresentationResult.SuccessIso -> presentationResult.documents
+                    .flatMap { it.validItems }.map { it.elementIdentifier }
+
+                else -> emptyList()
             }
-        assertTrue(
-            submissions.isNotEmpty() && submissions.values.all { it.isNotEmpty() },
-            "credential with unknown scheme should match the DCQL query"
-        )
-
-        wallet.finalizeAuthorizationResponse(
-            preparationState,
-            CredentialPresentation.DCQLPresentation(
-                presentationRequest = matching.presentationRequest,
-                credentialQuerySubmissions = submissions,
-            ),
-        ).getOrThrow()
-
-        val validated = assertNotNull(responseValidation, "relying party should have received a response").getOrThrow()
-        val presentationResult = assertIs<VpTokenValidationResultDCQL>(
-            assertNotNull(validated.vpTokenValidationResult).getOrThrow()
-        ).credentialQueryResponseValidations.values.single().single().getOrThrow()
-        val disclosedClaims = when (presentationResult) {
-            is Verifier.VerifyPresentationResult.SuccessSdJwt -> presentationResult.disclosures.map { it.claimName }
-            is Verifier.VerifyPresentationResult.SuccessIso -> presentationResult.documents
-                .flatMap { it.validItems }.map { it.elementIdentifier }
-
-            else -> emptyList()
+            assertEquals(expectedDisclosedClaims, disclosedClaims.filterNotNull().toSet())
+        } finally {
+            httpClient.close()
         }
-        assertEquals(expectedDisclosedClaims, disclosedClaims.filterNotNull().toSet())
     }
 
     private fun credentialToBeIssued(

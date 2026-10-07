@@ -10,10 +10,11 @@ import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.PresentationRequestParameters
 import at.asitplus.wallet.lib.agent.PresentationResponseParameters
 import at.asitplus.wallet.lib.data.CredentialPresentation
-import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
+import at.asitplus.wallet.lib.ktor.openid.OpenId4VpKtorHolder
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import at.asitplus.wallet.lib.openid.DcApiPreparationState
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToByteArray
 
@@ -24,13 +25,20 @@ class PresentationService(
     httpService: HttpService,
     settingsRepository: SettingsRepository,
 ) {
-    private val presentationService = OpenId4VpWallet(
-        engine = createPlatformHttpClientEngine(),
-        httpClientConfig = httpService.loggingConfig,
+    private val client = httpService.buildHttpClient()
+    private val presentationService = OpenId4VpKtorHolder(
+        httpClient = client,
         keyMaterial = keyMaterial,
-        holderAgent = holderAgent,
+        holder = holderAgent,
         allowedDcApiOriginSchemes = { settingsRepository.openId4VpAllowedOriginSchemes.first() },
     )
+
+    fun close() {
+        client.close()
+        // HttpService supplies a dedicated engine; cancelling it also stops VC-K's client copies.
+        client.engine.close()
+        client.engine.cancel()
+    }
 
     suspend fun startAuthorizationResponsePreparation(input: String) =
         presentationService.startAuthorizationResponsePreparation(input)
@@ -51,7 +59,7 @@ class PresentationService(
     suspend fun finalizeAuthorizationResponse(
         credentialPresentation: CredentialPresentation,
         preparationState: AuthorizationResponsePreparationState,
-    ): OpenId4VpWallet.AuthenticationResult {
+    ): OpenId4VpKtorHolder.AuthenticationResult {
         LongfellowZkRegistration.ensureRegistered()
         return presentationService.finalizeAuthorizationResponse(
             credentialPresentation = credentialPresentation,
