@@ -21,6 +21,7 @@ import at.asitplus.wallet.lib.validation.ValidationReport
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Instant
 
@@ -79,6 +80,17 @@ internal class RelyingPartyValidationUiTest : ValidationReportFixtures() {
     }
 
     @Test
+    fun rejectedReaderOfProximityRequest() {
+        val report = relyingParty(accessCertificate(trust = Failed(IllegalArgumentException("untrusted reader"))))
+        val validation = RelyingPartyValidationUi.of(RelyingPartyValidationResult(report, relyingParty = null))
+
+        assertFalse(validation.outcome!!.accepted)
+        assertFalse(validation.outcome.integrityFailed)
+        assertNull(validation.registration)
+        assertFalse(validation.registrationMissing)
+    }
+
+    @Test
     fun registrationOfRejectedRelyingPartyIsShownUnverified() {
         val report = relyingParty(
             registrationCertificate = registrationCertificate(linkage = Failed(IllegalArgumentException("not linked")))
@@ -98,8 +110,7 @@ internal class RelyingPartyValidationUiTest : ValidationReportFixtures() {
             purpose = listOf(WrpLangString(lang = "en", value = "Age verification")),
         )
         val validation = RelyingPartyValidationUi.of(
-            report,
-            RelyingPartyValidationResult(report, relyingParty = null, untrustedRegistrations = listOf(payload)),
+            RelyingPartyValidationResult(report, relyingParty = null, untrustedRegistrations = listOf(payload))
         )
 
         assertEquals("Example Shop", validation.registration?.name)

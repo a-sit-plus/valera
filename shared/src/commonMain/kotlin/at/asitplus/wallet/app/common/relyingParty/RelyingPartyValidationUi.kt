@@ -58,6 +58,9 @@ data class RelyingPartyValidationUi(
             outcome = report?.toUi(),
             registration = relyingParty?.untrustedRegistrations?.firstOrNull()?.toDisplayInfo(),
         )
+
+        /** The validation of the relying party of a proximity request, whose report is the one of [result]. */
+        fun of(result: RelyingPartyValidationResult) = of(result.report, result)
     }
 }
 

@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.openid.TransactionDataBase64Url
 import at.asitplus.signum.indispensable.pki.CertificateChain
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 
 class AuthenticationConsentViewModel(
@@ -18,7 +19,9 @@ class AuthenticationConsentViewModel(
     val presentationRequest: CredentialPresentationRequest,
     val onClickLogo: () -> Unit,
     val onUnauthenticated: () -> Unit = navigateUp,
-    val verifierCertificateChain: CertificateChain? = null
+    val verifierCertificateChain: CertificateChain? = null,
+    /** Replaces the trust in [verifierCertificateChain], if present. */
+    val relyingPartyValidation: RelyingPartyValidationUi? = null,
 ) {
     val consentToDataTransmission: () -> Unit = {
         buttonConsent()

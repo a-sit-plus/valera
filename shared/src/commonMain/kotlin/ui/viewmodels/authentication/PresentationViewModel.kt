@@ -11,6 +11,8 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.warning_authentication_cancelled
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.extractCertificateChain
+import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
+import at.asitplus.wallet.app.common.validation.rejection
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
@@ -41,14 +43,39 @@ class PresentationViewModel(
     private var sessionTranscript: SessionTranscript? = null
     var verifierCertificateChain: CertificateChain? = null
 
-    fun initWithDeviceRequest(
+    /**
+     * The validation of the reader, `null` for a request without reader authentication, or without a session
+     * transcript to verify it over.
+     */
+    var relyingPartyValidation: RelyingPartyValidationUi? = null
+
+    /**
+     * Validates the relying party of [parsedRequest], i.e. its reader authentication over [sessionTranscript], and
+     * fails if its integrity is not intact, e.g. its signature. Other problems, e.g. an untrusted reader, are shown to
+     * the user as warnings.
+     */
+    suspend fun initWithDeviceRequest(
         parsedRequest: DeviceRequest,
         finishFunction: (ByteArray) -> Unit,
         sessionTranscript: SessionTranscript?
     ) {
+        // VC-K rejects the relying party of a request without reader authentication, or without WRPRC, by its
+        // `requestData`, which blocks, so such requests are not validated, as VC-K reports no relying party for
+        // OpenID4VP and DC API requests without WRPRC either
+        val authenticated = !parsedRequest.readerAuthAll.isNullOrEmpty() ||
+                parsedRequest.docRequests.any { it.readerAuth != null }
+        val registered = parsedRequest.docRequests.any { it.itemsRequest.value.requestInfo?.euWrprc != null }
+        val validation = sessionTranscript?.takeIf { authenticated && registered }?.let {
+            walletMain.presentationService.validateRelyingParty(parsedRequest, it)
+        }
+        val relyingParty = validation?.let { RelyingPartyValidationUi.of(it) }
+        if (relyingParty?.outcome?.integrityFailed == true) {
+            throw validation.report.rejection() ?: IllegalArgumentException("The reader has been rejected")
+        }
         deviceRequest = parsedRequest
         this.finishFunction = finishFunction
         this.sessionTranscript = sessionTranscript
+        this.relyingPartyValidation = relyingParty
         this.verifierCertificateChain = parsedRequest.extractCertificateChain()
     }
 

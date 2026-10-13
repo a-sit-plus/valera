@@ -19,7 +19,6 @@ import kotlinx.serialization.encodeToByteArray
 import org.multipaz.cbor.Cbor
 import org.multipaz.cbor.Simple
 import org.multipaz.crypto.EcPublicKey
-import org.multipaz.mdoc.request.DeviceRequest
 import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.sessionencryption.SessionEncryption
 import org.multipaz.mdoc.transport.MdocTransport
@@ -132,12 +131,9 @@ class MdocPresenter(
                 break
             }
 
-            // TODO: check the reader authentication
-            val deviceRequest = DeviceRequest.fromDataItem(Cbor.decode(encodedDeviceRequest!!))
-//            deviceRequest.verifyReaderAuthentication(sessionTranscript = RawCbor(encodedSessionTranscript!!))
-
+            // Verifies the reader authentication, and fails for an invalid one
             presentationViewModel.initWithDeviceRequest(
-                parsedRequest = coseCompliantSerializer.decodeFromByteArray(encodedDeviceRequest),
+                parsedRequest = coseCompliantSerializer.decodeFromByteArray(encodedDeviceRequest!!),
                 finishFunction = credentialSelected,
                 sessionTranscript = sessionTranscript
             )

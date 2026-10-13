@@ -136,7 +136,8 @@ fun PresentationView(
                             presentationRequest = presentationViewModel.presentationRequest,
                             onClickLogo = presentationViewModel.onClickLogo,
                             onUnauthenticated = {},
-                            verifierCertificateChain = presentationViewModel.verifierCertificateChain
+                            verifierCertificateChain = presentationViewModel.verifierCertificateChain,
+                            relyingPartyValidation = presentationViewModel.relyingPartyValidation,
                         ),
                         onError = onError,
                         trustListService = trustListService

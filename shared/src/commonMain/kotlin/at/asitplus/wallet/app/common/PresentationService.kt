@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.iso.DeviceRequest
 import at.asitplus.iso.SessionTranscript
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.RequestParametersFrom
@@ -26,7 +27,7 @@ class PresentationService(
     val holderAgent: HolderAgent,
     httpService: HttpService,
     settingsRepository: SettingsRepository,
-    relyingPartyValidator: RelyingPartyValidator,
+    private val relyingPartyValidator: RelyingPartyValidator,
 ) {
     private val client = httpService.buildHttpClient()
     private val presentationService = OpenId4VpKtorHolder(
@@ -58,6 +59,13 @@ class PresentationService(
     suspend fun getMatchingCredentials(
         preparationState: AuthorizationResponsePreparationState
     ) = presentationService.getMatchingCredentials(preparationState)
+
+    /**
+     * Validates the relying party of the proximity request [deviceRequest] under [ValidationPolicies.strict]: its
+     * reader authentication over [sessionTranscript] with the WRPAC, and its WRPRCs.
+     */
+    suspend fun validateRelyingParty(deviceRequest: DeviceRequest, sessionTranscript: SessionTranscript) =
+        relyingPartyValidator.validate(deviceRequest, sessionTranscript, ValidationPolicies.strict)
 
     /** Validates [request] under [ValidationPolicies.strict], returning its report next to the state. */
     suspend fun prepareDcApiRequest(request: RequestParametersFrom.DcApiRequest) =
