@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.IssuerMetadata
@@ -18,13 +19,16 @@ import at.asitplus.signum.indispensable.josef.toJsonWebKey
 import at.asitplus.wallet.app.common.attestation.AttestationService
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.validation.IssuerValidationUi
+import at.asitplus.wallet.app.common.validation.PendingCredentialReview
 import at.asitplus.wallet.app.common.validation.ValidationPolicies
 import at.asitplus.wallet.app.common.validation.rejection
+import at.asitplus.wallet.app.common.validation.toUi
 import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
 import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.ISO_MDOC
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.SD_JWT
@@ -48,6 +52,7 @@ import io.github.aakira.napier.Napier
 import io.ktor.http.URLBuilder
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
@@ -68,6 +73,7 @@ class ProvisioningService(
     httpService: HttpService,
     private val attestationService: AttestationService,
     private val issuerMetadataValidator: IssuerMetadataValidator,
+    private val pendingCredentialReview: PendingCredentialReview,
 ) {
     /** The [credentialIdentifiers] a credential issuer offers, and the [issuer] as validated from its metadata. */
     data class IssuerMetadataLoad(
@@ -78,6 +84,14 @@ class ProvisioningService(
     data class StoredCredentialIssuanceResult(
         val credentialIssuanceResult: CredentialIssuanceResult,
         val storedEntryIds: List<StoreEntryId> = emptyList(),
+        /** Whether credentials wait for the user to decide whether to store them, see [credentialsUnderReview]. */
+        val needsReview: Boolean = false,
+    )
+
+    /** The credentials that have been stored, and whether others wait for review, see [credentialsUnderReview]. */
+    data class StoredCredentials(
+        val storedEntryIds: List<StoreEntryId>,
+        val needsReview: Boolean,
     )
 
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
@@ -280,7 +294,7 @@ class ProvisioningService(
         redirectedUrl: String,
         statusUpdater: ((Long, RefreshStatus) -> Unit)? = null,
         onProgress: ((LoadingMessageKey) -> Unit)? = null,
-    ): List<StoreEntryId> {
+    ): StoredCredentials {
         Napier.d("handleResponse with $redirectedUrl")
         val storedState = provisioningFlowMutex.withLock {
             takeProvisioningState(redirectedUrl)
@@ -303,10 +317,15 @@ class ProvisioningService(
                 Napier.d("resumeWithAuthCode idsBefore=$idsBefore")
                 Napier.d("resumeWithAuthCode received ${result.credentials.size} credential(s)")
                 onProgress?.invoke(LoadingMessageKey.StoringCredential)
+                // A credential replacing a stored one is not reviewed, as the stored one is removed below
+                val review = storedState.context.reissuingStoreEntryId == null
                 val storageResults = result.credentials.map { cred ->
-                    storeCredential(cred, result.refreshToken)
+                    storeCredential(cred, result.refreshToken, review)
                 }
-                val storedEntryIds = resolveNewStoreEntryIds(idsBefore)
+                val needsReview = storageResults.any { it.getOrNull() == null }
+                val storedEntryIds = if (storageResults.any { it.getOrNull() != null }) {
+                    resolveNewStoreEntryIds(idsBefore)
+                } else emptyList()
                 Napier.d("resumeWithAuthCode resolved storeEntryIds=$storedEntryIds")
 
                 if (storageResults.all { it.isSuccess }) {
@@ -318,7 +337,7 @@ class ProvisioningService(
                     storedState.context.reissuingStoreEntryId?.let { statusUpdater?.invoke(it, RefreshStatus.Failed) }
                     storageResults.first { it.isFailure }.getOrThrow()
                 }
-                storedEntryIds
+                StoredCredentials(storedEntryIds, needsReview)
             }
         } finally {
             clearActiveProvisioningState(storedState.state)
@@ -406,7 +425,7 @@ class ProvisioningService(
         Napier.d("refreshCredential with identifier ${renewalInfo.credentialIdentifier}")
         openId4VciClient().refreshCredentialReturningResult(renewalInfo).getOrThrow().also { result ->
             val storageResults = result.credentials.map { credentialInput ->
-                storeCredential(credentialInput, result.refreshToken)
+                storeCredential(credentialInput, result.refreshToken, review = false)
             }
 
             if (storageResults.all { it.isSuccess }) {
@@ -475,30 +494,74 @@ class ProvisioningService(
                 Napier.d("loadCredentialWithOffer idsBefore=$idsBefore")
                 Napier.d("loadCredentialWithOffer received ${result.credentials.size} credential(s) without browser auth")
                 onProgress?.invoke(LoadingMessageKey.StoringCredential)
-                result.credentials.forEach {
-                    storeCredential(it).getOrThrow()
+                val storedEntries = result.credentials.map {
+                    storeCredential(it, review = true).getOrThrow()
                 }
-                val storedEntryIds = resolveNewStoreEntryIds(idsBefore)
+                val storedEntryIds = if (storedEntries.any { it != null }) {
+                    resolveNewStoreEntryIds(idsBefore)
+                } else emptyList()
                 Napier.d("loadCredentialWithOffer resolved storeEntryIds=$storedEntryIds")
                 StoredCredentialIssuanceResult(
                     credentialIssuanceResult = result,
                     storedEntryIds = storedEntryIds,
+                    needsReview = storedEntries.any { it == null },
                 )
             }
         }
     }
 
+    /** Issued credentials that wait for the user to decide whether to store them, see [keepCredentialsUnderReview]. */
+    val credentialsUnderReview: StateFlow<List<PendingCredentialReview.Entry>>
+        get() = pendingCredentialReview.entries
+
+    /** Stores every credential under review, as the user decided to keep it although it has been rejected. */
+    @Throws(Throwable::class)
+    suspend fun keepCredentialsUnderReview(): List<StoreEntryId> {
+        val idsBefore = subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
+        pendingCredentialReview.take().forEach { storeLeniently(it.credential, it.renewalInfo) }
+        return resolveNewStoreEntryIds(idsBefore)
+    }
+
+    /** Drops every credential under review, as the user decided not to keep it. */
+    fun discardCredentialsUnderReview() = pendingCredentialReview.clear()
+
     /**
-     * Stores [credential] if its integrity is intact, i.e. under [ValidationPolicies.lenient], which tolerates
-     * untrusted issuers, invalid time claims, and any status, as storing has done before validation reports.
+     * Stores [credential] if it is accepted under [ValidationPolicies.strict], and returns its entry. A credential
+     * rejected only for problems the user may tolerate, e.g. an untrusted issuer, an expired one, or an unknown status,
+     * waits in [credentialsUnderReview] if [review] is set, so `null` is returned; otherwise, e.g. when refreshing a
+     * credential in the background, it is stored under [ValidationPolicies.lenient]. A credential failing a check of
+     * its integrity, e.g. its signature or its binding to the key of the wallet, fails.
      */
     private suspend fun storeCredential(
         credential: Holder.StoreCredentialInput,
         renewalInfo: CredentialRenewalInfo? = null,
-    ) = catching {
+        review: Boolean,
+    ): KmmResult<SubjectCredentialStore.StoreEntry?> = catching {
+        val result = holderAgent.storeCredentialWithReport(credential, ValidationPolicies.strict, renewalInfo)
+            .getOrThrow()
+        result.storedEntry ?: run {
+            val report = result.validation.report
+            val outcome = report.toUi()
+            when {
+                outcome.integrityFailed ->
+                    throw report.rejection() ?: IllegalStateException("The credential has not been stored")
+
+                review -> null.also {
+                    pendingCredentialReview.add(PendingCredentialReview.Entry(credential, renewalInfo, outcome))
+                }
+
+                else -> storeLeniently(credential, renewalInfo)
+            }
+        }
+    }
+
+    private suspend fun storeLeniently(
+        credential: Holder.StoreCredentialInput,
+        renewalInfo: CredentialRenewalInfo?,
+    ): SubjectCredentialStore.StoreEntry {
         val result = holderAgent.storeCredentialWithReport(credential, ValidationPolicies.lenient, renewalInfo)
             .getOrThrow()
-        result.storedEntry
+        return result.storedEntry
             ?: throw result.validation.report.rejection()
                 ?: IllegalStateException("The credential has not been stored")
     }

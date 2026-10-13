@@ -84,6 +84,10 @@ data class AddCredentialDcApiRoute(
 @Serializable
 data class TransientFlowIssuingResultRoute(val storeEntryId: StoreEntryId? = null) : Route()
 
+/** Issued credentials that have been rejected wait for the user to keep or discard them, see `PendingCredentialReview`. */
+@Serializable
+object CredentialReviewRoute : Route()
+
 @Serializable
 data class AddCredentialWithLinkRoute(val uri: String) : Route()
 

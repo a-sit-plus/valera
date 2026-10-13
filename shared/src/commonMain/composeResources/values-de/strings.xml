@@ -562,4 +562,8 @@
     <string name="label_issuer_registration_attestations">Registrierte Nachweise</string>
     <string name="label_issuer_registration_registry">Register</string>
     <string name="warning_issuer_not_registered_for_credential">Der Aussteller ist nicht für die Ausstellung dieses Nachweises registriert</string>
+    <string name="heading_label_credential_review">Nachweis prüfen</string>
+    <string name="info_text_credential_review">Der ausgestellte Nachweis hat nicht alle Prüfungen bestanden. Er wurde noch nicht gespeichert: trotzdem behalten, oder abbrechen, um ihn zu verwerfen.</string>
+    <string name="prompt_credential_review">Den Nachweis behalten, obwohl nicht alle Prüfungen bestanden wurden?</string>
+    <string name="button_label_keep_anyway">Trotzdem behalten</string>
 </resources>

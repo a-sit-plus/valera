@@ -8,6 +8,7 @@
  * Issuing: Validate issued credentials with VC-K's `CredentialValidator` before storing them, which checks their integrity as before, and trust in their issuers per credential type from the Lists of Trusted Entities
  * Presentation: Validate requests and their relying parties with VC-K's validation reports, and show the outcome as a warning with every check of the request, its access certificate, and its registration certificates, e.g. an untrusted, expired, revoked, or unlinked certificate, or requested data that is not registered; requests failing their integrity, e.g. their signature, are still rejected
  * Issuing: Request signed issuer metadata and show the validation of the issuer before issuance, i.e. whether its access certificate is trusted, its registration information and registration certificate, and whether it is registered for the offered credential; untrusted issuers are shown as a warning, unsigned metadata as not verified
+ * Issuing: Ask before storing an issued credential that did not pass every check, e.g. one of an untrusted issuer, an expired one, or one whose status could not be checked, show why, and store it only if the user keeps it
  * Proximity: Verify the reader authentication of requests over BLE and NFC, reject an invalid one, and show the validation of the reader and its registration certificates like for other relying parties
  * Trust Lists: Load root certificates of registration certificate (WRPRC) providers from a bundled file and from a URL configurable in the settings
 
