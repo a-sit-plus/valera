@@ -14,12 +14,17 @@ import at.asitplus.signum.indispensable.pki.CertificateChain
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.indispensable.pki.leaf
 import at.asitplus.wallet.app.common.data.SettingsRepository
+import at.asitplus.wallet.lib.agent.TrustedCertificates
 import at.asitplus.wallet.lib.etsi.LoTEFilterService
 import at.asitplus.wallet.lib.etsi.LoTEStage
+import at.asitplus.wallet.lib.etsi.LoTETrustAnchorProvider
 import at.asitplus.wallet.lib.etsi.LoteProfile
 import at.asitplus.wallet.lib.etsi.isTrustedBy
 import at.asitplus.wallet.lib.jws.VerifyJwsObjectFun
 import at.asitplus.wallet.lib.jws.VerifyJwsObjectJades
+import at.asitplus.wallet.lib.validation.CredentialTrustAnchorSet
+import at.asitplus.wallet.lib.validation.CredentialTrustAnchors
+import at.asitplus.wallet.lib.validation.TrustPurpose
 import data.storage.DataStoreService
 import data.storage.PersistentHttpCacheStorage
 import data.storage.PersistentTrustListStore
@@ -38,7 +43,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
@@ -274,12 +278,55 @@ class TrustListService(
     suspend fun getTrustList(
         profile: LoteProfile
     ) = catching {
-        persistentTrustListStore.observeTrustContainer(trustListUrls.first()).firstOrNull()?.let { trustLists ->
-            val freshTrustLists = trustLists.filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
-            freshTrustLists.values
-                .flatMap { lote -> loTeFilterService.extractIssuanceCertificates(lote, profile) }
-                .mapNotNull { it.certificate } + asitIssuerCert
-        } ?: listOf(asitIssuerCert)
+        freshTrustLists()
+            .flatMap { lote -> loTeFilterService.extractIssuanceCertificates(lote, profile) }
+            .mapNotNull { it.certificate } + asitIssuerCert
+    }
+
+    /** The lists of every enabled stage that are not older than [Configuration.CACHE_TTL_TRUST_LIST]. */
+    suspend fun freshTrustLists(): Collection<ListOfTrustedEntities> =
+        persistentTrustListStore.observeTrustContainer(trustListUrls.first()).first()
+            .filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
+            .values
+
+    /**
+     * Anchors of [profile] for the validators of VC-K, read from the fresh lists whenever they are used: the
+     * certificates of its issuance services, or of its revocation services for [TrustPurpose.STATUS], and the A-SIT
+     * root.
+     */
+    fun trustedCertificates(
+        profile: LoteProfile,
+        purpose: TrustPurpose = TrustPurpose.ISSUANCE,
+    ) = TrustedCertificates {
+        freshTrustLists().flatMap { lote ->
+            when (purpose) {
+                TrustPurpose.ISSUANCE -> loTeFilterService.extractIssuanceCertificates(lote, profile)
+                TrustPurpose.STATUS -> loTeFilterService.extractRevocationCertificates(lote, profile)
+            }
+        }.mapNotNullTo(mutableSetOf()) { it.certificate } + asitIssuerCert
+    }
+
+    /**
+     * Anchors per credential type for VC-K's [at.asitplus.wallet.lib.validation.CredentialValidator]: those of the
+     * list of the type, e.g. the PID providers for a PID, see [LoteProfile.fromSchemeIdentifier], and the A-SIT root,
+     * which also covers types without a list.
+     */
+    fun credentialTrustAnchors(): CredentialTrustAnchors {
+        val provider = LoTETrustAnchorProvider(trustLists = ::freshTrustLists, filter = loTeFilterService)
+        return CredentialTrustAnchors { credentialIdentifier, purpose ->
+            val anchors = when (purpose) {
+                TrustPurpose.ISSUANCE -> provider.issuanceAnchors(credentialIdentifier)
+                TrustPurpose.STATUS -> provider.revocationAnchors(credentialIdentifier)
+            }
+            CredentialTrustAnchorSet(
+                source = LoteProfile.fromSchemeIdentifier(credentialIdentifier)?.fileName ?: ASIT_TRUST_SOURCE,
+                certificates = anchors.toSet() + asitIssuerCert,
+            )
+        }
+    }
+
+    private companion object {
+        const val ASIT_TRUST_SOURCE = "A-SIT"
     }
 }
 
