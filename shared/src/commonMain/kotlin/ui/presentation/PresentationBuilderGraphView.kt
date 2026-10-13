@@ -19,7 +19,7 @@ import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.lib.agent.DCQLMatchingResult
 import at.asitplus.wallet.lib.agent.IsoDeviceRetrievalMatchingResult
-import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
+import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.compose.resources.stringResource
@@ -56,7 +56,7 @@ fun PresentationBuilderGraphView(
     trustListService: TrustListService,
     request: RequestParametersFrom<*>,
     fixedCredentialSelection: Boolean = false,
-    wrpValidationResult: WrpValidationResult? = null,
+    relyingPartyValidation: RelyingPartyValidationUi? = null,
 ) {
     when (selectionProvider) {
         is UiStateError -> CommonPresentationPageScaffold(
@@ -122,7 +122,8 @@ fun PresentationBuilderGraphView(
                                 onSubmit(DCQLCredentialSubmissions(fixedSubmissions))
                             },
                             trustListService = trustListService,
-                            request = request
+                            request = request,
+                            relyingPartyValidation = relyingPartyValidation,
                         )
                     } else {
                         DCQLPresentationBuilderGraphView(
@@ -165,7 +166,7 @@ fun PresentationBuilderGraphView(
                             },
                             trustListService = trustListService,
                             request = request,
-                            wrpValidationResult = wrpValidationResult,
+                            relyingPartyValidation = relyingPartyValidation,
                         )
                     }
                 }
@@ -198,6 +199,7 @@ fun PresentationBuilderGraphView(
                             onError = onError,
                             onAbort = onNavigateToPresentationStart,
                             onSubmit = onSubmit,
+                            relyingPartyValidation = relyingPartyValidation,
                         )
                     } else {
                         AuthenticationSelectionIsoDeviceRequestView(

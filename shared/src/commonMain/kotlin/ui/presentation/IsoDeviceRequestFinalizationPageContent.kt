@@ -18,6 +18,7 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
 import at.asitplus.wallet.app.common.zkMode
+import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
 import at.asitplus.wallet.lib.agent.DeviceRequestCredentialDisclosure
 import at.asitplus.wallet.lib.agent.IsoDeviceRetrievalMatchingResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -51,6 +52,7 @@ fun IsoDeviceRequestFinalizationPageContent(
     onError: (Throwable) -> Unit,
     onAbort: () -> Unit,
     onSubmit: (IsoDeviceRequestCredentialSubmissions<SubjectCredentialStore.StoreEntry>) -> Unit,
+    relyingPartyValidation: RelyingPartyValidationUi? = null,
 ) {
     val orderedSubmissions = submissions.sortedBy { it.docRequestIndex }
     val error = validateIsoSubmissions(matchingResult, orderedSubmissions)
@@ -67,6 +69,7 @@ fun IsoDeviceRequestFinalizationPageContent(
         onAbort = onAbort,
         trustListService = trustListService,
         request = request,
+        relyingPartyValidation = relyingPartyValidation,
         onSubmit = { onSubmit(IsoDeviceRequestCredentialSubmissions(orderedSubmissions)) },
     ) {
         orderedSubmissions.forEach { disclosure ->

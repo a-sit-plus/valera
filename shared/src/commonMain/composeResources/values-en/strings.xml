@@ -483,39 +483,15 @@
 
     <!-- Access / Registration Certificate -->
     <string name="label_registration_cert_request">Request</string>
-    <string name="label_registration_cert_valid">Valid</string>
-    <string name="label_registration_cert_invalid">Invalid</string>
-    <string name="label_registration_cert">Registration certificate</string>
-    <string name="label_registration_cert_credential_typ">Credential type</string>
-    <string name="label_registration_cert_attributes">Attributes</string>
-    <string name="label_registration_cert_identifier">Identifier</string>
     <string name="label_registration_cert_details_trade_name">Trade name</string>
     <string name="label_registration_cert_details_purpose">Purpose</string>
     <string name="label_registration_cert_details_country">Country</string>
-    <string name="label_registration_cert_details_service_description">Service description</string>
     <string name="label_registration_cert_more_details">More details</string>
+    <string name="label_registration_cert_unverified">Registration information (not verified)</string>
     <string name="label_registration_cert_info_uri">Info uri</string>
     <string name="label_registration_cert_support_uri">Support uri</string>
 
     <string name="info_text_registration_cert_missing">No registration certificate has been provided in the request.</string>
-    <string name="info_text_registration_cert_valid">The certificate of the service provider is valid</string>
-    <string name="info_text_registration_cert_invalid">The certificate of the service provider is invalid</string>
-    <string name="label_access_cert">Access certificate</string>
-    <string name="info_text_access_cert_valid">The access certificate of the service provider is valid</string>
-    <string name="info_text_access_cert_invalid">The access certificate of the service provider is invalid</string>
-    <string name="info_text_access_cert_missing">The service provider has not sent an access certificate.</string>
-    <string name="info_text_registration_cert_not_evaluated">The registration certificate of the service provider could not be evaluated</string>
-    <string name="info_text_registration_cert_not_linked">The registration certificate is not linked to a valid access certificate of the service provider</string>
-    <string name="info_text_registration_cert_revoked">The registration certificate has been revoked</string>
-    <string name="info_text_registration_cert_suspended">The registration certificate has been suspended</string>
-    <string name="info_text_registration_cert_status_invalid">The registration certificate has an invalid status</string>
-    <string name="info_text_registration_cert_status_unknown">The status of the registration certificate could not be checked</string>
-    <string name="info_text_registration_cert_typ_valid">The requested credential types are valid</string>
-    <string name="info_text_registration_cert_typ_invalid">The requested credential types are invalid</string>
-    <string name="info_text_registration_cert_identifier_invalid">The service provider uses a different identifier than registered</string>
-    <string name="info_text_registration_cert_identifier_valid">The identifier of the service provider is correct</string>
-    <string name="info_text_registration_cert_requested_claim_invalid">The service provider requests more attributes than registered</string>
-    <string name="info_text_registration_cert_requested_claim_valid">The requested attributes are correct</string>
     <string name="text_label_wrprc_trust_anchors_url">Registration certificate trust anchors (URL)</string>
     <string name="text_supporting_wrprc_trust_anchors_url">PEM file with root certificates of registration certificate providers, trusted in addition to the bundled ones</string>
     <string name="validation_summary_passed">All checks passed</string>

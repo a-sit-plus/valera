@@ -73,7 +73,7 @@ fun DefaultPresentationGraphView(
         },
         trustListService = viewModel.trustListService,
         request = viewModel.preparationState.getOrThrow().request,
-        wrpValidationResult = viewModel.wrpValidationResult,
+        relyingPartyValidation = viewModel.relyingPartyValidation,
     )
 }
 

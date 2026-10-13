@@ -6,6 +6,7 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.presentation.LongfellowZkRegistration
+import at.asitplus.wallet.app.common.validation.ValidationPolicies
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.PresentationRequestParameters
 import at.asitplus.wallet.lib.agent.PresentationResponseParameters
@@ -13,6 +14,7 @@ import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpKtorHolder
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import at.asitplus.wallet.lib.openid.DcApiPreparationState
+import at.asitplus.wallet.lib.validation.RelyingPartyValidator
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
@@ -24,6 +26,7 @@ class PresentationService(
     val holderAgent: HolderAgent,
     httpService: HttpService,
     settingsRepository: SettingsRepository,
+    relyingPartyValidator: RelyingPartyValidator,
 ) {
     private val client = httpService.buildHttpClient()
     private val presentationService = OpenId4VpKtorHolder(
@@ -31,6 +34,7 @@ class PresentationService(
         keyMaterial = keyMaterial,
         holder = holderAgent,
         allowedDcApiOriginSchemes = { settingsRepository.openId4VpAllowedOriginSchemes.first() },
+        relyingPartyValidator = relyingPartyValidator,
     )
 
     fun close() {
@@ -40,18 +44,24 @@ class PresentationService(
         client.engine.cancel()
     }
 
+    /**
+     * Loads and validates the request [input] under [ValidationPolicies.strict], returning its report next to the
+     * state to answer it with, also if the request is rejected, so that the user can decide whether to continue.
+     */
     suspend fun startAuthorizationResponsePreparation(input: String) =
-        presentationService.startAuthorizationResponsePreparation(input)
+        presentationService.startAuthorizationResponsePreparation(input, ValidationPolicies.strict)
 
+    /** Validates [input] under [ValidationPolicies.strict], see the overload taking a string. */
     suspend fun startAuthorizationResponsePreparation(input: RequestParametersFrom<AuthenticationRequestParameters>) =
-        presentationService.startAuthorizationResponsePreparation(input)
+        presentationService.startAuthorizationResponsePreparation(input, ValidationPolicies.strict)
 
     suspend fun getMatchingCredentials(
         preparationState: AuthorizationResponsePreparationState
     ) = presentationService.getMatchingCredentials(preparationState)
 
+    /** Validates [request] under [ValidationPolicies.strict], returning its report next to the state. */
     suspend fun prepareDcApiRequest(request: RequestParametersFrom.DcApiRequest) =
-        presentationService.prepareDcApiRequest(request)
+        presentationService.prepareDcApiRequest(request, ValidationPolicies.strict)
 
     suspend fun getMatchingCredentials(preparationState: DcApiPreparationState) =
         presentationService.getMatchingCredentials(preparationState)

@@ -14,7 +14,6 @@ import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.app.common.presentation.LongfellowZkRegistration
-import at.asitplus.wallet.app.common.relyingParty.WrpValidator
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
@@ -71,7 +70,6 @@ class WalletMain(
     val attestationService: AttestationService,
     sessionCoroutineScope: CoroutineScope,
     val trustListService: TrustListService,
-    val wrpValidator: WrpValidator,
 ) {
     val appReady = MutableStateFlow<Boolean?>(null)
 

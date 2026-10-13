@@ -6,14 +6,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import at.asitplus.catching
-import at.asitplus.catchingUnwrapped
-import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.signum.supreme.UserInitiatedCancellationReason
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
 import at.asitplus.valera.resources.warning_authentication_cancelled
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
+import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
+import at.asitplus.wallet.app.common.validation.rejection
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
@@ -37,19 +36,25 @@ class DCAPIPresentationGraphViewModel(
 
     val trustListService = walletMain.trustListService
 
-    val wrpValidationResult = route.wrpRequestValidationResultSerialized?.let {
-        catchingUnwrapped { joseCompliantSerializer.decodeFromString<WrpValidationResult>(it) }.getOrNull()
-    }
-
     val selectionProvider = MutableStateFlow<UiState<DcApiPresentationUiState>>(
         UiStateLoading
     ).apply {
         viewModelScope.launch {
             value = try {
                 val unwrappedDcApiWalletRequest = dcApiWalletRequest.getOrThrow()
-                val preparationState = walletMain.presentationService.prepareDcApiRequest(
+                val validation = walletMain.presentationService.prepareDcApiRequest(
                     unwrappedDcApiWalletRequest
                 ).getOrThrow()
+                val relyingPartyValidation = RelyingPartyValidationUi.of(
+                    report = validation.validationReport,
+                    relyingParty = validation.relyingParty,
+                )
+                // The user is warned about the relying party, but a request that failed its integrity is rejected
+                if (relyingPartyValidation.outcome?.integrityFailed == true) {
+                    throw validation.validationReport?.rejection()
+                        ?: OAuth2Exception.InvalidRequest("The request has been rejected")
+                }
+                val preparationState = validation.preparationState
                 val matchingResult = walletMain.presentationService.getMatchingCredentials(
                     preparationState
                 ).getOrThrow()
@@ -59,6 +64,7 @@ class DCAPIPresentationGraphViewModel(
                         selectionProvider = matchingResult.toCredentialSelectionProvider(viewModelScope) {
                             walletMain.checkCredentialFreshness(it)
                         },
+                        relyingPartyValidation = relyingPartyValidation,
                     )
                 )
             } catch (it: Throwable) {
@@ -133,5 +139,5 @@ class DCAPIPresentationGraphViewModel(
 data class DcApiPresentationUiState(
     val preparationState: DcApiPreparationState,
     val selectionProvider: CredentialSelectionProvider<SubjectCredentialStore.StoreEntry>,
-    val wrpValidationResult: WrpValidationResult? = null
+    val relyingPartyValidation: RelyingPartyValidationUi,
 )
