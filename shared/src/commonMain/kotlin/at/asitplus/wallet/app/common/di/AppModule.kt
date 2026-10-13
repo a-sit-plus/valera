@@ -49,6 +49,7 @@ fun appModule(): Module = module {
                 attestationService = get(),
                 sessionCoroutineScope = get(),
                 trustListService = get(),
+                storedCredentialValidator = get(),
             )
         }
         scopedOf(::ErrorService)

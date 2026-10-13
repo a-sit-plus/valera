@@ -6,6 +6,7 @@ import at.asitplus.wallet.app.common.domain.vck.JsonWebKeySetResolver
 import at.asitplus.wallet.app.common.domain.vck.PublicKeyResolver
 import at.asitplus.wallet.app.common.domain.vck.tokenStatusList.di.tokenStatusListModule
 import at.asitplus.wallet.app.common.trust.RegistrationCertificateAnchors
+import at.asitplus.wallet.app.common.validation.StoredCredentialValidator
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
@@ -18,6 +19,7 @@ import at.asitplus.wallet.lib.validation.IssuerMetadataValidator
 import at.asitplus.wallet.lib.validation.RelyingPartyTrustAnchors
 import at.asitplus.wallet.lib.validation.RelyingPartyValidator
 import at.asitplus.wallet.lib.validation.StatusValidator
+import org.koin.core.module.dsl.scopedOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -72,6 +74,7 @@ fun vckModule() = module {
                 statusValidator = get(),
             )
         }
+        scopedOf(::StoredCredentialValidator)
         scoped<HolderAgent> {
             val keyMaterial: KeyMaterial by inject()
             val subjectCredentialStore: SubjectCredentialStore by inject()

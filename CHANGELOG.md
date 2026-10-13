@@ -10,6 +10,7 @@
  * Issuing: Request signed issuer metadata and show the validation of the issuer before issuance, i.e. whether its access certificate is trusted, its registration information and registration certificate, and whether it is registered for the offered credential; untrusted issuers are shown as a warning, unsigned metadata as not verified
  * Issuing: Ask before storing an issued credential that did not pass every check, e.g. one of an untrusted issuer, an expired one, or one whose status could not be checked, show why, and store it only if the user keeps it
  * Proximity: Verify the reader authentication of requests over BLE and NFC, reject an invalid one, and show the validation of the reader and its registration certificates like for other relying parties
+ * Credentials: Show the validation of a stored credential in its details, i.e. its signature, the trust in its issuer, its validity period, and its status, with every check
  * Trust Lists: Load root certificates of registration certificate (WRPRC) providers from a bundled file and from a URL configurable in the settings
 
 # Release 5.9.0:
