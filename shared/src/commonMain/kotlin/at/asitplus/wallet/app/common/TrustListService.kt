@@ -6,10 +6,13 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.etsi.ListOfTrustedEntities
 import at.asitplus.etsi.TrustListPayload
 import at.asitplus.iso.DeviceRequest
+import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.josef.JwsCompact
 import at.asitplus.signum.indispensable.josef.JwsFlattened
 import at.asitplus.signum.indispensable.josef.JwsGeneral
+import at.asitplus.signum.indispensable.josef.JwsHeader
+import at.asitplus.signum.indispensable.josef.protectedHeaders
 import at.asitplus.signum.indispensable.pki.CertificateChain
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.indispensable.pki.leaf
@@ -20,6 +23,7 @@ import at.asitplus.wallet.lib.etsi.LoteProfile
 import at.asitplus.wallet.lib.etsi.isTrustedBy
 import at.asitplus.wallet.lib.jws.VerifyJwsObjectFun
 import at.asitplus.wallet.lib.jws.VerifyJwsObjectJades
+import at.asitplus.wallet.lib.openid.VerifierSignature
 import data.storage.DataStoreService
 import data.storage.PersistentHttpCacheStorage
 import data.storage.PersistentTrustListStore
@@ -66,6 +70,40 @@ val asitRootPem = "-----BEGIN CERTIFICATE-----\n" +
         "SjDUnmneMAoGCCqGSM49BAMCA0cAMEQCIDMQ328z1NWGUK6wcLC8JmgTkKxt3Ycw\n" +
         "BapSKA9Qxhd6AiANUlRcM5BT5JKZL3yNSvUlERYXqcEYs50sxwE60SVkEw==\n" +
         "-----END CERTIFICATE-----\n"
+
+enum class RelyingPartyTrustSummary {
+    EVALUATING,
+    TRUSTED,
+    UNTRUSTED,
+    UNKNOWN,
+    MIXED_WITH_TRUSTED,
+    MIXED_WITHOUT_TRUSTED,
+}
+
+data class RelyingPartySignerTrust(
+    val signatureIndex: Int,
+    val clientId: String?,
+    val certificate: X509Certificate?,
+    /** Whether the signature verified, and [clientId] is bound to its key, independent of any trust decision. */
+    val signatureStatus: VerifierSignature.Status,
+    /** Trust in [certificate], only evaluated for [authenticated] signers: other identities did not sign. */
+    val trustState: TrustState?,
+) {
+    val authenticated: Boolean
+        get() = signatureStatus == VerifierSignature.Status.AUTHENTICATED
+}
+
+data class RelyingPartyTrustResult(
+    /** Trust in the authenticated signers only, see [RelyingPartySignerTrust.signatureStatus] for the others. */
+    val summary: RelyingPartyTrustSummary,
+    /** Every signer of the request, a single one for a signed request, none for an unsigned one. */
+    val signers: List<RelyingPartySignerTrust> = emptyList(),
+    val multiSigned: Boolean = false,
+) {
+    companion object {
+        val Evaluating = RelyingPartyTrustResult(RelyingPartyTrustSummary.EVALUATING)
+    }
+}
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class TrustListService(
@@ -178,13 +216,49 @@ class TrustListService(
     }
 
     /**
+     * Evaluates the relying party behind [request]. For a multisigned request, every signer is evaluated, using
+     * [verifierSignatures] from validating the request to tell which of them actually signed.
+     */
+    fun evaluateRelyingParty(
+        request: RequestParametersFrom<*>,
+        trustLists: Map<String, ListOfTrustedEntities>,
+        verifierSignatures: List<VerifierSignature>? = null,
+    ): RelyingPartyTrustResult {
+        if (request is RequestParametersFrom.OpenId4VpDcApiMultiSigned) {
+            // Until the request is validated, no signer is known to have signed
+            verifierSignatures ?: return RelyingPartyTrustResult.Evaluating
+            return evaluateMultiSignedRelyingParty(
+                headers = request.jwsTyped.jws.protectedHeaders,
+                verifierSignatures = verifierSignatures,
+            ) { evaluateCertificate(it, trustLists, LoteProfile.WRPAC) }
+        }
+
+        val certificateChain = request.extractRelyingPartyCertificateChains()
+        return evaluateSingleSignedRelyingParty(
+            clientId = (request.parameters as? AuthenticationRequestParameters)?.clientId,
+            certificateChain = certificateChain,
+            state = evaluateRelyingParty(certificateChain, trustLists),
+        )
+    }
+
+    /**
      * Flow variant, analogous to [observeTrustStateForEntry], for reactively evaluating a
      * relying party's trust state as fresh trust lists come in.
      */
-    fun observeTrustStateForRelyingParty(
-        requestFlow: Flow<RequestParametersFrom<*>?>
-    ): Flow<TrustState> = combineWithFreshTrustStore(requestFlow) { request, freshTrustLists ->
-        evaluateRelyingParty(request.extractRelyingPartyCertificateChains(), freshTrustLists)
+    fun observeRelyingPartyTrust(
+        requestFlow: Flow<RequestParametersFrom<*>?>,
+        verifierSignatures: List<VerifierSignature>? = null,
+    ): Flow<RelyingPartyTrustResult> = combine(
+        requestFlow,
+        trustListUrls.flatMapLatest { persistentTrustListStore.observeTrustContainer(it) },
+    ) { request, trustLists ->
+        if (request == null) return@combine RelyingPartyTrustResult.Evaluating
+
+        evaluateRelyingParty(
+            request,
+            trustLists.filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST),
+            verifierSignatures,
+        )
     }
 
     fun observeTrustStateForCertChain(
@@ -291,6 +365,86 @@ class TrustListService(
 /** Every trust list URL of every known stage that [enabledUrls] does not cover. */
 internal fun disabledTrustListUrls(enabledUrls: Collection<String>): List<String> =
     LoTEStage.entries.flatMap { it.fetchUrls }.filterNot { it in enabledUrls }
+
+/**
+ * Evaluates the signers named in the protected [headers] of a multisigned request. The identity in the header of a
+ * signature that was not authenticated may have been copied from an unrelated request, so its certificate is not
+ * evaluated, and it does not count towards the trust summary.
+ */
+internal fun evaluateMultiSignedRelyingParty(
+    headers: List<JwsHeader.Part?>,
+    verifierSignatures: List<VerifierSignature>,
+    evaluateCertificate: (X509Certificate) -> TrustState,
+): RelyingPartyTrustResult {
+    val statuses = verifierSignatures.associate { it.signatureIndex to it.status }
+    val signers = headers.mapIndexed { index, header ->
+        val certificate = header?.certificateChain?.firstOrNull()
+        // a signature VC-K did not report on was not authenticated
+        val signatureStatus = statuses[index] ?: VerifierSignature.Status.INVALID
+        RelyingPartySignerTrust(
+            signatureIndex = index,
+            clientId = header?.clientId,
+            certificate = certificate,
+            signatureStatus = signatureStatus,
+            trustState = when {
+                signatureStatus != VerifierSignature.Status.AUTHENTICATED -> null
+                certificate == null -> TrustState.UNKNOWN
+                else -> evaluateCertificate(certificate)
+            },
+        )
+    }
+    return RelyingPartyTrustResult(
+        summary = aggregateRelyingPartyTrust(signers.filter { it.authenticated }.mapNotNull { it.trustState }),
+        signers = signers,
+        multiSigned = true,
+    )
+}
+
+/**
+ * Trust in the relying party behind a request with at most one signature, [state] of its [certificateChain].
+ * Its signer, if the request carries a certificate, is listed only to show the certificate, with the same trust state:
+ * as before, the single signature is checked when the request is prepared, not as part of this evaluation.
+ */
+internal fun evaluateSingleSignedRelyingParty(
+    clientId: String?,
+    certificateChain: List<X509Certificate>?,
+    state: TrustState,
+): RelyingPartyTrustResult = RelyingPartyTrustResult(
+    summary = when (state) {
+        TrustState.TRUSTED -> RelyingPartyTrustSummary.TRUSTED
+        TrustState.UNTRUSTED -> RelyingPartyTrustSummary.UNTRUSTED
+        TrustState.UNKNOWN -> RelyingPartyTrustSummary.UNKNOWN
+        TrustState.EVALUATING -> RelyingPartyTrustSummary.EVALUATING
+    },
+    signers = listOfNotNull(certificateChain?.firstOrNull()?.let { certificate ->
+        RelyingPartySignerTrust(
+            signatureIndex = 0,
+            clientId = clientId,
+            certificate = certificate,
+            signatureStatus = VerifierSignature.Status.AUTHENTICATED,
+            trustState = state,
+        )
+    }),
+)
+
+internal fun aggregateRelyingPartyTrust(states: List<TrustState>): RelyingPartyTrustSummary {
+    if (states.isEmpty()) return RelyingPartyTrustSummary.UNKNOWN
+
+    val distinct = states.toSet()
+    if (distinct.size == 1) {
+        return when (distinct.single()) {
+            TrustState.TRUSTED -> RelyingPartyTrustSummary.TRUSTED
+            TrustState.UNTRUSTED -> RelyingPartyTrustSummary.UNTRUSTED
+            TrustState.UNKNOWN -> RelyingPartyTrustSummary.UNKNOWN
+            TrustState.EVALUATING -> RelyingPartyTrustSummary.EVALUATING
+        }
+    }
+    return if (TrustState.TRUSTED in distinct) {
+        RelyingPartyTrustSummary.MIXED_WITH_TRUSTED
+    } else {
+        RelyingPartyTrustSummary.MIXED_WITHOUT_TRUSTED
+    }
+}
 
 /** Keeps only cache entries younger than [ttl], dropping the timestamp. Generic so it is trivially testable. */
 internal fun <T> Map<String, Pair<T, Instant>>.filterFresh(now: Instant, ttl: Duration): Map<String, T> =

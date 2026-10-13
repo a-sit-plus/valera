@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,27 +36,25 @@ import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.openid.dcql.DCQLCredentialSetQuery
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_location
-import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_name
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
 import at.asitplus.valera.resources.heading_label_show_data_third_party
-import at.asitplus.valera.resources.info_text_registration_cert_missing
 import at.asitplus.valera.resources.label_registration_cert_request
 import at.asitplus.valera.resources.prompt_send_above_data
-import at.asitplus.valera.resources.section_heading_data_recipient
 import at.asitplus.valera.resources.section_heading_requested_data
 import at.asitplus.valera.resources.text_label_credential_request_and
 import at.asitplus.valera.resources.text_label_credential_request_or
 import at.asitplus.valera.resources.text_label_mandatory_dataset
 import at.asitplus.valera.resources.text_label_optional_dataset
-import at.asitplus.valera.resources.trust_status_title
 import at.asitplus.wallet.app.common.DcqlConsentData
+import at.asitplus.wallet.app.common.RelyingPartyTrustResult
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.extractConsentData
 import at.asitplus.wallet.app.common.relyingParty.ui.WrprcRequestValidation
+import at.asitplus.wallet.app.common.relyingParty.ui.WrprcRequestValidationEvaluating
 import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
 import at.asitplus.wallet.app.common.toCredentialQueryUiModel
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
+import at.asitplus.wallet.lib.openid.VerifierSignature
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.flowOf
@@ -63,9 +62,8 @@ import org.jetbrains.compose.resources.stringResource
 import ui.composables.DataDisplaySection
 import ui.composables.PresentationRequestPreview
 import ui.composables.PresentationRequestLoadingIndicator
+import ui.composables.RelyingPartyDataDisplaySection
 import ui.composables.ScreenHeading
-import ui.composables.TrustState
-import ui.composables.displayVerifierText
 
 @Composable
 fun AuthenticationReceivedStartPageContent(
@@ -82,10 +80,14 @@ fun AuthenticationReceivedStartPageContent(
     trustListService: TrustListService,
     request: RequestParametersFrom<*>? = null,
     wrpValidationResult: WrpValidationResult? = null,
+    /** Whether [wrpValidationResult] is still being evaluated, shown like the trust evaluation. */
+    wrpValidationPending: Boolean = false,
+    /** For a multisigned request, which of its signatures the wallet authenticated. */
+    verifierSignatures: List<VerifierSignature>? = null,
 ) {
-    val relyingPartyTrustState by trustListService
-        .observeTrustStateForRelyingParty(flowOf(request))
-        .collectAsState(initial = TrustState.EVALUATING)
+    val relyingPartyTrust by remember(request, verifierSignatures) {
+        trustListService.observeRelyingPartyTrust(flowOf(request), verifierSignatures)
+    }.collectAsState(initial = RelyingPartyTrustResult.Evaluating)
 
     Scaffold(
         bottomBar = {
@@ -123,33 +125,19 @@ fun AuthenticationReceivedStartPageContent(
                         }
                     }
 
-                    DataDisplaySection(
-                        title = stringResource(Res.string.section_heading_data_recipient),
-                        data = listOfNotNull(
-                            serviceProviderLocalizedName?.let {
-                                stringResource(Res.string.attribute_friendly_name_data_recipient_name) to serviceProviderLocalizedName
-                            },
-                            serviceProviderLocalizedLocation?.takeIf { value -> value.isNotBlank() }?.let {
-                                stringResource(Res.string.attribute_friendly_name_data_recipient_location) to it
-                            },
-                            stringResource(Res.string.trust_status_title) to stringResource(relyingPartyTrustState.displayVerifierText)
-                        ),
+                    RelyingPartyDataDisplaySection(
+                        serviceProviderName = serviceProviderLocalizedName,
+                        serviceProviderLocation = serviceProviderLocalizedLocation,
+                        trustResult = relyingPartyTrust,
                     )
 
-                    wrpValidationResult?.takeUnless {
-                        it.accessCertificateMissing && it.registrationCertificateMissing
-                    }?.let {
-                        DataDisplaySection(
-                            title = stringResource(Res.string.label_registration_cert_request),
-                        ) {
-                            WrprcRequestValidation(it)
-                        }
-                    } ?: run {
-                        Column(modifier = Modifier.padding(vertical = 20.dp)) {
-                            Text(
-                                stringResource(Res.string.info_text_registration_cert_missing),
-                                fontWeight = FontWeight.Bold
-                            )
+                    DataDisplaySection(
+                        title = stringResource(Res.string.label_registration_cert_request),
+                    ) {
+                        if (wrpValidationPending) {
+                            WrprcRequestValidationEvaluating()
+                        } else {
+                            WrprcRequestValidation(wrpValidationResult)
                         }
                     }
 

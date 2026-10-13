@@ -59,6 +59,8 @@ fun IosDcApiPreRequestView(
         onContinue = currentData.onContinue,
         presentationRequest = CredentialPresentationRequest.IsoDeviceRetrieval(parsedSummary.toDeviceRequest()),
         errorAction = onError,
-        trustListService = trustListService
+        trustListService = trustListService,
+        // the request itself, and so its relying party, is only validated after this page
+        wrpValidationPending = true,
     )
 }

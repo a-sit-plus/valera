@@ -59,7 +59,6 @@ import at.asitplus.valera.resources.heading_label_show_data_third_party
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
 import at.asitplus.valera.resources.section_heading_transaction_data
-import at.asitplus.valera.resources.trust_status_title
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.lib.data.toTransactionData
 import io.github.aakira.napier.Napier
@@ -72,6 +71,7 @@ import ui.composables.Logo
 import ui.composables.PresentationRequestPreview
 import ui.composables.ScreenHeading
 import ui.composables.TrustState
+import ui.composables.TrustStatusBanner
 import ui.composables.buttons.CancelButton
 import ui.composables.buttons.ContinueButton
 import ui.composables.buttons.NavigateUpButton
@@ -177,13 +177,27 @@ fun AuthenticationConsentView(
                     }
                     DataDisplaySection(
                         title = stringResource(Res.string.section_heading_data_recipient),
-                        data = listOfNotNull(
-                            vm.spName?.let { stringResource(Res.string.attribute_friendly_name_data_recipient_name) to vm.spName },
-                            stringResource(Res.string.attribute_friendly_name_data_recipient_location) to vm.spLocation,
-                            stringResource(Res.string.trust_status_title) to stringResource(relyingPartyTrustState.displayVerifierText)
-                        ),
                         modifier = paddingModifier,
-                    )
+                    ) {
+                        Column(modifier = Modifier.padding(start = 32.dp)) {
+                            vm.spName?.let {
+                                LabeledText(
+                                    label = stringResource(Res.string.attribute_friendly_name_data_recipient_name),
+                                    text = it,
+                                    modifier = Modifier.padding(bottom = 16.dp),
+                                )
+                            }
+                            LabeledText(
+                                label = stringResource(Res.string.attribute_friendly_name_data_recipient_location),
+                                text = vm.spLocation,
+                                modifier = Modifier.padding(bottom = 16.dp),
+                            )
+                            TrustStatusBanner(
+                                trustState = relyingPartyTrustState,
+                                text = stringResource(relyingPartyTrustState.displayVerifierText),
+                            )
+                        }
+                    }
 
                     PresentationRequestPreview(vm.presentationRequest, errorAction = onError)
 

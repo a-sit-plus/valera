@@ -6,8 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import at.asitplus.catching
-import at.asitplus.catchingUnwrapped
-import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.supreme.UserInitiatedCancellationReason
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
@@ -37,10 +36,6 @@ class DCAPIPresentationGraphViewModel(
 
     val trustListService = walletMain.trustListService
 
-    val wrpValidationResult = route.wrpRequestValidationResultSerialized?.let {
-        catchingUnwrapped { joseCompliantSerializer.decodeFromString<WrpValidationResult>(it) }.getOrNull()
-    }
-
     val selectionProvider = MutableStateFlow<UiState<DcApiPresentationUiState>>(
         UiStateLoading
     ).apply {
@@ -56,6 +51,7 @@ class DCAPIPresentationGraphViewModel(
                 UiStateSuccess(
                     DcApiPresentationUiState(
                         preparationState = preparationState,
+                        wrpValidationResult = validateRelyingParty(unwrappedDcApiWalletRequest, preparationState),
                         selectionProvider = matchingResult.toCredentialSelectionProvider(viewModelScope) {
                             walletMain.checkCredentialFreshness(it)
                         },
@@ -76,6 +72,19 @@ class DCAPIPresentationGraphViewModel(
                 )
             }
         }
+    }
+
+    /**
+     * Validates the relying party only after [preparationState] validated the request, so that its signatures are
+     * known to be authentic, and which signers of a multisigned request are.
+     */
+    private suspend fun validateRelyingParty(
+        request: RequestParametersFrom.DcApiRequest,
+        preparationState: DcApiPreparationState,
+    ): WrpValidationResult? {
+        val openId4Vp = (preparationState as? DcApiPreparationState.OpenId4Vp)?.state
+        val validatedRequest = openId4Vp?.request ?: request as? RequestParametersFrom<*> ?: return null
+        return walletMain.wrpValidator.validateOrReportFailure(validatedRequest, openId4Vp?.verifierSignatures)
     }
 
     fun confirmSelection(

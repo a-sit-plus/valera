@@ -10,6 +10,7 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.LoadingMessageKey
+import at.asitplus.wallet.app.common.relyingParty.SignerWrpValidation
 import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
 import at.asitplus.wallet.app.common.relyingParty.WrpRequestDataValidation
 import at.asitplus.wallet.app.common.relyingParty.WrpTokenStatus
@@ -81,7 +82,7 @@ class WalletRoutesTest {
     }
 
     @Test
-    fun dcApiPresentationRoutePreservesIsoMdocWrpValidationResult() {
+    fun wrpValidationResultOfIsoMdocAndMultiSignedRequestsSurvivesTheRoute() {
         val docType = "eu.europa.ec.eudi.pid.1"
         val docRequest = DocRequest(
             itemsRequest = ByteStringWrapper(
@@ -114,17 +115,20 @@ class WalletRoutesTest {
                 ),
             ),
         )
-        val parameters = AuthenticationRequestParameters(nonce = "test-nonce")
-        val request = RequestParametersFrom.OpenId4VpDcApiUnsigned(
-            parameters = parameters,
-            jsonString = joseCompliantSerializer.encodeToString(parameters),
-            credentialIds = listOf("test-credential"),
-            callingPackageName = "com.example.verifier",
-            callingOrigin = "https://verifier.example.com",
+        val multiSigned = WrpValidationResult(
+            accessCertificate = null,
+            registrationCertificate = null,
+            multiSigned = true,
+            signers = listOf(SignerWrpValidation(1, "x509_hash:signer", wrpValidationResult)),
+            uncoveredCredentialQueryIds = listOf("query"),
         )
 
-        val route = DCAPIPresentationViewRoute(request, wrpValidationResult)
-
-        assertEquals(wrpValidationResult, route.wrpValidationResult)
+        // as serialized in AuthenticationViewRoute
+        listOf(wrpValidationResult, multiSigned).forEach {
+            assertEquals(
+                it,
+                joseCompliantSerializer.decodeFromString<WrpValidationResult>(joseCompliantSerializer.encodeToString(it)),
+            )
+        }
     }
 }

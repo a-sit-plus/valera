@@ -55,3 +55,7 @@ the selected protocol to each entry's subtitle. Upstream stops after the first m
 boolean `enforceTrustedAuthorityAndReaderIdentifierMatching`. Matching is disabled when the field
 is absent, malformed, or `false`; setting it to `true` enforces both trusted-authority issuer
 identifiers and reader identifiers while preserving all other matching criteria.
+
+`multisigned-request-wrapper.patch` parses the JWS General JSON object from the standard
+`data.request` wrapper used by multisigned OpenID4VP requests and safely ignores malformed
+requests instead of dereferencing a null parse result.

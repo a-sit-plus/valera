@@ -540,6 +540,10 @@ std::vector<Combination> MdocRequest::getCredentialCombinations(const Credential
 }
 
 std::unique_ptr<OpenID4VPRequest> OpenID4VPRequest::parseOpenID4VP(cJSON* dataJson, std::string protocolName) {
+    if (!dataJson || !cJSON_IsObject(dataJson)) {
+        return nullptr;
+    }
+
     std::string docTypeValue = "";
     auto dataElements = std::vector<MdocRequestDataElement>();
     std::vector<std::string> vctValues;
@@ -550,7 +554,7 @@ std::unique_ptr<OpenID4VPRequest> OpenID4VPRequest::parseOpenID4VP(cJSON* dataJs
     std::vector<std::vector<uint8_t>> readerAuthAkis;
 
     cJSON* request = cJSON_GetObjectItem(dataJson, "request");
-    if (request != nullptr) {
+    if (request && cJSON_IsString(request)) {
         std::string jwtStr = std::string(cJSON_GetStringValue(request));
         size_t firstDot = jwtStr.find(".");
         if (firstDot == std::string::npos) {
@@ -585,7 +589,14 @@ std::unique_ptr<OpenID4VPRequest> OpenID4VPRequest::parseOpenID4VP(cJSON* dataJs
         std::string payload = base64UrlDecode(payloadBase64);
         dataJson = cJSON_Parse(payload.c_str());
     } else {
-        cJSON* signaturesItem = cJSON_GetObjectItem(dataJson, "signatures");
+        // JWS JSON Serialization is carried as an object in data.request. Keep
+        // accepting an unwrapped JWS object for compatibility with older callers.
+        cJSON* jwsJson = request ? request : dataJson;
+        if (!cJSON_IsObject(jwsJson)) {
+            return nullptr;
+        }
+
+        cJSON* signaturesItem = cJSON_GetObjectItem(jwsJson, "signatures");
         if (signaturesItem && cJSON_IsArray(signaturesItem)) {
             cJSON* sig;
             cJSON_ArrayForEach(sig, signaturesItem) {
@@ -613,12 +624,18 @@ std::unique_ptr<OpenID4VPRequest> OpenID4VPRequest::parseOpenID4VP(cJSON* dataJs
             }
         }
 
-        cJSON* payloadItem = cJSON_GetObjectItem(dataJson, "payload");
-        if (payloadItem != nullptr) {
+        cJSON* payloadItem = cJSON_GetObjectItem(jwsJson, "payload");
+        if (payloadItem && cJSON_IsString(payloadItem)) {
             std::string payloadBase64 = std::string(cJSON_GetStringValue(payloadItem));
             std::string payload = base64UrlDecode(payloadBase64);
             dataJson = cJSON_Parse(payload.c_str());
+        } else if (request) {
+            return nullptr;
         }
+    }
+
+    if (!dataJson || !cJSON_IsObject(dataJson)) {
+        return nullptr;
     }
 
     cJSON* query = cJSON_GetObjectItem(dataJson, "dcql_query");

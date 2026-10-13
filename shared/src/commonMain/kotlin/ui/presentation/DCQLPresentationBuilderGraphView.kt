@@ -12,6 +12,7 @@ import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.openid.dcql.DCQLQuery
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
+import at.asitplus.wallet.lib.openid.VerifierSignature
 
 @ExperimentalMaterial3Api
 @Composable
@@ -34,6 +35,7 @@ fun DCQLPresentationBuilderGraphView(
     trustListService: TrustListService,
     request: RequestParametersFrom<*>,
     wrpValidationResult: WrpValidationResult? = null,
+    verifierSignatures: List<VerifierSignature>?,
 ) {
     val navigationManager = rememberSaveable(saver = DCQLPresentationBuilderGraphViewNavigationManager.Saver) {
         DCQLPresentationBuilderGraphViewNavigationManager(listOf())
@@ -122,6 +124,7 @@ fun DCQLPresentationBuilderGraphView(
                 trustListService = trustListService,
                 request = request,
                 wrpValidationResult = wrpValidationResult,
+                verifierSignatures = verifierSignatures,
             )
         }
     }
@@ -177,4 +180,3 @@ private fun List<DCQLPresentationBuilderGraphViewModelSelection>.toSubmissionInd
             }
         }
     }.toMap()
-

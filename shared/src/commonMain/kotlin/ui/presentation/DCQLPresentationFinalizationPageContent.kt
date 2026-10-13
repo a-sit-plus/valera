@@ -15,7 +15,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,22 +28,18 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.openid.dcql.DCQLQuery
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_location
-import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_name
 import at.asitplus.valera.resources.button_label_submit
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
 import at.asitplus.valera.resources.heading_label_show_data_third_party
 import at.asitplus.valera.resources.prompt_send_above_data
-import at.asitplus.valera.resources.section_heading_data_recipient
-import at.asitplus.valera.resources.trust_status_title
+import at.asitplus.wallet.app.common.RelyingPartyTrustResult
 import at.asitplus.wallet.app.common.TrustListService
+import at.asitplus.wallet.lib.openid.VerifierSignature
 import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.DataDisplaySection
 import ui.composables.PresentationRequestLoadingIndicator
+import ui.composables.RelyingPartyDataDisplaySection
 import ui.composables.ScreenHeading
-import ui.composables.TrustState
-import ui.composables.displayVerifierText
 
 @Composable
 fun DCQLPresentationFinalizationPageContent(
@@ -58,7 +53,8 @@ fun DCQLPresentationFinalizationPageContent(
     onSubmit: () -> Unit,
     serviceProviderLogo: ImageBitmap? = null,
     trustListService: TrustListService,
-    request: RequestParametersFrom<*>
+    request: RequestParametersFrom<*>,
+    verifierSignatures: List<VerifierSignature>?,
 ) {
     val cards = remember(selections) {
         selections.entries.sortedBy { it.key.string }.flatMap { it.value }
@@ -80,7 +76,8 @@ fun DCQLPresentationFinalizationPageContent(
         isContinueEnabled = !isLoading && !hasLoadingError,
         serviceProviderLogo = serviceProviderLogo,
         trustListService = trustListService,
-        request = request
+        request = request,
+        verifierSignatures = verifierSignatures,
     ) {
         if (isLoading) {
             PresentationRequestLoadingIndicator()
@@ -115,11 +112,12 @@ fun PresentationFinalizationPageContent(
     serviceProviderLogo: ImageBitmap? = null,
     trustListService: TrustListService,
     request: RequestParametersFrom<*>,
+    verifierSignatures: List<VerifierSignature>?,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val relyingPartyTrustState by trustListService
-        .observeTrustStateForRelyingParty(flowOf(request))
-        .collectAsState(initial = TrustState.EVALUATING)
+    val relyingPartyTrust by remember(request, verifierSignatures) {
+        trustListService.observeRelyingPartyTrust(flowOf(request), verifierSignatures)
+    }.collectAsState(initial = RelyingPartyTrustResult.Evaluating)
     Scaffold(
         bottomBar = {
             CommonBottomButtonsAbortContinue(
@@ -156,15 +154,10 @@ fun PresentationFinalizationPageContent(
                     Spacer(modifier = Modifier.height(32.dp))
                 }
 
-                DataDisplaySection(
-                    title = stringResource(Res.string.section_heading_data_recipient),
-                    data = listOfNotNull(
-                        serviceProviderLocalizedName?.let {
-                            stringResource(Res.string.attribute_friendly_name_data_recipient_name) to serviceProviderLocalizedName
-                        },
-                        stringResource(Res.string.attribute_friendly_name_data_recipient_location) to serviceProviderLocalizedLocation,
-                        stringResource(Res.string.trust_status_title) to stringResource(relyingPartyTrustState.displayVerifierText)
-                    ),
+                RelyingPartyDataDisplaySection(
+                    serviceProviderName = serviceProviderLocalizedName,
+                    serviceProviderLocation = serviceProviderLocalizedLocation,
+                    trustResult = relyingPartyTrust,
                 )
 
                 content()
