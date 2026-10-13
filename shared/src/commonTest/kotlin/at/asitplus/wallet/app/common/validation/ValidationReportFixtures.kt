@@ -8,12 +8,14 @@ import at.asitplus.wallet.lib.validation.CheckOutcome
 import at.asitplus.wallet.lib.validation.CheckOutcome.Blocked
 import at.asitplus.wallet.lib.validation.CheckOutcome.NotApplicable
 import at.asitplus.wallet.lib.validation.CheckOutcome.Passed
+import at.asitplus.wallet.lib.validation.CredentialChecks
 import at.asitplus.wallet.lib.validation.RegistrationCertificateChecks
 import at.asitplus.wallet.lib.validation.RelyingPartyChecks
 import at.asitplus.wallet.lib.validation.RequestObjectChecks
 import at.asitplus.wallet.lib.validation.StatusListTokenChecks
 import at.asitplus.wallet.lib.validation.StatusMechanismValidation
 import at.asitplus.wallet.lib.validation.StatusValidation
+import at.asitplus.wallet.lib.validation.TimelinessValidation
 import at.asitplus.wallet.lib.validation.TrustPolicy
 import at.asitplus.wallet.lib.validation.TrustValidation
 import at.asitplus.wallet.lib.validation.ValidationReport
@@ -94,12 +96,33 @@ internal open class ValidationReportFixtures(val now: Instant = Instant.parse("2
         evaluatedAt = now,
     )
 
-    fun statusListToken(retrieval: CheckOutcome = Passed) = ValidationReport.statusListToken(
+    fun credential(
+        timeliness: CheckOutcome = Passed,
+        status: StatusValidation = noStatus,
+    ) = ValidationReport.credential(
+        checks = CredentialChecks(
+            parsing = Passed,
+            issuerSignature = Passed,
+            issuerTrust = TrustValidation(Passed, source = "pid-providers.json"),
+            semantics = Passed,
+            disclosedItems = emptyList(),
+            holderBinding = NotApplicable,
+            timeliness = TimelinessValidation(timeliness, details = null),
+            status = status,
+        ),
+        policy = policy,
+        evaluatedAt = now,
+    )
+
+    fun statusListToken(
+        retrieval: CheckOutcome = Passed,
+        signerTrust: CheckOutcome = Passed,
+    ) = ValidationReport.statusListToken(
         checks = if (retrieval == Passed) StatusListTokenChecks(
             retrieval = Passed,
             parsing = Passed,
             signature = Passed,
-            signerTrust = TrustValidation(Passed),
+            signerTrust = TrustValidation(signerTrust),
             subject = Passed,
             timeliness = Passed,
         ) else StatusListTokenChecks(

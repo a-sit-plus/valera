@@ -8,6 +8,8 @@ import at.asitplus.wallet.lib.validation.ValidationReport
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToByteArray
+import ui.models.CredentialFreshnessSummaryUiModel
+import ui.models.toCredentialFreshnessSummaryModel
 
 /**
  * Validates stored credentials under [ValidationPolicies.strict], e.g. to show their report, with the trust anchors and
@@ -21,6 +23,10 @@ class StoredCredentialValidator(
     suspend fun validate(entry: StoreEntry): ValidationReport = withContext(Dispatchers.Default) {
         credentialValidator.validate(entry.validationInput(), ValidationPolicies.strict).report
     }
+
+    /** Whether [entry] is expired or not yet valid, and its status, see [toCredentialFreshnessSummaryModel]. */
+    suspend fun freshness(entry: StoreEntry): CredentialFreshnessSummaryUiModel =
+        validate(entry).toCredentialFreshnessSummaryModel()
 }
 
 private fun StoreEntry.validationInput() = when (this) {
