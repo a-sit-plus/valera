@@ -9,7 +9,6 @@ import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.data.IsoMdocCredentialScheme
 import at.asitplus.wallet.lib.data.SdJwtCredentialScheme
 import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
@@ -28,7 +27,6 @@ import kotlin.random.Random
 
 class PersistentSubjectCredentialStore(
     private val dataStore: DataStoreService,
-    override val validator: Validator,
 ) : SubjectCredentialStore, WalletSubjectCredentialStore {
     private val container = this.observeStoreContainer()
 

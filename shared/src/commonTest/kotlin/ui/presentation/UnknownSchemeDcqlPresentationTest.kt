@@ -17,7 +17,6 @@ import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.agent.Verifier
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
@@ -109,7 +108,7 @@ class UnknownSchemeDcqlPresentationTest {
         val keyMaterial = EphemeralKeyWithoutCert()
         val holderAgent = HolderAgent(
             keyMaterial = keyMaterial,
-            subjectCredentialStore = PersistentSubjectCredentialStore(DummyDataStoreService(), Validator()),
+            subjectCredentialStore = PersistentSubjectCredentialStore(DummyDataStoreService()),
         )
         holderAgent.storeCredential(
             IssuerAgent(

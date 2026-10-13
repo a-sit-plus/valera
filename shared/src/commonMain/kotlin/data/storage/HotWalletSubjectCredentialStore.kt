@@ -17,8 +17,6 @@ class HotWalletSubjectCredentialStore(
     private val delegate: PersistentSubjectCredentialStore,
     val coroutineScope: CoroutineScope,
 ) : WalletSubjectCredentialStore, SubjectCredentialStore by delegate {
-    override val validator = delegate.validator
-
     override suspend fun reset() = delegate.reset()
 
     val hotStoreContainer: StateFlow<StoreContainer?> = delegate.observeStoreContainer().stateIn(
