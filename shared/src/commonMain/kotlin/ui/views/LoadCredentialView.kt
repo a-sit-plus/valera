@@ -86,6 +86,7 @@ fun LoadCredentialView(
             availableIdentifiers = vm.credentialIdentifiers,
             showTransactionCode = vm.offer?.grants?.preAuthorizedCode?.transactionCode != null,
             isSubmitEnabled = !isSubmitting,
+            issuer = vm.issuer,
         )
     }
 }

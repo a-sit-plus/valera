@@ -17,6 +17,7 @@ import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.signum.indispensable.josef.toJsonWebKey
 import at.asitplus.wallet.app.common.attestation.AttestationService
 import at.asitplus.wallet.app.common.data.SettingsRepository
+import at.asitplus.wallet.app.common.validation.IssuerValidationUi
 import at.asitplus.wallet.app.common.validation.ValidationPolicies
 import at.asitplus.wallet.app.common.validation.rejection
 import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
@@ -34,8 +35,10 @@ import at.asitplus.wallet.lib.ktor.openid.ProvisioningContext
 import at.asitplus.wallet.lib.oauth2.ClientAttestation
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
 import at.asitplus.wallet.lib.oidvci.CredentialIdentifierInfo
+import at.asitplus.wallet.lib.oidvci.LoadedIssuerMetadata
 import at.asitplus.wallet.lib.oidvci.OpenId4VciClient
 import at.asitplus.wallet.lib.utils.MapStore
+import at.asitplus.wallet.lib.validation.IssuerMetadataValidator
 import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
 import data.storage.StoreEntryId
@@ -63,8 +66,15 @@ class ProvisioningService(
     private val config: SettingsRepository,
     private val errorService: ErrorService,
     httpService: HttpService,
-    private val attestationService: AttestationService
+    private val attestationService: AttestationService,
+    private val issuerMetadataValidator: IssuerMetadataValidator,
 ) {
+    /** The [credentialIdentifiers] a credential issuer offers, and the [issuer] as validated from its metadata. */
+    data class IssuerMetadataLoad(
+        val credentialIdentifiers: Collection<CredentialIdentifierInfo>,
+        val issuer: IssuerValidationUi,
+    )
+
     data class StoredCredentialIssuanceResult(
         val credentialIssuanceResult: CredentialIssuanceResult,
         val storedEntryIds: List<StoreEntryId> = emptyList(),
@@ -189,22 +199,36 @@ class ProvisioningService(
             vciClient = vciClient(),
             clientAttestation = clientAttestation,
             dpopKeyMaterial = clientAttestation?.keyMaterial ?: EphemeralKeyWithoutCert(),
+            issuerMetadataValidator = issuerMetadataValidator,
         ).also { openId4VciClientCached = it }
     }
 
     /**
-     * Loads credential metadata info from [host]
+     * Loads the metadata of the credential issuer [host], preferring signed metadata, which are validated under
+     * [ValidationPolicies.strict]. Metadata of an issuer that is not trusted are used nevertheless, so that the user
+     * can decide after being warned, but metadata whose signature or subject failed are not.
      */
     @Throws(Throwable::class)
-    suspend fun loadCredentialMetadata(host: String) =
-        openId4VciClient().loadCredentialMetadata(host).getOrThrow()
+    suspend fun loadCredentialMetadata(host: String): IssuerMetadataLoad {
+        val client = openId4VciClient()
+        val loaded = client.loadIssuerMetadata(host, ValidationPolicies.strict).getOrThrow()
+        val issuer = IssuerValidationUi.of(loaded)
+        if (issuer.outcome?.integrityFailed == true) {
+            throw (loaded as? LoadedIssuerMetadata.Signed)?.validation?.report?.rejection()
+                ?: IllegalArgumentException("The metadata of $host have been rejected")
+        }
+        return IssuerMetadataLoad(client.parseCredentialMetadataIgnoringTrust(loaded).getOrThrow(), issuer)
+    }
 
     /**
-     * Parses issuer metadata into credential identifier info.
+     * Parses unsigned issuer metadata into credential identifier info, e.g. those of an offer through the Digital
+     * Credentials API.
      */
     @Throws(Throwable::class)
-    suspend fun parseCredentialMetadata(issuerMetadata: IssuerMetadata) =
-        openId4VciClient().parseCredentialMetadata(issuerMetadata).getOrThrow()
+    suspend fun parseCredentialMetadata(issuerMetadata: IssuerMetadata) = IssuerMetadataLoad(
+        credentialIdentifiers = openId4VciClient().parseCredentialMetadata(issuerMetadata).getOrThrow(),
+        issuer = IssuerValidationUi.unsigned(issuerMetadata),
+    )
 
     /**
      * Starts the issuing process at [credentialIssuer]

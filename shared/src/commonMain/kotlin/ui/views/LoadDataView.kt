@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import at.asitplus.wallet.app.common.validation.IssuerValidationUi
 import at.asitplus.wallet.lib.oidvci.CredentialIdentifierInfo
 import ui.composables.buttons.LoadDataButton
 import ui.composables.forms.StatefulLoadDataForm
@@ -28,6 +29,7 @@ fun LoadDataView(
     availableIdentifiers: Collection<CredentialIdentifierInfo>,
     showTransactionCode: Boolean,
     isSubmitEnabled: Boolean = true,
+    issuer: IssuerValidationUi? = null,
 ) {
     Scaffold(
         bottomBar = {
@@ -53,7 +55,8 @@ fun LoadDataView(
             onChangeTransactionCode = onChangeTransactionCode,
             modifier = Modifier.padding(scaffoldPadding),
             availableIdentifiers = availableIdentifiers,
-            showTransactionCode = showTransactionCode
+            showTransactionCode = showTransactionCode,
+            issuer = issuer,
         )
     }
 }

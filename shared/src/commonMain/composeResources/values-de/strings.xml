@@ -554,4 +554,12 @@
     <string name="validation_finding_missing_registration">Keine Registrierungsinformationen vorhanden</string>
     <string name="validation_finding_unsigned">Nicht signiert, daher konnte der Absender nicht geprüft werden</string>
     <string name="validation_finding_not_checked">Konnte nicht geprüft werden</string>
+    <string name="section_heading_issuer_validation">Aussteller</string>
+    <string name="label_issuer_registration">Registrierung des Ausstellers</string>
+    <string name="label_issuer_registration_unverified">Registrierung des Ausstellers (nicht geprüft)</string>
+    <string name="label_issuer_registration_description">Dienst</string>
+    <string name="label_issuer_registration_identifiers">Kennungen</string>
+    <string name="label_issuer_registration_attestations">Registrierte Nachweise</string>
+    <string name="label_issuer_registration_registry">Register</string>
+    <string name="warning_issuer_not_registered_for_credential">Der Aussteller ist nicht für die Ausstellung dieses Nachweises registriert</string>
 </resources>
