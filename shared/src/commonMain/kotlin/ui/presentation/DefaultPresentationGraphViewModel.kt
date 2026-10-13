@@ -10,7 +10,6 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpKtorHolder
@@ -25,7 +24,6 @@ import ui.viewmodels.authentication.IsoDeviceRequestCredentialSubmissions
 class DefaultPresentationGraphViewModel(
     savedStateHandle: SavedStateHandle,
     private val walletMain: WalletMain,
-    private val validator: Validator,
 ) : ViewModel() {
     val route = savedStateHandle.toRoute<AuthenticationViewRoute>()
     val trustListService = walletMain.trustListService
@@ -45,7 +43,7 @@ class DefaultPresentationGraphViewModel(
                     ).getOrThrow().toCredentialSelectionProvider(
                         scope = viewModelScope
                     ) {
-                        validator.checkCredentialFreshness(it)
+                        walletMain.checkCredentialFreshness(it)
                     }
                 )
             } catch (it: Throwable) {

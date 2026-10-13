@@ -17,7 +17,6 @@ import at.asitplus.wallet.app.common.presentation.LongfellowZkRegistration
 import at.asitplus.wallet.app.common.validation.StoredCredentialValidator
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.oidvci.CredentialIdentifierInfo
 import data.storage.DataStoreService
 import data.storage.WalletSubjectCredentialStore
@@ -53,7 +52,6 @@ class WalletMain(
     val subjectCredentialStore: WalletSubjectCredentialStore,
     val buildContext: BuildContext,
     promptModel: PromptModel,
-    val credentialValidator: Validator,
     val holderAgent: HolderAgent,
     val provisioningService: ProvisioningService,
     val httpService: HttpService,
@@ -205,11 +203,9 @@ class WalletMain(
         }
     }
 
-    suspend fun checkCredentialFreshness(storeEntry: SubjectCredentialStore.StoreEntry) = when (val it = storeEntry) {
-        is SubjectCredentialStore.StoreEntry.Iso -> credentialValidator.checkCredentialFreshness(it.issuerSigned)
-        is SubjectCredentialStore.StoreEntry.SdJwt -> credentialValidator.checkCredentialFreshness(it.sdJwt)
-        is SubjectCredentialStore.StoreEntry.Vc -> credentialValidator.checkCredentialFreshness(it.vc)
-    }
+    /** Whether [storeEntry] is expired or not yet valid, and its status, see [StoredCredentialValidator.freshness]. */
+    suspend fun checkCredentialFreshness(storeEntry: SubjectCredentialStore.StoreEntry) =
+        storedCredentialValidator.freshness(storeEntry)
 }
 
 fun PlatformAdapter.decodeImage(image: ByteArray) = catchingUnwrapped {

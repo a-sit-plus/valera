@@ -10,9 +10,7 @@ import at.asitplus.wallet.app.common.validation.StoredCredentialValidator
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.agent.validation.StatusListTokenResolver
-import at.asitplus.wallet.lib.agent.validation.TokenStatusResolverImpl
 import at.asitplus.wallet.lib.etsi.LoteProfile
 import at.asitplus.wallet.lib.validation.CredentialValidator
 import at.asitplus.wallet.lib.validation.IssuerMetadataValidator
@@ -24,20 +22,11 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import ui.models.CredentialFreshnessSummaryModelEvaluator
-import ui.models.toCredentialFreshnessSummaryModel
 
 fun vckModule() = module {
     singleOf(::JsonWebKeySetResolver)
     singleOf(::PublicKeyResolver)
     scope(named(SESSION_NAME)) {
-        scoped<Validator> {
-            val statusListTokenResolver: StatusListTokenResolver by inject()
-            Validator(
-                tokenStatusResolver = TokenStatusResolverImpl(
-                    resolveStatusListToken = statusListTokenResolver::invoke
-                )
-            )
-        }
         scoped<StatusValidator> {
             StatusValidator(statusListTokenResolver = get<StatusListTokenResolver>())
         }
@@ -85,10 +74,8 @@ fun vckModule() = module {
             )
         }
         scoped<CredentialFreshnessSummaryModelEvaluator> {
-            val validator = get<Validator>()
-            CredentialFreshnessSummaryModelEvaluator {
-                validator.checkCredentialFreshness(it).toCredentialFreshnessSummaryModel()
-            }
+            val storedCredentialValidator = get<StoredCredentialValidator>()
+            CredentialFreshnessSummaryModelEvaluator { storedCredentialValidator.freshness(it) }
         }
     }
     includes(tokenStatusListModule())

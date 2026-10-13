@@ -31,7 +31,6 @@ fun appModule(): Module = module {
                 subjectCredentialStore = get(),
                 buildContext = get(),
                 promptModel = get(),
-                credentialValidator = get(),
                 holderAgent = get(),
                 provisioningService = get(),
                 httpService = get(),

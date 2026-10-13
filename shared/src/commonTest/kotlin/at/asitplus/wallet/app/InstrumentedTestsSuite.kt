@@ -62,7 +62,6 @@ import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.SD_JWT
 import at.asitplus.wallet.lib.data.SdJwtCredentialScheme
@@ -74,6 +73,7 @@ import at.asitplus.wallet.lib.openid.CredentialPresentationRequestBuilder
 import at.asitplus.wallet.lib.openid.OpenId4VpRequestOptions
 import at.asitplus.wallet.lib.openid.AuthnResponseResult
 import at.asitplus.wallet.lib.openid.OpenId4VpVerifier
+import at.asitplus.wallet.lib.validation.CredentialValidator
 import data.storage.AntilogAdapter
 import data.storage.DummyDataStoreService
 import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
@@ -148,7 +148,7 @@ private fun ComposeUiTest.runEndToEndTest() {
                         HolderAgent(
                             keyMaterial = get<KeyMaterial>(),
                             subjectCredentialStore = get<SubjectCredentialStore>(),
-                            validator = get<Validator>(),
+                            credentialValidator = get<CredentialValidator>(),
                         )
                     }
                 }
