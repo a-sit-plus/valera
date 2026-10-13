@@ -522,6 +522,8 @@
     <string name="info_text_registration_cert_identifier_invalid">Der Service Provider verwendet eine andere Identifikation als registriert wurde</string>
     <string name="info_text_registration_cert_requested_claim_invalid">Es werden mehr Attribute abgefragt als erlaubt</string>
     <string name="info_text_registration_cert_requested_claim_valid">Die abgefragten Attribute sind erlaubt</string>
+    <string name="text_label_wrprc_trust_anchors_url">Vertrauensanker für Registrierungszertifikate (URL)</string>
+    <string name="text_supporting_wrprc_trust_anchors_url">PEM-Datei mit Wurzelzertifikaten von Anbietern von Registrierungszertifikaten, zusätzlich zu den mitgelieferten vertrauenswürdig</string>
     <string name="validation_summary_passed">Alle Prüfungen bestanden</string>
     <string name="validation_summary_warning">Nicht alle Prüfungen bestanden</string>
     <string name="validation_summary_failed">Prüfung fehlgeschlagen</string>

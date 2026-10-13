@@ -71,6 +71,8 @@ class WalletConfig(
         } ?: defaultTrustListStages
     }
 
+    override val wrprcTrustAnchorsUrl: Flow<String?> = config.map { it.wrprcTrustAnchorsUrl }
+
     override fun setPresentmentBleEnabled(enabled: Boolean): Result<Unit> =
         updateConfig { current ->
             if (!enabled) {
@@ -125,6 +127,11 @@ class WalletConfig(
             current.copy(
                 trustListStages = if (enabled) stages + stage.name else stages - stage.name,
             )
+        }
+
+    override fun setWrprcTrustAnchorsUrl(url: String?): Result<Unit> =
+        updateConfig { current ->
+            current.copy(wrprcTrustAnchorsUrl = url?.trim()?.takeIf { it.isNotEmpty() })
         }
 
     override fun set(
@@ -268,4 +275,6 @@ private data class ConfigData(
     val openId4VpAllowedOriginSchemes: Set<String>? = null,
     /** Names of the enabled [LoTEStage]s; `null` means the default selection. */
     val trustListStages: Set<String>? = null,
+    /** URL of a PEM bundle with root certificates of WRPRC providers, see [SettingsRepository.wrprcTrustAnchorsUrl]. */
+    val wrprcTrustAnchorsUrl: String? = null,
 )

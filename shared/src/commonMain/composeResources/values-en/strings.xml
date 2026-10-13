@@ -516,6 +516,8 @@
     <string name="info_text_registration_cert_identifier_valid">The identifier of the service provider is correct</string>
     <string name="info_text_registration_cert_requested_claim_invalid">The service provider requests more attributes than registered</string>
     <string name="info_text_registration_cert_requested_claim_valid">The requested attributes are correct</string>
+    <string name="text_label_wrprc_trust_anchors_url">Registration certificate trust anchors (URL)</string>
+    <string name="text_supporting_wrprc_trust_anchors_url">PEM file with root certificates of registration certificate providers, trusted in addition to the bundled ones</string>
     <string name="validation_summary_passed">All checks passed</string>
     <string name="validation_summary_warning">Not all checks passed</string>
     <string name="validation_summary_failed">Validation failed</string>
