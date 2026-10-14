@@ -2,8 +2,6 @@ package at.asitplus.wallet.app.common.domain.vck.di
 
 import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.TrustListService
-import at.asitplus.wallet.app.common.domain.vck.JsonWebKeySetResolver
-import at.asitplus.wallet.app.common.domain.vck.PublicKeyResolver
 import at.asitplus.wallet.app.common.domain.vck.tokenStatusList.di.tokenStatusListModule
 import at.asitplus.wallet.app.common.trust.RegistrationCertificateAnchors
 import at.asitplus.wallet.app.common.validation.StoredCredentialValidator
@@ -18,14 +16,11 @@ import at.asitplus.wallet.lib.validation.RelyingPartyTrustAnchors
 import at.asitplus.wallet.lib.validation.RelyingPartyValidator
 import at.asitplus.wallet.lib.validation.StatusValidator
 import org.koin.core.module.dsl.scopedOf
-import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import ui.models.CredentialFreshnessSummaryModelEvaluator
 
 fun vckModule() = module {
-    singleOf(::JsonWebKeySetResolver)
-    singleOf(::PublicKeyResolver)
     scope(named(SESSION_NAME)) {
         scoped<StatusValidator> {
             StatusValidator(statusListTokenResolver = get<StatusListTokenResolver>())
