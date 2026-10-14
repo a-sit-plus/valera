@@ -12,7 +12,7 @@ import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_tra
 import at.asitplus.valera.resources.warning_authentication_cancelled
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
-import at.asitplus.wallet.app.common.validation.rejection
+import at.asitplus.wallet.app.common.validation.integrityRejection
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
@@ -51,7 +51,7 @@ class DCAPIPresentationGraphViewModel(
                 )
                 // The user is warned about the relying party, but a request that failed its integrity is rejected
                 if (relyingPartyValidation.outcome?.integrityFailed == true) {
-                    throw validation.validationReport?.rejection()
+                    throw validation.validationReport?.integrityRejection()
                         ?: OAuth2Exception.InvalidRequest("The request has been rejected")
                 }
                 val preparationState = validation.preparationState

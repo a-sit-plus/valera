@@ -12,7 +12,7 @@ import at.asitplus.valera.resources.warning_authentication_cancelled
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.extractCertificateChain
 import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
-import at.asitplus.wallet.app.common.validation.rejection
+import at.asitplus.wallet.app.common.validation.integrityRejection
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
@@ -70,7 +70,7 @@ class PresentationViewModel(
         }
         val relyingParty = validation?.let { RelyingPartyValidationUi.of(it) }
         if (relyingParty?.outcome?.integrityFailed == true) {
-            throw validation.report.rejection() ?: IllegalArgumentException("The reader has been rejected")
+            throw validation.report.integrityRejection() ?: IllegalArgumentException("The reader has been rejected")
         }
         deviceRequest = parsedRequest
         this.finishFunction = finishFunction
