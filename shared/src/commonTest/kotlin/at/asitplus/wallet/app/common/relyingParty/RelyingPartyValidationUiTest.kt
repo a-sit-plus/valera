@@ -10,6 +10,7 @@ import at.asitplus.openid.dcql.DCQLIsoMdocCredentialQuery
 import at.asitplus.wallet.app.common.validation.UnregisteredRequestUi
 import at.asitplus.wallet.app.common.validation.ValidationReportFixtures
 import at.asitplus.wallet.app.common.validation.toUi
+import at.asitplus.wallet.lib.agent.validation.relyingParty.MissingRegistrationCertificateException
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.RequestDataValidity
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.WrpCredentialRequest
 import at.asitplus.wallet.lib.data.MdocClaimReference
@@ -116,6 +117,19 @@ internal class RelyingPartyValidationUiTest : ValidationReportFixtures() {
         assertEquals("Example Shop", validation.registration?.name)
         assertEquals(payload.purpose, validation.registration?.purpose)
         assertFalse(validation.registrationVerified)
+    }
+
+    @Test
+    fun readerWithoutRegistrationCertificate() {
+        val report = relyingParty(
+            registrationCertificate = null,
+            registration = Failed(MissingRegistrationCertificateException("No DocRequest contains a WRPRC")),
+        )
+        val validation = RelyingPartyValidationUi.of(RelyingPartyValidationResult(report, relyingParty = null))
+
+        assertFalse(validation.outcome!!.integrityFailed)
+        assertTrue(validation.registrationMissing)
+        assertNull(validation.registration)
     }
 
     private fun validation(report: ValidationReport) =

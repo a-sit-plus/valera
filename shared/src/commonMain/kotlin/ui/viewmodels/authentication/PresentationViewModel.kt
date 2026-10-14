@@ -59,13 +59,11 @@ class PresentationViewModel(
         finishFunction: (ByteArray) -> Unit,
         sessionTranscript: SessionTranscript?
     ) {
-        // VC-K rejects the relying party of a request without reader authentication, or without WRPRC, by its
-        // `requestData`, which blocks, so such requests are not validated, as VC-K reports no relying party for
-        // OpenID4VP and DC API requests without WRPRC either
+        // VC-K rejects the relying party of a request without reader authentication by its `requestData`, which
+        // blocks, so such requests are not validated; a request without WRPRC only fails its `registration`
         val authenticated = !parsedRequest.readerAuthAll.isNullOrEmpty() ||
                 parsedRequest.docRequests.any { it.readerAuth != null }
-        val registered = parsedRequest.docRequests.any { it.itemsRequest.value.requestInfo?.euWrprc != null }
-        val validation = sessionTranscript?.takeIf { authenticated && registered }?.let {
+        val validation = sessionTranscript?.takeIf { authenticated }?.let {
             walletMain.presentationService.validateRelyingParty(parsedRequest, it)
         }
         val relyingParty = validation?.let { RelyingPartyValidationUi.of(it) }
