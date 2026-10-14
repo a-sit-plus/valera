@@ -344,6 +344,37 @@ private fun TimelinessException.finding(evaluatedAt: Instant): FindingUi {
 }
 
 /**
+ * Why [this] report fails its integrity, see [ValidationOutcomeUi.integrityFailed]: its first check, depth-first, that
+ * is not satisfied and that the user may not continue past, with the cause of its outcome, `null` if there is none.
+ * Unlike [rejection], it does not name a check the user may continue past, e.g. trust, which may come first.
+ */
+fun ValidationReport.integrityRejection(): Throwable? = integrityRejection(warningOnly = false)
+
+private fun ValidationReport.integrityRejection(warningOnly: Boolean): Throwable? {
+    val inWarningOnly = warningOnly || checks.kind in WARNING_ONLY_KINDS
+    if (!inWarningOnly) {
+        namedChecks.firstOrNull { !it.satisfied && !it.tolerable() }?.let {
+            val cause = it.outcome.cause()
+            val message = "The ${it.name} check of the ${checks::class.simpleName} failed" +
+                (cause?.let { cause -> ": ${cause.displayText()}" } ?: "")
+            return IllegalArgumentException(message, cause)
+        }
+    }
+    return children.firstNotNullOfOrNull { it.integrityRejection(inWarningOnly) }
+}
+
+/**
+ * Every check of [this] report and its children that is not satisfied, depth-first, with the cause of its outcome,
+ * e.g. to log why an artifact has been rejected.
+ */
+fun ValidationReport.describeProblems(): String = problemDescriptions().joinToString("; ").ifEmpty { "none" }
+
+private fun ValidationReport.problemDescriptions(): List<String> =
+    namedChecks.filterNot { it.satisfied }.map {
+        "${checks::class.simpleName}.${it.name}: ${it.outcome.cause()?.displayText() ?: it.outcome}"
+    } + children.flatMap { it.problemDescriptions() }
+
+/**
  * Why [this] report is rejected: the cause of its first check that is not satisfied, otherwise why its first rejected
  * child is rejected, `null` if it is accepted.
  */

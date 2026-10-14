@@ -178,6 +178,44 @@ internal class ValidationReportUiTest : ValidationReportFixtures() {
     }
 
     @Test
+    fun integrityRejectionSkipsChecksTheUserMayContinuePast() {
+        val nonce = IllegalArgumentException("unknown wallet_nonce")
+        val report = request(
+            timeliness = Failed(IllegalArgumentException("expired")),
+            walletNonce = Failed(nonce),
+            relyingParty = relyingParty(accessCertificate(trust = Failed(IllegalArgumentException("untrusted")))),
+        )
+
+        val rejection = report.integrityRejection()
+
+        assertEquals(
+            "The walletNonce check of the RequestObjectChecks failed: unknown wallet_nonce",
+            rejection?.message,
+        )
+        assertEquals(nonce, rejection?.cause)
+        assertNull(request(relyingParty = relyingParty(accessCertificate(trust = Blocked()))).integrityRejection())
+    }
+
+    @Test
+    fun problemsAreDescribedWithTheirCauses() {
+        val report = request(
+            relyingParty = relyingParty(accessCertificate(trust = Failed(IllegalArgumentException("untrusted")))),
+        )
+
+        assertEquals("AccessCertificateChecks.trust: untrusted", report.describeProblems())
+        assertEquals("none", request().describeProblems())
+    }
+
+    @Test
+    fun integrityRejectionIgnoresRegistrationCertificates() {
+        val report = relyingParty(
+            registrationCertificate = registrationCertificate(signature = Failed(IllegalArgumentException("bad")))
+        )
+
+        assertNull(report.integrityRejection())
+    }
+
+    @Test
     fun rejectionIsTheCauseOfTheFirstUnsatisfiedCheck() {
         val cause = IllegalArgumentException("untrusted")
         val report = request(relyingParty = relyingParty(accessCertificate(trust = Failed(cause))))
