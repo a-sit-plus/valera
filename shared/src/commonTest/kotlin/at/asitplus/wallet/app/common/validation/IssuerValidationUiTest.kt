@@ -3,8 +3,12 @@ package at.asitplus.wallet.app.common.validation
 import at.asitplus.etsi.relyingParty.WrpCredential
 import at.asitplus.etsi.relyingParty.WrpCredentialMeta
 import at.asitplus.etsi.relyingParty.WrpIdentifier
+import at.asitplus.etsi.relyingParty.WrpLangString
 import at.asitplus.etsi.relyingParty.WrpMultiLangString
+import at.asitplus.etsi.relyingParty.WrpPayload
 import at.asitplus.etsi.relyingParty.WrpRegistrarDataset
+import at.asitplus.etsi.relyingParty.WrpStatus
+import at.asitplus.etsi.relyingParty.WrpStatusList
 import at.asitplus.openid.IssuerInfo
 import at.asitplus.openid.IssuerMetadata
 import at.asitplus.openid.OpenIdConstants
@@ -55,6 +59,58 @@ class IssuerValidationUiTest {
     }
 
     @Test
+    fun missingRegistrationInformationIsAWarning() {
+        val report = report(
+            trust = Failed(IllegalArgumentException("The metadata are not signed with an access certificate")),
+            registration = Failed(IllegalArgumentException("The signed metadata contains no issuer_info")),
+        )
+        val issuer = IssuerValidationUi.of(
+            LoadedIssuerMetadata.Signed(IssuerMetadataValidation(report, untrustedMetadata = metadata(issuerInfo = null)))
+        )
+
+        assertFalse(issuer.outcome!!.accepted)
+        assertFalse(issuer.outcome.integrityFailed)
+        assertEquals(listOf("trust", "registration"), issuer.outcome.headline.map { it.check.name })
+        assertNull(issuer.registration)
+    }
+
+    @Test
+    fun registrationCertificateIsTheFallbackForMissingRegistrarDataset() {
+        val report = report(registration = Failed(IllegalArgumentException("issuer_info contains 0 registrar_dataset")))
+        val payload = WrpPayload(
+            name = "NiScy PID Issuer",
+            subjectIdentifier = "NTREU-123456789",
+            country = "EU",
+            registryUri = "https://registry.example.com",
+            srvDescription = listOf(listOf(WrpLangString(lang = "en", value = "PID issuance"))),
+            entitlements = emptyList(),
+            privacyPolicy = "https://issuer.example.com/privacy",
+            infoUri = "https://issuer.example.com",
+            certificatePolicy = "https://registrar.example.com/policy",
+            iat = now,
+            status = WrpStatus(WrpStatusList(idx = 0u, uri = "https://registrar.example.com/status")),
+            providesAttestations = listOf(
+                WrpCredential(format = "dc+sd-jwt", meta = WrpCredentialMeta(vctValues = listOf(VCT)))
+            ),
+        )
+        val issuer = IssuerValidationUi.of(
+            LoadedIssuerMetadata.Signed(
+                IssuerMetadataValidation(
+                    report,
+                    untrustedMetadata = metadata(issuerInfo = null),
+                    untrustedRegistration = payload,
+                )
+            )
+        )
+
+        assertFalse(issuer.outcome!!.integrityFailed)
+        assertEquals("NiScy PID Issuer", issuer.registration?.name)
+        assertEquals(listOf("NTREU-123456789"), issuer.registration?.identifiers)
+        assertEquals(listOf(WrpMultiLangString(lang = "en", content = "PID issuance")), issuer.registration?.description)
+        assertEquals(true, issuer.registeredFor(sdJwt(VCT)))
+    }
+
+    @Test
     fun unsignedMetadataCanNotBeVerified() {
         val issuer = IssuerValidationUi.of(LoadedIssuerMetadata.Unsigned(metadata(issuerInfo = null)))
 
@@ -64,7 +120,11 @@ class IssuerValidationUiTest {
         assertNull(issuer.registeredFor(sdJwt(VCT)))
     }
 
-    private fun report(trust: CheckOutcome = Passed, subject: CheckOutcome = Passed) =
+    private fun report(
+        trust: CheckOutcome = Passed,
+        subject: CheckOutcome = Passed,
+        registration: CheckOutcome = Passed,
+    ) =
         ValidationReport.issuerMetadata(
             checks = IssuerMetadataChecks(
                 parsing = Passed,
@@ -72,6 +132,7 @@ class IssuerValidationUiTest {
                 trust = TrustValidation(trust, source = WRPAC_PROVIDERS),
                 timeliness = Passed,
                 subject = subject,
+                registration = registration,
             ),
             policy = ValidationPolicies.strict,
             evaluatedAt = now,

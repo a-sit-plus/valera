@@ -1,8 +1,9 @@
 package at.asitplus.wallet.app.common.validation
 
 import at.asitplus.catchingUnwrapped
-import at.asitplus.etsi.relyingParty.WrpIdentifier
+import at.asitplus.etsi.relyingParty.WrpCredential
 import at.asitplus.etsi.relyingParty.WrpMultiLangString
+import at.asitplus.etsi.relyingParty.WrpPayload
 import at.asitplus.etsi.relyingParty.WrpRegistrarDataset
 import at.asitplus.openid.IssuerMetadata
 import at.asitplus.openid.OpenIdConstants
@@ -50,7 +51,9 @@ data class IssuerValidationUi(
         fun of(loaded: LoadedIssuerMetadata) = when (loaded) {
             is LoadedIssuerMetadata.Signed -> IssuerValidationUi(
                 outcome = loaded.validation.report.toUi(),
-                registration = (loaded.metadata ?: loaded.untrustedMetadata)?.registration(),
+                // ETSI TS 119 472-3 V1.1.1, 4.2.3 requires the registrar dataset, so the WRPRC is a fallback only
+                registration = (loaded.metadata ?: loaded.untrustedMetadata)?.registration()
+                    ?: loaded.validation.untrustedRegistration?.toRegistrationUi(),
             )
 
             is LoadedIssuerMetadata.Unsigned -> unsigned(loaded.metadata)
@@ -64,10 +67,16 @@ data class IssuerValidationUi(
     }
 }
 
-/** What a registrar says about a credential issuer (ETSI TS 119 472-3 V1.1.1, 4.2.3). */
+/**
+ * What a registrar says about a credential issuer: its registration information (ETSI TS 119 472-3 V1.1.1, 4.2.3),
+ * or what its registration certificate (WRPRC) says, if the metadata carry no registration information.
+ */
 @Serializable
 data class IssuerRegistrationUi(
-    val identifiers: List<WrpIdentifier>,
+    /** The name of the issuer, which only a WRPRC carries. */
+    val name: String? = null,
+    /** The identifiers of the issuer, e.g. `LEI: 1234`. */
+    val identifiers: List<String>,
     val description: List<WrpMultiLangString>,
     val registryUri: String,
     /** The `doctype` or `vct` values of the credentials the issuer is registered to provide. */
@@ -79,11 +88,20 @@ private fun IssuerMetadata.registration(): IssuerRegistrationUi? = catchingUnwra
         ?: return@catchingUnwrapped null
     val dataset = joseCompliantSerializer.decodeFromJsonElement(WrpRegistrarDataset.serializer(), data)
     IssuerRegistrationUi(
-        identifiers = dataset.identifier,
+        identifiers = dataset.identifier.map { "${it.type}: ${it.identifier}" },
         description = dataset.srvDescription,
         registryUri = dataset.registryURI,
-        attestations = dataset.providesAttestations.flatMap {
-            listOfNotNull(it.meta.doctypeValue) + it.meta.vctValues.orEmpty()
-        },
+        attestations = dataset.providesAttestations.attestationTypes(),
     )
 }.getOrNull()
+
+private fun WrpPayload.toRegistrationUi() = IssuerRegistrationUi(
+    name = name ?: subjectLegalName,
+    identifiers = listOf(subjectIdentifier),
+    description = srvDescription.flatten().map { WrpMultiLangString(lang = it.lang, content = it.value) },
+    registryUri = registryUri,
+    attestations = providesAttestations.attestationTypes(),
+)
+
+private fun List<WrpCredential>.attestationTypes() =
+    flatMap { listOfNotNull(it.meta.doctypeValue) + it.meta.vctValues.orEmpty() }

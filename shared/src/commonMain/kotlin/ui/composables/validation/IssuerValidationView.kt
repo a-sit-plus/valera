@@ -18,6 +18,7 @@ import at.asitplus.valera.resources.label_issuer_registration_description
 import at.asitplus.valera.resources.label_issuer_registration_identifiers
 import at.asitplus.valera.resources.label_issuer_registration_registry
 import at.asitplus.valera.resources.label_issuer_registration_unverified
+import at.asitplus.valera.resources.label_registration_cert_details_trade_name
 import at.asitplus.valera.resources.section_heading_issuer_validation
 import at.asitplus.valera.resources.validation_finding_unsigned
 import at.asitplus.valera.resources.warning_issuer_not_registered_for_credential
@@ -65,6 +66,13 @@ private fun IssuerRegistrationCard(registration: IssuerRegistrationUi, verified:
     ) {
         Column(modifier = Modifier.padding(start = 20.dp, top = 16.dp)) {
             val paddingModifier = Modifier.padding(bottom = 16.dp)
+            registration.name?.let {
+                LabeledText(
+                    label = stringResource(Res.string.label_registration_cert_details_trade_name),
+                    text = it,
+                    modifier = paddingModifier,
+                )
+            }
             registration.description.getCurrentLocalization()?.let {
                 LabeledText(
                     label = stringResource(Res.string.label_issuer_registration_description),
@@ -76,7 +84,7 @@ private fun IssuerRegistrationCard(registration: IssuerRegistrationUi, verified:
             if (registration.identifiers.isNotEmpty()) {
                 LabeledText(
                     label = stringResource(Res.string.label_issuer_registration_identifiers),
-                    text = registration.identifiers.joinToString("\n") { "${it.type}: ${it.identifier}" },
+                    text = registration.identifiers.joinToString("\n"),
                     modifier = paddingModifier,
                     maxLines = registration.identifiers.size,
                 )
