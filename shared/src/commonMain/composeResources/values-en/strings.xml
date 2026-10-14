@@ -554,6 +554,7 @@
     <string name="validation_check_linkage">Issued to the relying party</string>
     <string name="validation_check_request_authorization">Registered for the requested data</string>
     <string name="validation_check_subject">Identifier of the issuer</string>
+    <string name="validation_check_registration">Registration information</string>
     <string name="validation_check_retrieval">Retrieval</string>
     <string name="validation_finding_untrusted">Not trusted</string>
     <string name="validation_finding_untrusted_source">Not trusted by %1$s</string>

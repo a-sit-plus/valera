@@ -560,6 +560,7 @@
     <string name="validation_check_linkage">Für die vertrauende Partei ausgestellt</string>
     <string name="validation_check_request_authorization">Für die angefragten Daten registriert</string>
     <string name="validation_check_subject">Kennung des Ausstellers</string>
+    <string name="validation_check_registration">Registrierungsinformationen</string>
     <string name="validation_check_retrieval">Abruf</string>
     <string name="validation_finding_untrusted">Nicht vertrauenswürdig</string>
     <string name="validation_finding_untrusted_source">Nicht vertrauenswürdig laut %1$s</string>

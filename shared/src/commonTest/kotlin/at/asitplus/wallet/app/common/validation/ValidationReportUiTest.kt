@@ -1,6 +1,7 @@
 package at.asitplus.wallet.app.common.validation
 
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import at.asitplus.wallet.lib.agent.validation.relyingParty.MissingRegistrationCertificateException
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
 import at.asitplus.wallet.lib.validation.CheckOutcome.Blocked
 import at.asitplus.wallet.lib.validation.CheckOutcome.Failed
@@ -98,6 +99,18 @@ internal class ValidationReportUiTest : ValidationReportFixtures() {
         val findings = outcome.headline.associate { it.check.name to it.check.finding }
         assertEquals(FindingUi.NotLinked, findings["linkage"])
         assertEquals(FindingUi.Unregistered(emptyList()), findings["requestAuthorization"])
+    }
+
+    @Test
+    fun missingRegistrationCertificateIsAWarning() {
+        val outcome = relyingParty(
+            registrationCertificate = null,
+            registration = Failed(MissingRegistrationCertificateException("No DocRequest contains a WRPRC")),
+        ).toUi()
+
+        assertFalse(outcome.accepted)
+        assertFalse(outcome.integrityFailed)
+        assertEquals(FindingUi.MissingRegistration, outcome.headline.single().check.finding)
     }
 
     @Test
@@ -229,8 +242,10 @@ internal class ValidationReportUiTest : ValidationReportFixtures() {
         listOf("trust", "issuerTrust", "signerTrust").forEach {
             assertTrue(NamedCheck(it, Blocked(), REQUIRED, trust = TrustValidation(Blocked())).tolerable(), it)
         }
-        listOf("timeliness", "status.claim", "status.mechanisms[0]", "status.agreement", "linkage", "requestAuthorization")
-            .forEach { assertTrue(NamedCheck(it, Blocked(), REQUIRED).tolerable(), it) }
+        listOf(
+            "timeliness", "status.claim", "status.mechanisms[0]", "status.agreement",
+            "linkage", "requestAuthorization", "registration",
+        ).forEach { assertTrue(NamedCheck(it, Blocked(), REQUIRED).tolerable(), it) }
     }
 
     @Test

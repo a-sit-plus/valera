@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common.validation
 
+import at.asitplus.wallet.lib.agent.validation.relyingParty.MissingRegistrationCertificateException
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.RequestDataValidity
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.WrpCredentialRequest
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
@@ -298,9 +299,9 @@ internal fun NamedCheck.tolerable() =
     trust != null ||                        // issuerTrust, trust, signerTrust: carry their TrustValidation
         name == "timeliness" ||             // validity of the artifact, never the time of a holder proof
         name.startsWith("status.") ||       // status.claim, status.mechanisms[i], status.agreement
-        name in REGISTRATION_CHECKS         // registration of the relying party (WRPRC)
+        name in REGISTRATION_CHECKS         // registration of a relying party (WRPRC) or issuer (issuer_info)
 
-private val REGISTRATION_CHECKS = setOf("linkage", "requestAuthorization")
+private val REGISTRATION_CHECKS = setOf("linkage", "requestAuthorization", "registration")
 
 private fun NamedCheck.finding(evaluatedAt: Instant): FindingUi? {
     if (outcome == CheckOutcome.Passed || outcome == CheckOutcome.NotApplicable) return null
@@ -311,6 +312,7 @@ private fun NamedCheck.finding(evaluatedAt: Instant): FindingUi? {
     return when {
         cause is TimelinessException -> cause.finding(evaluatedAt)
         cause is TokenStatusException -> cause.status.finding()
+        cause is MissingRegistrationCertificateException -> FindingUi.MissingRegistration
         cause is UnregisteredRequestException ->
             FindingUi.Unregistered(cause.requests.map { (request, validity) -> UnregisteredRequestUi(request, validity) })
 

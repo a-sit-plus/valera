@@ -50,11 +50,12 @@ internal open class ValidationReportFixtures(val now: Instant = Instant.parse("2
 
     fun relyingParty(
         accessCertificate: ValidationReport = accessCertificate(),
-        registrationCertificate: ValidationReport = registrationCertificate(),
+        registrationCertificate: ValidationReport? = registrationCertificate(),
+        registration: CheckOutcome = Passed,
     ) = ValidationReport.relyingParty(
-        checks = RelyingPartyChecks(requestData = Passed),
+        checks = RelyingPartyChecks(requestData = Passed, registration = registration),
         accessCertificate = accessCertificate,
-        registrationCertificates = listOf(registrationCertificate),
+        registrationCertificates = listOfNotNull(registrationCertificate),
         evaluatedAt = now,
     )
 

@@ -47,6 +47,7 @@ import at.asitplus.valera.resources.validation_check_issuer_signature
 import at.asitplus.valera.resources.validation_check_issuer_trust
 import at.asitplus.valera.resources.validation_check_linkage
 import at.asitplus.valera.resources.validation_check_parsing
+import at.asitplus.valera.resources.validation_check_registration
 import at.asitplus.valera.resources.validation_check_request_authorization
 import at.asitplus.valera.resources.validation_check_request_data
 import at.asitplus.valera.resources.validation_check_retrieval
@@ -270,6 +271,7 @@ fun CheckUi.label(): String = when (group) {
     "linkage" -> Res.string.validation_check_linkage
     "requestAuthorization" -> Res.string.validation_check_request_authorization
     "subject" -> Res.string.validation_check_subject
+    "registration" -> Res.string.validation_check_registration
     "retrieval" -> Res.string.validation_check_retrieval
     else -> null
 }?.let { stringResource(it) } ?: name
