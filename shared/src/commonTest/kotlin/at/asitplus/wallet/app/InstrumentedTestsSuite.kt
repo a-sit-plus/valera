@@ -51,6 +51,7 @@ import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.WalletSessionBindings
 import at.asitplus.wallet.app.common.di.appModule
 import at.asitplus.wallet.app.common.validation.ValidationPolicies
+import at.asitplus.wallet.app.common.validation.describeProblems
 import at.asitplus.wallet.eupidsdjwt.EU_PID_SD_JWT_VCT
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements
 import at.asitplus.wallet.lib.RequestOptionsCredential
@@ -218,7 +219,9 @@ private fun ComposeUiTest.runEndToEndTest() {
                     statusListAgent = null,
                 )
                 catchingUnwrapped {
-                    holderAgent.storeCredential(
+                    // The ephemeral issuer has no certificate, so the credential is stored like one the user kept
+                    // although its issuer is not trusted
+                    val result = holderAgent.storeCredentialWithReport(
                         issuer.issueCredential(
                             CredentialToBeIssued.VcSd(
                                 getAttributes(),
@@ -229,8 +232,10 @@ private fun ComposeUiTest.runEndToEndTest() {
                             )
                         )
                             .getOrThrow()
-                            .toStoreCredentialInput()
+                            .toStoreCredentialInput(),
+                        ValidationPolicies.lenient,
                     ).getOrThrow()
+                    checkNotNull(result.storedEntry) { result.validation.report.describeProblems() }
                 }.onSuccess {
                     println("InstrumentedTests: credential issuance setup completed")
                     credentialIssued.complete(Unit)
