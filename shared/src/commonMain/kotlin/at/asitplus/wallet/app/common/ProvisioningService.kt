@@ -21,6 +21,8 @@ import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.validation.IssuerValidationUi
 import at.asitplus.wallet.app.common.validation.PendingCredentialReview
 import at.asitplus.wallet.app.common.validation.ValidationPolicies
+import at.asitplus.wallet.app.common.validation.describeProblems
+import at.asitplus.wallet.app.common.validation.integrityRejection
 import at.asitplus.wallet.app.common.validation.rejection
 import at.asitplus.wallet.app.common.validation.toUi
 import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
@@ -51,12 +53,14 @@ import data.storage.persistentStringMapStore
 import io.github.aakira.napier.Napier
 import io.ktor.http.URLBuilder
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import ui.navigation.IntentService
 
@@ -228,7 +232,7 @@ class ProvisioningService(
         val loaded = client.loadIssuerMetadata(host, ValidationPolicies.strict).getOrThrow()
         val issuer = IssuerValidationUi.of(loaded)
         if (issuer.outcome?.integrityFailed == true) {
-            throw (loaded as? LoadedIssuerMetadata.Signed)?.validation?.report?.rejection()
+            throw (loaded as? LoadedIssuerMetadata.Signed)?.validation?.report?.integrityRejection()
                 ?: IllegalArgumentException("The metadata of $host have been rejected")
         }
         return IssuerMetadataLoad(client.parseCredentialMetadataIgnoringTrust(loaded).getOrThrow(), issuer)
@@ -530,21 +534,24 @@ class ProvisioningService(
      * rejected only for problems the user may tolerate, e.g. an untrusted issuer, an expired one, or an unknown status,
      * waits in [credentialsUnderReview] if [review] is set, so `null` is returned; otherwise, e.g. when refreshing a
      * credential in the background, it is stored under [ValidationPolicies.lenient]. A credential failing a check of
-     * its integrity, e.g. its signature or its binding to the key of the wallet, fails.
+     * its integrity, e.g. its signature or its binding to the key of the wallet, fails with that check, see
+     * [integrityRejection]. Every problem of a rejected credential is logged.
      */
     private suspend fun storeCredential(
         credential: Holder.StoreCredentialInput,
         renewalInfo: CredentialRenewalInfo? = null,
         review: Boolean,
     ): KmmResult<SubjectCredentialStore.StoreEntry?> = catching {
-        val result = holderAgent.storeCredentialWithReport(credential, ValidationPolicies.strict, renewalInfo)
-            .getOrThrow()
+        val result = withContext(Dispatchers.Default) {
+            holderAgent.storeCredentialWithReport(credential, ValidationPolicies.strict, renewalInfo).getOrThrow()
+        }
         result.storedEntry ?: run {
             val report = result.validation.report
             val outcome = report.toUi()
+            Napier.w("Issued credential rejected: ${report.describeProblems()}")
             when {
                 outcome.integrityFailed ->
-                    throw report.rejection() ?: IllegalStateException("The credential has not been stored")
+                    throw report.integrityRejection() ?: IllegalStateException("The credential has not been stored")
 
                 review -> null.also {
                     pendingCredentialReview.add(PendingCredentialReview.Entry(credential, renewalInfo, outcome))
@@ -559,8 +566,9 @@ class ProvisioningService(
         credential: Holder.StoreCredentialInput,
         renewalInfo: CredentialRenewalInfo?,
     ): SubjectCredentialStore.StoreEntry {
-        val result = holderAgent.storeCredentialWithReport(credential, ValidationPolicies.lenient, renewalInfo)
-            .getOrThrow()
+        val result = withContext(Dispatchers.Default) {
+            holderAgent.storeCredentialWithReport(credential, ValidationPolicies.lenient, renewalInfo).getOrThrow()
+        }
         return result.storedEntry
             ?: throw result.validation.report.rejection()
                 ?: IllegalStateException("The credential has not been stored")
