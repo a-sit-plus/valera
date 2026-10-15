@@ -16,7 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import at.asitplus.csc.CredentialInfo
+import at.asitplus.csc.api.CredentialInfo
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.text_label_certificate
 import at.asitplus.valera.resources.text_label_credential_id

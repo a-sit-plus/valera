@@ -318,7 +318,7 @@ fun TransactionDataView(transactionData: TransactionDataBase64Url) {
                         }
                     }
 
-                    null -> {
+                    else -> {
                         // can't show anything
                     }
                 }
