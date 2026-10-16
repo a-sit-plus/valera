@@ -15,7 +15,7 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
+import at.asitplus.wallet.lib.ktor.openid.OpenId4VpKtorHolder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -61,7 +61,7 @@ class DefaultPresentationGraphViewModel(
 
     fun confirmSelection(
         credentialPresentationSubmissions: CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>,
-        onSuccess: (OpenId4VpWallet.AuthenticationSuccess) -> Unit,
+        onSuccess: (OpenId4VpKtorHolder.AuthenticationSuccess) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         val selectionProvider = selectionProvider.value as? UiStateSuccess ?: return
@@ -95,18 +95,18 @@ class DefaultPresentationGraphViewModel(
 
     private suspend fun finalizeAuthorization(
         credentialPresentation: CredentialPresentation
-    ): OpenId4VpWallet.AuthenticationSuccess {
+    ): OpenId4VpKtorHolder.AuthenticationSuccess {
         walletMain.keyMaterial.promptText =
             getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
         return finalizationMethod(credentialPresentation)
     }
 
-    private suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpWallet.AuthenticationSuccess {
+    private suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpKtorHolder.AuthenticationSuccess {
         val authenticationResult = walletMain.presentationService.finalizeAuthorizationResponse(
             credentialPresentation = credentialPresentation,
             preparationState = route.authorizationResponsePreparationState
         )
-        return authenticationResult as? OpenId4VpWallet.AuthenticationSuccess
+        return authenticationResult as? OpenId4VpKtorHolder.AuthenticationSuccess
             ?: throw IllegalStateException("DC API requests must use the DC API presentation flow")
     }
 }

@@ -11,12 +11,13 @@ import org.koin.core.module.dsl.scopedOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import org.koin.dsl.onClose
 
 fun communicationsModule() = module {
     singleOf(::HttpService)
     scope(named(SESSION_NAME)) {
-        scopedOf(::ProvisioningService)
-        scopedOf(::PresentationService)
+        scopedOf(::ProvisioningService) onClose { it?.close() }
+        scopedOf(::PresentationService) onClose { it?.close() }
         scopedOf(::SigningService)
         scopedOf(::DCAPIExportService)
         scopedOf(::AttestationService)

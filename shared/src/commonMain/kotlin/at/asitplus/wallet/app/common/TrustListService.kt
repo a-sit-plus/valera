@@ -117,18 +117,13 @@ class TrustListService(
         val issuer = entry.issuer
             ?: return@combineWithFreshTrustStore TrustState.UNKNOWN
 
-        // Works because the lambda is now suspend-aware!
-        val scheme = entry.resolveScheme()
         val schemeIdentifier = entry.schemeIdentifier
-            ?: scheme.vcType
-            ?: scheme.sdJwtType
-            ?: scheme.isoDocType
-
-        if (schemeIdentifier.isNullOrBlank()) {
+        if (schemeIdentifier.isBlank()) {
             return@combineWithFreshTrustStore TrustState.UNKNOWN
         }
-
-        evaluateCertificate(issuer, freshTrustLists, LoteProfile.fromSchemeIdentifier(schemeIdentifier))
+        val profile = LoteProfile.fromSchemeIdentifier(schemeIdentifier)
+            ?: return@combineWithFreshTrustStore TrustState.UNKNOWN
+        evaluateCertificate(issuer, freshTrustLists, profile)
     }
 
 
@@ -307,13 +302,17 @@ fun RequestParametersFrom<*>.extractRelyingPartyCertificateChains(): List<X509Ce
             is JwsFlattened -> jws.jwsHeader.certificateChain
             is JwsGeneral -> jws.jwsHeaders.firstNotNullOfOrNull { it.certificateChain }
         }
+
         is RequestParametersFrom.OpenId4VpDcApiSigned ->
             this.jwsTyped.jws.jwsHeader.certificateChain
+
         is RequestParametersFrom.OpenId4VpDcApiMultiSigned ->
             this.jwsTyped.jws.jwsHeaders.firstOrNull()?.certificateChain
+
         is RequestParametersFrom.Uri,
         is RequestParametersFrom.Json,
         is RequestParametersFrom.OpenId4VpDcApiUnsigned -> null
+
         is RequestParametersFrom.IsoMdocDcApi ->
             this.parameters.isoMdocRequest.deviceRequest.extractCertificateChain()
     }?.takeIf { it.isNotEmpty() }
