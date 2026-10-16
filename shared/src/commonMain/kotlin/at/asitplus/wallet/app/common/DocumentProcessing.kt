@@ -1,8 +1,8 @@
 package at.asitplus.wallet.app.common
 
-import at.asitplus.csc.QtspSignatureResponse
-import at.asitplus.csc.SignHashResponseParameters
-import at.asitplus.csc.collection_entries.OAuthDocumentDigest
+import at.asitplus.csc.api.QtspSignatureResponse
+import at.asitplus.csc.api.SignHashResponseParameters
+import at.asitplus.csc.api.collection_entries.OAuthDocumentDigest
 import at.asitplus.signum.indispensable.X509SignatureAlgorithm
 import at.asitplus.signum.indispensable.asn1.ObjectIdentifier
 import at.asitplus.signum.indispensable.asn1.ObjectIdentifierStringSerializer
@@ -206,11 +206,7 @@ internal suspend fun getFinishedDocuments(
                 val finishedDocResponse = client.post("${qtspHost}/sca/finalize") {
                     contentType(ContentType.Application.Json)
                     header("Wallet-QTSP-ID", qtspIdentifier)
-                    setBody(
-                        joseCompliantSerializer.encodeToString(
-                            wrappedSig
-                        )
-                    )
+                    setBody(joseCompliantSerializer.encodeToString(wrappedSig))
                 }
                 val finishedDocument = joseCompliantSerializer.decodeFromString<FinishedDocument>(finishedDocResponse.bodyAsText())
                 finishedDocuments.add(finishedDocument)

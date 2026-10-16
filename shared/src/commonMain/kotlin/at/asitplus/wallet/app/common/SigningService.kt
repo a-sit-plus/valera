@@ -1,12 +1,12 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.catchingUnwrapped
-import at.asitplus.csc.CredentialInfo
-import at.asitplus.csc.CredentialInfoRequest
-import at.asitplus.csc.CredentialListRequest
-import at.asitplus.csc.CredentialListResponse
-import at.asitplus.csc.QtspSignatureResponse
-import at.asitplus.csc.enums.CertificateOptions
+import at.asitplus.csc.api.CertificateOptions
+import at.asitplus.csc.api.CredentialInfo
+import at.asitplus.csc.api.CredentialInfoRequest
+import at.asitplus.csc.api.CredentialListRequest
+import at.asitplus.csc.api.CredentialListResponse
+import at.asitplus.csc.api.QtspSignatureResponse
 import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.AuthorizationDetails
 import at.asitplus.openid.CscAuthorizationDetails

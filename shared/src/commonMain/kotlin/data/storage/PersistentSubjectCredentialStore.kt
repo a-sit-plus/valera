@@ -1,7 +1,7 @@
 package data.storage
 
 import at.asitplus.catchingUnwrapped
-import at.asitplus.csc.serializers.Base64X509CertificateSerializer
+import at.asitplus.csc.api.serializers.Base64X509CertificateSerializer
 import at.asitplus.iso.IssuerSigned
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.signum.indispensable.pki.X509Certificate

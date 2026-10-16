@@ -245,7 +245,7 @@ class ProvisioningService(
     @Throws(Throwable::class)
     suspend fun parseCredentialMetadata(issuerMetadata: IssuerMetadata) = IssuerMetadataLoad(
         credentialIdentifiers = openId4VciClient().parseCredentialMetadata(issuerMetadata).getOrThrow(),
-        issuer = IssuerValidationUi.unsigned(issuerMetadata),
+        issuer = IssuerValidationUi.unsigned(),
     )
 
     /**

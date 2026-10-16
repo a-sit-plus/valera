@@ -2,18 +2,12 @@ package at.asitplus.wallet.app.common.validation
 
 import at.asitplus.etsi.relyingParty.WrpCredential
 import at.asitplus.etsi.relyingParty.WrpCredentialMeta
-import at.asitplus.etsi.relyingParty.WrpIdentifier
 import at.asitplus.etsi.relyingParty.WrpLangString
-import at.asitplus.etsi.relyingParty.WrpMultiLangString
 import at.asitplus.etsi.relyingParty.WrpPayload
-import at.asitplus.etsi.relyingParty.WrpRegistrarDataset
 import at.asitplus.etsi.relyingParty.WrpStatus
 import at.asitplus.etsi.relyingParty.WrpStatusList
-import at.asitplus.openid.IssuerInfo
 import at.asitplus.openid.IssuerMetadata
-import at.asitplus.openid.OpenIdConstants
 import at.asitplus.openid.SupportedCredentialFormat
-import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.lib.oidvci.LoadedIssuerMetadata
 import at.asitplus.wallet.lib.validation.CheckOutcome
 import at.asitplus.wallet.lib.validation.CheckOutcome.Failed
@@ -36,7 +30,9 @@ class IssuerValidationUiTest {
     fun untrustedIssuerIsAWarningWithItsRegistration() {
         val report = report(trust = Failed(IllegalArgumentException("untrusted WRPAC")))
         val issuer = IssuerValidationUi.of(
-            LoadedIssuerMetadata.Signed(IssuerMetadataValidation(report, untrustedMetadata = metadata()))
+            LoadedIssuerMetadata.Signed(
+                IssuerMetadataValidation(report, untrustedMetadata = metadata(), untrustedRegistration = registration())
+            )
         )
 
         assertTrue(issuer.signed)
@@ -65,7 +61,7 @@ class IssuerValidationUiTest {
             registration = Failed(IllegalArgumentException("The signed metadata contains no issuer_info")),
         )
         val issuer = IssuerValidationUi.of(
-            LoadedIssuerMetadata.Signed(IssuerMetadataValidation(report, untrustedMetadata = metadata(issuerInfo = null)))
+            LoadedIssuerMetadata.Signed(IssuerMetadataValidation(report, untrustedMetadata = metadata()))
         )
 
         assertFalse(issuer.outcome!!.accepted)
@@ -75,44 +71,25 @@ class IssuerValidationUiTest {
     }
 
     @Test
-    fun registrationCertificateIsTheFallbackForMissingRegistrarDataset() {
-        val report = report(registration = Failed(IllegalArgumentException("issuer_info contains 0 registrar_dataset")))
-        val payload = WrpPayload(
-            name = "NiScy PID Issuer",
-            subjectIdentifier = "NTREU-123456789",
-            country = "EU",
-            registryUri = "https://registry.example.com",
-            srvDescription = listOf(listOf(WrpLangString(lang = "en", value = "PID issuance"))),
-            entitlements = emptyList(),
-            privacyPolicy = "https://issuer.example.com/privacy",
-            infoUri = "https://issuer.example.com",
-            certificatePolicy = "https://registrar.example.com/policy",
-            iat = now,
-            status = WrpStatus(WrpStatusList(idx = 0u, uri = "https://registrar.example.com/status")),
-            providesAttestations = listOf(
-                WrpCredential(format = "dc+sd-jwt", meta = WrpCredentialMeta(vctValues = listOf(VCT)))
-            ),
-        )
+    fun registrationIsWhatTheRegistrationCertificateSays() {
+        val report = report(registration = Failed(IllegalArgumentException("untrusted WRPRC")))
         val issuer = IssuerValidationUi.of(
             LoadedIssuerMetadata.Signed(
-                IssuerMetadataValidation(
-                    report,
-                    untrustedMetadata = metadata(issuerInfo = null),
-                    untrustedRegistration = payload,
-                )
+                IssuerMetadataValidation(report, untrustedMetadata = metadata(), untrustedRegistration = registration())
             )
         )
 
+        assertFalse(issuer.verified)
         assertFalse(issuer.outcome!!.integrityFailed)
         assertEquals("NiScy PID Issuer", issuer.registration?.name)
         assertEquals(listOf("NTREU-123456789"), issuer.registration?.identifiers)
-        assertEquals(listOf(WrpMultiLangString(lang = "en", content = "PID issuance")), issuer.registration?.description)
+        assertEquals(listOf(WrpLangString(lang = "en", value = "PID issuance")), issuer.registration?.description)
         assertEquals(true, issuer.registeredFor(sdJwt(VCT)))
     }
 
     @Test
     fun unsignedMetadataCanNotBeVerified() {
-        val issuer = IssuerValidationUi.of(LoadedIssuerMetadata.Unsigned(metadata(issuerInfo = null)))
+        val issuer = IssuerValidationUi.of(LoadedIssuerMetadata.Unsigned(metadata()))
 
         assertFalse(issuer.signed)
         assertFalse(issuer.verified)
@@ -138,28 +115,27 @@ class IssuerValidationUiTest {
             evaluatedAt = now,
         )
 
-    private fun metadata(
-        issuerInfo: List<IssuerInfo>? = listOf(
-            IssuerInfo(
-                format = OpenIdConstants.IssuerInfo.REGISTRAR_DATASET_FORMAT,
-                data = joseCompliantSerializer.encodeToJsonElement(
-                    WrpRegistrarDataset.serializer(),
-                    WrpRegistrarDataset(
-                        identifier = listOf(WrpIdentifier(type = "LEI", identifier = "1234")),
-                        srvDescription = listOf(WrpMultiLangString(lang = "en", content = "Example PID provider")),
-                        registryURI = "https://registry.example.com",
-                        providesAttestations = listOf(
-                            WrpCredential(format = "dc+sd-jwt", meta = WrpCredentialMeta(vctValues = listOf(VCT)))
-                        ),
-                    ),
-                ),
-            )
-        ),
-    ) = IssuerMetadata(
+    private fun metadata() = IssuerMetadata(
         credentialIssuer = ISSUER,
         credentialEndpointUrl = "$ISSUER/credential",
         supportedCredentialConfigurations = mapOf("pid" to sdJwt(VCT)),
-        issuerInfo = issuerInfo,
+    )
+
+    private fun registration() = WrpPayload(
+        name = "NiScy PID Issuer",
+        subjectIdentifier = "NTREU-123456789",
+        country = "EU",
+        registryUri = "https://registry.example.com",
+        srvDescription = listOf(listOf(WrpLangString(lang = "en", value = "PID issuance"))),
+        entitlements = emptyList(),
+        privacyPolicy = "$ISSUER/privacy",
+        infoUri = ISSUER,
+        certificatePolicy = "https://registrar.example.com/policy",
+        iat = now,
+        status = WrpStatus(WrpStatusList(idx = 0u, uri = "https://registrar.example.com/status")),
+        providesAttestations = listOf(
+            WrpCredential(format = "dc+sd-jwt", meta = WrpCredentialMeta(vctValues = listOf(VCT)))
+        ),
     )
 
     private fun sdJwt(vct: String) = SupportedCredentialFormat.forSdJwt(
