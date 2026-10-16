@@ -1,11 +1,8 @@
 package ui.viewmodels.intents
 
 import at.asitplus.catchingUnwrapped
-import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.biometric_authentication_prompt_to_bind_credentials_title
 import at.asitplus.wallet.app.common.WalletMain
 import io.github.aakira.napier.Napier
-import org.jetbrains.compose.resources.getString
 import ui.navigation.routes.CredentialReviewRoute
 import ui.navigation.routes.Route
 import ui.navigation.routes.TransientFlowIssuingResultRoute
@@ -18,8 +15,6 @@ class ProvisioningIntentViewModel(
 ) {
     suspend fun process() {
         catchingUnwrapped {
-            walletMain.keyMaterial.promptText =
-                getString(Res.string.biometric_authentication_prompt_to_bind_credentials_title)
             val stored = walletMain.provisioningService.resumeWithAuthCode(
                 redirectedUrl = uri,
                 statusUpdater = { storeId, status ->

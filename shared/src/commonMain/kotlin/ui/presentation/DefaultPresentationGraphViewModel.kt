@@ -6,8 +6,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import at.asitplus.catching
 import at.asitplus.catchingUnwrapped
-import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
@@ -15,7 +13,6 @@ import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpKtorHolder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.getString
 import ui.navigation.routes.AuthenticationViewRoute
 import ui.viewmodels.authentication.CredentialPresentationSubmissions
 import ui.viewmodels.authentication.DCQLCredentialSubmissions
@@ -90,8 +87,6 @@ class DefaultPresentationGraphViewModel(
     private suspend fun finalizeAuthorization(
         credentialPresentation: CredentialPresentation
     ): OpenId4VpKtorHolder.AuthenticationSuccess {
-        walletMain.keyMaterial.promptText =
-            getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
         return finalizationMethod(credentialPresentation)
     }
 
