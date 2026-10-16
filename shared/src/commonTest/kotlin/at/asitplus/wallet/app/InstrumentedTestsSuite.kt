@@ -12,6 +12,7 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isEnabled
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
@@ -276,6 +277,7 @@ private fun ComposeUiTest.runEndToEndTest() {
     onNodeWithText(continueText).performClick()
 
     waitUntilExactlyOneExists(hasText(sendDataPromptText), 5000)
+    waitUntilExactlyOneExists(hasText(submitText) and isEnabled(), 10000)
     onNodeWithText(submitText).performClick()
 
     waitUntilExactlyOneExists(hasText(authenticationSuccessText), 10000)
