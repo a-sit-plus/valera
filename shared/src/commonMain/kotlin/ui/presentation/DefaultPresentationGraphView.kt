@@ -6,8 +6,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.ExperimentalComposeUiApi
-import at.asitplus.wallet.lib.agent.Validator
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope
 
@@ -21,7 +19,6 @@ fun DefaultPresentationGraphView(
     koinScope: Scope,
     navigateUpIsClose: Boolean = false,
     viewModel: DefaultPresentationGraphViewModel = koinViewModel(scope = koinScope),
-    credentialValidator: Validator = koinInject(),
 ) {
     val presentationRequest = try {
         viewModel.preparationState.getOrThrow().credentialPresentationRequest

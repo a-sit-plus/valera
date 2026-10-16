@@ -31,6 +31,7 @@ import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.icon
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPid
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
+import at.asitplus.wallet.app.common.validation.ValidationOutcomeUi
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.CredentialCardActionMenu
 import ui.composables.LabeledText
@@ -45,6 +46,8 @@ import ui.composables.credentials.EuPidCredentialView
 import ui.composables.credentials.GenericCredentialSummaryCardContent
 import ui.composables.credentials.GenericMetadataCredentialView
 import ui.composables.credentials.MobileDrivingLicenceCredentialView
+import ui.composables.validation.ValidationBanner
+import ui.composables.validation.ValidationDetails
 import ui.models.CredentialFreshnessSummaryUiModel
 import ui.models.ResolvedCredential
 import ui.viewmodels.CredentialDetailsViewModel
@@ -58,6 +61,7 @@ fun CredentialDetailsView(
     val credentialFreshnessSummary = credentialTimelinessesStates[vm.storeEntryId]
 
     val trustState by vm.trustState.collectAsState()
+    val validation by vm.validation.collectAsState()
 
     CredentialDetailsScaffold(
         isStoreEntryAvailable = storeEntry != null,
@@ -80,6 +84,7 @@ fun CredentialDetailsView(
                 trustState = trustState,
                 credential = it,
                 imageDecoder = vm.imageDecoder,
+                validation = validation?.outcome,
             )
         } ?: Column(
             modifier = Modifier.fillMaxSize(),
@@ -147,6 +152,7 @@ fun CredentialDetailsSummaryView(
     credential: ResolvedCredential,
     trustState: TrustState,
     imageDecoder: (ByteArray) -> Result<ImageBitmap>,
+    validation: ValidationOutcomeUi? = null,
 ) {
     Column(modifier = Modifier.padding(horizontal = 8.dp)) {
         PersonAttributeDetailCardHeading(
@@ -158,7 +164,9 @@ fun CredentialDetailsSummaryView(
                 )
             },
         )
-        TrustStatusBanner(
+        validation?.let {
+            ValidationBanner(it, modifier = Modifier.padding(vertical = 12.dp))
+        } ?: TrustStatusBanner(
             trustState = trustState,
             modifier = Modifier.padding(vertical = 12.dp)
         )
@@ -175,6 +183,7 @@ fun CredentialDetailsSummaryView(
             credential = credential,
             trustState = trustState
         )
+        validation?.let { ValidationDetails(it) }
         Spacer(modifier = Modifier.height(16.dp))
     }
 }

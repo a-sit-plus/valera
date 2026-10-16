@@ -24,7 +24,6 @@ import kotlinx.coroutines.launch
 import ui.models.CredentialFreshnessSummaryUiModel
 import ui.models.toFallbackResolvedCredential
 import ui.models.toResolvedCredential
-import ui.models.toCredentialFreshnessSummaryModel
 
 class CredentialsViewModel(
     private val walletMain: WalletMain,
@@ -65,7 +64,6 @@ class CredentialsViewModel(
         subjectCredentialStore.observeStoreContainer().collectLatest {
             it.credentials.forEach {
                 knownStates[it.first] = walletMain.checkCredentialFreshness(it.second)
-                    .toCredentialFreshnessSummaryModel()
                 send(knownStates.toMap())
             }
         }

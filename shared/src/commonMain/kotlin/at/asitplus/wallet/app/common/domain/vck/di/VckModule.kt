@@ -2,40 +2,26 @@ package at.asitplus.wallet.app.common.domain.vck.di
 
 import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.TrustListService
-import at.asitplus.wallet.app.common.domain.vck.JsonWebKeySetResolver
-import at.asitplus.wallet.app.common.domain.vck.PublicKeyResolver
 import at.asitplus.wallet.app.common.domain.vck.tokenStatusList.di.tokenStatusListModule
 import at.asitplus.wallet.app.common.trust.RegistrationCertificateAnchors
+import at.asitplus.wallet.app.common.validation.StoredCredentialValidator
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.agent.validation.StatusListTokenResolver
-import at.asitplus.wallet.lib.agent.validation.TokenStatusResolverImpl
 import at.asitplus.wallet.lib.etsi.LoteProfile
 import at.asitplus.wallet.lib.validation.CredentialValidator
 import at.asitplus.wallet.lib.validation.IssuerMetadataValidator
 import at.asitplus.wallet.lib.validation.RelyingPartyTrustAnchors
 import at.asitplus.wallet.lib.validation.RelyingPartyValidator
 import at.asitplus.wallet.lib.validation.StatusValidator
-import org.koin.core.module.dsl.singleOf
+import org.koin.core.module.dsl.scopedOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import ui.models.CredentialFreshnessSummaryModelEvaluator
-import ui.models.toCredentialFreshnessSummaryModel
 
 fun vckModule() = module {
-    singleOf(::JsonWebKeySetResolver)
-    singleOf(::PublicKeyResolver)
     scope(named(SESSION_NAME)) {
-        scoped<Validator> {
-            val statusListTokenResolver: StatusListTokenResolver by inject()
-            Validator(
-                tokenStatusResolver = TokenStatusResolverImpl(
-                    resolveStatusListToken = statusListTokenResolver::invoke
-                )
-            )
-        }
         scoped<StatusValidator> {
             StatusValidator(statusListTokenResolver = get<StatusListTokenResolver>())
         }
@@ -72,6 +58,7 @@ fun vckModule() = module {
                 statusValidator = get(),
             )
         }
+        scopedOf(::StoredCredentialValidator)
         scoped<HolderAgent> {
             val keyMaterial: KeyMaterial by inject()
             val subjectCredentialStore: SubjectCredentialStore by inject()
@@ -82,10 +69,8 @@ fun vckModule() = module {
             )
         }
         scoped<CredentialFreshnessSummaryModelEvaluator> {
-            val validator = get<Validator>()
-            CredentialFreshnessSummaryModelEvaluator {
-                validator.checkCredentialFreshness(it).toCredentialFreshnessSummaryModel()
-            }
+            val storedCredentialValidator = get<StoredCredentialValidator>()
+            CredentialFreshnessSummaryModelEvaluator { storedCredentialValidator.freshness(it) }
         }
     }
     includes(tokenStatusListModule())
