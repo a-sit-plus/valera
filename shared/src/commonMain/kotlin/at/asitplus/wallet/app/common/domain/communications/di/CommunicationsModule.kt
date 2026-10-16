@@ -7,6 +7,7 @@ import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.SigningService
 import at.asitplus.wallet.app.common.attestation.AttestationService
 import at.asitplus.wallet.app.common.dcapi.DCAPIExportService
+import at.asitplus.wallet.app.common.validation.PendingCredentialReview
 import org.koin.core.module.dsl.scopedOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
@@ -21,5 +22,6 @@ fun communicationsModule() = module {
         scopedOf(::SigningService)
         scopedOf(::DCAPIExportService)
         scopedOf(::AttestationService)
+        scopedOf(::PendingCredentialReview) onClose { it?.clear() }
     }
 }

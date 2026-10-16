@@ -5,7 +5,9 @@ import at.asitplus.dcapi.issuance.DigitalCredentialOfferReturn
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.LoadingMessageKey
+import at.asitplus.wallet.app.common.ProvisioningService
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.validation.IssuerValidationUi
 import at.asitplus.wallet.lib.oidvci.CredentialIdentifierInfo
 import kotlinx.coroutines.async
 
@@ -22,6 +24,8 @@ class LoadCredentialViewModel(
     val credentialIdentifiers: Collection<CredentialIdentifierInfo>,
     val offer: CredentialOffer?,
     val onClickLogo: () -> Unit,
+    /** The credential issuer as validated from its metadata, `null` if it has not been validated. */
+    val issuer: IssuerValidationUi? = null,
 ) {
 
     init {
@@ -64,18 +68,22 @@ class LoadCredentialViewModel(
             hostString: String,
             onClickLogo: () -> Unit,
             onProgress: ((LoadingMessageKey) -> Unit)? = null,
-        ) = LoadCredentialViewModel(
-            walletMain = walletMain,
-            onSubmit = onSubmit,
-            navigateUp = navigateUp,
-            hostString = hostString,
-            offer = null,
-            onClickLogo = onClickLogo,
-            credentialIdentifiers = walletMain.scope.async {
+        ): LoadCredentialViewModel {
+            val metadata = walletMain.scope.async {
                 onProgress?.invoke(LoadingMessageKey.IssuerMetadata)
                 walletMain.provisioningService.loadCredentialMetadata(hostString)
             }.await()
-        )
+            return LoadCredentialViewModel(
+                walletMain = walletMain,
+                onSubmit = onSubmit,
+                navigateUp = navigateUp,
+                hostString = hostString,
+                offer = null,
+                onClickLogo = onClickLogo,
+                credentialIdentifiers = metadata.credentialIdentifiers,
+                issuer = metadata.issuer,
+            )
+        }
 
         suspend fun init(
             walletMain: WalletMain,
@@ -84,19 +92,13 @@ class LoadCredentialViewModel(
             navigateUp: () -> Unit,
             onClickLogo: () -> Unit,
             onProgress: ((LoadingMessageKey) -> Unit)? = null,
-        ) = LoadCredentialViewModel(
-            walletMain = walletMain,
-            onSubmit = onSubmit,
-            navigateUp = navigateUp,
-            hostString = offer.credentialIssuer,
-            offer = offer,
-            onClickLogo = onClickLogo,
-            credentialIdentifiers = walletMain.scope.async {
+        ): LoadCredentialViewModel {
+            val metadata = walletMain.scope.async {
                 onProgress?.invoke(LoadingMessageKey.IssuerMetadata)
                 walletMain.provisioningService.loadCredentialMetadata(offer.credentialIssuer)
-                    .filter { it.credentialIdentifier in offer.configurationIds }
             }.await()
-        )
+            return forOffer(walletMain, offer, metadata, onSubmit, navigateUp, onClickLogo)
+        }
 
         suspend fun initFromDcApi(
             walletMain: WalletMain,
@@ -105,22 +107,17 @@ class LoadCredentialViewModel(
             navigateUp: () -> Unit,
             onClickLogo: () -> Unit,
             onProgress: ((LoadingMessageKey) -> Unit)? = null,
-        ) = LoadCredentialViewModel(
-            walletMain = walletMain,
-            onSubmit = onSubmit,
-            navigateUp = navigateUp,
-            hostString = offer.credentialIssuer,
-            offer = offer,
-            onClickLogo = onClickLogo,
-            credentialIdentifiers = walletMain.scope.async {
+        ): LoadCredentialViewModel {
+            val metadata = walletMain.scope.async {
                 onProgress?.invoke(LoadingMessageKey.IssuerMetadata)
                 val issuerMetadata = requireNotNull(offer.credentialIssuerMetadata) {
                     "Missing credential issuer metadata for DC API request"
                 }
                 walletMain.provisioningService.parseCredentialMetadata(issuerMetadata)
-                    .filter { it.credentialIdentifier in offer.configurationIds }
             }.await()
-        )
+            return forOffer(walletMain, offer, metadata, onSubmit, navigateUp, onClickLogo)
+        }
+
         suspend fun init(
             walletMain: WalletMain,
             url: String,
@@ -133,19 +130,27 @@ class LoadCredentialViewModel(
                 onProgress?.invoke(LoadingMessageKey.CredentialOffer)
                 walletMain.provisioningService.decodeCredentialOffer(url)
             }.await()
-            return LoadCredentialViewModel(
-                walletMain = walletMain,
-                onSubmit = onSubmit,
-                navigateUp = navigateUp,
-                hostString = offer.credentialIssuer,
-                offer = offer,
-                onClickLogo = onClickLogo,
-                credentialIdentifiers = walletMain.scope.async {
-                    onProgress?.invoke(LoadingMessageKey.IssuerMetadata)
-                    walletMain.provisioningService.loadCredentialMetadata(offer.credentialIssuer)
-                        .filter { it.credentialIdentifier in offer.configurationIds }
-                }.await()
-            )
+            return init(walletMain, offer, onSubmit, navigateUp, onClickLogo, onProgress)
         }
+
+        /** Offers only the credentials of [offer], see [CredentialOffer.configurationIds]. */
+        private fun forOffer(
+            walletMain: WalletMain,
+            offer: CredentialOffer,
+            metadata: ProvisioningService.IssuerMetadataLoad,
+            onSubmit: CredentialSelection,
+            navigateUp: () -> Unit,
+            onClickLogo: () -> Unit,
+        ) = LoadCredentialViewModel(
+            walletMain = walletMain,
+            onSubmit = onSubmit,
+            navigateUp = navigateUp,
+            hostString = offer.credentialIssuer,
+            offer = offer,
+            onClickLogo = onClickLogo,
+            credentialIdentifiers = metadata.credentialIdentifiers
+                .filter { it.credentialIdentifier in offer.configurationIds },
+            issuer = metadata.issuer,
+        )
     }
 }

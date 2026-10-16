@@ -548,4 +548,16 @@
     <string name="validation_finding_missing_registration">No registration information provided</string>
     <string name="validation_finding_unsigned">Not signed, so its sender could not be verified</string>
     <string name="validation_finding_not_checked">Could not be checked</string>
+    <string name="section_heading_issuer_validation">Issuer</string>
+    <string name="label_issuer_registration">Registration of the issuer</string>
+    <string name="label_issuer_registration_unverified">Registration of the issuer (not verified)</string>
+    <string name="label_issuer_registration_description">Service</string>
+    <string name="label_issuer_registration_identifiers">Identifiers</string>
+    <string name="label_issuer_registration_attestations">Registered credentials</string>
+    <string name="label_issuer_registration_registry">Registry</string>
+    <string name="warning_issuer_not_registered_for_credential">The issuer is not registered to issue this credential</string>
+    <string name="heading_label_credential_review">Check credential</string>
+    <string name="info_text_credential_review">The issued credential did not pass every check. It has not been stored yet: keep it anyway, or cancel to discard it.</string>
+    <string name="prompt_credential_review">Keep the credential although not every check passed?</string>
+    <string name="button_label_keep_anyway">Keep anyway</string>
 </resources>

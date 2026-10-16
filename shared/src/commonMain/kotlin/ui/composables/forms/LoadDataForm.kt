@@ -12,8 +12,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_redirection_to_browser_for_credential_provisioning
+import at.asitplus.wallet.app.common.validation.IssuerValidationUi
 import at.asitplus.wallet.lib.oidvci.CredentialIdentifierInfo
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.validation.IssuerValidationView
 
 @Composable
 fun StatefulLoadDataForm(
@@ -25,6 +27,7 @@ fun StatefulLoadDataForm(
     modifier: Modifier = Modifier,
     availableIdentifiers: Collection<CredentialIdentifierInfo>,
     showTransactionCode: Boolean,
+    issuer: IssuerValidationUi? = null,
 ) {
 
     LoadDataForm(
@@ -36,6 +39,7 @@ fun StatefulLoadDataForm(
         modifier = modifier,
         availableIdentifiers = availableIdentifiers,
         showTransactionCode = showTransactionCode,
+        issuer = issuer,
     )
 }
 
@@ -49,6 +53,7 @@ fun LoadDataForm(
     modifier: Modifier = Modifier,
     availableIdentifiers: Collection<CredentialIdentifierInfo>,
     showTransactionCode: Boolean,
+    issuer: IssuerValidationUi? = null,
 ) {
     Box(
         modifier = modifier,
@@ -68,6 +73,13 @@ fun LoadDataForm(
                 onChangeTransactionCode = onChangeTransactionCode,
                 showTransactionCode = showTransactionCode,
             )
+            issuer?.let {
+                IssuerValidationView(
+                    issuer = it,
+                    format = credentialIdentifierInfo.supportedCredentialFormat,
+                    modifier = columnSpacingModifier,
+                )
+            }
         }
     }
 }
