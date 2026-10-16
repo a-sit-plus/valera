@@ -9,6 +9,7 @@ import at.asitplus.openid.dcql.DCQLIsoMdocCredentialMetadataAndValidityConstrain
 import at.asitplus.openid.dcql.DCQLIsoMdocCredentialQuery
 import at.asitplus.wallet.app.common.validation.UnregisteredRequestUi
 import at.asitplus.wallet.app.common.validation.ValidationReportFixtures
+import at.asitplus.wallet.app.common.validation.integrityRejection
 import at.asitplus.wallet.app.common.validation.toUi
 import at.asitplus.wallet.lib.agent.validation.relyingParty.MissingRegistrationCertificateException
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.RequestDataValidity
@@ -89,6 +90,30 @@ internal class RelyingPartyValidationUiTest : ValidationReportFixtures() {
         assertFalse(validation.outcome.integrityFailed)
         assertNull(validation.registration)
         assertFalse(validation.registrationMissing)
+    }
+
+    @Test
+    fun readerSignedWithoutAccessCertificateIdentifierIsOnlyWarned() {
+        val report = relyingParty(
+            accessCertificate(parsing = Failed(Throwable("Unable to extract access certificate identifier"))),
+            registrationCertificate = null,
+        )
+        val validation = RelyingPartyValidationUi.of(RelyingPartyValidationResult(report, relyingParty = null))
+
+        assertFalse(validation.outcome!!.integrityFailed)
+        assertNull(report.integrityRejection())
+    }
+
+    @Test
+    fun unparsableAccessCertificateOfUnsignedRequestFailsIntegrity() {
+        val report = relyingParty(
+            accessCertificate(parsing = Failed(IllegalArgumentException("not parsable")), signature = NotApplicable),
+            registrationCertificate = null,
+        )
+        val validation = RelyingPartyValidationUi.of(RelyingPartyValidationResult(report, relyingParty = null))
+
+        assertTrue(validation.outcome!!.integrityFailed)
+        assertTrue(report.integrityRejection()!!.message!!.contains("parsing"))
     }
 
     @Test

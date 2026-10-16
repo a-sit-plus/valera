@@ -254,7 +254,7 @@ private fun ArtifactUi.problems(warningOnly: Boolean): List<Problem> {
 private fun ValidationReport.toArtifactUi(): ArtifactUi = ArtifactUi(
     kind = checks.kind,
     accepted = decision == ValidationDecision.ACCEPTED,
-    checks = namedChecks.map { it.toUi(evaluatedAt) },
+    checks = namedChecks.map { it.toUi(evaluatedAt, checks) },
     children = children.map { it.toArtifactUi() } + namedChecks.mapNotNull { it.statusMechanism?.token?.toArtifactUi() },
 )
 
@@ -275,7 +275,7 @@ private val ValidationChecks.kind: ArtifactKind
         is IssuerMetadataChecks -> ArtifactKind.ISSUER_METADATA
     }
 
-private fun NamedCheck.toUi(evaluatedAt: Instant) = CheckUi(
+private fun NamedCheck.toUi(evaluatedAt: Instant, of: ValidationChecks) = CheckUi(
     name = name,
     state = when (outcome) {
         CheckOutcome.Passed -> CheckState.PASSED
@@ -284,7 +284,7 @@ private fun NamedCheck.toUi(evaluatedAt: Instant) = CheckUi(
         CheckOutcome.NotApplicable -> CheckState.NOT_APPLICABLE
     },
     satisfied = satisfied,
-    tolerable = tolerable(),
+    tolerable = tolerable(of),
     finding = finding(evaluatedAt),
 )
 
@@ -302,6 +302,15 @@ internal fun NamedCheck.tolerable() =
         name in REGISTRATION_CHECKS         // registration of a relying party (WRPRC) or issuer (issuer_info)
 
 private val REGISTRATION_CHECKS = setOf("linkage", "requestAuthorization", "registration")
+
+/**
+ * Whether the user may continue past this check of the artifact with the checks [of] failing, see [tolerable]. Also
+ * the `parsing` of an access certificate that signed the request: its leaf carries no identifier of a relying party
+ * (ETSI TS 119 475, 5.1.2 and 5.1.4), e.g. a reader certificate of another PKI, so the request is authenticated, only
+ * not by a WRPAC, which is warned about like an untrusted one.
+ */
+internal fun NamedCheck.tolerable(of: ValidationChecks) =
+    tolerable() || (name == "parsing" && of is AccessCertificateChecks && of.signature == CheckOutcome.Passed)
 
 private fun NamedCheck.finding(evaluatedAt: Instant): FindingUi? {
     if (outcome == CheckOutcome.Passed || outcome == CheckOutcome.NotApplicable) return null
@@ -355,7 +364,7 @@ fun ValidationReport.integrityRejection(): Throwable? = integrityRejection(warni
 private fun ValidationReport.integrityRejection(warningOnly: Boolean): Throwable? {
     val inWarningOnly = warningOnly || checks.kind in WARNING_ONLY_KINDS
     if (!inWarningOnly) {
-        namedChecks.firstOrNull { !it.satisfied && !it.tolerable() }?.let {
+        namedChecks.firstOrNull { !it.satisfied && !it.tolerable(checks) }?.let {
             val cause = it.outcome.cause()
             val message = "The ${it.name} check of the ${checks::class.simpleName} failed" +
                 (cause?.let { cause -> ": ${cause.displayText()}" } ?: "")

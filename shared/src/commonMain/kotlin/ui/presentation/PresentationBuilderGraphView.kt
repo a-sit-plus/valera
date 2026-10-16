@@ -57,6 +57,8 @@ fun PresentationBuilderGraphView(
     request: RequestParametersFrom<*>,
     fixedCredentialSelection: Boolean = false,
     relyingPartyValidation: RelyingPartyValidationUi? = null,
+    /** Whether the selection shows [relyingPartyValidation], because no start page has shown it. */
+    showRelyingPartyValidationOnSelection: Boolean = false,
 ) {
     when (selectionProvider) {
         is UiStateError -> CommonPresentationPageScaffold(
@@ -210,6 +212,8 @@ fun PresentationBuilderGraphView(
                             ),
                             onClickLogo = onClickLogo,
                             trustListService = trustListService,
+                            relyingPartyValidation = relyingPartyValidation
+                                .takeIf { showRelyingPartyValidationOnSelection },
                         )
                     }
                 }

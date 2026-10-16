@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
@@ -48,6 +49,7 @@ import at.asitplus.valera.resources.text_label_credential_request_or
 import at.asitplus.valera.resources.text_label_mandatory_dataset
 import at.asitplus.valera.resources.text_label_optional_dataset
 import at.asitplus.valera.resources.trust_status_title
+import at.asitplus.valera.resources.trust_status_title_preliminary
 import at.asitplus.wallet.app.common.DcqlConsentData
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.extractConsentData
@@ -57,6 +59,7 @@ import at.asitplus.wallet.app.common.toCredentialQueryUiModel
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.DataDisplaySection
@@ -82,11 +85,25 @@ fun AuthenticationReceivedStartPageContent(
     request: RequestParametersFrom<*>? = null,
     relyingPartyValidation: RelyingPartyValidationUi? = null,
     showZkMode: Boolean = true,
+    /**
+     * The trust of the relying party before its request can be validated, e.g. from the certificates of the parsed
+     * request on iOS, shown as preliminary instead of the trust evaluated from [request].
+     */
+    preliminaryRelyingPartyTrust: Flow<TrustState>? = null,
 ) {
-    // The validation of the relying party covers its trust, so it is evaluated separately only without one
-    val relyingPartyTrustState by trustListService
-        .observeTrustStateForRelyingParty(flowOf(request.takeIf { relyingPartyValidation == null }))
-        .collectAsState(initial = TrustState.EVALUATING)
+    // A report of the relying party covers its trust, so it is evaluated separately only without one, e.g. for an
+    // ISO mdoc request over the DC API without reader authentication
+    val reportMissing = relyingPartyValidation?.outcome == null
+    val relyingPartyTrustState by remember(
+        trustListService,
+        request,
+        relyingPartyValidation,
+        preliminaryRelyingPartyTrust,
+    ) {
+        val evaluated = request.takeIf { reportMissing }
+        preliminaryRelyingPartyTrust?.takeIf { reportMissing }
+            ?: trustListService.observeTrustStateForRelyingParty(flowOf(evaluated))
+    }.collectAsState(initial = TrustState.EVALUATING)
 
     Scaffold(
         bottomBar = {
@@ -133,9 +150,11 @@ fun AuthenticationReceivedStartPageContent(
                             serviceProviderLocalizedLocation?.takeIf { value -> value.isNotBlank() }?.let {
                                 stringResource(Res.string.attribute_friendly_name_data_recipient_location) to it
                             },
-                            (stringResource(Res.string.trust_status_title) to
-                                    stringResource(relyingPartyTrustState.displayVerifierText))
-                                .takeIf { relyingPartyValidation == null },
+                            (stringResource(
+                                if (preliminaryRelyingPartyTrust != null) Res.string.trust_status_title_preliminary
+                                else Res.string.trust_status_title
+                            ) to stringResource(relyingPartyTrustState.displayVerifierText))
+                                .takeIf { reportMissing },
                         ),
                     )
 

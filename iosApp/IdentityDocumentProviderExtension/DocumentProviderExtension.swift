@@ -1,5 +1,6 @@
 import ExtensionKit
 import Foundation
+import Security
 import IdentityDocumentServicesUI
 import IdentityDocumentServices
 import SwiftUI
@@ -94,7 +95,22 @@ private final class DcApiResponseCompletion: @unchecked Sendable {
 private func buildRequestSignature(from requestContext: ISO18013MobileDocumentRequestContext) -> String {
     let parsedRequestSummary = buildParsedRequestSummaryData(from: requestContext)
     let originString = requestContext.requestingWebsiteOrigin?.absoluteString ?? ""
-    return originString + "|" + (parsedRequestSummary.summaryJson ?? "")
+    let readerCertificates = buildReaderCertificateChains(from: requestContext)
+        .map { $0.joined(separator: ",") }
+        .joined(separator: ";")
+    return originString + "|" + (parsedRequestSummary.summaryJson ?? "") + "|" + readerCertificates
+}
+
+// The system verifies the reader authentication signatures before parsing the request, and exposes the
+// certificate chains so the pre-request UI can show the trust status of the relying party before consent.
+private func buildReaderCertificateChains(from requestContext: ISO18013MobileDocumentRequestContext) -> [[String]] {
+    requestContext.request.requestAuthentications
+        .map { authentication in
+            authentication.authenticationCertificateChain.map { certificate in
+                (SecCertificateCopyData(certificate) as Data).base64EncodedString()
+            }
+        }
+        .filter { !$0.isEmpty }
 }
 
 private func buildParsedRequestSummaryData(from requestContext: ISO18013MobileDocumentRequestContext) -> ParsedRequestSummaryData {
@@ -290,6 +306,7 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
             let preRequestData = IosDcApiPreRequestData(
                 parsedRequestSummary: parsedRequestSummary.summaryJson,
                 origin: originString,
+                readerCertificateChains: buildReaderCertificateChains(from: requestContext),
                 onContinue: onContinue,
                 onCancel: cancelRequest
             )

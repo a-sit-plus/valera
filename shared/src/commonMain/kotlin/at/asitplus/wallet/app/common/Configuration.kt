@@ -24,6 +24,9 @@ object Configuration {
     val CACHE_TTL_TOKEN_STATUS: Duration = 1.days
     val CACHE_TTL_TRUST_LIST: Duration = 7.days
 
+    // How long a DC API request waits for missing or expired Trust Lists before it is validated with cached ones.
+    val TRUST_LIST_REFRESH_TIMEOUT: Duration = 3.seconds
+
     // After any cached-resource GET returns an error status (e.g. 404/503), suppress retries for that URL
     // this long (in-memory). Stops broken endpoints being re-hit on every freshness check / UI visit.
     val HTTP_FAILURE_COOLDOWN: Duration = 1.hours

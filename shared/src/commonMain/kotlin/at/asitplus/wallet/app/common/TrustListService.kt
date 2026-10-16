@@ -35,8 +35,10 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.Url
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
@@ -47,6 +49,9 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeoutOrNull
 import ui.composables.TrustState
 import ui.models.ResolvedCredential
 import kotlin.time.Clock
@@ -82,6 +87,10 @@ class TrustListService(
     private val clock: Clock = Clock.System,
 ) {
     private var job: Job? = null
+
+    // One refresh at a time, shared by the periodic check and callers waiting for fresh lists
+    private val refreshMutex = Mutex()
+    private var pendingRefresh: Pair<List<String>, Deferred<Boolean>>? = null
     private val client = httpService.cachedResourceClient(dataStoreService, revalidate = true)
 
     // Same storage the client above caches into, to drop the raw responses of disabled stages as well.
@@ -205,7 +214,7 @@ class TrustListService(
                 pruneTrustListsOfDisabledStages(urls)
                 if (urls.isEmpty()) return@collectLatest
                 while (isActive) {
-                    val failed = refreshStaleEntries(urls)
+                    val failed = !sharedRefresh(urls).await()
                     val cachedAt = urls.mapNotNull { persistentTrustListStore.getCachedAt(it) }
                     delay(
                         if (failed || cachedAt.size != urls.size) retryInterval
@@ -217,6 +226,27 @@ class TrustListService(
                 }
             }
         }
+    }
+
+    /**
+     * Refreshes missing or expired lists of the enabled stages, waiting at most [timeout] for it, e.g. before
+     * validating a request in a short-lived process like the iOS Identity Document Provider extension, which may
+     * not have refreshed them yet. The refresh continues in the session after the timeout, so that trust states
+     * observed from the lists update once it completes.
+     *
+     * @return whether every list is fresh, `false` if a list could not be fetched within [timeout]
+     */
+    suspend fun refreshStaleTrustLists(timeout: Duration): Boolean {
+        val urls = trustListUrls.first()
+        if (urls.isEmpty()) return true
+        return withTimeoutOrNull(timeout) { sharedRefresh(urls).await() }
+            ?: false.also { Napier.w("Trust Lists not refreshed within $timeout, using cached lists") }
+    }
+
+    /** The running refresh of [urls], or a new one in the session, see [refreshStaleEntries]; whether it succeeded. */
+    private suspend fun sharedRefresh(urls: List<String>): Deferred<Boolean> = refreshMutex.withLock {
+        pendingRefresh?.takeIf { (pendingUrls, refresh) -> pendingUrls == urls && refresh.isActive }?.second
+            ?: sessionCoroutineScope.async { !refreshStaleEntries(urls) }.also { pendingRefresh = urls to it }
     }
 
     /**
