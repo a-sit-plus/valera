@@ -1,6 +1,7 @@
 # Release 5.9.1 (unreleased):
  * Presentation: Resolve and display DCQL `mso_mdoc_zk` credential queries on the consent screens like ISO mdoc queries
  * Presentation: Show a badge on the consent screens stating whether an ISO mdoc is requested as a plain mdoc or as a zero-knowledge proof (with or without plain fallback)
+ * Presentation: Show why the WRPAC or WRPRC of a relying party is invalid, e.g. because the WRPRC could not be parsed, is revoked or suspended, its status could not be checked, or it is not linked to a valid WRPAC, and evaluate each of them even if the other one is invalid. A WRPAC or WRPRC missing from the request is shown as not provided instead of invalid
 
 # Release 5.9.0:
  * Issuing and presentation: Accept Launchpad `eu-eaa-offer` and `eu-eaap` links on Android and iOS

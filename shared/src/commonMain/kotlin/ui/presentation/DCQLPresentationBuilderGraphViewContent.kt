@@ -101,12 +101,12 @@ fun DCQLPresentationBuilderGraphViewContent(
         }.onFailure(errorAction).getOrNull()
     }
     val credentialQueryUiModels = consentData?.mapValues { entry ->
-        val matchedValidation = wrpValidationResult?.requestDataValidationResult?.filter {
-            (it.first as? WrpCredentialRequest.WrpDcqlCredentialQuery)?.let {
+        val matchedValidation = wrpValidationResult?.requestDataValidationResults?.firstOrNull {
+            (it.request as? WrpCredentialRequest.WrpDcqlCredentialQuery)?.let {
                 it.query.id.string == entry.key.string
             } == true
-        }?.toList()?.firstOrNull()
-        val allowedAttributes = matchedValidation?.second?.credentialAttributesValidity
+        }
+        val allowedAttributes = matchedValidation?.validity?.credentialAttributesValidity
         entry.value.toCredentialQueryUiModel(allowedAttributes)
     } ?: return
 

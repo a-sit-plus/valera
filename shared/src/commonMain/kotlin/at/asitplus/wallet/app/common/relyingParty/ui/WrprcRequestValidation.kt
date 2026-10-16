@@ -23,6 +23,7 @@ import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -35,12 +36,23 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.info_text_access_cert_invalid
+import at.asitplus.valera.resources.info_text_access_cert_missing
+import at.asitplus.valera.resources.info_text_access_cert_valid
 import at.asitplus.valera.resources.info_text_registration_cert_invalid
+import at.asitplus.valera.resources.info_text_registration_cert_missing
+import at.asitplus.valera.resources.info_text_registration_cert_not_evaluated
+import at.asitplus.valera.resources.info_text_registration_cert_not_linked
 import at.asitplus.valera.resources.info_text_registration_cert_requested_claim_invalid
 import at.asitplus.valera.resources.info_text_registration_cert_requested_claim_valid
+import at.asitplus.valera.resources.info_text_registration_cert_revoked
+import at.asitplus.valera.resources.info_text_registration_cert_status_invalid
+import at.asitplus.valera.resources.info_text_registration_cert_status_unknown
+import at.asitplus.valera.resources.info_text_registration_cert_suspended
 import at.asitplus.valera.resources.info_text_registration_cert_typ_invalid
 import at.asitplus.valera.resources.info_text_registration_cert_typ_valid
 import at.asitplus.valera.resources.info_text_registration_cert_valid
+import at.asitplus.valera.resources.label_access_cert
 import at.asitplus.valera.resources.label_registration_cert
 import at.asitplus.valera.resources.label_registration_cert_attributes
 import at.asitplus.valera.resources.label_registration_cert_credential_typ
@@ -53,7 +65,9 @@ import at.asitplus.valera.resources.label_registration_cert_more_details
 import at.asitplus.valera.resources.label_registration_cert_support_uri
 import at.asitplus.valera.resources.label_registration_cert_valid
 import at.asitplus.wallet.app.common.relyingParty.WrpDisplayInfo
+import at.asitplus.wallet.app.common.relyingParty.WrpTokenStatus
 import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
+import at.asitplus.wallet.app.common.relyingParty.WrprcCertificateValidation
 import at.asitplus.wallet.app.common.relyingParty.getCurrentLocalization
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -73,7 +87,7 @@ fun WrprcRequestValidationSummary(list: List<WrprcRequestValidationData>) {
 
 @Composable
 fun WrprcRequestValidationDataCard(data: WrprcRequestValidationData) {
-    val expanded = remember { mutableStateOf(!data.validity) }
+    val expanded = remember { mutableStateOf(data.validity == false) }
     Column(
         modifier = Modifier
             .clickable(onClick = { expanded.value = !expanded.value })
@@ -82,7 +96,8 @@ fun WrprcRequestValidationDataCard(data: WrprcRequestValidationData) {
         Row {
             val (color, icon) = when (data.validity) {
                 true -> Pair(LocalExtendedColors.current.validationDark.valid, Icons.Outlined.Check)
-                else -> Pair(LocalExtendedColors.current.validationDark.invalid, Icons.Outlined.Clear)
+                false -> Pair(LocalExtendedColors.current.validationDark.invalid, Icons.Outlined.Clear)
+                null -> Pair(MaterialTheme.colorScheme.onSurfaceVariant, Icons.Outlined.Info)
             }
 
             Column {
@@ -119,9 +134,18 @@ fun WrprcRequestValidationDataCard(data: WrprcRequestValidationData) {
                         Text(
                             when (data.validity) {
                                 true -> stringResource(data.infoValid)
-                                else -> stringResource(data.infoInvalid)
+                                false -> stringResource(data.infoInvalid)
+                                null -> stringResource(data.infoMissing ?: data.infoInvalid)
                             }
                         )
+                        data.errors.forEach {
+                            val text = when (it) {
+                                is WrpValidationError.Message -> it.text
+                                is WrpValidationError.Resource ->
+                                    stringResource(it.text) + (it.detail?.let { detail -> ": $detail" } ?: "")
+                            }
+                            Text(text = text, style = MaterialTheme.typography.bodySmall)
+                        }
                     }
 
                 }
@@ -152,7 +176,7 @@ fun WrprcRequestValidation(wrpValidationResult: WrpValidationResult? = null) {
     }
     wrpValidationResult?.toWrprcRequestValidationData()?.let { list ->
         val expanded = list.any {
-            !it.validity
+            it.validity == false
         }
         Column(modifier = Modifier.padding(start = 0.dp)) {
             val extendedColors = LocalExtendedColors.current
@@ -246,29 +270,91 @@ data class WrprcRequestValidationHeadingData(
 
 data class WrprcRequestValidationData(
     val text: StringResource,
-    val validity: Boolean,
+    /** `null` if the request does not contain what is validated, which is not an error */
+    val validity: Boolean?,
     val infoValid: StringResource,
-    val infoInvalid: StringResource
+    val infoInvalid: StringResource,
+    val infoMissing: StringResource? = null,
+    /** Why the validation failed, e.g. that the certificate could not be parsed */
+    val errors: List<WrpValidationError> = emptyList(),
 )
 
+sealed interface WrpValidationError {
+    /** Message of an exception */
+    data class Message(val text: String) : WrpValidationError
 
-fun WrpValidationResult.toWrprcRequestValidationData(): List<WrprcRequestValidationData> = listOf(
-    WrprcRequestValidationData(
-        text = Res.string.label_registration_cert,
-        validity = this.validCertificate,
-        infoValid = Res.string.info_text_registration_cert_valid,
-        infoInvalid = Res.string.info_text_registration_cert_invalid
-    ),
-    WrprcRequestValidationData(
-        text = Res.string.label_registration_cert_credential_typ,
-        validity = this.validCredentialType,
-        infoValid = Res.string.info_text_registration_cert_typ_valid,
-        infoInvalid = Res.string.info_text_registration_cert_typ_invalid
-    ),
-    WrprcRequestValidationData(
-        text = Res.string.label_registration_cert_attributes,
-        validity = this.validAttributes,
-        infoValid = Res.string.info_text_registration_cert_requested_claim_valid,
-        infoInvalid = Res.string.info_text_registration_cert_requested_claim_invalid
-    ),
+    data class Resource(val text: StringResource, val detail: String? = null) : WrpValidationError
+}
+
+
+fun WrpValidationResult.toWrprcRequestValidationData(): List<WrprcRequestValidationData> {
+    val accessCertificateData = WrprcRequestValidationData(
+        text = Res.string.label_access_cert,
+        validity = if (accessCertificateMissing) null else accessCertificate?.validLinkage == true,
+        infoValid = Res.string.info_text_access_cert_valid,
+        infoInvalid = Res.string.info_text_access_cert_invalid,
+        infoMissing = Res.string.info_text_access_cert_missing,
+        errors = listOfNotNull(accessCertificateError?.let { WrpValidationError.Message(it) }),
+    )
+    if (registrationCertificateMissing) return listOf(
+        accessCertificateData,
+        WrprcRequestValidationData(
+            text = Res.string.label_registration_cert,
+            validity = null,
+            infoValid = Res.string.info_text_registration_cert_valid,
+            infoInvalid = Res.string.info_text_registration_cert_invalid,
+            infoMissing = Res.string.info_text_registration_cert_missing,
+        ),
+    )
+    val registrationCertificate = registrationCertificate ?: return listOf(
+        accessCertificateData,
+        WrprcRequestValidationData(
+            text = Res.string.label_registration_cert,
+            validity = false,
+            infoValid = Res.string.info_text_registration_cert_valid,
+            infoInvalid = Res.string.info_text_registration_cert_not_evaluated,
+            errors = listOfNotNull(registrationCertificateError?.let { WrpValidationError.Message(it) }),
+        ),
+    )
+    val requestResults = registrationCertificate.requestDataValidationResults
+    return listOf(
+        accessCertificateData,
+        WrprcRequestValidationData(
+            text = Res.string.label_registration_cert,
+            validity = registrationCertificate.certificates.all { it.valid },
+            infoValid = Res.string.info_text_registration_cert_valid,
+            infoInvalid = Res.string.info_text_registration_cert_invalid,
+            errors = registrationCertificate.certificates.flatMap { it.errors() },
+        ),
+        WrprcRequestValidationData(
+            text = Res.string.label_registration_cert_credential_typ,
+            validity = requestResults.all { it.validity?.credentialTypeValidity == true },
+            infoValid = Res.string.info_text_registration_cert_typ_valid,
+            infoInvalid = Res.string.info_text_registration_cert_typ_invalid,
+            errors = requestResults.mapNotNull { result -> result.error?.let { WrpValidationError.Message(it) } },
+        ),
+        WrprcRequestValidationData(
+            text = Res.string.label_registration_cert_attributes,
+            validity = requestResults.all { result ->
+                result.validity?.credentialAttributesValidity?.all { it.second } == true
+            },
+            infoValid = Res.string.info_text_registration_cert_requested_claim_valid,
+            infoInvalid = Res.string.info_text_registration_cert_requested_claim_invalid,
+        ),
+    )
+}
+
+private fun WrprcCertificateValidation.errors(): List<WrpValidationError> = error?.let {
+    listOf(WrpValidationError.Message(it))
+} ?: listOfNotNull(
+    WrpValidationError.Resource(Res.string.info_text_registration_cert_not_linked).takeUnless { validLinkage },
+    when (tokenStatus) {
+        WrpTokenStatus.REVOKED -> WrpValidationError.Resource(Res.string.info_text_registration_cert_revoked)
+        WrpTokenStatus.SUSPENDED -> WrpValidationError.Resource(Res.string.info_text_registration_cert_suspended)
+        WrpTokenStatus.OTHER -> WrpValidationError.Resource(Res.string.info_text_registration_cert_status_invalid)
+        WrpTokenStatus.VALID, null -> null
+    },
+    tokenStatusError?.let {
+        WrpValidationError.Resource(Res.string.info_text_registration_cert_status_unknown, detail = it)
+    },
 )
