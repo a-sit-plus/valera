@@ -20,14 +20,18 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.catchingUnwrapped
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_select_data
+import at.asitplus.valera.resources.label_registration_cert_request
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
+import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
+import at.asitplus.wallet.app.common.relyingParty.ui.RelyingPartyValidationView
 import at.asitplus.wallet.lib.agent.DeviceRequestCredentialDisclosure
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import data.credentials.labeledDisclosedAttributes
 import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import ui.composables.DataDisplaySection
 import ui.composables.DisclosedAttribute
 import ui.composables.TrustState
 import ui.composables.TrustStatusBanner
@@ -41,11 +45,16 @@ import ui.models.toFallbackResolvedCredential
 import ui.models.toResolvedCredential
 import ui.viewmodels.authentication.AuthenticationSelectionIsoDeviceRequestViewModel
 
+/**
+ * Selects a credential for each document request of an ISO device request, showing [relyingPartyValidation] above
+ * the credentials, for flows that showed it on no page before, e.g. after the pre-request page of the iOS DC API.
+ */
 @Composable
 fun AuthenticationSelectionIsoDeviceRequestView(
     vm: AuthenticationSelectionIsoDeviceRequestViewModel<SubjectCredentialStore.StoreEntry>,
     onClickLogo: () -> Unit,
     trustListService: TrustListService,
+    relyingPartyValidation: RelyingPartyValidationUi? = null,
 ) {
     val requestIndex = vm.requestIterator.value
     val matches = vm.requests[requestIndex]
@@ -63,6 +72,12 @@ fun AuthenticationSelectionIsoDeviceRequestView(
         Column(
             modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         ) {
+            relyingPartyValidation?.let {
+                DataDisplaySection(title = stringResource(Res.string.label_registration_cert_request)) {
+                    RelyingPartyValidationView(it)
+                }
+                Spacer(Modifier.height(16.dp))
+            }
             matches.forEach { disclosure ->
                 IsoDeviceRequestCredentialSelectionCard(
                     disclosure = disclosure,

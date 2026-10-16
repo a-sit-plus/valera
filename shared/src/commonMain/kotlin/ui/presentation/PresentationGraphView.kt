@@ -166,6 +166,7 @@ fun PresentationGraphView(
                 fixedCredentialSelection = fixedCredentialSelection,
                 request = request,
                 relyingPartyValidation = relyingPartyValidation,
+                showRelyingPartyValidationOnSelection = !showStartRoute,
             )
         }
 

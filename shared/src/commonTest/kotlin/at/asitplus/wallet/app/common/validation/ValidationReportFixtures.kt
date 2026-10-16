@@ -62,12 +62,13 @@ internal open class ValidationReportFixtures(val now: Instant = Instant.parse("2
     )
 
     fun accessCertificate(
+        parsing: CheckOutcome = Passed,
         signature: CheckOutcome = Passed,
         trust: CheckOutcome = Passed,
         timeliness: CheckOutcome = Passed,
     ) = ValidationReport.accessCertificate(
         checks = AccessCertificateChecks(
-            parsing = Passed,
+            parsing = parsing,
             signature = signature,
             trust = TrustValidation(trust, source = WRPAC_PROVIDERS),
             timeliness = timeliness,

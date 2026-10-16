@@ -10,6 +10,7 @@ import at.asitplus.signum.supreme.UserInitiatedCancellationReason
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
 import at.asitplus.valera.resources.warning_authentication_cancelled
+import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
 import at.asitplus.wallet.app.common.validation.integrityRejection
@@ -42,6 +43,8 @@ class DCAPIPresentationGraphViewModel(
         viewModelScope.launch {
             value = try {
                 val unwrappedDcApiWalletRequest = dcApiWalletRequest.getOrThrow()
+                // Validate against fresh Trust Lists if they arrive in time, e.g. in the short-lived iOS extension
+                trustListService.refreshStaleTrustLists(Configuration.TRUST_LIST_REFRESH_TIMEOUT)
                 val validation = walletMain.presentationService.prepareDcApiRequest(
                     unwrappedDcApiWalletRequest
                 ).getOrThrow()

@@ -130,10 +130,12 @@ fun PresentationFinalizationPageContent(
     relyingPartyValidation: RelyingPartyValidationUi? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    // The validation of the relying party covers its trust, so it is evaluated separately only without one
-    val relyingPartyTrustState by trustListService
-        .observeTrustStateForRelyingParty(flowOf(request.takeIf { relyingPartyValidation == null }))
-        .collectAsState(initial = TrustState.EVALUATING)
+    // A report of the relying party covers its trust, so it is evaluated separately only without one, e.g. for an
+    // ISO mdoc request over the DC API without reader authentication
+    val reportMissing = relyingPartyValidation?.outcome == null
+    val relyingPartyTrustState by remember(trustListService, request, reportMissing) {
+        trustListService.observeTrustStateForRelyingParty(flowOf(request.takeIf { reportMissing }))
+    }.collectAsState(initial = TrustState.EVALUATING)
     Scaffold(
         bottomBar = {
             CommonBottomButtonsAbortContinue(
@@ -179,7 +181,7 @@ fun PresentationFinalizationPageContent(
                         stringResource(Res.string.attribute_friendly_name_data_recipient_location) to serviceProviderLocalizedLocation,
                         (stringResource(Res.string.trust_status_title) to
                                 stringResource(relyingPartyTrustState.displayVerifierText))
-                            .takeIf { relyingPartyValidation == null },
+                            .takeIf { reportMissing },
                     ),
                 )
                 relyingPartyValidation?.outcome?.let {

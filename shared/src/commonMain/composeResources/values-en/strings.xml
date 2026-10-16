@@ -470,6 +470,7 @@
     <string name="trust_status_trusted_verifier">Trusted Relying Party</string>
     <string name="trust_status_untrusted_verifier">Untrusted Relying Party</string>
     <string name="trust_status_title">Trust State</string>
+    <string name="trust_status_title_preliminary">Trust State (preliminary)</string>
 
     <string name="section_heading_issuer_trust">Issuer Trust Details</string>
     <string name="section_heading_issuer_trust_icon_text">ITD</string>
