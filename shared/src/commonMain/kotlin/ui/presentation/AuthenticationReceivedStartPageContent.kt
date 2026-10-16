@@ -61,7 +61,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.DataDisplaySection
-import ui.composables.PresentationRequestPreview
+import ui.composables.IsoDeviceRequestPreview
 import ui.composables.PresentationRequestLoadingIndicator
 import ui.composables.ScreenHeading
 import ui.composables.TrustState
@@ -82,6 +82,7 @@ fun AuthenticationReceivedStartPageContent(
     trustListService: TrustListService,
     request: RequestParametersFrom<*>? = null,
     wrpValidationResult: WrpValidationResult? = null,
+    showZkMode: Boolean = true,
 ) {
     val relyingPartyTrustState by trustListService
         .observeTrustStateForRelyingParty(flowOf(request))
@@ -184,9 +185,10 @@ fun AuthenticationReceivedStartPageContent(
                                 }
                             }
 
-                            is CredentialPresentationRequest.IsoDeviceRetrieval -> PresentationRequestPreview(
+                            is CredentialPresentationRequest.IsoDeviceRetrieval -> IsoDeviceRequestPreview(
                                 presentationRequest = presentationRequest,
                                 errorAction = errorAction,
+                                showZkMode = showZkMode,
                             )
                             null -> PresentationRequestLoadingIndicator()
                             else -> LaunchedEffect(presentationRequest) {
@@ -256,6 +258,7 @@ private fun RequestedDcqlCredentialSets(
                                         credentialAttributesLocalized = credentialQueryUiModel.requestedAttributesLocalized?.let {
                                             it.attributesLocalized to it.otherAttributes
                                         },
+                                        zkMode = credentialQueryUiModel.zkMode,
                                         isSelectedForPresentation = queryIdentifier in selectedCredentialQueryIds,
                                         isFaded = selectedCredentialQueryIds.isNotEmpty() &&
                                                 queryIdentifier !in selectedCredentialQueryIds,
