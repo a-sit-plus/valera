@@ -23,13 +23,16 @@ import at.asitplus.wallet.app.common.validation.PendingCredentialReview
 import at.asitplus.wallet.app.common.validation.ValidationPolicies
 import at.asitplus.wallet.app.common.validation.describeProblems
 import at.asitplus.wallet.app.common.validation.integrityRejection
+import at.asitplus.wallet.app.common.validation.needsReview
 import at.asitplus.wallet.app.common.validation.rejection
+import at.asitplus.wallet.app.common.validation.scheme
 import at.asitplus.wallet.app.common.validation.toUi
 import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
 import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
+import at.asitplus.wallet.lib.agent.PreparedCredentialStorage
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.ISO_MDOC
@@ -45,6 +48,8 @@ import at.asitplus.wallet.lib.oidvci.LoadedIssuerMetadata
 import at.asitplus.wallet.lib.oidvci.OpenId4VciClient
 import at.asitplus.wallet.lib.utils.MapStore
 import at.asitplus.wallet.lib.validation.IssuerMetadataValidator
+import at.asitplus.wallet.lib.validation.ValidationDecision
+import data.credentials.claimLabel
 import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
 import data.storage.StoreEntryId
@@ -522,7 +527,7 @@ class ProvisioningService(
     @Throws(Throwable::class)
     suspend fun keepCredentialsUnderReview(): List<StoreEntryId> {
         val idsBefore = subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
-        pendingCredentialReview.take().forEach { storeLeniently(it.credential, it.renewalInfo) }
+        pendingCredentialReview.take().forEach { storeAfterUserConsent(it.prepared) }
         return resolveNewStoreEntryIds(idsBefore)
     }
 
@@ -530,11 +535,12 @@ class ProvisioningService(
     fun discardCredentialsUnderReview() = pendingCredentialReview.clear()
 
     /**
-     * Stores [credential] if it is accepted under [ValidationPolicies.strict], and returns its entry. A credential
-     * rejected only for problems the user may tolerate, e.g. an untrusted issuer, an expired one, or an unknown status,
-     * waits in [credentialsUnderReview] if [review] is set, so `null` is returned; otherwise, e.g. when refreshing a
-     * credential in the background, it is stored under [ValidationPolicies.lenient]. A credential failing a check of
-     * its integrity, e.g. its signature or its binding to the key of the wallet, fails with that check, see
+     * Validates [credential] under [ValidationPolicies.issuance], see [HolderAgent.prepareCredentialStorage], and stores
+     * it if it is accepted, returning its entry. A credential rejected only for problems the user may tolerate, e.g. an
+     * untrusted issuer, an expired one, an unknown status, or claims its type requires that the issuer left out, waits
+     * in [credentialsUnderReview] if [review] is set, so `null` is returned; otherwise, e.g. when refreshing a
+     * credential in the background, it is stored nevertheless, as before. A credential failing a check of its
+     * integrity, e.g. its signature or its binding to the key of the wallet, fails with that check, see
      * [integrityRejection]. Every problem of a rejected credential is logged.
      */
     private suspend fun storeCredential(
@@ -542,37 +548,34 @@ class ProvisioningService(
         renewalInfo: CredentialRenewalInfo? = null,
         review: Boolean,
     ): KmmResult<SubjectCredentialStore.StoreEntry?> = catching {
-        val result = withContext(Dispatchers.Default) {
-            holderAgent.storeCredentialWithReport(credential, ValidationPolicies.strict, renewalInfo).getOrThrow()
+        val prepared = withContext(Dispatchers.Default) {
+            holderAgent.prepareCredentialStorage(credential, ValidationPolicies.issuance, renewalInfo).getOrThrow()
         }
-        result.storedEntry ?: run {
-            val report = result.validation.report
-            val outcome = report.toUi()
-            Napier.w("Issued credential rejected: ${report.describeProblems()}")
-            when {
-                outcome.integrityFailed ->
-                    throw report.integrityRejection() ?: IllegalStateException("The credential has not been stored")
+        val report = prepared.validation.report
+        if (report.decision == ValidationDecision.ACCEPTED) {
+            return@catching withContext(Dispatchers.Default) { holderAgent.storeAccepted(prepared).getOrThrow() }
+                .storedEntry ?: throw IllegalStateException("The credential has not been stored")
+        }
+        Napier.w("Issued credential rejected: ${report.describeProblems()}")
+        val outcome = report.toUi { credential.scheme.claimLabel(it) }
+        when {
+            outcome.integrityFailed || prepared.validation.unacceptedCredential == null ->
+                throw report.integrityRejection() ?: report.rejection()
+                    ?: IllegalStateException("The credential has not been stored")
 
-                review -> null.also {
-                    pendingCredentialReview.add(PendingCredentialReview.Entry(credential, renewalInfo, outcome))
-                }
-
-                else -> storeLeniently(credential, renewalInfo)
+            review && report.needsReview() -> null.also {
+                pendingCredentialReview.add(PendingCredentialReview.Entry(prepared, outcome))
             }
+
+            else -> storeAfterUserConsent(prepared)
         }
     }
 
-    private suspend fun storeLeniently(
-        credential: Holder.StoreCredentialInput,
-        renewalInfo: CredentialRenewalInfo?,
-    ): SubjectCredentialStore.StoreEntry {
-        val result = withContext(Dispatchers.Default) {
-            holderAgent.storeCredentialWithReport(credential, ValidationPolicies.lenient, renewalInfo).getOrThrow()
-        }
-        return result.storedEntry
-            ?: throw result.validation.report.rejection()
+    /** Stores [prepared] although it has been rejected, as long as it is intact, see [HolderAgent.storeAfterUserConsent]. */
+    private suspend fun storeAfterUserConsent(prepared: PreparedCredentialStorage): SubjectCredentialStore.StoreEntry =
+        withContext(Dispatchers.Default) { holderAgent.storeAfterUserConsent(prepared).getOrThrow() }.storedEntry
+            ?: throw prepared.validation.report.rejection()
                 ?: IllegalStateException("The credential has not been stored")
-    }
 
     // Wait for the DataStore flow to emit a container that includes at least one new entry.
     private suspend fun resolveNewStoreEntryIds(idsBefore: Set<StoreEntryId>): List<StoreEntryId> {

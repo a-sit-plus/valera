@@ -519,6 +519,7 @@
     <string name="validation_check_signer_trust">Trust in the signer</string>
     <string name="validation_check_semantics">Content</string>
     <string name="validation_check_disclosed_items">Disclosed data</string>
+    <string name="validation_check_required_claims">Required claims</string>
     <string name="validation_check_holder_binding">Bound to this wallet</string>
     <string name="validation_check_timeliness">Validity period</string>
     <string name="validation_check_status">Status</string>
@@ -544,6 +545,7 @@
     <string name="validation_finding_status_unavailable">Status could not be checked</string>
     <string name="validation_finding_not_linked">Not issued to the relying party of the access certificate</string>
     <string name="validation_finding_unregistered">Requests data it is not registered for</string>
+    <string name="validation_finding_missing_claims">Missing claims the credential type requires: %1$s</string>
     <string name="validation_finding_missing_registration">No registration information provided</string>
     <string name="validation_finding_unsigned">Not signed, so its sender could not be verified</string>
     <string name="validation_finding_not_checked">Could not be checked</string>

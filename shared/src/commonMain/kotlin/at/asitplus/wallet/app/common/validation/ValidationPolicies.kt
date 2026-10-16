@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common.validation
 
+import at.asitplus.wallet.lib.validation.RequiredClaimsPolicy
 import at.asitplus.wallet.lib.validation.StatusPolicy
 import at.asitplus.wallet.lib.validation.TrustPolicy
 import at.asitplus.wallet.lib.validation.ValidationPolicy
@@ -21,8 +22,14 @@ object ValidationPolicies {
     )
 
     /**
-     * Requires the integrity of an artifact only: parsing, signatures, and bindings. Used to store a credential the
-     * user decided to keep, although [strict] rejects it.
+     * [strict], and additionally requires an issued credential to contain every claim the metadata of its type describe
+     * as mandatory, so that the user sees which claims the issuer left out before storing it.
+     */
+    val issuance = strict.copy(requiredClaims = RequiredClaimsPolicy.RequireMandatory)
+
+    /**
+     * Requires the integrity of an artifact only: parsing, signatures, and bindings, e.g. for artifacts of test parties
+     * that no trust list contains.
      */
     val lenient = ValidationPolicy(
         trust = TrustPolicy.IntegrityOnly,

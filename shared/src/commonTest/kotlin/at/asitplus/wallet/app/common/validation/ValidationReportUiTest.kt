@@ -1,13 +1,16 @@
 package at.asitplus.wallet.app.common.validation
 
+import at.asitplus.openid.OpenId4VciClaimsPathPointer
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.lib.agent.validation.relyingParty.MissingRegistrationCertificateException
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
 import at.asitplus.wallet.lib.validation.CheckOutcome.Blocked
 import at.asitplus.wallet.lib.validation.CheckOutcome.Failed
 import at.asitplus.wallet.lib.validation.CheckOutcome.Passed
+import at.asitplus.wallet.lib.validation.MissingRequiredClaimException
 import at.asitplus.wallet.lib.validation.NamedCheck
 import at.asitplus.wallet.lib.validation.Requirement.REQUIRED
+import at.asitplus.wallet.lib.validation.RequiredClaimsValidation
 import at.asitplus.wallet.lib.validation.StatusValidation
 import at.asitplus.wallet.lib.validation.TimelinessException
 import at.asitplus.wallet.lib.validation.TokenStatusException
@@ -238,13 +241,67 @@ internal class ValidationReportUiTest : ValidationReportFixtures() {
     }
 
     @Test
+    fun missingRequiredClaimsAreAWarningForTheUserToReview() {
+        val missing = listOf(
+            OpenId4VciClaimsPathPointer("family_name"),
+            OpenId4VciClaimsPathPointer("address", "country"),
+        )
+        val report = credential(
+            requiredClaims = RequiredClaimsValidation(
+                outcome = Failed(MissingRequiredClaimException(missing)),
+                credentialIdentifier = "urn:eudi:pid:1",
+                missing = missing,
+            ),
+            policy = ValidationPolicies.issuance,
+        )
+
+        val outcome = report.toUi()
+
+        assertFalse(outcome.accepted)
+        assertFalse(outcome.integrityFailed)
+        assertTrue(report.needsReview())
+        val check = outcome.headline.single().check
+        assertEquals("requiredClaims", check.name)
+        assertTrue(check.tolerable)
+        assertEquals(FindingUi.MissingClaims(listOf("family_name", "address.country")), check.finding)
+        assertEquals(
+            FindingUi.MissingClaims(listOf("Family name", "address.country")),
+            report.toUi { if (it == missing.first()) "Family name" else it.genericClaimLabel() }
+                .headline.single().check.finding,
+        )
+    }
+
+    @Test
+    fun requiredClaimsWithoutMetadataAreNotChecked() {
+        val report = credential(
+            requiredClaims = RequiredClaimsValidation(Blocked(IllegalArgumentException("No metadata"))),
+            policy = ValidationPolicies.issuance,
+        )
+
+        val outcome = report.toUi()
+
+        assertFalse(outcome.accepted)
+        assertFalse(outcome.integrityFailed)
+        assertFalse(report.needsReview())
+        assertEquals(FindingUi.NotChecked("No metadata"), outcome.headline.single().check.finding)
+    }
+
+    @Test
+    fun requiredClaimsDoNotApplyUnderTheStrictPolicy() {
+        val outcome = credential().toUi()
+
+        assertTrue(outcome.accepted)
+        assertTrue(outcome.root.displayedChecks().none { it.name == "requiredClaims" })
+    }
+
+    @Test
     fun trustTimeStatusAndRegistrationAreTolerable() {
         listOf("trust", "issuerTrust", "signerTrust").forEach {
             assertTrue(NamedCheck(it, Blocked(), REQUIRED, trust = TrustValidation(Blocked())).tolerable(), it)
         }
         listOf(
             "timeliness", "status.claim", "status.mechanisms[0]", "status.agreement",
-            "linkage", "requestAuthorization", "registration",
+            "linkage", "requestAuthorization", "registration", "requiredClaims",
         ).forEach { assertTrue(NamedCheck(it, Blocked(), REQUIRED).tolerable(), it) }
     }
 

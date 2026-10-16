@@ -8,6 +8,7 @@ import at.asitplus.wallet.lib.validation.CheckOutcome.Failed
 import at.asitplus.wallet.lib.validation.CheckOutcome.NotApplicable
 import at.asitplus.wallet.lib.validation.CheckOutcome.Passed
 import at.asitplus.wallet.lib.validation.CredentialChecks
+import at.asitplus.wallet.lib.validation.RequiredClaimsValidation
 import at.asitplus.wallet.lib.validation.StatusValidation
 import at.asitplus.wallet.lib.validation.TimelinessValidation
 import at.asitplus.wallet.lib.validation.TrustValidation
@@ -35,6 +36,7 @@ class StoredCredentialValidationTest {
                 issuerTrust = TrustValidation(issuerTrust, source = "pid-providers.json"),
                 semantics = Passed,
                 disclosedItems = emptyList(),
+                requiredClaims = RequiredClaimsValidation(NotApplicable),
                 holderBinding = NotApplicable,
                 timeliness = TimelinessValidation(Passed, details = null),
                 status = StatusValidation(claim = NotApplicable, agreement = NotApplicable),
