@@ -1,4 +1,5 @@
 # Release 5.9.1 (unreleased):
+ * Authentication: Use “Authenticate to continue” consistently for credential issuance, refresh, and presentation prompts on Android and iOS
  * Update to VC-K 9.0.0-SNAPSHOT
  * Presentation: Resolve and display DCQL `mso_mdoc_zk` credential queries on the consent screens like ISO mdoc queries
  * Presentation: Show a badge on the consent screens stating whether an ISO mdoc is requested as a plain mdoc or as a zero-knowledge proof (with or without plain fallback)

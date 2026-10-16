@@ -6,8 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.TransactionDataBase64Url
-import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.CredentialMatchingResult
 import at.asitplus.wallet.lib.agent.IsoDeviceRetrievalMatchingResult
@@ -18,7 +16,6 @@ import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpKtorHolder
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.getString
 import ui.presentation.hasUnsatisfiedDocumentRequest
 
 abstract class AuthenticationViewModel(
@@ -120,8 +117,6 @@ abstract class AuthenticationViewModel(
 
     private suspend fun finalizeAuthorization(credentialPresentation: CredentialPresentation) {
         catchingUnwrapped {
-            walletMain.keyMaterial.promptText =
-                getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
             finalizationMethod(credentialPresentation) as OpenId4VpKtorHolder.AuthenticationSuccess
         }.onSuccess {
             handleAuthenticationSuccess(it)

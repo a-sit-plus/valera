@@ -194,9 +194,7 @@
     <string name="heading_label_result">Result</string>
     <string name="heading_label_device_engagement">Device Engagement</string>
 
-    <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Disclose data</string>
-    <string name="biometric_authentication_prompt_to_load_data_title">Load data</string>
-    <string name="biometric_authentication_prompt_to_bind_credentials_title">Create device binding</string>
+    <string name="biometric_authentication_prompt_title">Authenticate to continue</string>
 
     <string name="content_description_navigate_back">Back</string>
     <string name="content_description_close">Close</string>

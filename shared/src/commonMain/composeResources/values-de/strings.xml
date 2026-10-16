@@ -188,9 +188,7 @@
     <string name="heading_label_attestation">Attestierung</string>
     <string name="heading_label_select_data">Daten wählen</string>
 
-    <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Daten vorzeigen</string>
-    <string name="biometric_authentication_prompt_to_load_data_title">Daten laden</string>
-    <string name="biometric_authentication_prompt_to_bind_credentials_title">Gerätbindung erzeugen</string>
+    <string name="biometric_authentication_prompt_title">Zum Fortfahren authentifizieren</string>
 
     <string name="content_description_navigate_back">Zurück</string>
     <string name="content_description_close">Schließen</string>
