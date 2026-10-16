@@ -1,5 +1,7 @@
 package at.asitplus.wallet.app.common.validation
 
+import at.asitplus.openid.OpenId4VciClaimsPathPointer
+import at.asitplus.openid.OpenId4VciClaimsPathPointerSegmentString
 import at.asitplus.wallet.lib.agent.validation.relyingParty.MissingRegistrationCertificateException
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.RequestDataValidity
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.WrpCredentialRequest
@@ -11,6 +13,7 @@ import at.asitplus.wallet.lib.validation.CredentialChecks
 import at.asitplus.wallet.lib.validation.IssuerMetadataChecks
 import at.asitplus.wallet.lib.validation.JwtProofChecks
 import at.asitplus.wallet.lib.validation.KeyAttestationChecks
+import at.asitplus.wallet.lib.validation.MissingRequiredClaimException
 import at.asitplus.wallet.lib.validation.NamedCheck
 import at.asitplus.wallet.lib.validation.PresentationChecks
 import at.asitplus.wallet.lib.validation.ProtocolResponseChecks
@@ -148,6 +151,11 @@ sealed interface FindingUi {
     data class StatusUnavailable(val reason: String?) : FindingUi
 
     /** A registration certificate is not issued to the relying party of the access certificate. */
+    /** The credential does not contain the [claims] its type requires, labeled for the user. */
+    @Serializable
+    @SerialName("missing_claims")
+    data class MissingClaims(val claims: List<String>) : FindingUi
+
     @Serializable
     @SerialName("not_linked")
     data object NotLinked : FindingUi
@@ -229,8 +237,14 @@ private const val HEADLINE_SIZE = 3
  */
 private val WARNING_ONLY_KINDS = setOf(ArtifactKind.REGISTRATION_CERTIFICATE, ArtifactKind.STATUS_LIST_TOKEN)
 
-fun ValidationReport.toUi(): ValidationOutcomeUi {
-    val root = toArtifactUi()
+/**
+ * This report as shown to the user, with the paths of claims a credential misses labeled by [claimLabel], e.g. from the
+ * metadata of its type, by default the member names of the path.
+ */
+fun ValidationReport.toUi(
+    claimLabel: (OpenId4VciClaimsPathPointer) -> String = { it.genericClaimLabel() },
+): ValidationOutcomeUi {
+    val root = toArtifactUi(claimLabel)
     val problems = root.problems(warningOnly = false)
     return ValidationOutcomeUi(
         accepted = decision == ValidationDecision.ACCEPTED,
@@ -251,12 +265,17 @@ private fun ArtifactUi.problems(warningOnly: Boolean): List<Problem> {
     } + children.flatMap { it.problems(inWarningOnly) }
 }
 
-private fun ValidationReport.toArtifactUi(): ArtifactUi = ArtifactUi(
+private fun ValidationReport.toArtifactUi(claimLabel: (OpenId4VciClaimsPathPointer) -> String): ArtifactUi = ArtifactUi(
     kind = checks.kind,
     accepted = decision == ValidationDecision.ACCEPTED,
-    checks = namedChecks.map { it.toUi(evaluatedAt, checks) },
-    children = children.map { it.toArtifactUi() } + namedChecks.mapNotNull { it.statusMechanism?.token?.toArtifactUi() },
+    checks = namedChecks.map { it.toUi(evaluatedAt, checks, claimLabel) },
+    children = children.map { it.toArtifactUi(claimLabel) } +
+        namedChecks.mapNotNull { it.statusMechanism?.token?.toArtifactUi(claimLabel) },
 )
+
+/** The member names of this path, joined by dots, e.g. `address.country`. */
+internal fun OpenId4VciClaimsPathPointer.genericClaimLabel(): String =
+    mapNotNull { (it as? OpenId4VciClaimsPathPointerSegmentString)?.string }.joinToString(".").ifEmpty { toString() }
 
 private val ValidationChecks.kind: ArtifactKind
     get() = when (this) {
@@ -275,7 +294,11 @@ private val ValidationChecks.kind: ArtifactKind
         is IssuerMetadataChecks -> ArtifactKind.ISSUER_METADATA
     }
 
-private fun NamedCheck.toUi(evaluatedAt: Instant, of: ValidationChecks) = CheckUi(
+private fun NamedCheck.toUi(
+    evaluatedAt: Instant,
+    of: ValidationChecks,
+    claimLabel: (OpenId4VciClaimsPathPointer) -> String,
+) = CheckUi(
     name = name,
     state = when (outcome) {
         CheckOutcome.Passed -> CheckState.PASSED
@@ -285,11 +308,12 @@ private fun NamedCheck.toUi(evaluatedAt: Instant, of: ValidationChecks) = CheckU
     },
     satisfied = satisfied,
     tolerable = tolerable(of),
-    finding = finding(evaluatedAt),
+    finding = finding(evaluatedAt, claimLabel),
 )
 
 /**
- * Whether the user may continue past this check failing: trust, artifact time, status, registration. Relies on the
+ * Whether the user may continue past this check failing: trust, artifact time, status, registration, and the claims a
+ * credential type requires, which the issuer may have left out. Relies on the
  * naming conventions of [NamedCheck]. Every other check blocks, e.g. `parsing`, every signature (`signature`,
  * `issuerSignature`, `popSignature`), `holderBinding`, `clientId`, `walletNonce`, `expectedOrigin`, `challenge`,
  * `nonce`, `audience`, `subject`, and the time of a proof of the holder (`proofTime`, `popTime`). So does a check VC-K
@@ -299,6 +323,7 @@ internal fun NamedCheck.tolerable() =
     trust != null ||                        // issuerTrust, trust, signerTrust: carry their TrustValidation
         name == "timeliness" ||             // validity of the artifact, never the time of a holder proof
         name.startsWith("status.") ||       // status.claim, status.mechanisms[i], status.agreement
+        name == REQUIRED_CLAIMS ||          // claims the type of a credential requires, carries the missing ones
         name in REGISTRATION_CHECKS         // registration of a relying party (WRPRC) or issuer (issuer_info)
 
 private val REGISTRATION_CHECKS = setOf("linkage", "requestAuthorization", "registration")
@@ -312,13 +337,17 @@ private val REGISTRATION_CHECKS = setOf("linkage", "requestAuthorization", "regi
 internal fun NamedCheck.tolerable(of: ValidationChecks) =
     tolerable() || (name == "parsing" && of is AccessCertificateChecks && of.signature == CheckOutcome.Passed)
 
-private fun NamedCheck.finding(evaluatedAt: Instant): FindingUi? {
+private fun NamedCheck.finding(
+    evaluatedAt: Instant,
+    claimLabel: (OpenId4VciClaimsPathPointer) -> String,
+): FindingUi? {
     if (outcome == CheckOutcome.Passed || outcome == CheckOutcome.NotApplicable) return null
     val cause = outcome.cause()
     val blocked = outcome is CheckOutcome.Blocked
     trust?.let { return if (blocked) FindingUi.TrustNotChecked(it.source) else FindingUi.Untrusted(it.source) }
     statusMechanism?.let { return it.finding(cause) }
     return when {
+        cause is MissingRequiredClaimException -> FindingUi.MissingClaims(cause.missing.map(claimLabel))
         cause is TimelinessException -> cause.finding(evaluatedAt)
         cause is TokenStatusException -> cause.status.finding()
         cause is MissingRegistrationCertificateException -> FindingUi.MissingRegistration
@@ -373,6 +402,17 @@ private fun ValidationReport.integrityRejection(warningOnly: Boolean): Throwable
     }
     return children.firstNotNullOfOrNull { it.integrityRejection(inWarningOnly) }
 }
+
+/**
+ * Whether the user has to decide about [this] rejected report of an issued credential: not if its only problem is that
+ * the claims its type requires could not be checked, e.g. because the wallet knows no metadata of the type, which is no
+ * fault of the issuer. Claims the issuer left out, see [FindingUi.MissingClaims], are reviewed.
+ */
+fun ValidationReport.needsReview(): Boolean =
+    namedChecks.any { !it.satisfied && !(it.name == REQUIRED_CLAIMS && it.outcome is CheckOutcome.Blocked) } ||
+        children.any { it.decision != ValidationDecision.ACCEPTED }
+
+private const val REQUIRED_CLAIMS = "requiredClaims"
 
 /**
  * Every check of [this] report and its children that is not satisfied, depth-first, with the cause of its outcome,

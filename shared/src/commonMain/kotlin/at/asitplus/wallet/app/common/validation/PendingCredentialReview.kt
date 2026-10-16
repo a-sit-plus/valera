@@ -1,7 +1,7 @@
 package at.asitplus.wallet.app.common.validation
 
-import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
 import at.asitplus.wallet.lib.agent.Holder
+import at.asitplus.wallet.lib.agent.PreparedCredentialStorage
 import at.asitplus.wallet.lib.data.CredentialScheme
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -10,23 +10,21 @@ import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.update
 
 /**
- * Issued credentials that have been rejected under [ValidationPolicies.strict] for reasons the user may tolerate, e.g.
- * an untrusted issuer, which are kept in memory, never persisted, until the user decides to store or discard them.
- * Session-scoped, so that they do not outlive the session they have been issued in.
+ * Issued credentials that have been rejected under [ValidationPolicies.issuance] for reasons the user may tolerate,
+ * e.g. an untrusted issuer or claims the issuer left out, which are kept in memory, never persisted, until the user
+ * decides to store or discard them. Session-scoped, so that they do not outlive the session they have been issued in.
  */
 class PendingCredentialReview {
-    /** A [credential] with its [renewalInfo], to store it as it would have been, and the [outcome] to show. */
+    /**
+     * A [prepared] credential with its validation and renewal info, to store it after the user's consent, and the
+     * [outcome] of its validation to show.
+     */
     data class Entry(
-        val credential: Holder.StoreCredentialInput,
-        val renewalInfo: CredentialRenewalInfo?,
+        val prepared: PreparedCredentialStorage,
         val outcome: ValidationOutcomeUi,
     ) {
         val scheme: CredentialScheme
-            get() = when (credential) {
-                is Holder.StoreCredentialInput.Vc -> credential.scheme
-                is Holder.StoreCredentialInput.SdJwt -> credential.scheme
-                is Holder.StoreCredentialInput.Iso -> credential.scheme
-            }
+            get() = prepared.credential.scheme
     }
 
     private val _entries = MutableStateFlow<List<Entry>>(emptyList())
@@ -39,3 +37,11 @@ class PendingCredentialReview {
 
     fun clear() = _entries.update { emptyList() }
 }
+
+/** The scheme the wallet requested this credential as. */
+val Holder.StoreCredentialInput.scheme: CredentialScheme
+    get() = when (this) {
+        is Holder.StoreCredentialInput.Vc -> scheme
+        is Holder.StoreCredentialInput.SdJwt -> scheme
+        is Holder.StoreCredentialInput.Iso -> scheme
+    }

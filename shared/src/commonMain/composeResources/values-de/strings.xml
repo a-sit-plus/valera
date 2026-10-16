@@ -525,6 +525,7 @@
     <string name="validation_check_signer_trust">Vertrauen in den Unterzeichner</string>
     <string name="validation_check_semantics">Inhalt</string>
     <string name="validation_check_disclosed_items">Offengelegte Daten</string>
+    <string name="validation_check_required_claims">Pflichtangaben</string>
     <string name="validation_check_holder_binding">An diese Wallet gebunden</string>
     <string name="validation_check_timeliness">Gültigkeitszeitraum</string>
     <string name="validation_check_status">Status</string>
@@ -550,6 +551,7 @@
     <string name="validation_finding_status_unavailable">Status konnte nicht geprüft werden</string>
     <string name="validation_finding_not_linked">Nicht für die vertrauende Partei des Zugangszertifikats ausgestellt</string>
     <string name="validation_finding_unregistered">Fragt Daten an, für die keine Registrierung besteht</string>
+    <string name="validation_finding_missing_claims">Es fehlen Angaben, die der Nachweistyp vorschreibt: %1$s</string>
     <string name="validation_finding_missing_registration">Keine Registrierungsinformationen vorhanden</string>
     <string name="validation_finding_unsigned">Nicht signiert, daher konnte der Absender nicht geprüft werden</string>
     <string name="validation_finding_not_checked">Konnte nicht geprüft werden</string>

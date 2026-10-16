@@ -11,6 +11,7 @@ import at.asitplus.wallet.lib.validation.CheckOutcome.Passed
 import at.asitplus.wallet.lib.validation.CredentialChecks
 import at.asitplus.wallet.lib.validation.RegistrationCertificateChecks
 import at.asitplus.wallet.lib.validation.RelyingPartyChecks
+import at.asitplus.wallet.lib.validation.RequiredClaimsValidation
 import at.asitplus.wallet.lib.validation.RequestObjectChecks
 import at.asitplus.wallet.lib.validation.StatusListTokenChecks
 import at.asitplus.wallet.lib.validation.StatusMechanismValidation
@@ -18,6 +19,7 @@ import at.asitplus.wallet.lib.validation.StatusValidation
 import at.asitplus.wallet.lib.validation.TimelinessValidation
 import at.asitplus.wallet.lib.validation.TrustPolicy
 import at.asitplus.wallet.lib.validation.TrustValidation
+import at.asitplus.wallet.lib.validation.ValidationPolicy
 import at.asitplus.wallet.lib.validation.ValidationReport
 import kotlin.time.Instant
 
@@ -100,6 +102,8 @@ internal open class ValidationReportFixtures(val now: Instant = Instant.parse("2
     fun credential(
         timeliness: CheckOutcome = Passed,
         status: StatusValidation = noStatus,
+        requiredClaims: RequiredClaimsValidation = RequiredClaimsValidation(NotApplicable),
+        policy: ValidationPolicy = this.policy,
     ) = ValidationReport.credential(
         checks = CredentialChecks(
             parsing = Passed,
@@ -107,6 +111,7 @@ internal open class ValidationReportFixtures(val now: Instant = Instant.parse("2
             issuerTrust = TrustValidation(Passed, source = "pid-providers.json"),
             semantics = Passed,
             disclosedItems = emptyList(),
+            requiredClaims = requiredClaims,
             holderBinding = NotApplicable,
             timeliness = TimelinessValidation(timeliness, details = null),
             status = status,

@@ -50,6 +50,7 @@ import at.asitplus.valera.resources.validation_check_parsing
 import at.asitplus.valera.resources.validation_check_registration
 import at.asitplus.valera.resources.validation_check_request_authorization
 import at.asitplus.valera.resources.validation_check_request_data
+import at.asitplus.valera.resources.validation_check_required_claims
 import at.asitplus.valera.resources.validation_check_retrieval
 import at.asitplus.valera.resources.validation_check_semantics
 import at.asitplus.valera.resources.validation_check_signature
@@ -62,6 +63,7 @@ import at.asitplus.valera.resources.validation_check_wallet_nonce
 import at.asitplus.valera.resources.validation_details
 import at.asitplus.valera.resources.validation_finding_expired
 import at.asitplus.valera.resources.validation_finding_expired_at
+import at.asitplus.valera.resources.validation_finding_missing_claims
 import at.asitplus.valera.resources.validation_finding_missing_registration
 import at.asitplus.valera.resources.validation_finding_not_checked
 import at.asitplus.valera.resources.validation_finding_not_linked
@@ -222,6 +224,7 @@ fun FindingUi.text(check: CheckUi): String = when (this) {
     FindingUi.Suspended -> stringResource(Res.string.validation_finding_suspended)
     is FindingUi.OtherStatus -> stringResource(Res.string.validation_finding_other_status, value.toString())
     is FindingUi.StatusUnavailable -> stringResource(Res.string.validation_finding_status_unavailable)
+    is FindingUi.MissingClaims -> stringResource(Res.string.validation_finding_missing_claims, claims.joinToString(", "))
     FindingUi.NotLinked -> stringResource(Res.string.validation_finding_not_linked)
     is FindingUi.Unregistered -> stringResource(Res.string.validation_finding_unregistered)
     FindingUi.MissingRegistration -> stringResource(Res.string.validation_finding_missing_registration)
@@ -261,6 +264,7 @@ fun CheckUi.label(): String = when (group) {
     "signerTrust" -> Res.string.validation_check_signer_trust
     "semantics" -> Res.string.validation_check_semantics
     "disclosedItems" -> Res.string.validation_check_disclosed_items
+    "requiredClaims" -> Res.string.validation_check_required_claims
     "holderBinding" -> Res.string.validation_check_holder_binding
     "timeliness" -> Res.string.validation_check_timeliness
     "status" -> Res.string.validation_check_status
