@@ -56,11 +56,13 @@ import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_title
 import at.asitplus.valera.resources.heading_label_show_data
 import at.asitplus.valera.resources.heading_label_show_data_third_party
+import at.asitplus.valera.resources.label_registration_cert_request
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
 import at.asitplus.valera.resources.section_heading_transaction_data
 import at.asitplus.valera.resources.trust_status_title
 import at.asitplus.wallet.app.common.TrustListService
+import at.asitplus.wallet.app.common.relyingParty.ui.RelyingPartyValidationView
 import at.asitplus.wallet.lib.data.toTransactionData
 import io.github.aakira.napier.Napier
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
@@ -99,8 +101,9 @@ fun AuthenticationConsentView(
         stringResource(Res.string.heading_label_authenticate_at_device_title)
     }
 
+    // The validation of the relying party covers its trust, so it is evaluated separately only without one
     val relyingPartyTrustState by trustListService
-        .observeTrustStateForCertChain(flowOf(vm.verifierCertificateChain))
+        .observeTrustStateForCertChain(flowOf(vm.verifierCertificateChain.takeIf { vm.relyingPartyValidation == null }))
         .collectAsState(initial = TrustState.EVALUATING)
 
     Scaffold(
@@ -180,10 +183,21 @@ fun AuthenticationConsentView(
                         data = listOfNotNull(
                             vm.spName?.let { stringResource(Res.string.attribute_friendly_name_data_recipient_name) to vm.spName },
                             stringResource(Res.string.attribute_friendly_name_data_recipient_location) to vm.spLocation,
-                            stringResource(Res.string.trust_status_title) to stringResource(relyingPartyTrustState.displayVerifierText)
+                            (stringResource(Res.string.trust_status_title) to
+                                    stringResource(relyingPartyTrustState.displayVerifierText))
+                                .takeIf { vm.relyingPartyValidation == null },
                         ),
                         modifier = paddingModifier,
                     )
+
+                    vm.relyingPartyValidation?.let {
+                        DataDisplaySection(
+                            title = stringResource(Res.string.label_registration_cert_request),
+                            modifier = paddingModifier,
+                        ) {
+                            RelyingPartyValidationView(it)
+                        }
+                    }
 
                     PresentationRequestPreview(vm.presentationRequest, errorAction = onError)
 

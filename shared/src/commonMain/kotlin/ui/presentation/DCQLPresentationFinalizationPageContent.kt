@@ -40,6 +40,7 @@ import at.asitplus.valera.resources.trust_status_title
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.ZkMode
 import at.asitplus.wallet.app.common.zkMode
+import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
 import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.DataDisplaySection
@@ -48,6 +49,7 @@ import ui.composables.ScreenHeading
 import ui.composables.TrustState
 import ui.composables.ZkModeBadgeAboveCard
 import ui.composables.displayVerifierText
+import ui.composables.validation.ValidationBanner
 
 @Composable
 fun DCQLPresentationFinalizationPageContent(
@@ -61,7 +63,8 @@ fun DCQLPresentationFinalizationPageContent(
     onSubmit: () -> Unit,
     serviceProviderLogo: ImageBitmap? = null,
     trustListService: TrustListService,
-    request: RequestParametersFrom<*>
+    request: RequestParametersFrom<*>,
+    relyingPartyValidation: RelyingPartyValidationUi? = null,
 ) {
     val cardsWithZkMode = remember(selections, dcqlQuery) {
         selections.entries.sortedBy { it.key.string }.flatMap { (queryId, queryCards) ->
@@ -87,7 +90,8 @@ fun DCQLPresentationFinalizationPageContent(
         isContinueEnabled = !isLoading && !hasLoadingError,
         serviceProviderLogo = serviceProviderLogo,
         trustListService = trustListService,
-        request = request
+        request = request,
+        relyingPartyValidation = relyingPartyValidation,
     ) {
         if (isLoading) {
             PresentationRequestLoadingIndicator()
@@ -123,10 +127,12 @@ fun PresentationFinalizationPageContent(
     serviceProviderLogo: ImageBitmap? = null,
     trustListService: TrustListService,
     request: RequestParametersFrom<*>,
+    relyingPartyValidation: RelyingPartyValidationUi? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    // The validation of the relying party covers its trust, so it is evaluated separately only without one
     val relyingPartyTrustState by trustListService
-        .observeTrustStateForRelyingParty(flowOf(request))
+        .observeTrustStateForRelyingParty(flowOf(request.takeIf { relyingPartyValidation == null }))
         .collectAsState(initial = TrustState.EVALUATING)
     Scaffold(
         bottomBar = {
@@ -171,9 +177,14 @@ fun PresentationFinalizationPageContent(
                             stringResource(Res.string.attribute_friendly_name_data_recipient_name) to serviceProviderLocalizedName
                         },
                         stringResource(Res.string.attribute_friendly_name_data_recipient_location) to serviceProviderLocalizedLocation,
-                        stringResource(Res.string.trust_status_title) to stringResource(relyingPartyTrustState.displayVerifierText)
+                        (stringResource(Res.string.trust_status_title) to
+                                stringResource(relyingPartyTrustState.displayVerifierText))
+                            .takeIf { relyingPartyValidation == null },
                     ),
                 )
+                relyingPartyValidation?.outcome?.let {
+                    ValidationBanner(it, modifier = Modifier.padding(bottom = 16.dp))
+                }
 
                 content()
             }

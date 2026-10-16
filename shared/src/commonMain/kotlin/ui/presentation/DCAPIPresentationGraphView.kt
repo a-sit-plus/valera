@@ -84,6 +84,6 @@ fun DCAPIPresentationGraphView(
         fixedCredentialSelection = dcApiRequest.credentialIds?.isNotEmpty() == true,
         trustListService = viewModel.trustListService,
         request = dcApiRequest,
-        wrpValidationResult = viewModel.wrpValidationResult,
+        relyingPartyValidation = (matchingResult as? UiStateSuccess)?.value?.relyingPartyValidation,
     )
 }

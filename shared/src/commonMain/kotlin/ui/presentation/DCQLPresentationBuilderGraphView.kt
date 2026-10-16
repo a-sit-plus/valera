@@ -11,7 +11,7 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.openid.dcql.DCQLQuery
 import at.asitplus.wallet.app.common.TrustListService
-import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
+import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
 
 @ExperimentalMaterial3Api
 @Composable
@@ -33,7 +33,7 @@ fun DCQLPresentationBuilderGraphView(
     onSubmit: (Map<DCQLCredentialQueryIdentifier, Set<UInt>>) -> Unit,
     trustListService: TrustListService,
     request: RequestParametersFrom<*>,
-    wrpValidationResult: WrpValidationResult? = null,
+    relyingPartyValidation: RelyingPartyValidationUi? = null,
 ) {
     val navigationManager = rememberSaveable(saver = DCQLPresentationBuilderGraphViewNavigationManager.Saver) {
         DCQLPresentationBuilderGraphViewNavigationManager(listOf())
@@ -121,7 +121,7 @@ fun DCQLPresentationBuilderGraphView(
                 },
                 trustListService = trustListService,
                 request = request,
-                wrpValidationResult = wrpValidationResult,
+                relyingPartyValidation = relyingPartyValidation,
             )
         }
     }

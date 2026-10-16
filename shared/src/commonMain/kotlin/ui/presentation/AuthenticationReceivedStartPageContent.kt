@@ -39,7 +39,6 @@ import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_locat
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_name
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
 import at.asitplus.valera.resources.heading_label_show_data_third_party
-import at.asitplus.valera.resources.info_text_registration_cert_missing
 import at.asitplus.valera.resources.label_registration_cert_request
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
@@ -52,8 +51,8 @@ import at.asitplus.valera.resources.trust_status_title
 import at.asitplus.wallet.app.common.DcqlConsentData
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.extractConsentData
-import at.asitplus.wallet.app.common.relyingParty.ui.WrprcRequestValidation
-import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
+import at.asitplus.wallet.app.common.relyingParty.ui.RelyingPartyValidationView
+import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
 import at.asitplus.wallet.app.common.toCredentialQueryUiModel
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import kotlinx.coroutines.Dispatchers
@@ -81,11 +80,12 @@ fun AuthenticationReceivedStartPageContent(
     errorAction: (Throwable) -> Unit,
     trustListService: TrustListService,
     request: RequestParametersFrom<*>? = null,
-    wrpValidationResult: WrpValidationResult? = null,
+    relyingPartyValidation: RelyingPartyValidationUi? = null,
     showZkMode: Boolean = true,
 ) {
+    // The validation of the relying party covers its trust, so it is evaluated separately only without one
     val relyingPartyTrustState by trustListService
-        .observeTrustStateForRelyingParty(flowOf(request))
+        .observeTrustStateForRelyingParty(flowOf(request.takeIf { relyingPartyValidation == null }))
         .collectAsState(initial = TrustState.EVALUATING)
 
     Scaffold(
@@ -133,24 +133,17 @@ fun AuthenticationReceivedStartPageContent(
                             serviceProviderLocalizedLocation?.takeIf { value -> value.isNotBlank() }?.let {
                                 stringResource(Res.string.attribute_friendly_name_data_recipient_location) to it
                             },
-                            stringResource(Res.string.trust_status_title) to stringResource(relyingPartyTrustState.displayVerifierText)
+                            (stringResource(Res.string.trust_status_title) to
+                                    stringResource(relyingPartyTrustState.displayVerifierText))
+                                .takeIf { relyingPartyValidation == null },
                         ),
                     )
 
-                    wrpValidationResult?.takeUnless {
-                        it.accessCertificateMissing && it.registrationCertificateMissing
-                    }?.let {
+                    relyingPartyValidation?.let {
                         DataDisplaySection(
                             title = stringResource(Res.string.label_registration_cert_request),
                         ) {
-                            WrprcRequestValidation(it)
-                        }
-                    } ?: run {
-                        Column(modifier = Modifier.padding(vertical = 20.dp)) {
-                            Text(
-                                stringResource(Res.string.info_text_registration_cert_missing),
-                                fontWeight = FontWeight.Bold
-                            )
+                            RelyingPartyValidationView(it)
                         }
                     }
 

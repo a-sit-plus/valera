@@ -10,17 +10,23 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.LoadingMessageKey
-import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
-import at.asitplus.wallet.app.common.relyingParty.WrpRequestDataValidation
-import at.asitplus.wallet.app.common.relyingParty.WrpTokenStatus
-import at.asitplus.wallet.app.common.relyingParty.WrprcCertificateValidation
-import at.asitplus.wallet.app.common.relyingParty.WrprcValidation
+import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
+import at.asitplus.wallet.app.common.relyingParty.WrpDisplayInfo
+import at.asitplus.wallet.app.common.validation.ArtifactKind
+import at.asitplus.wallet.app.common.validation.ArtifactUi
+import at.asitplus.wallet.app.common.validation.CheckState
+import at.asitplus.wallet.app.common.validation.CheckUi
+import at.asitplus.wallet.app.common.validation.FindingUi
+import at.asitplus.wallet.app.common.validation.HeadlineUi
+import at.asitplus.wallet.app.common.validation.UnregisteredRequestUi
+import at.asitplus.wallet.app.common.validation.ValidationOutcomeUi
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.RequestDataValidity
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.WrpCredentialRequest
 import at.asitplus.wallet.lib.data.JsonClaimReference
 import at.asitplus.wallet.lib.data.MdocClaimReference
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import ui.viewmodels.QrCodeScannerMode
 
@@ -81,7 +87,7 @@ class WalletRoutesTest {
     }
 
     @Test
-    fun dcApiPresentationRoutePreservesIsoMdocWrpValidationResult() {
+    fun relyingPartyValidationOfIsoMdocRequestSurvivesSerialization() {
         val docType = "eu.europa.ec.eudi.pid.1"
         val docRequest = DocRequest(
             itemsRequest = ByteStringWrapper(
@@ -101,30 +107,38 @@ class WalletRoutesTest {
                 JsonClaimReference(NormalizedJsonPath() + "address" + 0u) to false,
             ),
         )
-        val wrpValidationResult = WrpValidationResult(
-            accessCertificate = null,
-            accessCertificateError = "untrusted WRPAC",
-            registrationCertificate = WrprcValidation(
-                displayInfo = null,
-                certificates = listOf(
-                    WrprcCertificateValidation(valid = false, validLinkage = false, tokenStatus = WrpTokenStatus.REVOKED)
-                ),
-                requestDataValidationResults = listOf(
-                    WrpRequestDataValidation(WrpCredentialRequest.WrpDocRequest(docRequest), requestDataValidity)
-                ),
+        val unregistered = UnregisteredRequestUi(WrpCredentialRequest.WrpDocRequest(docRequest), requestDataValidity)
+        val registrationCertificate = ArtifactUi(
+            kind = ArtifactKind.REGISTRATION_CERTIFICATE,
+            accepted = false,
+            checks = listOf(
+                CheckUi(
+                    name = "requestAuthorization",
+                    state = CheckState.FAILED,
+                    satisfied = false,
+                    tolerable = true,
+                    finding = FindingUi.Unregistered(listOf(unregistered)),
+                )
             ),
+            children = emptyList(),
         )
-        val parameters = AuthenticationRequestParameters(nonce = "test-nonce")
-        val request = RequestParametersFrom.OpenId4VpDcApiUnsigned(
-            parameters = parameters,
-            jsonString = joseCompliantSerializer.encodeToString(parameters),
-            credentialIds = listOf("test-credential"),
-            callingPackageName = "com.example.verifier",
-            callingOrigin = "https://verifier.example.com",
+        val validation = RelyingPartyValidationUi(
+            outcome = ValidationOutcomeUi(
+                accepted = false,
+                integrityFailed = false,
+                headline = listOf(HeadlineUi(ArtifactKind.REGISTRATION_CERTIFICATE, registrationCertificate.checks.single())),
+                root = ArtifactUi(ArtifactKind.RELYING_PARTY, false, emptyList(), listOf(registrationCertificate)),
+                evaluatedAtEpochMillis = 0,
+            ),
+            registration = WrpDisplayInfo("Verifier", null, "AT", null, null),
         )
 
-        val route = DCAPIPresentationViewRoute(request, wrpValidationResult)
+        val decoded = joseCompliantSerializer.decodeFromString<RelyingPartyValidationUi>(
+            joseCompliantSerializer.encodeToString(validation)
+        )
 
-        assertEquals(wrpValidationResult, route.wrpValidationResult)
+        assertEquals(validation, decoded)
+        assertEquals(listOf(unregistered), decoded.unregisteredRequests)
+        assertFalse(decoded.registrationVerified)
     }
 }

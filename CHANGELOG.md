@@ -6,6 +6,8 @@
  * Issuing and presentation: Use VC-K’s public Ktor clients with Valera’s configured HTTP clients
  * Issuing: Use the client-attestation key for DPoP when wallet attestation is enabled
  * Issuing: Validate issued credentials with VC-K's `CredentialValidator` before storing them, which checks their integrity as before, and trust in their issuers per credential type from the Lists of Trusted Entities
+ * Presentation: Validate requests and their relying parties with VC-K's validation reports, and show the outcome as a warning with every check of the request, its access certificate, and its registration certificates, e.g. an untrusted, expired, revoked, or unlinked certificate, or requested data that is not registered; requests failing their integrity, e.g. their signature, are still rejected
+ * Proximity: Verify the reader authentication of requests over BLE and NFC, reject an invalid one, and show the validation of the reader and its registration certificates like for other relying parties
  * Trust Lists: Load root certificates of registration certificate (WRPRC) providers from a bundled file and from a URL configurable in the settings
 
 # Release 5.9.0:
