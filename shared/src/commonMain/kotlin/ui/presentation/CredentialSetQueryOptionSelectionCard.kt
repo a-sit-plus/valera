@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.text_label_selected_for_presentation
+import at.asitplus.wallet.app.common.ZkMode
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -28,6 +29,7 @@ fun CredentialSetQueryOptionSelectionCard(
     isSelectedForPresentation: Boolean = false,
     isFaded: Boolean = false,
     credentialAllowedAttributes:  Map<String, Boolean>? = null,
+    zkMode: ZkMode = ZkMode.UNKNOWN,
 ) {
 // No credentials available, show the query that didn't match against anything
     ElevatedCard(
@@ -58,7 +60,8 @@ fun CredentialSetQueryOptionSelectionCard(
                 credentialRepresentationLocalized = credentialRepresentationLocalized,
                 credentialSchemeLocalized = credentialSchemeLocalized,
                 credentialAttributesLocalized = credentialAttributesLocalized,
-                credentialAllowedAttributes = credentialAllowedAttributes
+                credentialAllowedAttributes = credentialAllowedAttributes,
+                zkMode = zkMode,
             )
         }
     }

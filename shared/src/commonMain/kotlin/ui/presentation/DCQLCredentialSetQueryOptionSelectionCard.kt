@@ -52,7 +52,8 @@ fun DCQLCredentialSetQueryOptionSelectionCard(
                         credentialAttributesLocalized = it.requestedAttributesLocalized?.let {
                             it.attributesLocalized to it.otherAttributes
                         },
-                        credentialAllowedAttributes = it.requestedAttributesLocalized?.allowedAttributes
+                        credentialAllowedAttributes = it.requestedAttributesLocalized?.allowedAttributes,
+                        zkMode = it.zkMode,
                     )
                 }
             }

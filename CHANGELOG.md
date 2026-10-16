@@ -1,5 +1,6 @@
 # Release 5.9.1 (unreleased):
- * tbd
+ * Presentation: Resolve and display DCQL `mso_mdoc_zk` credential queries on the consent screens like ISO mdoc queries
+ * Presentation: Show a badge on the consent screens stating whether an ISO mdoc is requested as a plain mdoc or as a zero-knowledge proof (with or without plain fallback)
 
 # Release 5.9.0:
  * Issuing and presentation: Accept Launchpad `eu-eaa-offer` and `eu-eaap` links on Android and iOS
