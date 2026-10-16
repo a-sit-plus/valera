@@ -1,5 +1,6 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.catching
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.IssuerMetadata
 import at.asitplus.openid.OAuth2AuthorizationServerMetadata
@@ -16,8 +17,11 @@ import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.signum.indispensable.josef.toJsonWebKey
 import at.asitplus.wallet.app.common.attestation.AttestationService
 import at.asitplus.wallet.app.common.data.SettingsRepository
+import at.asitplus.wallet.app.common.validation.ValidationPolicies
+import at.asitplus.wallet.app.common.validation.rejection
 import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
+import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.data.AttributeIndex
@@ -276,7 +280,7 @@ class ProvisioningService(
                 Napier.d("resumeWithAuthCode received ${result.credentials.size} credential(s)")
                 onProgress?.invoke(LoadingMessageKey.StoringCredential)
                 val storageResults = result.credentials.map { cred ->
-                    holderAgent.storeCredential(cred, result.refreshToken)
+                    storeCredential(cred, result.refreshToken)
                 }
                 val storedEntryIds = resolveNewStoreEntryIds(idsBefore)
                 Napier.d("resumeWithAuthCode resolved storeEntryIds=$storedEntryIds")
@@ -378,7 +382,7 @@ class ProvisioningService(
         Napier.d("refreshCredential with identifier ${renewalInfo.credentialIdentifier}")
         openId4VciClient().refreshCredentialReturningResult(renewalInfo).getOrThrow().also { result ->
             val storageResults = result.credentials.map { credentialInput ->
-                holderAgent.storeCredential(credentialInput, result.refreshToken)
+                storeCredential(credentialInput, result.refreshToken)
             }
 
             if (storageResults.all { it.isSuccess }) {
@@ -448,7 +452,7 @@ class ProvisioningService(
                 Napier.d("loadCredentialWithOffer received ${result.credentials.size} credential(s) without browser auth")
                 onProgress?.invoke(LoadingMessageKey.StoringCredential)
                 result.credentials.forEach {
-                    holderAgent.storeCredential(it).getOrThrow()
+                    storeCredential(it).getOrThrow()
                 }
                 val storedEntryIds = resolveNewStoreEntryIds(idsBefore)
                 Napier.d("loadCredentialWithOffer resolved storeEntryIds=$storedEntryIds")
@@ -458,6 +462,21 @@ class ProvisioningService(
                 )
             }
         }
+    }
+
+    /**
+     * Stores [credential] if its integrity is intact, i.e. under [ValidationPolicies.lenient], which tolerates
+     * untrusted issuers, invalid time claims, and any status, as storing has done before validation reports.
+     */
+    private suspend fun storeCredential(
+        credential: Holder.StoreCredentialInput,
+        renewalInfo: CredentialRenewalInfo? = null,
+    ) = catching {
+        val result = holderAgent.storeCredentialWithReport(credential, ValidationPolicies.lenient, renewalInfo)
+            .getOrThrow()
+        result.storedEntry
+            ?: throw result.validation.report.rejection()
+                ?: IllegalStateException("The credential has not been stored")
     }
 
     // Wait for the DataStore flow to emit a container that includes at least one new entry.

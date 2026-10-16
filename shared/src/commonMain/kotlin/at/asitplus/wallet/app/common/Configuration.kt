@@ -17,6 +17,7 @@ object Configuration {
 
     // Raw HTTP responses (validators + body) shared by all public remote resources.
     const val DATASTORE_KEY_HTTP_CACHE = "http_cache"
+    const val DATASTORE_KEY_WRPRC_TRUST_ANCHORS = "wrprc_trust_anchors"
 
     // Offline-TTL per remote resource: how long a cached copy is served before a network refresh is required.
     val CACHE_TTL_CREDENTIAL_METADATA: Duration = 7.days

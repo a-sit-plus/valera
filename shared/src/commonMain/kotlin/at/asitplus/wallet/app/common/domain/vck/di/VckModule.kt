@@ -1,18 +1,23 @@
 package at.asitplus.wallet.app.common.domain.vck.di
 
 import at.asitplus.wallet.app.common.SESSION_NAME
+import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.domain.vck.JsonWebKeySetResolver
 import at.asitplus.wallet.app.common.domain.vck.PublicKeyResolver
 import at.asitplus.wallet.app.common.domain.vck.tokenStatusList.di.tokenStatusListModule
+import at.asitplus.wallet.app.common.trust.RegistrationCertificateAnchors
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.agent.Validator
-import at.asitplus.wallet.lib.agent.ValidatorSdJwt
-import at.asitplus.wallet.lib.agent.ValidatorVcJws
 import at.asitplus.wallet.lib.agent.validation.StatusListTokenResolver
 import at.asitplus.wallet.lib.agent.validation.TokenStatusResolverImpl
-import at.asitplus.wallet.lib.jws.VerifyJwsObjectTrusted
+import at.asitplus.wallet.lib.etsi.LoteProfile
+import at.asitplus.wallet.lib.validation.CredentialValidator
+import at.asitplus.wallet.lib.validation.IssuerMetadataValidator
+import at.asitplus.wallet.lib.validation.RelyingPartyTrustAnchors
+import at.asitplus.wallet.lib.validation.RelyingPartyValidator
+import at.asitplus.wallet.lib.validation.StatusValidator
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -31,17 +36,49 @@ fun vckModule() = module {
                 )
             )
         }
+        scoped<StatusValidator> {
+            StatusValidator(statusListTokenResolver = get<StatusListTokenResolver>())
+        }
+        scoped<CredentialValidator> {
+            CredentialValidator(
+                trustAnchors = get<TrustListService>().credentialTrustAnchors(),
+                statusValidator = get(),
+            )
+        }
+        scoped<RegistrationCertificateAnchors> {
+            RegistrationCertificateAnchors(
+                httpService = get(),
+                dataStoreService = get(),
+                settingsRepository = get(),
+            )
+        }
+        scoped<RelyingPartyValidator> {
+            val registrationCertificates = get<RegistrationCertificateAnchors>().trustedCertificates
+            RelyingPartyValidator(
+                trust = RelyingPartyTrustAnchors(
+                    accessCertificates = get<TrustListService>().trustedCertificates(LoteProfile.WRPAC),
+                    registrationCertificates = registrationCertificates,
+                    registrationStatus = registrationCertificates,
+                ),
+                statusValidator = get(),
+            )
+        }
+        scoped<IssuerMetadataValidator> {
+            val registrationCertificates = get<RegistrationCertificateAnchors>().trustedCertificates
+            IssuerMetadataValidator(
+                accessCertificates = get<TrustListService>().trustedCertificates(LoteProfile.WRPAC),
+                registrationCertificates = registrationCertificates,
+                registrationStatus = registrationCertificates,
+                statusValidator = get(),
+            )
+        }
         scoped<HolderAgent> {
             val keyMaterial: KeyMaterial by inject()
             val subjectCredentialStore: SubjectCredentialStore by inject()
-            val validator: Validator by inject()
-            val publicKeyResolver: PublicKeyResolver by inject()
             HolderAgent(
                 keyMaterial = keyMaterial,
                 subjectCredentialStore = subjectCredentialStore,
-                validator = validator,
-                validatorVcJws = ValidatorVcJws(verifyJwsObject = VerifyJwsObjectTrusted(trustedKeys = publicKeyResolver::invoke)),
-                validatorSdJwt = ValidatorSdJwt(verifyJwsObject = VerifyJwsObjectTrusted(trustedKeys = publicKeyResolver::invoke))
+                credentialValidator = get(),
             )
         }
         scoped<CredentialFreshnessSummaryModelEvaluator> {

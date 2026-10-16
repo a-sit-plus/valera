@@ -75,6 +75,8 @@ import at.asitplus.valera.resources.text_label_trust_list_stage_acceptance
 import at.asitplus.valera.resources.text_label_trust_list_stage_development
 import at.asitplus.valera.resources.text_label_trust_list_stage_production
 import at.asitplus.valera.resources.text_label_trust_list_urls
+import at.asitplus.valera.resources.text_label_wrprc_trust_anchors_url
+import at.asitplus.valera.resources.text_supporting_wrprc_trust_anchors_url
 import at.asitplus.valera.resources.text_supporting_openid4vp_allowed_origin_schemes
 import at.asitplus.valera.resources.warning
 import at.asitplus.wallet.app.common.BuildType
@@ -122,6 +124,16 @@ fun SettingsView(
     }
 
     val enabledTrustListStages by settingsViewModel.trustListStages.collectAsState()
+
+    val wrprcTrustAnchorsUrlInputValue by settingsViewModel.wrprcTrustAnchorsUrlInputState.collectAsState()
+    var wrprcTrustAnchorsUrlInput by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(wrprcTrustAnchorsUrlInputValue))
+    }
+    LaunchedEffect(wrprcTrustAnchorsUrlInputValue) {
+        if (wrprcTrustAnchorsUrlInputValue != wrprcTrustAnchorsUrlInput.text) {
+            wrprcTrustAnchorsUrlInput = TextFieldValue(wrprcTrustAnchorsUrlInputValue)
+        }
+    }
 
     val originSchemesInputValue by settingsViewModel.openId4VpAllowedOriginSchemesInputState.collectAsState()
     var originSchemesInput by rememberSaveable(stateSaver = TextFieldValue.Saver) {
@@ -300,6 +312,24 @@ fun SettingsView(
                                     },
                                 )
                             }
+                            OutlinedTextField(
+                                value = wrprcTrustAnchorsUrlInput,
+                                onValueChange = {
+                                    wrprcTrustAnchorsUrlInput = it
+                                    settingsViewModel.updateWrprcTrustAnchorsUrlInput(it.text)
+                                },
+                                label = {
+                                    Text(stringResource(Res.string.text_label_wrprc_trust_anchors_url))
+                                },
+                                supportingText = {
+                                    Text(stringResource(Res.string.text_supporting_wrprc_trust_anchors_url))
+                                },
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Uri,
+                                ),
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                            )
                         }
                     }
 

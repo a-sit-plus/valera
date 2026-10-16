@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -48,7 +50,21 @@ class SettingsViewModel(
         initialValue = walletMain.settingsRepository.defaultTrustListStages
     )
 
+    private val wrprcTrustAnchorsUrlInput = MutableStateFlow("")
+    val wrprcTrustAnchorsUrlInputState = wrprcTrustAnchorsUrlInput.asStateFlow()
+
     init {
+        viewModelScope.launch {
+            wrprcTrustAnchorsUrlInput.value = walletMain.settingsRepository.wrprcTrustAnchorsUrl.first().orEmpty()
+            // Only after the stored value has been read, so that the empty initial input does not remove it.
+            wrprcTrustAnchorsUrlInput
+                .drop(1)
+                .debounce(400.milliseconds)
+                .distinctUntilChanged()
+                .collectLatest { value ->
+                    walletMain.settingsRepository.setWrprcTrustAnchorsUrl(value)
+                }
+        }
         viewModelScope.launch {
             clientId.collectLatest { value ->
                 if (clientIdInput.value != value) {
@@ -98,6 +114,10 @@ class SettingsViewModel(
 
     fun resetOpenId4VpAllowedOriginSchemesToDefault() {
         openId4VpAllowedOriginSchemesInput.value = defaultOpenId4VpAllowedOriginSchemes.toInputString()
+    }
+
+    fun updateWrprcTrustAnchorsUrlInput(value: String) {
+        wrprcTrustAnchorsUrlInput.value = value
     }
 
     fun setTrustListStageEnabled(stage: LoTEStage, enabled: Boolean) = walletMain.scope.launch {

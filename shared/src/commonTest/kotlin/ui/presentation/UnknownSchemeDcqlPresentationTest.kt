@@ -8,6 +8,7 @@ import at.asitplus.openid.OpenIdConstants.ResponseMode
 import at.asitplus.openid.dcql.DCQLClaimsPathPointer
 import at.asitplus.openid.dcql.DCQLCredentialSubmissionOption
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import at.asitplus.wallet.app.common.validation.ValidationPolicies
 import at.asitplus.wallet.lib.RequestOptionsCredential
 import at.asitplus.wallet.lib.agent.ClaimToBeIssued
 import at.asitplus.wallet.lib.agent.CredentialToBeIssued
@@ -121,6 +122,8 @@ class UnknownSchemeDcqlPresentationTest {
 
         val verifier = OpenId4VpVerifier(
             clientIdScheme = ClientIdScheme.PreRegistered("client-id", "http://rp.example.com/cb"),
+            // The test credentials are issued by ephemeral keys, which no trust anchor authorizes.
+            presentationPolicy = ValidationPolicies.lenient,
         )
         val requestUrl = verifier.createAuthnRequest(
             OpenId4VpRequestOptions(
@@ -200,8 +203,9 @@ class UnknownSchemeDcqlPresentationTest {
             ).getOrThrow()
 
             val validated = assertNotNull(responseValidation, "relying party should have received a response").getOrThrow()
+            @Suppress("DEPRECATION")
             val presentationResult = assertIs<VpTokenValidationResultDCQL>(
-                assertNotNull(validated.vpTokenValidationResult).getOrThrow()
+                assertIs<AuthnResponseResult.Success>(validated).vpTokenResult.getOrThrow()
             ).credentialQueryResponseValidations.values.single().single().getOrThrow()
             val disclosedClaims = when (presentationResult) {
                 is Verifier.VerifyPresentationResult.SuccessSdJwt -> presentationResult.disclosures.map { it.claimName }

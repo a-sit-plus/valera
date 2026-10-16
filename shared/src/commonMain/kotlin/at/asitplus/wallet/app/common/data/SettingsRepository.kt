@@ -26,6 +26,8 @@ import kotlin.time.Duration
  * OpenID4VP requests over the Digital Credentials API.
  * @property trustListStages the stages of the European Commission's trust infrastructure whose Lists of
  * Trusted Entities are loaded and evaluated.
+ * @property wrprcTrustAnchorsUrl the URL of a PEM bundle with root certificates of providers of registration
+ * certificates (WRPRC), which are trusted in addition to the bundled ones; `null` if none is configured.
  * @property presentmentNegotiatedHandoverPreferredOrder a list specifying the preferred order of transport methods to use when creating an NFC negotiated handover.
  */
 
@@ -49,6 +51,7 @@ interface SettingsRepository {
     val defaultOpenId4VpAllowedOriginSchemes: Set<String>
     val trustListStages: Flow<Set<LoTEStage>>
     val defaultTrustListStages: Set<LoTEStage>
+    val wrprcTrustAnchorsUrl: Flow<String?>
 
     val presentmentNegotiatedHandoverPreferredOrder: List<String>
         get() = listOf(
@@ -65,6 +68,9 @@ interface SettingsRepository {
 
     /** Adds or removes [stage] from [trustListStages], leaving the other stages untouched. */
     fun setTrustListStageEnabled(stage: LoTEStage, enabled: Boolean): Result<Unit>
+
+    /** Sets [wrprcTrustAnchorsUrl], a blank [url] removes it. */
+    fun setWrprcTrustAnchorsUrl(url: String?): Result<Unit>
 
     fun set(
         host: String? = null,
