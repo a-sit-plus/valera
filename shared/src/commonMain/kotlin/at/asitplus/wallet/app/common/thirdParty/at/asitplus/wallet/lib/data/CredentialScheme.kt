@@ -9,6 +9,7 @@ import at.asitplus.valera.resources.credential_scheme_label_eu_pid
 import at.asitplus.valera.resources.credential_scheme_label_eu_pid_sdjwt
 import at.asitplus.valera.resources.credential_scheme_label_mdl
 import at.asitplus.wallet.app.common.CredentialMetadataDisplayNames
+import at.asitplus.wallet.app.common.toNormalizedJsonPathUntilWildcard
 import at.asitplus.wallet.lib.data.JsonClaimReference
 import at.asitplus.wallet.lib.data.MdocClaimReference
 import at.asitplus.wallet.lib.data.SingleClaimReference
@@ -53,6 +54,6 @@ fun CredentialScheme.getLocalization(path: NormalizedJsonPath): String? =
     metadataLabel(path)
 
 fun CredentialScheme.getLocalization(claimReference: SingleClaimReference): String? = when (claimReference) {
-    is JsonClaimReference -> getLocalization(claimReference.normalizedJsonPath)
+    is JsonClaimReference -> getLocalization(claimReference.path.toNormalizedJsonPathUntilWildcard())
     is MdocClaimReference -> getLocalization(NormalizedJsonPath() + claimReference.namespace + claimReference.claimName)
 }

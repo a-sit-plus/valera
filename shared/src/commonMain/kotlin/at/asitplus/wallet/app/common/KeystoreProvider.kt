@@ -92,7 +92,8 @@ open class KeystoreService(
     open suspend fun testSigner(): Boolean = withContext(dispatcher) {
         catchingUnwrapped {
             PlatformSigningProvider.let { provider ->
-                provider.deleteSigningKey(Configuration.KS_CAPABILITY_ALIAS)
+                // Best effort, there may be no key to delete yet
+                val _ = provider.deleteSigningKey(Configuration.KS_CAPABILITY_ALIAS)
                 provider.createSigningKey(Configuration.KS_CAPABILITY_ALIAS)
             }
         }.isSuccess
@@ -100,7 +101,8 @@ open class KeystoreService(
 
     suspend fun testAttestation() = withContext(dispatcher) {
         catchingUnwrapped {
-            PlatformSigningProvider.deleteSigningKey(Configuration.KS_CAPABILITY_ALIAS)
+            // Best effort, there may be no key to delete yet
+            val _ = PlatformSigningProvider.deleteSigningKey(Configuration.KS_CAPABILITY_ALIAS)
             PlatformSigningProvider.createSigningKey(Configuration.KS_CAPABILITY_ALIAS) {
                 ec {}
                 hardware {

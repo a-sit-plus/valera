@@ -17,7 +17,7 @@ import at.asitplus.openid.formUrlEncode
 import at.asitplus.signum.indispensable.Digest
 import at.asitplus.signum.indispensable.X509SignatureAlgorithm
 import at.asitplus.signum.indispensable.io.ByteArrayBase64Serializer
-import at.asitplus.signum.indispensable.josef.JwsSigned
+import at.asitplus.signum.indispensable.josef.JwsCompactTyped
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_sign_successful
@@ -275,11 +275,7 @@ class SigningService(
         val resp = client.get(requestUri)
         val jwt = resp.bodyAsText()
 
-        return JwsSigned.deserialize(
-            SignatureRequestParameters.serializer(),
-            jwt,
-            joseCompliantSerializer
-        ).getOrElse {
+        return catchingUnwrapped { JwsCompactTyped<SignatureRequestParameters>(jwt) }.getOrElse {
             throw Throwable("SigningService: Unable to parse SignatureRequestParameters", it)
         }.payload
     }
