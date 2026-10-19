@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
 import at.asitplus.iso.SessionTranscript
+import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_nfc_engagement_verifier
 import at.asitplus.wallet.app.common.data.SettingsRepository
@@ -12,6 +13,7 @@ import at.asitplus.wallet.app.common.iso.transfer.state.TransferTransport
 import at.asitplus.wallet.app.common.presentation.NfcDispatchSuppressionMode
 import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
+import at.asitplus.wallet.lib.validation.PresentationContext
 import data.document.RequestDocumentList
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellableContinuation
@@ -30,6 +32,7 @@ import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.atTime
 import kotlinx.datetime.toInstant
 import kotlinx.io.bytestring.ByteString
+import kotlinx.serialization.decodeFromByteArray
 import org.jetbrains.compose.resources.getString
 import org.multipaz.asn1.ASN1Integer
 import org.multipaz.cbor.Cbor
@@ -114,8 +117,11 @@ class TransferManager(
     }
 
     var readerMostRecentDeviceResponse = mutableStateOf<ByteArray?>(null)
-    /** The transcript of the current reader session, over which the holder signs its documents. */
-    var readerSessionTranscript: SessionTranscript? = null
+    /**
+     * The context of the device authentication of the documents of the current reader session: its transcript, which
+     * the holder signs or MACs, and the reader's ephemeral key to verify a MAC.
+     */
+    var readerPresentationContext: PresentationContext? = null
 
     data class ConnectionMethodPickerData(
         val showPicker: Boolean,
@@ -461,7 +467,7 @@ class TransferManager(
         setDeviceResponseBytes: (KmmResult<ByteArray>) -> Unit
     ) {
         readerTransport.value = transport
-        val encodedSessionTranscript = encodeReaderSessionTranscript(
+        val encodedSessionTranscript = encodeSessionTranscript(
             encodedDeviceEngagement.toByteArray(),
             handover,
             eReaderKey.publicKey
@@ -473,10 +479,9 @@ class TransferManager(
             encodedSessionTranscript,
         )
         readerSessionEncryption.value = sessionEncryption
-        this.readerSessionTranscript = sessionTranscript(
-            encodedDeviceEngagement.toByteArray(),
-            handover,
-            eReaderKey.publicKey
+        this.readerPresentationContext = PresentationContext.forMdoc(
+            sessionTranscript = coseCompliantSerializer.decodeFromByteArray<SessionTranscript>(encodedSessionTranscript),
+            eReaderKey = eReaderKey.toKeyAgreementPrivateValue(),
         )
 
         val readerAuthKey = AsymmetricKey.X509CertifiedExplicit(

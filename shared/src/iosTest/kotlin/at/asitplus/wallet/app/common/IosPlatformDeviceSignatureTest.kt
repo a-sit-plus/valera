@@ -27,7 +27,7 @@ class IosPlatformDeviceSignatureTest {
             ByteStringWrapper(
                 DeviceAuthentication(
                     type = DeviceAuthentication.TYPE,
-                    sessionTranscript = SessionTranscript.forDcApi(
+                    sessionTranscript = SessionTranscript.DcApi(
                         DCAPIHandover(DCAPIHandover.TYPE_DCAPI, ByteArray(32) { 1 })
                     ),
                     docType = "org.iso.18013.5.1.mDL",

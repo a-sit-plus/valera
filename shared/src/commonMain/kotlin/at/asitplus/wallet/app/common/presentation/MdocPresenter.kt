@@ -2,7 +2,7 @@ package at.asitplus.wallet.app.common.presentation
 
 import at.asitplus.iso.SessionTranscript
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
-import at.asitplus.wallet.app.common.iso.transfer.sessionTranscript
+import at.asitplus.wallet.app.common.iso.transfer.encodeSessionTranscript
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -14,8 +14,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromByteArray
-import kotlinx.serialization.encodeToByteArray
-import org.multipaz.crypto.EcPublicKey
 import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.sessionencryption.SessionEncryption
 import org.multipaz.mdoc.transport.MdocTransport
@@ -104,8 +102,12 @@ class MdocPresenter(
 
             if (sessionEncryption == null) {
                 val eReaderKey = SessionEncryption.getEReaderKey(sessionData)
-                sessionTranscript = calcSessionTranscript(eReaderKey.publicKey)
-                encodedSessionTranscript = coseCompliantSerializer.encodeToByteArray(sessionTranscript)
+                encodedSessionTranscript = encodeSessionTranscript(
+                    mechanism.encodedDeviceEngagement.toByteArray(),
+                    mechanism.handover,
+                    eReaderKey.publicKey,
+                )
+                sessionTranscript = coseCompliantSerializer.decodeFromByteArray<SessionTranscript>(encodedSessionTranscript)
                 Napier.i(
                     "Holder initialized session encryption; handover=${mechanism.handover::class.simpleName}, " +
                             "sessionTranscriptBytes=${encodedSessionTranscript.size}",
@@ -215,9 +217,6 @@ class MdocPresenter(
         messagePlaintext = this,
         statusCode = if (!mechanism.allowMultipleRequests) Constants.SESSION_DATA_STATUS_SESSION_TERMINATION else null
     )
-
-    private fun calcSessionTranscript(eReaderKey: EcPublicKey): SessionTranscript =
-        sessionTranscript(mechanism.encodedDeviceEngagement.toByteArray(), mechanism.handover, eReaderKey)
 
     private companion object {
         private const val NFC_TRANSPORT_DRAIN_DELAY_MS = 1_500L

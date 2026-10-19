@@ -171,10 +171,13 @@ class VerifierViewModel(
 
     private fun checkResponse(deviceResponse: DeviceResponse) {
         setState(VerifierState.CheckResponse)
-        val sessionTranscript = transferManager.readerSessionTranscript
+        val context = transferManager.readerPresentationContext
         walletMain.scope.launch(Dispatchers.IO) {
             catchingUnwrapped {
-                proximityResponseValidator.validate(deviceResponse, sessionTranscript)
+                proximityResponseValidator.validate(
+                    deviceResponse,
+                    context ?: throw VerifyResponseException("No reader session to validate the response in"),
+                )
             }.onSuccess { validations ->
                 _responseDocumentList.clear()
                 _responseDocumentList.addAll(validations.map { ReceivedDocumentUi(it.document, it.report.toUi()) })
