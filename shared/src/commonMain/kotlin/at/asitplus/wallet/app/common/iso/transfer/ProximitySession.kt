@@ -5,15 +5,18 @@ import at.asitplus.signum.indispensable.ECCurve
 import at.asitplus.signum.indispensable.KeyAgreementPrivateValue
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import com.ionspin.kotlin.bignum.integer.Sign
+import data.document.RequestDocument
 import org.multipaz.cbor.Bstr
 import org.multipaz.cbor.Cbor
 import org.multipaz.cbor.DataItem
 import org.multipaz.cbor.Simple
 import org.multipaz.cbor.Tagged
 import org.multipaz.cbor.buildCborArray
+import org.multipaz.crypto.AsymmetricKey
 import org.multipaz.crypto.EcCurve
 import org.multipaz.crypto.EcPrivateKey
 import org.multipaz.crypto.EcPublicKey
+import org.multipaz.mdoc.request.DeviceRequest
 
 /**
  * The encoded `SessionTranscript` of an ISO/IEC 18013-5 session (9.1.5.1) after QR engagement ([handover] is
@@ -34,6 +37,28 @@ internal fun encodeSessionTranscript(
             add(handover)
         }
     )
+}
+
+/**
+ * The encoded `DeviceRequest` of a reader for [documents], each authenticated with [readerKey] over the
+ * `ReaderAuthentication` (ISO/IEC 18013-5, 9.1.4), which contains the session transcript itself, not its encoding as a
+ * byte string, so that holders verify it.
+ */
+internal suspend fun encodeReaderDeviceRequest(
+    encodedSessionTranscript: ByteArray,
+    documents: List<RequestDocument>,
+    readerKey: AsymmetricKey.X509CertifiedExplicit,
+): ByteArray {
+    val builder = DeviceRequest.Builder(sessionTranscript = Cbor.decode(encodedSessionTranscript))
+    documents.forEach { document ->
+        builder.addDocRequest(
+            docType = document.docType,
+            nameSpaces = document.itemsToRequest,
+            docRequestInfo = null,
+            readerKey = readerKey
+        )
+    }
+    return Cbor.encode(builder.build().toDataItem())
 }
 
 /**

@@ -38,7 +38,6 @@ import org.multipaz.asn1.ASN1Integer
 import org.multipaz.cbor.Cbor
 import org.multipaz.cbor.DataItem
 import org.multipaz.cbor.Simple
-import org.multipaz.cbor.toDataItem
 import org.multipaz.crypto.AsymmetricKey
 import org.multipaz.crypto.Crypto
 import org.multipaz.crypto.EcCurve
@@ -53,7 +52,6 @@ import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodNfc
 import org.multipaz.mdoc.engagement.DeviceEngagement
 import org.multipaz.mdoc.nfc.MdocReaderNfcHandoverOptions
 import org.multipaz.mdoc.nfc.scanMdocReader
-import org.multipaz.mdoc.request.DeviceRequest
 import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.sessionencryption.SessionEncryption
 import org.multipaz.mdoc.transport.MdocTransport
@@ -488,19 +486,11 @@ class TransferManager(
             certChain = X509CertChain(listOf(readerCert, readerRootCert)),
             privateKey = readerKey
         )
-        val deviceRequestBuilder = DeviceRequest.Builder(
-            sessionTranscript = encodedSessionTranscript.toDataItem()
+        val encodedDeviceRequest = encodeReaderDeviceRequest(
+            encodedSessionTranscript,
+            documentRequestList.getAll(),
+            readerAuthKey,
         )
-        documentRequestList.getAll().forEach { requestDocument ->
-            deviceRequestBuilder.addDocRequest(
-                docType = requestDocument.docType,
-                nameSpaces = requestDocument.itemsToRequest,
-                docRequestInfo = null,
-                readerKey = readerAuthKey
-            )
-        }
-        val deviceRequest = deviceRequestBuilder.build()
-        val encodedDeviceRequest = Cbor.encode(deviceRequest.toDataItem())
 
         var responseReceived = false
         var completionReported = false
