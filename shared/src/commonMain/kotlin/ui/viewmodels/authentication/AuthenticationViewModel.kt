@@ -67,9 +67,6 @@ abstract class AuthenticationViewModel(
                     AuthenticationViewState.Selection
                 }
 
-            else -> throw UnsupportedOperationException(
-                "Unsupported credential matching result: ${matching::class.simpleName}"
-            )
         }
     }
 
@@ -98,9 +95,6 @@ abstract class AuthenticationViewModel(
                             submissions = null,
                         )
 
-                        else -> throw UnsupportedOperationException(
-                            "Unsupported presentation request: ${it::class.simpleName}"
-                        )
                     }
                 }
             )

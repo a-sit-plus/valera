@@ -20,6 +20,7 @@ import at.asitplus.openid.dcql.DCQLIsoMdocZkCredentialQuery
 import at.asitplus.openid.dcql.DCQLJsonClaimsQuery
 import at.asitplus.openid.dcql.DCQLJwtVcCredentialQuery
 import at.asitplus.openid.dcql.DCQLSdJwtCredentialQuery
+import at.asitplus.openid.dcql.DCQLX509CredentialQuery
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.RequestCredentialAttributesValidity
@@ -149,15 +150,14 @@ suspend fun DCQLCredentialQuery.extractConsentData(): DcqlConsentData {
 
     val scheme = when (this) {
         is DCQLIsoMdocCredentialQuery -> resolveConsentScheme(ISO_MDOC, listOf(meta.doctypeValue))
-
         is DCQLSdJwtCredentialQuery -> resolveConsentScheme(SD_JWT, meta.vctValues)
-
         is DCQLJwtVcCredentialQuery -> resolveConsentScheme(
             PLAIN_JWT,
             meta.typeValues.list.flatten().filterNot { it == VERIFIABLE_CREDENTIAL },
         )
 
         is DCQLIsoMdocZkCredentialQuery -> resolveConsentScheme(ISO_MDOC, listOf(meta.doctypeValue))
+        is DCQLX509CredentialQuery -> TODO()
     }
 
     // assuming all claims path pointers are single claim references
@@ -187,6 +187,7 @@ suspend fun DCQLCredentialQuery.extractConsentData(): DcqlConsentData {
 internal fun DCQLCredentialQuery.zkMode(): ZkMode = when (this) {
     is DCQLIsoMdocZkCredentialQuery ->
         zkModeOf(meta.zkSystemType.systemSpecs.isNotEmpty(), meta.zkSystemType.zkRequired)
+
     is DCQLIsoMdocCredentialQuery -> ZkMode.PLAIN
     else -> ZkMode.UNKNOWN
 }
@@ -293,7 +294,7 @@ fun NormalizedJsonPath.minus(name: String) =
 
 @Composable
 fun DcqlConsentData.toCredentialQueryUiModel(
-    allowedAttributes:  RequestCredentialAttributesValidity? = null
+    allowedAttributes: RequestCredentialAttributesValidity? = null
 ): DCQLCredentialQueryUiModel {
     val (representation, scheme, attributePaths) = this
     return DCQLCredentialQueryUiModel(

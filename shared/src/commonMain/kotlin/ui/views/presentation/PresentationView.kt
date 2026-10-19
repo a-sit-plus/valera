@@ -184,9 +184,6 @@ fun PresentationView(
                             )
                         }
 
-                        else -> LaunchedEffect(matching::class.simpleName) {
-                            onError(UnsupportedOperationException("Unsupported credential matching result: ${matching::class.simpleName}"))
-                        }
                     }
                 }
             }

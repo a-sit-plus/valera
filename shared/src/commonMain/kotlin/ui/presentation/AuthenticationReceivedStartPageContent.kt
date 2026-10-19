@@ -205,13 +205,6 @@ fun AuthenticationReceivedStartPageContent(
                                 showZkMode = showZkMode,
                             )
                             null -> PresentationRequestLoadingIndicator()
-                            else -> LaunchedEffect(presentationRequest) {
-                                errorAction(
-                                    UnsupportedOperationException(
-                                        "Unsupported presentation request: ${presentationRequest::class.simpleName}"
-                                    )
-                                )
-                            }
                         }
                     }
 

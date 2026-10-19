@@ -498,9 +498,8 @@ private fun WalletNavHost(
                                 // with PresentmentCanceled, and lets onError → popToInvoker()
                                 // handle the navigation. Fallback to direct navigation if no
                                 // active session model is available.
-                                activeSession?.presentationStateModel
-                                    ?.dismiss(PresentationStateModel.DismissType.CLICK)
-                                    ?: navigator.popToInvoker()
+                                activeSession.presentationStateModel
+                                    .dismiss(PresentationStateModel.DismissType.CLICK)
                             },
                             walletMain = walletMain,
                             onClickLogo = onClickLogo)
