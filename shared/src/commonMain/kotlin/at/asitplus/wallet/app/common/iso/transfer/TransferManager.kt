@@ -4,6 +4,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
+import at.asitplus.iso.SessionTranscript
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_nfc_engagement_verifier
 import at.asitplus.wallet.app.common.data.SettingsRepository
@@ -31,12 +32,9 @@ import kotlinx.datetime.toInstant
 import kotlinx.io.bytestring.ByteString
 import org.jetbrains.compose.resources.getString
 import org.multipaz.asn1.ASN1Integer
-import org.multipaz.cbor.Bstr
 import org.multipaz.cbor.Cbor
 import org.multipaz.cbor.DataItem
 import org.multipaz.cbor.Simple
-import org.multipaz.cbor.Tagged
-import org.multipaz.cbor.buildCborArray
 import org.multipaz.cbor.toDataItem
 import org.multipaz.crypto.AsymmetricKey
 import org.multipaz.crypto.Crypto
@@ -116,7 +114,8 @@ class TransferManager(
     }
 
     var readerMostRecentDeviceResponse = mutableStateOf<ByteArray?>(null)
-    var readerSessionTranscript: ByteArray? = null
+    /** The transcript of the current reader session, over which the holder signs its documents. */
+    var readerSessionTranscript: SessionTranscript? = null
 
     data class ConnectionMethodPickerData(
         val showPicker: Boolean,
@@ -350,21 +349,6 @@ class TransferManager(
         }
     }
 
-    private fun generateEncodedSessionTranscript(
-        encodedDeviceEngagement: ByteArray,
-        handover: DataItem,
-        eReaderKey: EcPublicKey
-    ): ByteArray {
-        val encodedEReaderKey = Cbor.encode(eReaderKey.toCoseKey().toDataItem())
-        return Cbor.encode(
-            buildCborArray {
-                add(Tagged(24, Bstr(encodedDeviceEngagement)))
-                add(Tagged(24, Bstr(encodedEReaderKey)))
-                add(handover)
-            }
-        )
-    }
-
     fun doQrFlow(
         qrCode: String,
         documentRequestList: RequestDocumentList,
@@ -477,7 +461,7 @@ class TransferManager(
         setDeviceResponseBytes: (KmmResult<ByteArray>) -> Unit
     ) {
         readerTransport.value = transport
-        val encodedSessionTranscript = generateEncodedSessionTranscript(
+        val encodedSessionTranscript = encodeReaderSessionTranscript(
             encodedDeviceEngagement.toByteArray(),
             handover,
             eReaderKey.publicKey
@@ -489,7 +473,11 @@ class TransferManager(
             encodedSessionTranscript,
         )
         readerSessionEncryption.value = sessionEncryption
-        this.readerSessionTranscript = encodedSessionTranscript
+        this.readerSessionTranscript = sessionTranscript(
+            encodedDeviceEngagement.toByteArray(),
+            handover,
+            eReaderKey.publicKey
+        )
 
         val readerAuthKey = AsymmetricKey.X509CertifiedExplicit(
             certChain = X509CertChain(listOf(readerCert, readerRootCert)),

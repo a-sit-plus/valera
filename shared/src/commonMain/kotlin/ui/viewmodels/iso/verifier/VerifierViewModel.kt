@@ -1,9 +1,9 @@
 package ui.viewmodels.iso.verifier
 
 import at.asitplus.KmmResult
+import at.asitplus.catchingUnwrapped
 import at.asitplus.iso.DeviceResponse
 import at.asitplus.iso.Document
-import at.asitplus.iso.MobileSecurityObject
 import at.asitplus.openid.OpenId4VciClaimsPathPointer
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.valera.resources.Res
@@ -17,13 +17,14 @@ import at.asitplus.wallet.app.common.iso.transfer.method.DeviceEngagementMethods
 import at.asitplus.wallet.app.common.iso.transfer.state.TransferTransport
 import at.asitplus.wallet.app.common.iso.transfer.state.VerifierState
 import at.asitplus.wallet.app.common.iso.verifier.DeviceResponseException
+import at.asitplus.wallet.app.common.iso.verifier.ProximityResponseValidator
 import at.asitplus.wallet.app.common.iso.verifier.VerifyResponseException
 import at.asitplus.wallet.app.common.presentation.NfcDispatchSuppressionMode
 import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
-import at.asitplus.wallet.lib.agent.VerifierAgent
+import at.asitplus.wallet.app.common.validation.ValidationOutcomeUi
+import at.asitplus.wallet.app.common.validation.toUi
 import at.asitplus.wallet.lib.data.CredentialScheme
-import at.asitplus.wallet.lib.data.IsoDocumentParsed
 import data.document.RequestDocumentBuilder
 import data.document.RequestDocumentList
 import data.document.SelectableRequest
@@ -40,7 +41,8 @@ import ui.viewmodels.iso.common.TransferOptionsViewModel
 
 class VerifierViewModel(
     walletMain: WalletMain,
-    settingsRepository: SettingsRepository
+    settingsRepository: SettingsRepository,
+    private val proximityResponseValidator: ProximityResponseValidator,
 ) : TransferOptionsViewModel(walletMain, settingsRepository) {
     private val transferManager: TransferManager by lazy {
         TransferManager(
@@ -81,8 +83,8 @@ class VerifierViewModel(
 
     private val _requestDocumentList = RequestDocumentList()
 
-    private val _responseDocumentList = mutableListOf<IsoDocumentParsed>()
-    val responseDocumentList: MutableList<IsoDocumentParsed> = _responseDocumentList
+    private val _responseDocumentList = mutableListOf<ReceivedDocumentUi>()
+    val responseDocumentList: List<ReceivedDocumentUi> = _responseDocumentList
 
     val onResume: () -> Unit = {
         NfcTransferState.holderNfcDataTransferActive.value = false
@@ -169,22 +171,17 @@ class VerifierViewModel(
 
     private fun checkResponse(deviceResponse: DeviceResponse) {
         setState(VerifierState.CheckResponse)
-        val verifyDocument: suspend (MobileSecurityObject, Document) -> Boolean = { _, _ ->
-            // TODO: verification of device authentication
-            true
-        }
+        val sessionTranscript = transferManager.readerSessionTranscript
         walletMain.scope.launch(Dispatchers.IO) {
-            VerifierAgent("Proximity Verifier").verifyPresentationIsoMdoc(deviceResponse, verifyDocument)
-                .fold(
-                    onSuccess = {
-                        responseDocumentList.addAll(it.documents)
-                        setState(VerifierState.Presentation)
-                    },
-                    onFailure = {
-                        handleError(VerifyResponseException("Unsupported verification result"))
-                        return@launch
-                    }
-                )
+            catchingUnwrapped {
+                proximityResponseValidator.validate(deviceResponse, sessionTranscript)
+            }.onSuccess { validations ->
+                _responseDocumentList.clear()
+                _responseDocumentList.addAll(validations.map { ReceivedDocumentUi(it.document, it.report.toUi()) })
+                setState(VerifierState.Presentation)
+            }.onFailure {
+                handleError(it as? VerifyResponseException ?: VerifyResponseException("Unable to validate response", it))
+            }
         }
     }
 
@@ -242,3 +239,12 @@ class VerifierViewModel(
         }
     }
 }
+
+/**
+ * A [document] the verifier received, with the [validation] of it, see [ProximityResponseValidator]. Its claims are only
+ * shown if its integrity has been verified, see [ValidationOutcomeUi.integrityFailed].
+ */
+data class ReceivedDocumentUi(
+    val document: Document,
+    val validation: ValidationOutcomeUi,
+)
