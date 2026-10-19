@@ -275,6 +275,6 @@ private data class ConfigData(
     val openId4VpAllowedOriginSchemes: Set<String>? = null,
     /** Names of the enabled [LoTEStage]s; `null` means the default selection. */
     val trustListStages: Set<String>? = null,
-    /** URL of a PEM bundle with root certificates of WRPRC providers, see [SettingsRepository.wrprcTrustAnchorsUrl]. */
-    val wrprcTrustAnchorsUrl: String? = null,
+    /** URL of the trust anchors of WRPRC providers, see [SettingsRepository.wrprcTrustAnchorsUrl]. */
+    val wrprcTrustAnchorsUrl: String? = SettingsRepository.DEFAULT_WRPRC_TRUST_ANCHORS_URL,
 )

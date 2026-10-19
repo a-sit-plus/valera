@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
@@ -21,10 +22,12 @@ import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Key
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +57,7 @@ import at.asitplus.valera.resources.button_label_attestation_config
 import at.asitplus.valera.resources.button_label_clear_log
 import at.asitplus.valera.resources.button_label_confirm
 import at.asitplus.valera.resources.button_label_default
+import at.asitplus.valera.resources.button_label_reload_trust_lists
 import at.asitplus.valera.resources.button_label_dismiss
 import at.asitplus.valera.resources.button_label_faq
 import at.asitplus.valera.resources.button_label_reset_app
@@ -124,6 +128,7 @@ fun SettingsView(
     }
 
     val enabledTrustListStages by settingsViewModel.trustListStages.collectAsState()
+    val isReloadingTrustLists by settingsViewModel.isReloadingTrustLists.collectAsState()
 
     val wrprcTrustAnchorsUrlInputValue by settingsViewModel.wrprcTrustAnchorsUrlInputState.collectAsState()
     var wrprcTrustAnchorsUrlInput by rememberSaveable(stateSaver = TextFieldValue.Saver) {
@@ -312,23 +317,56 @@ fun SettingsView(
                                     },
                                 )
                             }
-                            OutlinedTextField(
-                                value = wrprcTrustAnchorsUrlInput,
-                                onValueChange = {
-                                    wrprcTrustAnchorsUrlInput = it
-                                    settingsViewModel.updateWrprcTrustAnchorsUrlInput(it.text)
-                                },
-                                label = {
-                                    Text(stringResource(Res.string.text_label_wrprc_trust_anchors_url))
-                                },
-                                supportingText = {
-                                    Text(stringResource(Res.string.text_supporting_wrprc_trust_anchors_url))
-                                },
-                                keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Uri,
-                                ),
-                                singleLine = true,
+                            Row(
                                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                OutlinedTextField(
+                                    value = wrprcTrustAnchorsUrlInput,
+                                    onValueChange = {
+                                        wrprcTrustAnchorsUrlInput = it
+                                        settingsViewModel.updateWrprcTrustAnchorsUrlInput(it.text)
+                                    },
+                                    label = {
+                                        Text(stringResource(Res.string.text_label_wrprc_trust_anchors_url))
+                                    },
+                                    supportingText = {
+                                        Text(stringResource(Res.string.text_supporting_wrprc_trust_anchors_url))
+                                    },
+                                    keyboardOptions = KeyboardOptions(
+                                        keyboardType = KeyboardType.Uri,
+                                    ),
+                                    singleLine = true,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                TextButton(
+                                    onClick = {
+                                        settingsViewModel.resetWrprcTrustAnchorsUrlToDefault()
+                                    }
+                                ) {
+                                    Text(stringResource(Res.string.button_label_default))
+                                }
+                            }
+                            TextIconButtonListItem(
+                                icon = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Refresh,
+                                        contentDescription = null,
+                                    )
+                                },
+                                label = stringResource(Res.string.button_label_reload_trust_lists),
+                                onClick = {
+                                    if (!isReloadingTrustLists) {
+                                        settingsViewModel.onClickReloadTrustLists()
+                                    }
+                                },
+                                modifier = Modifier.padding(top = 8.dp).fillMaxWidth(),
+                                trailingIcon = if (isReloadingTrustLists) {
+                                    { CircularProgressIndicator(modifier = Modifier.size(24.dp)) }
+                                } else {
+                                    null
+                                },
                             )
                         }
                     }

@@ -497,7 +497,10 @@
 
     <string name="info_text_registration_cert_missing">Der Service Provider hat kein Zertifikat zu dieser Anfrage mitgesendet</string>
     <string name="text_label_wrprc_trust_anchors_url">Vertrauensanker für Registrierungszertifikate (URL)</string>
-    <string name="text_supporting_wrprc_trust_anchors_url">PEM-Datei mit Wurzelzertifikaten von Anbietern von Registrierungszertifikaten, zusätzlich zu den mitgelieferten vertrauenswürdig</string>
+    <string name="text_supporting_wrprc_trust_anchors_url">ZIP-Archiv mit den Ordnern „WRPRC Provider CA Certificates“ und „WRPRC Revocation List Signing Certificates“, oder PEM-Datei mit Zertifikaten von Anbietern von Registrierungszertifikaten, zusätzlich zu den mitgelieferten vertrauenswürdig</string>
+    <string name="button_label_reload_trust_lists">Vertrauenslisten aktualisieren</string>
+    <string name="snackbar_trust_lists_reloaded">Vertrauenslisten wurden aktualisiert</string>
+    <string name="error_reloading_trust_lists_failed">Nicht alle Vertrauenslisten konnten aktualisiert werden.</string>
     <string name="validation_summary_passed">Alle Prüfungen bestanden</string>
     <string name="validation_summary_warning">Nicht alle Prüfungen bestanden</string>
     <string name="validation_summary_failed">Prüfung fehlgeschlagen</string>
