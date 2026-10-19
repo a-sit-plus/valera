@@ -112,7 +112,7 @@ fun SubjectCredentialStore.StoreEntry.toGenericAttributeList(): List<Pair<Normal
         is SubjectCredentialStore.StoreEntry.Iso ->
             toNamespaceAttributeMap()?.flatMap { (namespace, elements) ->
                 elements.mapNotNull { (id, value) ->
-                    value?.let { (NormalizedJsonPath() + namespace + id) to it }
+                    (NormalizedJsonPath() + namespace + id) to value
                 }
             } ?: emptyList()
 

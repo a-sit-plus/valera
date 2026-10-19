@@ -52,7 +52,7 @@ fun CredentialIdentifierInputField(
     availableIdentifiers: Collection<CredentialIdentifierInfo>,
 ) {
     // ponytail: produceState bridges the suspend resolveCredentialScheme() into Compose state
-    val schemes by produceState<Map<CredentialIdentifierInfo, CredentialScheme?>>(
+    val schemes by produceState(
         initialValue = emptyMap(),
         availableIdentifiers,
         value,
@@ -80,7 +80,7 @@ fun CredentialIdentifierInputField(
             onDismissRequest = { onExpandedChange(false) },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            availableIdentifiers.map { identifier ->
+            availableIdentifiers.forEach { identifier ->
                 DropdownMenuItem(
                     text = { Text(schemes[identifier].uiLabel()) },
                     onClick = { onValueChange(identifier) },

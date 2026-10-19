@@ -12,6 +12,7 @@ import at.asitplus.openid.OpenId4VciClaimsPathPointer
 import at.asitplus.openid.OpenId4VciClaimsPathPointerSegmentIndex
 import at.asitplus.openid.OpenId4VciClaimsPathPointerSegmentString
 import at.asitplus.openid.dcql.DCQLAmbiguousClaimsQuery
+import at.asitplus.openid.dcql.DCQLClaimsPathPointer
 import at.asitplus.openid.dcql.DCQLClaimsPathPointerSegment
 import at.asitplus.openid.dcql.DCQLCredentialQuery
 import at.asitplus.openid.dcql.DCQLIsoMdocClaimsQuery
@@ -20,6 +21,7 @@ import at.asitplus.openid.dcql.DCQLIsoMdocZkCredentialQuery
 import at.asitplus.openid.dcql.DCQLJsonClaimsQuery
 import at.asitplus.openid.dcql.DCQLJwtVcCredentialQuery
 import at.asitplus.openid.dcql.DCQLSdJwtCredentialQuery
+import at.asitplus.openid.dcql.DCQLX509CredentialQuery
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.RequestCredentialAttributesValidity
@@ -149,31 +151,20 @@ suspend fun DCQLCredentialQuery.extractConsentData(): DcqlConsentData {
 
     val scheme = when (this) {
         is DCQLIsoMdocCredentialQuery -> resolveConsentScheme(ISO_MDOC, listOf(meta.doctypeValue))
-
         is DCQLSdJwtCredentialQuery -> resolveConsentScheme(SD_JWT, meta.vctValues)
-
         is DCQLJwtVcCredentialQuery -> resolveConsentScheme(
             PLAIN_JWT,
             meta.typeValues.list.flatten().filterNot { it == VERIFIABLE_CREDENTIAL },
         )
 
         is DCQLIsoMdocZkCredentialQuery -> resolveConsentScheme(ISO_MDOC, listOf(meta.doctypeValue))
+        is DCQLX509CredentialQuery -> TODO()
     }
 
     // assuming all claims path pointers are single claim references
     val singleReferenceClaimsQueries = this.claims?.associateWith {
         when (it) {
-            is DCQLJsonClaimsQuery -> JsonClaimReference(
-                NormalizedJsonPath(it.path.map {
-                    when (it) {
-                        is DCQLClaimsPathPointerSegment.IndexSegment -> IndexSegment(it.index)
-                        is DCQLClaimsPathPointerSegment.NameSegment -> NameSegment(it.name)
-                        DCQLClaimsPathPointerSegment.NullSegment -> null
-                    }
-                }.takeWhile {
-                    it != null
-                }.filterNotNull())
-            )
+            is DCQLJsonClaimsQuery -> JsonClaimReference(it.path.toNormalizedJsonPathUntilWildcard())
 
             is DCQLIsoMdocClaimsQuery -> MdocClaimReference(namespace = it.namespace, claimName = it.claimName)
 
@@ -187,6 +178,7 @@ suspend fun DCQLCredentialQuery.extractConsentData(): DcqlConsentData {
 internal fun DCQLCredentialQuery.zkMode(): ZkMode = when (this) {
     is DCQLIsoMdocZkCredentialQuery ->
         zkModeOf(meta.zkSystemType.systemSpecs.isNotEmpty(), meta.zkSystemType.zkRequired)
+
     is DCQLIsoMdocCredentialQuery -> ZkMode.PLAIN
     else -> ZkMode.UNKNOWN
 }
@@ -293,7 +285,7 @@ fun NormalizedJsonPath.minus(name: String) =
 
 @Composable
 fun DcqlConsentData.toCredentialQueryUiModel(
-    allowedAttributes:  RequestCredentialAttributesValidity? = null
+    allowedAttributes: RequestCredentialAttributesValidity? = null
 ): DCQLCredentialQueryUiModel {
     val (representation, scheme, attributePaths) = this
     return DCQLCredentialQueryUiModel(
@@ -323,22 +315,38 @@ fun DcqlConsentData.toCredentialQueryUiModel(
 }
 
 // Last-resort label when no metadata localization exists: render the claim path itself,
-// not the value-class wrapper (path.toString() would print "JsonClaimReference(normalizedJsonPath=$['family_name'])").
+// not the value-class wrapper (toString() would print "JsonClaimReference(path=DCQLClaimsPathPointer([family_name]))").
 fun SingleClaimReference.displayPath(): String = when (this) {
-    is JsonClaimReference -> normalizedJsonPath.toShorthandNameSegmentNotationWherePossible().removePrefix("$.")
+    is JsonClaimReference -> path.toNormalizedJsonPathUntilWildcard()
+        .toShorthandNameSegmentNotationWherePossible().removePrefix("$.")
     is MdocClaimReference -> NormalizedJsonPath(
         NameSegment(namespace),
         NameSegment(claimName)
     ).toShorthandNameSegmentNotationWherePossible().removePrefix("$.")
 }
 
+/**
+ * The concrete part of this claims path pointer, up to its first array wildcard, e.g. `$['nationalities']` for
+ * `["nationalities", null]`, as a [NormalizedJsonPath] can not select all elements of an array.
+ */
+fun DCQLClaimsPathPointer.toNormalizedJsonPathUntilWildcard(): NormalizedJsonPath =
+    NormalizedJsonPath(map {
+        when (it) {
+            is DCQLClaimsPathPointerSegment.IndexSegment -> IndexSegment(it.index)
+            is DCQLClaimsPathPointerSegment.NameSegment -> NameSegment(it.name)
+            DCQLClaimsPathPointerSegment.NullSegment -> null
+        }
+    }.takeWhile {
+        it != null
+    }.filterNotNull())
+
 fun ConstantIndex.CredentialRepresentation.getMetadataLocalization(
     claimReference: SingleClaimReference
 ) = when (claimReference) {
-    is JsonClaimReference -> claimReference.normalizedJsonPath.filterIsInstance<NameSegment>()
+    is JsonClaimReference -> claimReference.path.filterIsInstance<DCQLClaimsPathPointerSegment.NameSegment>()
         .firstOrNull()
         ?.takeIf { this != ISO_MDOC }
-        ?.let { jwtClaimLabel(it.memberName) }
+        ?.let { jwtClaimLabel(it.name) }
 
     is MdocClaimReference -> null
 }

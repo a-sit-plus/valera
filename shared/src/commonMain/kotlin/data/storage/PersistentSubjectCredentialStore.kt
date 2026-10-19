@@ -1,5 +1,7 @@
 package data.storage
 
+import at.asitplus.KmmResult
+import at.asitplus.catching
 import at.asitplus.catchingUnwrapped
 import at.asitplus.csc.api.serializers.Base64X509CertificateSerializer
 import at.asitplus.iso.IssuerSigned
@@ -38,6 +40,17 @@ class PersistentSubjectCredentialStore(
     }
 
     override suspend fun storeCredential(
+        entry: SubjectCredentialStore.StoreEntry
+    ): KmmResult<SubjectCredentialStore.StoreEntry> = catching {
+        entry.also { addStoreEntry(it) }
+    }
+
+
+    @Deprecated(
+        "Use storeCredential(StoreEntry)",
+        replaceWith = ReplaceWith("storeCredential(SubjectCredentialStore.StoreEntry.Vc(vcSerialized = vcSerialized, vc = vc, renewalInfo = renewalInfo, issuer = issuer, schemeIdentifier = scheme.vcType)).getOrThrow()")
+    )
+    override suspend fun storeCredential(
         vc: VerifiableCredentialJws,
         vcSerialized: String,
         scheme: VcJwtCredentialScheme,
@@ -54,6 +67,10 @@ class PersistentSubjectCredentialStore(
     }
 
 
+    @Deprecated(
+        "Use storeCredential(StoreEntry)",
+        replaceWith = ReplaceWith("storeCredential(SubjectCredentialStore.StoreEntry.SdJwt(vcSerialized = vcSerialized, sdJwt = vc, disclosures = disclosures, renewalInfo = renewalInfo, issuer = issuer, schemeIdentifier = scheme.sdJwtType)).getOrThrow()")
+    )
     override suspend fun storeCredential(
         vc: VerifiableCredentialSdJwt,
         vcSerialized: String,
@@ -72,6 +89,10 @@ class PersistentSubjectCredentialStore(
         addStoreEntry(it)
     }
 
+    @Deprecated(
+        "Use storeCredential(StoreEntry)",
+        replaceWith = ReplaceWith("storeCredential(SubjectCredentialStore.StoreEntry.Iso(issuerSigned = issuerSigned, renewalInfo = renewalInfo, issuer = issuer, schemeIdentifier = scheme.isoDocType)).getOrThrow()")
+    )
     override suspend fun storeCredential(
         issuerSigned: IssuerSigned,
         scheme: IsoMdocCredentialScheme,

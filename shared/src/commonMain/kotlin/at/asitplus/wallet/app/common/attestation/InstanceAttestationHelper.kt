@@ -89,7 +89,8 @@ class InstanceAttestationHelper(
 
     private suspend fun getAttestationProof(preferredClientStatusPeriod: Duration) =
         getAttestationChallenge().getOrThrow().let { challenge ->
-            PlatformSigningProvider.deleteSigningKey(alias = KS_ALIAS_WIA)
+            // Best effort, there may be no key to delete yet
+            val _ = PlatformSigningProvider.deleteSigningKey(alias = KS_ALIAS_WIA)
             challenge.createAttestationProof(
                 alias = KS_ALIAS_WIA, additionalCsrAttributes = listOf(
                     Pkcs10CertificationRequestAttribute(

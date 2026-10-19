@@ -45,10 +45,12 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.catching
+import at.asitplus.openid.Base64URLTransactionDataSerializer
 import at.asitplus.openid.QCertCreationAcceptance
 import at.asitplus.openid.QesAuthorization
 import at.asitplus.openid.TransactionDataBase64Url
 import at.asitplus.signum.indispensable.io.Base64UrlStrict
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_location
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_name
@@ -63,7 +65,6 @@ import at.asitplus.valera.resources.section_heading_transaction_data
 import at.asitplus.valera.resources.trust_status_title
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.relyingParty.ui.RelyingPartyValidationView
-import at.asitplus.wallet.lib.data.toTransactionData
 import io.github.aakira.napier.Napier
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import kotlinx.coroutines.flow.flowOf
@@ -217,8 +218,12 @@ fun TransactionDataView(transactionData: TransactionDataBase64Url) {
         var showContent by remember { mutableStateOf(false) }
 
         val density = LocalDensity.current
-        val parsedTransactionData = catching { transactionData.toTransactionData() }
-            .onFailure { Napier.e("transactionData: error", it) }
+        val parsedTransactionData = catching {
+            joseCompliantSerializer.decodeFromJsonElement(
+                Base64URLTransactionDataSerializer,
+                transactionData
+            )
+        }.onFailure { Napier.e("transactionData: error", it) }
             .getOrNull()
         Text(
             text = stringResource(Res.string.section_heading_transaction_data),

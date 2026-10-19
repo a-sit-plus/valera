@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
@@ -24,6 +23,7 @@ import at.asitplus.wallet.app.common.DcqlConsentData
 import at.asitplus.wallet.app.common.IsoDeviceRequestConsentData
 import at.asitplus.wallet.app.common.ZkMode
 import at.asitplus.wallet.app.common.extractConsentData
+import at.asitplus.wallet.app.common.toNormalizedJsonPathUntilWildcard
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.data.JsonClaimReference
@@ -46,9 +46,6 @@ fun PresentationRequestPreview(
     when (presentationRequest) {
         is DCQLRequest -> DcqlRequestPreview(presentationRequest, errorAction)
         is CredentialPresentationRequest.IsoDeviceRetrieval -> IsoDeviceRequestPreview(presentationRequest, errorAction)
-        else -> LaunchedEffect(presentationRequest) {
-            errorAction(UnsupportedOperationException("Unsupported presentation request: ${presentationRequest::class.simpleName}"))
-        }
     }
 }
 
@@ -126,7 +123,7 @@ fun DcqlRequestPreview(
             attributes = attributePaths?.map {
                 when (it) {
                     is MdocClaimReference -> NormalizedJsonPath() + it.namespace + it.claimName
-                    is JsonClaimReference -> it.normalizedJsonPath
+                    is JsonClaimReference -> it.path.toNormalizedJsonPathUntilWildcard()
                     null -> null
                 }
             }?.associateWith { false },

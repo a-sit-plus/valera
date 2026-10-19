@@ -218,9 +218,6 @@ fun PresentationBuilderGraphView(
                     }
                 }
 
-                else -> LaunchedEffect(queryMatchingResult::class.simpleName) {
-                    onError(UnsupportedOperationException("Unsupported credential matching result: ${queryMatchingResult::class.simpleName}"))
-                }
             }
         }
     }
