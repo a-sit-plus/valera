@@ -4,6 +4,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
+import at.asitplus.iso.SessionTranscript
+import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_nfc_engagement_verifier
 import at.asitplus.wallet.app.common.data.SettingsRepository
@@ -11,6 +13,7 @@ import at.asitplus.wallet.app.common.iso.transfer.state.TransferTransport
 import at.asitplus.wallet.app.common.presentation.NfcDispatchSuppressionMode
 import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
+import at.asitplus.wallet.lib.validation.PresentationContext
 import data.document.RequestDocumentList
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellableContinuation
@@ -29,15 +32,12 @@ import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.atTime
 import kotlinx.datetime.toInstant
 import kotlinx.io.bytestring.ByteString
+import kotlinx.serialization.decodeFromByteArray
 import org.jetbrains.compose.resources.getString
 import org.multipaz.asn1.ASN1Integer
-import org.multipaz.cbor.Bstr
 import org.multipaz.cbor.Cbor
 import org.multipaz.cbor.DataItem
 import org.multipaz.cbor.Simple
-import org.multipaz.cbor.Tagged
-import org.multipaz.cbor.buildCborArray
-import org.multipaz.cbor.toDataItem
 import org.multipaz.crypto.AsymmetricKey
 import org.multipaz.crypto.Crypto
 import org.multipaz.crypto.EcCurve
@@ -52,7 +52,6 @@ import org.multipaz.mdoc.connectionmethod.MdocConnectionMethodNfc
 import org.multipaz.mdoc.engagement.DeviceEngagement
 import org.multipaz.mdoc.nfc.MdocReaderNfcHandoverOptions
 import org.multipaz.mdoc.nfc.scanMdocReader
-import org.multipaz.mdoc.request.DeviceRequest
 import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.sessionencryption.SessionEncryption
 import org.multipaz.mdoc.transport.MdocTransport
@@ -116,7 +115,11 @@ class TransferManager(
     }
 
     var readerMostRecentDeviceResponse = mutableStateOf<ByteArray?>(null)
-    var readerSessionTranscript: ByteArray? = null
+    /**
+     * The context of the device authentication of the documents of the current reader session: its transcript, which
+     * the holder signs or MACs, and the reader's ephemeral key to verify a MAC.
+     */
+    var readerPresentationContext: PresentationContext? = null
 
     data class ConnectionMethodPickerData(
         val showPicker: Boolean,
@@ -350,21 +353,6 @@ class TransferManager(
         }
     }
 
-    private fun generateEncodedSessionTranscript(
-        encodedDeviceEngagement: ByteArray,
-        handover: DataItem,
-        eReaderKey: EcPublicKey
-    ): ByteArray {
-        val encodedEReaderKey = Cbor.encode(eReaderKey.toCoseKey().toDataItem())
-        return Cbor.encode(
-            buildCborArray {
-                add(Tagged(24, Bstr(encodedDeviceEngagement)))
-                add(Tagged(24, Bstr(encodedEReaderKey)))
-                add(handover)
-            }
-        )
-    }
-
     fun doQrFlow(
         qrCode: String,
         documentRequestList: RequestDocumentList,
@@ -477,7 +465,7 @@ class TransferManager(
         setDeviceResponseBytes: (KmmResult<ByteArray>) -> Unit
     ) {
         readerTransport.value = transport
-        val encodedSessionTranscript = generateEncodedSessionTranscript(
+        val encodedSessionTranscript = encodeSessionTranscript(
             encodedDeviceEngagement.toByteArray(),
             handover,
             eReaderKey.publicKey
@@ -489,25 +477,20 @@ class TransferManager(
             encodedSessionTranscript,
         )
         readerSessionEncryption.value = sessionEncryption
-        this.readerSessionTranscript = encodedSessionTranscript
+        this.readerPresentationContext = PresentationContext.forMdoc(
+            sessionTranscript = coseCompliantSerializer.decodeFromByteArray<SessionTranscript>(encodedSessionTranscript),
+            eReaderKey = eReaderKey.toKeyAgreementPrivateValue(),
+        )
 
         val readerAuthKey = AsymmetricKey.X509CertifiedExplicit(
             certChain = X509CertChain(listOf(readerCert, readerRootCert)),
             privateKey = readerKey
         )
-        val deviceRequestBuilder = DeviceRequest.Builder(
-            sessionTranscript = encodedSessionTranscript.toDataItem()
+        val encodedDeviceRequest = encodeReaderDeviceRequest(
+            encodedSessionTranscript,
+            documentRequestList.getAll(),
+            readerAuthKey,
         )
-        documentRequestList.getAll().forEach { requestDocument ->
-            deviceRequestBuilder.addDocRequest(
-                docType = requestDocument.docType,
-                nameSpaces = requestDocument.itemsToRequest,
-                docRequestInfo = null,
-                readerKey = readerAuthKey
-            )
-        }
-        val deviceRequest = deviceRequestBuilder.build()
-        val encodedDeviceRequest = Cbor.encode(deviceRequest.toDataItem())
 
         var responseReceived = false
         var completionReported = false

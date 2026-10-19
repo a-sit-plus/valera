@@ -3,6 +3,7 @@ package at.asitplus.wallet.app.common.domain.vck.di
 import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.domain.vck.tokenStatusList.di.tokenStatusListModule
+import at.asitplus.wallet.app.common.iso.verifier.ProximityResponseValidator
 import at.asitplus.wallet.app.common.trust.RegistrationCertificateAnchors
 import at.asitplus.wallet.app.common.validation.StoredCredentialValidator
 import at.asitplus.wallet.lib.agent.HolderAgent
@@ -59,6 +60,7 @@ fun vckModule() = module {
             )
         }
         scopedOf(::StoredCredentialValidator)
+        scopedOf(::ProximityResponseValidator)
         scoped<HolderAgent> {
             val keyMaterial: KeyMaterial by inject()
             val subjectCredentialStore: SubjectCredentialStore by inject()
