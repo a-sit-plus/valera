@@ -8,6 +8,7 @@ import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.data.primitives.CachingStatusListTokenResolver
 import at.asitplus.wallet.app.common.data.primitives.SimpleBootstrappingBulkStore
 import at.asitplus.wallet.app.common.data.primitives.SimpleCacheStoreWrapper
+import at.asitplus.wallet.app.common.failOnForeignCancellation
 import at.asitplus.wallet.lib.agent.validation.StatusListTokenResolver
 import at.asitplus.wallet.lib.data.StatusListJwt
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.MediaTypes
@@ -52,14 +53,19 @@ fun tokenStatusListModule() = module {
                 ),
                 // Failure backoff for broken status endpoints (404/503) is handled at the HTTP layer by the
                 // HttpFailureCache plugin on the shared cached client (see HttpService.buildHttpClient).
+                // VC-K reports a failed resolution as an unknown status, but rethrows a cancellation, also one of a
+                // request whose job was cancelled, which would end validating the credential or relying party.
                 statusListTokenResolver = {
-                    val httpResponse = client.get(it.string) {
-                        headers[HttpHeaders.Accept] = MediaTypes.Application.STATUSLIST_JWT
+                    failOnForeignCancellation {
+                        val httpResponse = client.get(it.string) {
+                            headers[HttpHeaders.Accept] = MediaTypes.Application.STATUSLIST_JWT
+                        }
+                        StatusListJwt(
+                            catching { JwsCompactTyped<StatusListTokenPayload>(httpResponse.bodyAsText()) }
+                                .getOrThrow(),
+                            resolvedAt = Clock.System.now(),
+                        )
                     }
-                    StatusListJwt(
-                        catching { JwsCompactTyped<StatusListTokenPayload>(httpResponse.bodyAsText()) }.getOrThrow(),
-                        resolvedAt = Clock.System.now(),
-                    )
                 }
             )
         }

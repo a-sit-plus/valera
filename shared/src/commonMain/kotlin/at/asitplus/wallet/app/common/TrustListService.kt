@@ -1,7 +1,6 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.KmmResult
-import at.asitplus.catching
 import at.asitplus.catchingUnwrapped
 import at.asitplus.etsi.ListOfTrustedEntities
 import at.asitplus.etsi.TrustListPayload
@@ -38,6 +37,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.Url
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -49,6 +49,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -125,7 +126,7 @@ class TrustListService(
 
         val freshTrustLists = trustLists.filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
         evaluate(target, freshTrustLists)
-    }.catch {
+    }.flowOn(Dispatchers.Default).catch {
         // Collected by the UI, where an exception would end the flow
         Napier.e("Failed to observe the trust state", it)
         emit(TrustState.UNKNOWN)
@@ -175,7 +176,7 @@ class TrustListService(
                 TrustState.UNTRUSTED
             }
         }
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
         Napier.e("Failed to evaluate issuer trust status due to unexpected error", e)
         TrustState.UNKNOWN
     }
@@ -223,15 +224,21 @@ class TrustListService(
                 pruneTrustListsOfDisabledStages(urls)
                 if (urls.isEmpty()) return@collectLatest
                 while (isActive) {
-                    val failed = !sharedRefresh(urls).await()
-                    val cachedAt = urls.mapNotNull { persistentTrustListStore.getCachedAt(it) }
-                    delay(
+                    // An exception would end the checks, and be reported by the session as an error, e.g. while
+                    // presenting credentials in the iOS extension; retry after the interval instead
+                    val nextRefreshIn = catchingUnlessCancelled {
+                        val failed = !sharedRefresh(urls).await()
+                        val cachedAt = urls.mapNotNull { persistentTrustListStore.getCachedAt(it) }
                         if (failed || cachedAt.size != urls.size) retryInterval
                         else maxOf(
                             1.seconds,
                             cachedAt.nextRefreshIn(clock.now(), Configuration.CACHE_TTL_TRUST_LIST),
                         )
-                    )
+                    }.getOrElse {
+                        Napier.e("Checking Trust Lists failed", it)
+                        retryInterval
+                    }
+                    delay(nextRefreshIn)
                 }
             }
         }
@@ -250,7 +257,7 @@ class TrustListService(
      * @return whether every list and the anchors could be loaded
      */
     suspend fun reloadAllTrustLists(): Boolean = sessionCoroutineScope.async {
-        catchingUnwrapped {
+        catchingUnlessCancelled {
             val urls = trustListUrls.first()
             // A client of its own bypasses the HTTP cache and the cooldown after failures of the shared one.
             val client = httpService.buildHttpClient()
@@ -272,20 +279,24 @@ class TrustListService(
      * not have refreshed them yet. The refresh continues in the session after the timeout, so that trust states
      * observed from the lists update once it completes.
      *
-     * @return whether every list is fresh, `false` if a list could not be fetched within [timeout]
+     * @return whether every list is fresh, `false` if a list could not be fetched within [timeout], or the refresh
+     * failed in any other way, as validating with the cached lists is still possible
      */
-    suspend fun refreshStaleTrustLists(timeout: Duration): Boolean {
+    suspend fun refreshStaleTrustLists(timeout: Duration): Boolean = catchingUnlessCancelled {
         val urls = trustListUrls.first()
-        if (urls.isEmpty()) return true
-        return withTimeoutOrNull(timeout) { sharedRefresh(urls).await() }
+        if (urls.isEmpty()) return@catchingUnlessCancelled true
+        withTimeoutOrNull(timeout) { sharedRefresh(urls).await() }
             ?: false.also { Napier.w("Trust Lists not refreshed within $timeout, using cached lists") }
+    }.getOrElse {
+        Napier.e("Could not refresh Trust Lists, using cached lists", it)
+        false
     }
 
     /** The running refresh of [urls], or a new one in the session, see [refreshStaleEntries]; whether it succeeded. */
     private suspend fun sharedRefresh(urls: List<String>): Deferred<Boolean> = refreshMutex.withLock {
         pendingRefresh?.takeIf { (pendingUrls, refresh) -> pendingUrls == urls && refresh.isActive }?.second
             ?: sessionCoroutineScope.async {
-                catchingUnwrapped { !refreshStaleEntries(urls) }
+                catchingUnlessCancelled { !refreshStaleEntries(urls) }
                     .getOrElse {
                         Napier.e("Could not refresh Trust Lists", it)
                         false
@@ -325,7 +336,7 @@ class TrustListService(
             .any { !it }
     }
 
-    private suspend fun syncSingleUrl(url: String, httpClient: HttpClient = client): Boolean = catching {
+    private suspend fun syncSingleUrl(url: String, httpClient: HttpClient = client): Boolean = catchingUnlessCancelled {
         val rawJwsText = fetchTrustList(url, httpClient).getOrThrow()
         persistentTrustListStore.persistTrustList(url, rawJwsText, clock.now())
         Napier.i("Successfully synced and persisted Trust List: $url")
@@ -335,9 +346,13 @@ class TrustListService(
 
     /**
      * Fetches the signed List of Trusted Entities (LoTE)
-     * Returns the raw signed payload after parsing and signature verification.
+     * Returns the raw signed payload after parsing and signature verification, or a failure for any error of the
+     * request, e.g. a [HttpResourceInCooldownException] or a request cancelled by the client.
      */
-    suspend fun fetchTrustList(url: String, httpClient: HttpClient = client): KmmResult<String> = catching {
+    suspend fun fetchTrustList(
+        url: String,
+        httpClient: HttpClient = client,
+    ): KmmResult<String> = catchingUnlessCancelled {
         Napier.i("Fetching Trust List from: $url")
         val response = httpClient.get(url) {
             accept(ContentType.Application.Json)
@@ -351,17 +366,25 @@ class TrustListService(
 
     suspend fun getTrustList(
         profile: LoteProfile
-    ) = catching {
+    ) = catchingUnlessCancelled {
         freshTrustLists()
             .flatMap { lote -> loTeFilterService.extractIssuanceCertificates(lote, profile) }
             .mapNotNull { it.certificate } + asitIssuerCert
     }
 
-    /** The lists of every enabled stage that are not older than [Configuration.CACHE_TTL_TRUST_LIST]. */
-    suspend fun freshTrustLists(): Collection<ListOfTrustedEntities> =
+    /**
+     * The lists of every enabled stage that are not older than [Configuration.CACHE_TTL_TRUST_LIST], none if they can
+     * not be read. Read by the validators of VC-K for their anchors, which do not catch exceptions of them, so that
+     * one would end validating a request, instead of not trusting what the lists cover.
+     */
+    suspend fun freshTrustLists(): Collection<ListOfTrustedEntities> = catchingUnlessCancelled {
         persistentTrustListStore.observeTrustContainer(trustListUrls.first()).first()
             .filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
             .values
+    }.getOrElse {
+        Napier.e("Could not read Trust Lists, trusting none", it)
+        emptyList()
+    }
 
     /**
      * Anchors of [profile] for the validators of VC-K, read from the fresh lists whenever they are used: the

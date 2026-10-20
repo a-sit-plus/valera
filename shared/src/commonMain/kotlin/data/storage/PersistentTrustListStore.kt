@@ -5,10 +5,12 @@ import at.asitplus.etsi.ListOfTrustedEntities
 import at.asitplus.etsi.TrustListPayload
 import at.asitplus.signum.indispensable.josef.JwsCompact
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -45,9 +47,10 @@ class PersistentTrustListStore(
             }
         }
 
+        // Parsing the lists is CPU-intensive, and the trust states collected by the UI observe them
         return combine(flows) { array ->
             array.mapNotNull { (url, entry) -> entry?.let { url to it } }.toMap()
-        }
+        }.flowOn(Dispatchers.Default)
     }
 
     private fun parseStored(stored: String?): Pair<ListOfTrustedEntities, Instant>? {
