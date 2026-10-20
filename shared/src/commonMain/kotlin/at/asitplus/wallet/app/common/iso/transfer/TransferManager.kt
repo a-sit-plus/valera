@@ -292,7 +292,7 @@ class TransferManager(
             },
             options = MdocTransportOptions(
                 bleUseL2CAP = config.bleUseL2CAPEnabled.first(),
-                bleUseL2CAPInEngagement = config.bleUseL2CAPEnabled.first()
+                bleUseL2CAPInEngagement = config.bleUseL2CAPInEngagementEnabled.first()
             ),
             // NFCv2 engagement stays off: our own holder side (NdefDeviceEngagementService) only
             // offers the ISO/IEC 18013-5:2021 NDEF engagement.

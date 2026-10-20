@@ -22,6 +22,8 @@
  * Trust Lists: Load root certificates of registration certificate (WRPRC) providers from a bundled file and from a URL configurable in the settings
  * Trust Lists: Load the WRPRC trust anchors from the trusted certificates of the EUDI Wallets Launchpad 2026 by default, a ZIP archive whose folder “WRPRC Provider CA Certificates” holds the providers, and “WRPRC Revocation List Signing Certificates” the signers of their status lists, with PEM or DER encoded files; persist and refresh them in the background like the Lists of Trusted Entities
  * Settings: Add “Refresh trust lists”, which downloads every List of Trusted Entities and the WRPRC trust anchors again, and a button to restore the default WRPRC trust anchors URL
+ * Proximity: Keep the Bluetooth connection open after sending the response until the reader closes it, for up to five seconds, so that the reader receives the response instead of failing with a closed connection
+ * Proximity verifier: Honor the “Enable L2CAP in engagement” setting for NFC engagement, which used the general L2CAP setting instead
 
 # Release 5.9.0:
  * Issuing and presentation: Accept Launchpad `eu-eaa-offer` and `eu-eaap` links on Android and iOS

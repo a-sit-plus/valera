@@ -6,6 +6,7 @@ import at.asitplus.wallet.app.common.iso.transfer.encodeSessionTranscript
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.decodeFromByteArray
 import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.sessionencryption.SessionEncryption
@@ -23,6 +25,7 @@ import org.multipaz.mdoc.transport.NfcTransportMdoc
 import org.multipaz.util.Constants
 import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.authentication.PresentationViewModel
+import kotlin.time.Duration.Companion.seconds
 
 
 // Based on the identity-credential sample code
@@ -57,7 +60,7 @@ class MdocPresenter(
             }
         }
         try {
-            runProcess(dismissible, numRequestsServed, credentialSelected, transport)
+            runProcess(dismissible, numRequestsServed, credentialSelected, transport, transportMonitorJob)
         } catch (_: MdocTransportClosedException) {
             // Nothing to do, this is thrown when transport.close() is called from another coroutine, that
             // is, the X in the top-right
@@ -84,7 +87,8 @@ class MdocPresenter(
         dismissible: MutableStateFlow<Boolean>,
         numRequestsServed: MutableStateFlow<Int>,
         credentialSelected: (ByteArray) -> Unit,
-        transport: MdocTransport
+        transport: MdocTransport,
+        transportMonitorJob: Job,
     ) {
         var sessionEncryption: SessionEncryption? = null
         var encodedSessionTranscript: ByteArray? = null
@@ -200,6 +204,20 @@ class MdocPresenter(
                     if (mechanism.transport is NfcTransportMdoc) {
                         Napier.i("NFC response sent; allowing reader APDU exchange to drain before closing holder transport")
                         delay(NFC_TRANSPORT_DRAIN_DELAY_MS)
+                    } else {
+                        // Closing a BLE transport disconnects GATT right away, which tears down the
+                        // link (and the L2CAP channel on it) while the response may still be in
+                        // flight, so the reader fails waiting for it. The reader closes the
+                        // connection once it got the response with the session termination status.
+                        // A dropped connection is expected from here on, not a failed presentment.
+                        transportMonitorJob.cancel()
+                        Napier.i("Response sent; waiting up to $READER_CLOSE_TIMEOUT for the reader to close the connection")
+                        val readerClosed = withTimeoutOrNull(READER_CLOSE_TIMEOUT) {
+                            transport.state.first { it == State.FAILED || it == State.CLOSED }
+                        }
+                        if (readerClosed == null) {
+                            Napier.w("Reader did not close the connection in $READER_CLOSE_TIMEOUT, closing it")
+                        }
                     }
                     Napier.i("Response sent, completing single-request presentment")
                     stateModel.setCompleted()
@@ -220,5 +238,6 @@ class MdocPresenter(
 
     private companion object {
         private const val NFC_TRANSPORT_DRAIN_DELAY_MS = 1_500L
+        private val READER_CLOSE_TIMEOUT = 5.seconds
     }
 }
