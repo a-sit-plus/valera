@@ -43,6 +43,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -124,6 +125,10 @@ class TrustListService(
 
         val freshTrustLists = trustLists.filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
         evaluate(target, freshTrustLists)
+    }.catch {
+        // Collected by the UI, where an exception would end the flow
+        Napier.e("Failed to observe the trust state", it)
+        emit(TrustState.UNKNOWN)
     }
 
 
@@ -279,7 +284,13 @@ class TrustListService(
     /** The running refresh of [urls], or a new one in the session, see [refreshStaleEntries]; whether it succeeded. */
     private suspend fun sharedRefresh(urls: List<String>): Deferred<Boolean> = refreshMutex.withLock {
         pendingRefresh?.takeIf { (pendingUrls, refresh) -> pendingUrls == urls && refresh.isActive }?.second
-            ?: sessionCoroutineScope.async { !refreshStaleEntries(urls) }.also { pendingRefresh = urls to it }
+            ?: sessionCoroutineScope.async {
+                catchingUnwrapped { !refreshStaleEntries(urls) }
+                    .getOrElse {
+                        Napier.e("Could not refresh Trust Lists", it)
+                        false
+                    }
+            }.also { pendingRefresh = urls to it }
     }
 
     /**

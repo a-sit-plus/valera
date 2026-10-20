@@ -18,6 +18,7 @@ import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.openid.DcApiPreparationState
 import at.asitplus.wallet.lib.oidvci.OAuth2Exception
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -71,6 +72,8 @@ class DCAPIPresentationGraphViewModel(
                         relyingPartyValidation = relyingPartyValidation,
                     )
                 )
+            } catch (it: CancellationException) {
+                throw it
             } catch (it: Throwable) {
                 val response = when (it) {
                     is OAuth2Exception -> it
@@ -124,6 +127,9 @@ class DCAPIPresentationGraphViewModel(
                     preparationState = uiState.preparationState,
                 )
                 onSuccess()
+            } catch (it: CancellationException) {
+                // The flow has been left, there is no one to report a failure to
+                throw it
             } catch (_: UserInitiatedCancellationReason) {
                 mutableIsSubmitting.value = false
                 walletMain.snackbarService.showSnackbar(

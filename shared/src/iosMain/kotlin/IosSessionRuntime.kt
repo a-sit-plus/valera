@@ -15,6 +15,10 @@ import data.storage.createDataStore
 import io.github.aakira.napier.Antilog
 import io.github.aakira.napier.LogLevel
 import io.github.aakira.napier.Napier
+import kotlin.experimental.ExperimentalNativeApi
+import kotlin.native.ReportUnhandledExceptionHook
+import kotlin.native.setUnhandledExceptionHook
+import kotlin.native.terminateWithUnhandledException
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import org.koin.core.context.startKoin
@@ -65,6 +69,7 @@ private object IosSessionRuntime {
             }
 
             initializeLogging(buildContext, antilog)
+            logUnhandledExceptions()
             startKoin {
                 modules(appModule(), module { single { buildContext } })
             }
@@ -296,6 +301,18 @@ private object IosSessionRuntime {
                 intentState.appLink.value = IOS_DC_API_CALL
                 intentState.finishApp = { state.data.onCancel() }
             }
+        }
+    }
+
+    // An uncaught exception terminates the process, e.g. the Identity Document Provider extension in the middle of a
+    // request, and is otherwise only printed to stderr: write it to the log first, which can be shared from the app
+    @OptIn(ExperimentalNativeApi::class)
+    private fun logUnhandledExceptions() {
+        var previousHook: ReportUnhandledExceptionHook? = null
+        previousHook = setUnhandledExceptionHook { throwable ->
+            runCatching { Napier.e("Uncaught exception, terminating", throwable) }
+            previousHook?.invoke(throwable)
+            terminateWithUnhandledException(throwable)
         }
     }
 
