@@ -132,6 +132,28 @@ class TrustListStageSettingsTest {
     }
 
     @Test
+    fun readsTheCachedTimeWithoutParsingTheList() = runTest {
+        val store = PersistentTrustListStore(DummyDataStoreService())
+        val url = LoTEStage.PRODUCTION.fetchUrl(LoteProfile.PID)
+        val cachedAt = Instant.fromEpochMilliseconds(1_000)
+        store.persistTrustList(url, "not-a-trust-list", cachedAt)
+
+        assertEquals(cachedAt, store.getCachedAt(url))
+        assertEquals(emptyMap(), store.observeTrustContainer(listOf(url)).first())
+    }
+
+    @Test
+    fun readsALegacyValueAsCachedAtEpoch() = runTest {
+        val dataStoreService = DummyDataStoreService()
+        val store = PersistentTrustListStore(dataStoreService)
+        val url = LoTEStage.PRODUCTION.fetchUrl(LoteProfile.PID)
+        dataStoreService.setPreference("legacy-raw-jws", url)
+
+        assertEquals(Instant.fromEpochMilliseconds(0), store.getCachedAt(url))
+        assertNull(store.getCachedAt(LoTEStage.DEVELOPMENT.fetchUrl(LoteProfile.PID)))
+    }
+
+    @Test
     fun observesAnEmptyTrustContainerWithoutAnyEnabledStage() = runTest {
         val store = PersistentTrustListStore(DummyDataStoreService())
 

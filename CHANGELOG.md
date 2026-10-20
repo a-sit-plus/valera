@@ -28,6 +28,7 @@
  * Presentation: Show a loading screen while the selected credentials are sent to the relying party, and ignore repeated confirmations, which could submit a presentation twice
  * DC API: Open the credential selection on iOS only once after continuing, as a late second navigation could replace it while in use, and show a credential whose freshness or issuer trust can not be evaluated as not checked instead of ending the flow; log uncaught exceptions before the process terminates, and requests the system cancels
  * Trust Lists: Continue a presentation with the cached lists if refreshing them, or the WRPRC trust anchors, fails in any way, e.g. as a request failed, was cancelled by its client or is in its failure cooldown, which could end the DC API flow on iOS; lists that can not be read establish no trust, a status list that can not be fetched is reported as unknown, and the lists are parsed off the main thread
+ * Trust Lists: Parse each persisted list once per process, one at a time, and only when it changed, instead of every list for every trust state shown and again on every change of any stored value, which exceeded the memory limit of the iOS Identity Document Provider extension, so that the system terminated it with the lists of several stages enabled
 
 # Release 5.9.0:
  * Issuing and presentation: Accept Launchpad `eu-eaa-offer` and `eu-eaap` links on Android and iOS
