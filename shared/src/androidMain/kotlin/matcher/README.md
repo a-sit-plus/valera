@@ -55,3 +55,10 @@ the selected protocol to each entry's subtitle. Upstream stops after the first m
 boolean `enforceTrustedAuthorityAndReaderIdentifierMatching`. Matching is disabled when the field
 is absent, malformed, or `false`; setting it to `true` enforces both trusted-authority issuer
 identifiers and reader identifiers while preserving all other matching criteria.
+
+`wildcard-value-matching.patch` matches the `values` of a DCQL claim whose path contains a `null`
+wildcard against each selected array element, which the wallet registers under its index, e.g.
+`nationalities.0` for `["nationalities", null]`. The claim matches if any element does, as in
+VC-K's DCQL evaluation, and the picker shows the matching elements. Upstream compares the values
+against the single entry registered for the wildcard, whose comparison value is empty, so it
+rejects matching credentials and accepts `values: [""]`.

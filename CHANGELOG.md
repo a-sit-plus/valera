@@ -24,7 +24,7 @@
  * Settings: Add “Refresh trust lists”, which downloads every List of Trusted Entities and the WRPRC trust anchors again, and a button to restore the default WRPRC trust anchors URL
  * Proximity: Keep the Bluetooth connection open after sending the response until the reader closes it, for up to five seconds, so that the reader receives the response instead of failing with a closed connection
  * Proximity verifier: Honor the “Enable L2CAP in engagement” setting for NFC engagement, which used the general L2CAP setting instead
- * DC API: Match SD-JWT credentials on Android for DCQL claim paths with array indices or `null` wildcards, e.g. `["nationalities", null]` requested by the EUDI reference verifier, which matched no credential, by registering array claims per element and as a wildcard and updating the matcher to Multipaz `f7d8e684`
+ * DC API: Match SD-JWT credentials on Android for DCQL claim paths with array indices or `null` wildcards, e.g. `["nationalities", null]` requested by the EUDI reference verifier, which matched no credential, by registering array claims per element and as a wildcard and updating the matcher to Multipaz `f7d8e684`; `values` of a claim with a `null` wildcard match if any selected element matches
 
 # Release 5.9.0:
  * Issuing and presentation: Accept Launchpad `eu-eaa-offer` and `eu-eaap` links on Android and iOS

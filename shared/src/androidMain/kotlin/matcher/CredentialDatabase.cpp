@@ -297,6 +297,65 @@ std::string Credential::lookupClaimDisplayName(const std::vector<std::string>& p
     return path.back();
 }
 
+// Whether claimName, from position pos on, is the requested path from index on, joined with "." and with each
+// "null" (wildcard) segment replaced by an array index, e.g. "nationalities.0" for ["nationalities", null].
+static bool matchesWildcardPath(
+        const std::string& claimName,
+        size_t pos,
+        const std::vector<std::string>& path,
+        size_t index
+) {
+    if (index == path.size()) {
+        return pos == claimName.size();
+    }
+    if (index > 0) {
+        if (pos >= claimName.size() || claimName[pos] != '.') {
+            return false;
+        }
+        pos++;
+    }
+    const std::string& segment = path[index];
+    if (segment == "null") {
+        size_t end = pos;
+        while (end < claimName.size() && claimName[end] >= '0' && claimName[end] <= '9') {
+            end++;
+        }
+        return end > pos && matchesWildcardPath(claimName, end, path, index + 1);
+    }
+    return claimName.compare(pos, segment.size(), segment) == 0 &&
+            matchesWildcardPath(claimName, pos + segment.size(), path, index + 1);
+}
+
+// A wildcard selects all elements of an array, so its values match if those of any selected element do. The
+// wallet registers each element under its index; the claim registered for the wildcard itself has no single
+// value to compare against. Returns the matching element, or a claim listing all of them if several match.
+static Claim* findMatchingWildcardElements(Credential& credential, const DcqlRequestedClaim& requestedClaim) {
+    const std::vector<std::string>& values = requestedClaim.values;
+    std::vector<Claim*> matches;
+    for (auto& [claimName, claim] : credential.claims) {
+        if (matchesWildcardPath(claimName, 0, requestedClaim.path, 0) &&
+                std::find(values.begin(), values.end(), claim.matchValue) != values.end()) {
+            matches.push_back(&claim);
+        }
+    }
+    if (matches.size() <= 1) {
+        return matches.empty() ? nullptr : matches[0];
+    }
+    std::string key = requestedClaim.joinPath() + " values";
+    std::string combinedValue;
+    for (const auto& value : values) {
+        key += " " + value;
+    }
+    for (const auto* match : matches) {
+        combinedValue += (combinedValue.empty() ? "" : ", ") + match->value;
+    }
+    auto [it, _] = credential.dynamicDeviceClaims.insert_or_assign(
+        key,
+        Claim(requestedClaim.joinPath(), matches[0]->displayName, combinedValue, "")
+    );
+    return &(it->second);
+}
+
 Claim* Credential::findMatchingClaim(const DcqlRequestedClaim& requestedClaim) {
     auto joinedPath = requestedClaim.joinPath();
     if (omitClaims) {
@@ -320,6 +379,11 @@ Claim* Credential::findMatchingClaim(const DcqlRequestedClaim& requestedClaim) {
             return &(newIt->second);
         }
         return &(dynIt->second);
+    }
+
+    if (!requestedClaim.values.empty() &&
+            std::find(requestedClaim.path.begin(), requestedClaim.path.end(), "null") != requestedClaim.path.end()) {
+        return findMatchingWildcardElements(*this, requestedClaim);
     }
 
     auto ret = claims.find(joinedPath);

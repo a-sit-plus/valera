@@ -23,6 +23,8 @@ data class SdJwtEntry(
          * with `.`, where an array index is its decimal string and the `null` wildcard is `null`. Array claims are
          * therefore exported under their own key, per element (`nationalities.0`) and as a wildcard
          * (`nationalities.null`), and arrays of objects additionally as projections (`address.null.country`).
+         * The matcher compares the `values` of a wildcard path against the per-element entries, as a wildcard
+         * matches if any selected element does, so these are required even where a wildcard entry exists.
          */
         fun fromAttributeList(
             attributeList: List<Pair<NormalizedJsonPath, Any>>,
@@ -61,7 +63,8 @@ data class SdJwtEntry(
                         putSubClaims("$key.$index", path, element, displayName, attributeLabel)
                     }
                     if (value.isNotEmpty()) {
-                        // a wildcard selects all elements, which has no single value to compare against
+                        // a wildcard selects all elements, which have no single value to compare against; the matcher
+                        // matches values of wildcard paths against the per-element entries instead
                         put("$key.null", ExportedElements(displayName, value.toString().safeSubstring(128), ""))
                         putWildcardProjections("$key.null", path, value, attributeLabel)
                     }
