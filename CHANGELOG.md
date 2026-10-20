@@ -31,6 +31,7 @@
  * Trust Lists: Parse each persisted list once per process, one at a time, and only when it changed, instead of every list for every trust state shown and again on every change of any stored value, which exceeded the memory limit of the iOS Identity Document Provider extension, so that the system terminated it with the lists of several stages enabled
  * Trust Lists: Download each list once if “Refresh trust lists” and the background refresh run at the same time, e.g. after enabling a stage, which downloaded every list twice, and report an HTTP error of a list, e.g. 403, as such instead of failing to parse the error page as a list
  * DC API: Do not start the periodic checks of the stored credentials, of the Trust Lists and of the WRPRC trust anchors, nor load the ZK circuits ahead of time, in the iOS Identity Document Provider extension, to reduce its memory usage; its requests still refresh stale Trust Lists, and load the ZK circuits when the presentation is finalized
+ * Credentials: Decode the stored credentials again only if they changed, instead of on every change of any stored value, e.g. of the HTTP cache, which held a second copy of every credential, to reduce the memory usage of the iOS Identity Document Provider extension
 
 # Release 5.9.0:
  * Issuing and presentation: Accept Launchpad `eu-eaa-offer` and `eu-eaap` links on Android and iOS

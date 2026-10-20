@@ -21,6 +21,7 @@ import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -228,7 +229,9 @@ class PersistentSubjectCredentialStore(
     }
 
     override fun observeStoreContainer(): Flow<StoreContainer> {
-        return dataStore.getPreference(Configuration.DATASTORE_KEY_VCS).map {
+        // The preferences emit on every change of any key, e.g. of the HTTP cache, so the container is decoded only
+        // if its own value changed, instead of holding a second copy of every credential while decoding it again
+        return dataStore.getPreference(Configuration.DATASTORE_KEY_VCS).distinctUntilChanged().map {
             withContext(Dispatchers.Default) {
                 dataStoreValueToStoreContainer(it)
             }
