@@ -33,6 +33,7 @@ fun DCAPIPresentationGraphView(
     val authenticateAtRelyingParty = spLocation != "Local Presentation"
 
     val matchingResult by viewModel.selectionProvider.collectAsState()
+    val isSubmitting by viewModel.isSubmitting.collectAsState()
     val queryMatchingResult = (matchingResult as? UiStateSuccess)?.value
         ?.selectionProvider?.queryMatchingResult
     val selectedCredentialQueryIds = if (dcApiRequest.credentialIds?.isNotEmpty() == true) {
@@ -57,6 +58,7 @@ fun DCAPIPresentationGraphView(
         selectionProvider = matchingResult.map {
             it.selectionProvider
         },
+        isSubmitting = isSubmitting,
         submitPresentation = { it, navigate ->
             viewModel.confirmSelection(
                 credentialPresentationSubmissions = it,

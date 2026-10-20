@@ -12,6 +12,8 @@ import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpKtorHolder
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import ui.navigation.routes.AuthenticationViewRoute
 import ui.viewmodels.authentication.CredentialPresentationSubmissions
@@ -49,6 +51,10 @@ class DefaultPresentationGraphViewModel(
         }
     }
 
+    private val mutableIsSubmitting = MutableStateFlow(false)
+
+    /** Whether a presentation is being submitted, which stays set after success until the flow is left */
+    val isSubmitting: StateFlow<Boolean> = mutableIsSubmitting.asStateFlow()
 
     fun confirmSelection(
         credentialPresentationSubmissions: CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>,
@@ -72,13 +78,16 @@ class DefaultPresentationGraphViewModel(
         } catch (it: Throwable) {
             return onFailure(it)
         }
+        // Ignore repeated confirmations while a presentation is being submitted
+        if (!mutableIsSubmitting.compareAndSet(expect = false, update = true)) return
         viewModelScope.launch {
             try {
                 val result = finalizeAuthorization(presentation)
                 onSuccess(result)
             } catch (_: at.asitplus.signum.supreme.UserInitiatedCancellationReason) {
-                // ignore
+                mutableIsSubmitting.value = false
             } catch (it: Throwable) {
+                mutableIsSubmitting.value = false
                 onFailure(it)
             }
         }

@@ -19,6 +19,8 @@ import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.openid.DcApiPreparationState
 import at.asitplus.wallet.lib.oidvci.OAuth2Exception
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import ui.navigation.routes.DCAPIPresentationViewRoute
@@ -86,6 +88,11 @@ class DCAPIPresentationGraphViewModel(
         }
     }
 
+    private val mutableIsSubmitting = MutableStateFlow(false)
+
+    /** Whether a presentation is being submitted, which stays set after success until the flow is left */
+    val isSubmitting: StateFlow<Boolean> = mutableIsSubmitting.asStateFlow()
+
     fun confirmSelection(
         credentialPresentationSubmissions: CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>,
         onSuccess: () -> Unit,
@@ -108,6 +115,8 @@ class DCAPIPresentationGraphViewModel(
         } catch (it: Throwable) {
             return onFailure(it)
         }
+        // Ignore repeated confirmations while a presentation is being submitted
+        if (!mutableIsSubmitting.compareAndSet(expect = false, update = true)) return
         viewModelScope.launch {
             try {
                 finalizeAuthorization(
@@ -116,10 +125,12 @@ class DCAPIPresentationGraphViewModel(
                 )
                 onSuccess()
             } catch (_: UserInitiatedCancellationReason) {
+                mutableIsSubmitting.value = false
                 walletMain.snackbarService.showSnackbar(
                     getString(Res.string.warning_authentication_cancelled)
                 )
             } catch (it: Throwable) {
+                mutableIsSubmitting.value = false
                 onFailure(it)
             }
         }

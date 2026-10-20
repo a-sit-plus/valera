@@ -82,7 +82,7 @@ private fun WrpPayload.toRegistrationUi() = IssuerRegistrationUi(
     identifiers = listOf(subjectIdentifier),
     description = srvDescription.flatten().map { it },
     registryUri = registryUri,
-    attestations = providesAttestations.attestationTypes(),
+    attestations = providesAttestations.orEmpty().attestationTypes(),
 )
 
 private fun List<WrpCredential>.attestationTypes() =

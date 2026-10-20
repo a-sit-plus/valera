@@ -108,6 +108,7 @@
     <string name="loading_message_issuing_credential">Issuing credential</string>
     <string name="loading_message_storing_credential">Storing credential</string>
     <string name="loading_message_checking_requested_credentials">Checking requested credentials</string>
+    <string name="loading_message_submitting_presentation">Sending data</string>
     <string name="loading_message_checking_device_requirements">Checking app and device requirements</string>
     <string name="loading_message_requesting_camera_permission">Requesting camera permission</string>
     <string name="loading_message_scanning_qr_content">Reading QR code</string>
