@@ -33,6 +33,7 @@ fun DefaultPresentationGraphView(
     val authenticateAtRelyingParty = spLocation != "Local Presentation"
 
     val selectionProvider by viewModel.selectionProvider.collectAsState()
+    val isSubmitting by viewModel.isSubmitting.collectAsState()
 
     PresentationGraphView(
         koinScope = koinScope,
@@ -46,6 +47,7 @@ fun DefaultPresentationGraphView(
         selectionProvider = selectionProvider,
         presentationRequest = presentationRequest,
         navigateUpIsClose = navigateUpIsClose,
+        isSubmitting = isSubmitting,
         submitPresentation = SubmitPresentation { it, navigate ->
             viewModel.confirmSelection(
                 credentialPresentationSubmissions = it,

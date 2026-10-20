@@ -1,6 +1,7 @@
 package ui.presentation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,14 +24,17 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_title
 import at.asitplus.valera.resources.heading_label_select_data
 import at.asitplus.valera.resources.heading_label_show_data
+import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import org.jetbrains.compose.resources.stringResource
 import org.koin.core.scope.Scope
+import ui.views.LoadingView
 import ui.views.authentication.AuthenticationSuccessView
 import ui.views.authentication.TransactionDataView
+import ui.views.loadingMessageString
 
 @ExperimentalMaterial3Api
 @Composable
@@ -45,6 +49,7 @@ fun PresentationGraphView(
     onClickLogo: () -> Unit,
     selectionProvider: UiState<CredentialSelectionProvider<SubjectCredentialStore.StoreEntry>>,
     submitPresentation: SubmitPresentation,
+    isSubmitting: Boolean = false,
     navController: NavHostController = rememberNavController(),
     transactionData: TransactionDataBase64Url?,
     presentationRequest: CredentialPresentationRequest?,
@@ -134,40 +139,46 @@ fun PresentationGraphView(
         }
 
         composable<PresentationBuilderGraphRoute> {
-            PresentationBuilderGraphView(
-                title = selectionPageTitle,
-                authenticateAtRelyingParty = authenticateAtRelyingParty,
-                serviceProviderLocalizedName = serviceProviderNameLocalized,
-                serviceProviderLocalizedLocation = serviceProviderLocationLocalized,
-                selectionProvider = selectionProvider,
-                onClickLogo = onClickLogo,
-                onError = onError,
-                onNavigateUp = onNavigateUp,
-                onNavigateToPresentationStart = {
-                    navController.navigate(PresentationStartRoute) {
-                        popUpTo(PresentationStartRoute) {
-                            saveState = true
-                            inclusive = false
+            // The selection stays composed below the loading view to keep its state if the submission fails
+            Box {
+                PresentationBuilderGraphView(
+                    title = selectionPageTitle,
+                    authenticateAtRelyingParty = authenticateAtRelyingParty,
+                    serviceProviderLocalizedName = serviceProviderNameLocalized,
+                    serviceProviderLocalizedLocation = serviceProviderLocationLocalized,
+                    selectionProvider = selectionProvider,
+                    onClickLogo = onClickLogo,
+                    onError = onError,
+                    onNavigateUp = onNavigateUp,
+                    onNavigateToPresentationStart = {
+                        navController.navigate(PresentationStartRoute) {
+                            popUpTo(PresentationStartRoute) {
+                                saveState = true
+                                inclusive = false
+                            }
+                            // for some reason this is needed to make the popEnter animation for the start route
+                            launchSingleTop = true
                         }
-                        // for some reason this is needed to make the popEnter animation for the start route
-                        launchSingleTop = true
-                    }
-                },
-                onSubmit = {
-                    submitPresentation(it) {
-                        navController.navigate(it) {
-                            popUpTo(PresentationStartRoute::class) {
-                                inclusive = true
+                    },
+                    onSubmit = {
+                        submitPresentation(it) {
+                            navController.navigate(it) {
+                                popUpTo(PresentationStartRoute::class) {
+                                    inclusive = true
+                                }
                             }
                         }
-                    }
-                },
-                trustListService = trustListService,
-                fixedCredentialSelection = fixedCredentialSelection,
-                request = request,
-                relyingPartyValidation = relyingPartyValidation,
-                showRelyingPartyValidationOnSelection = !showStartRoute,
-            )
+                    },
+                    trustListService = trustListService,
+                    fixedCredentialSelection = fixedCredentialSelection,
+                    request = request,
+                    relyingPartyValidation = relyingPartyValidation,
+                    showRelyingPartyValidationOnSelection = !showStartRoute,
+                )
+                if (isSubmitting) {
+                    PresentationSubmittingView()
+                }
+            }
         }
 
         composable<PresentationSuccessRoute> {
@@ -181,4 +192,12 @@ fun PresentationGraphView(
             )
         }
     }
+}
+
+@Composable
+private fun PresentationSubmittingView() {
+    // Back would change the selection below while the presentation is being submitted
+    val backState = rememberNavigationEventState(NavigationEventInfo.None)
+    NavigationBackHandler(state = backState) { }
+    LoadingView(loadingMessageString(LoadingMessageKey.SubmittingPresentation))
 }
