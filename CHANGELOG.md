@@ -34,6 +34,7 @@
  * Credentials: Decode the stored credentials again only if they changed, instead of on every change of any stored value, e.g. of the HTTP cache, which held a second copy of every credential, to reduce the memory usage of the iOS Identity Document Provider extension
  * Presentation: Load the ZK circuits only for requests that ask for a zero-knowledge proof, which took several megabytes of memory for every presentation, e.g. in the iOS Identity Document Provider extension
  * Logging: Log only the headers of HTTP requests and responses in release builds and in the iOS Identity Document Provider extension, as logging their bodies, e.g. of the Trust Lists, took megabytes of memory
+ * UI: Reduce the images of a successful and a failed presentation to the size they are shown in, which took about 6 MB of memory each
 
 # Release 5.9.0:
  * Issuing and presentation: Accept Launchpad `eu-eaa-offer` and `eu-eaap` links on Android and iOS
