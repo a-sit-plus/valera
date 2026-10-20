@@ -1,3 +1,6 @@
+# Release 5.10.0 (unreleased):
+ * iOS: Share the keychain access group with the Identity Document Provider extension in Debug builds, so ISO mdoc DC API responses are signed with the credential's device key
+
 # Release 5.9.0:
  * Issuing and presentation: Accept Launchpad `eu-eaa-offer` and `eu-eaap` links on Android and iOS
  * Issuing: Clear stored and cached wallet attestations when wallet attestation is disabled in settings

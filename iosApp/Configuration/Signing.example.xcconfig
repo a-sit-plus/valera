@@ -10,9 +10,11 @@ KEYCHAIN_ACCESS_GROUP_IDENTIFIER = $(AppIdentifierPrefix)keychaingroup.Compose.W
 SIGNING_DEVELOPMENT_TEAM =
 
 // Public contributors should keep the reduced Debug entitlements so personal
-// teams can sign the app. Internal users who need main-app/extension keychain
-// sharing can switch to iosApp/iosApp.debug.keychain.entitlements. Internal
-// users who also need Associated Domains and NFC can use iosApp/iosApp.entitlements.
+// teams can sign the app. Every entitlements file shares the keychain access group
+// with the IdentityDocumentProviderExtension, so the extension signs presentations
+// with the same device key as the main app. Internal users who also need NFC can
+// switch to iosApp/iosApp.debug.keychain.entitlements, and those who also need
+// Associated Domains can use iosApp/iosApp.entitlements.
 SIGNING_DEBUG_ENTITLEMENTS_FILE = iosApp/iosApp.debug.entitlements
 
 // Optional for Debug device builds. Leave empty when using automatic signing.

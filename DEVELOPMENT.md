@@ -84,6 +84,7 @@ Public contributors:
 * Public contributors do not need `Signing.local.xcconfig`.
 * Optional device builds with a Personal Team or another external team can use a local `Signing.local.xcconfig` with a unique bundle identifier and team id.
 * Public Debug builds default to reduced entitlements, so `Associated Domains` and NFC are not available unless you are using internal signing. The reduced Debug entitlements still include the Identity Document Services document types needed for Digital Credentials registration, but the active provisioning profile must also allow that entitlement.
+* All app entitlements, including the reduced Debug ones, share the keychain access group `$(KEYCHAIN_ACCESS_GROUP_IDENTIFIER)` with the Identity Document Provider extension. The extension has to find the main app's device binding key there, otherwise it signs ISO mdoc DC API responses with a key of its own and verifiers reject the device signature. Keys created by a build without that access group stay invisible to the extension, so reset the app and re-issue credentials after switching.
 * Public contributors cannot run the app on a physical iPhone with the official bundle identifier `at.asitplus.wallet.compose`. Apple requires that bundle identifier to be signed by the team that owns it.
 * Device builds and release archives for the official app identifier therefore require access to the A-SIT Apple Developer team.
 
