@@ -40,22 +40,22 @@ fun vckModule() = module {
             )
         }
         scoped<RelyingPartyValidator> {
-            val registrationCertificates = get<RegistrationCertificateAnchors>().trustedCertificates
+            val registrationAnchors = get<RegistrationCertificateAnchors>()
             RelyingPartyValidator(
                 trust = RelyingPartyTrustAnchors(
                     accessCertificates = get<TrustListService>().trustedCertificates(LoteProfile.WRPAC),
-                    registrationCertificates = registrationCertificates,
-                    registrationStatus = registrationCertificates,
+                    registrationCertificates = registrationAnchors.trustedCertificates,
+                    registrationStatus = registrationAnchors.statusCertificates,
                 ),
                 statusValidator = get(),
             )
         }
         scoped<IssuerMetadataValidator> {
-            val registrationCertificates = get<RegistrationCertificateAnchors>().trustedCertificates
+            val registrationAnchors = get<RegistrationCertificateAnchors>()
             IssuerMetadataValidator(
                 accessCertificates = get<TrustListService>().trustedCertificates(LoteProfile.WRPAC),
-                registrationCertificates = registrationCertificates,
-                registrationStatus = registrationCertificates,
+                registrationCertificates = registrationAnchors.trustedCertificates,
+                registrationStatus = registrationAnchors.statusCertificates,
                 statusValidator = get(),
             )
         }

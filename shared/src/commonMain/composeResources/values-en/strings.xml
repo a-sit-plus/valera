@@ -491,7 +491,10 @@
 
     <string name="info_text_registration_cert_missing">No registration certificate has been provided in the request.</string>
     <string name="text_label_wrprc_trust_anchors_url">Registration certificate trust anchors (URL)</string>
-    <string name="text_supporting_wrprc_trust_anchors_url">PEM file with root certificates of registration certificate providers, trusted in addition to the bundled ones</string>
+    <string name="text_supporting_wrprc_trust_anchors_url">ZIP archive with the folders “WRPRC Provider CA Certificates” and “WRPRC Revocation List Signing Certificates”, or PEM file with certificates of registration certificate providers, trusted in addition to the bundled ones</string>
+    <string name="button_label_reload_trust_lists">Refresh trust lists</string>
+    <string name="snackbar_trust_lists_reloaded">Trust lists have been refreshed</string>
+    <string name="error_reloading_trust_lists_failed">Not every trust list could be refreshed.</string>
     <string name="validation_summary_passed">All checks passed</string>
     <string name="validation_summary_warning">Not all checks passed</string>
     <string name="validation_summary_failed">Validation failed</string>

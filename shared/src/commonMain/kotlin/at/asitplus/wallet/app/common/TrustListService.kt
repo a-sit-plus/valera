@@ -14,6 +14,7 @@ import at.asitplus.signum.indispensable.pki.CertificateChain
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.indispensable.pki.leaf
 import at.asitplus.wallet.app.common.data.SettingsRepository
+import at.asitplus.wallet.app.common.trust.RegistrationCertificateAnchors
 import at.asitplus.wallet.lib.agent.TrustedCertificates
 import at.asitplus.wallet.lib.etsi.LoTEFilterService
 import at.asitplus.wallet.lib.etsi.LoTEStage
@@ -29,6 +30,7 @@ import data.storage.DataStoreService
 import data.storage.PersistentHttpCacheStorage
 import data.storage.PersistentTrustListStore
 import io.github.aakira.napier.Napier
+import io.ktor.client.HttpClient
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -79,14 +81,16 @@ val asitRootPem = "-----BEGIN CERTIFICATE-----\n" +
 @OptIn(ExperimentalCoroutinesApi::class)
 class TrustListService(
     private val persistentTrustListStore: PersistentTrustListStore,
-    httpService: HttpService,
+    private val httpService: HttpService,
     dataStoreService: DataStoreService,
     settingsRepository: SettingsRepository,
+    private val registrationCertificateAnchors: RegistrationCertificateAnchors,
     private val sessionCoroutineScope: CoroutineScope,
     private val verifyJwsObject: VerifyJwsObjectFun = VerifyJwsObjectJades(),
     private val clock: Clock = Clock.System,
 ) {
     private var job: Job? = null
+    private var registrationAnchorsJob: Job? = null
 
     // One refresh at a time, shared by the periodic check and callers waiting for fresh lists
     private val refreshMutex = Mutex()
@@ -226,7 +230,36 @@ class TrustListService(
                 }
             }
         }
+        registrationAnchorsJob?.cancel()
+        registrationAnchorsJob = sessionCoroutineScope.launch {
+            delay(5.seconds)
+            registrationCertificateAnchors.keepFresh(retryInterval)
+        }
     }
+
+    /**
+     * Downloads every list of the enabled stages, and the anchors of WRPRC providers, again, regardless of their age
+     * and without conditional requests, and persists them. Runs in the session, so that leaving the screen that
+     * started it does not cancel it.
+     *
+     * @return whether every list and the anchors could be loaded
+     */
+    suspend fun reloadAllTrustLists(): Boolean = sessionCoroutineScope.async {
+        catchingUnwrapped {
+            val urls = trustListUrls.first()
+            // A client of its own bypasses the HTTP cache and the cooldown after failures of the shared one.
+            val client = httpService.buildHttpClient()
+            val listsLoaded = try {
+                urls.map { syncSingleUrl(it, client) }.all { it }
+            } finally {
+                client.close()
+            }
+            registrationCertificateAnchors.refresh(force = true) && listsLoaded
+        }.getOrElse {
+            Napier.e("Reloading Trust Lists failed", it)
+            false
+        }
+    }.await()
 
     /**
      * Refreshes missing or expired lists of the enabled stages, waiting at most [timeout] for it, e.g. before
@@ -281,8 +314,8 @@ class TrustListService(
             .any { !it }
     }
 
-    private suspend fun syncSingleUrl(url: String): Boolean = catching {
-        val rawJwsText = fetchTrustList(url).getOrThrow()
+    private suspend fun syncSingleUrl(url: String, httpClient: HttpClient = client): Boolean = catching {
+        val rawJwsText = fetchTrustList(url, httpClient).getOrThrow()
         persistentTrustListStore.persistTrustList(url, rawJwsText, clock.now())
         Napier.i("Successfully synced and persisted Trust List: $url")
     }.onFailure { e ->
@@ -293,9 +326,9 @@ class TrustListService(
      * Fetches the signed List of Trusted Entities (LoTE)
      * Returns the raw signed payload after parsing and signature verification.
      */
-    suspend fun fetchTrustList(url: String): KmmResult<String> = catching {
+    suspend fun fetchTrustList(url: String, httpClient: HttpClient = client): KmmResult<String> = catching {
         Napier.i("Fetching Trust List from: $url")
-        val response = client.get(url) {
+        val response = httpClient.get(url) {
             accept(ContentType.Application.Json)
         }
         val responseBody = response.bodyAsText()
