@@ -35,6 +35,7 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.Url
+import io.ktor.http.isSuccess
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -97,6 +98,10 @@ class TrustListService(
     // One refresh at a time, shared by the periodic check and callers waiting for fresh lists
     private val refreshMutex = Mutex()
     private var pendingRefresh: Pair<List<String>, Deferred<Boolean>>? = null
+
+    // One download of a list at a time, so that a refresh skips a list that a concurrent one fetched meanwhile, e.g.
+    // the periodic check started by enabling a stage and "Refresh trust lists", which downloaded every list twice
+    private val syncMutex = Mutex()
     private val client = httpService.cachedResourceClient(dataStoreService, revalidate = true)
 
     // Same storage the client above caches into, to drop the raw responses of disabled stages as well.
@@ -259,10 +264,13 @@ class TrustListService(
     suspend fun reloadAllTrustLists(): Boolean = sessionCoroutineScope.async {
         catchingUnlessCancelled {
             val urls = trustListUrls.first()
+            val reloadStartedAt = clock.now()
             // A client of its own bypasses the HTTP cache and the cooldown after failures of the shared one.
             val client = httpService.buildHttpClient()
             val listsLoaded = try {
-                urls.map { syncSingleUrl(it, client) }.all { it }
+                urls.map { url ->
+                    syncSingleUrl(url, client) { cachedAt -> cachedAt >= reloadStartedAt }
+                }.all { it }
             } finally {
                 client.close()
             }
@@ -325,24 +333,34 @@ class TrustListService(
         }
     }
 
-    private suspend fun refreshStaleEntries(urls: List<String>): Boolean {
-        val now = clock.now()
-        return urls
-            .filter { url ->
-                val cachedAt = persistentTrustListStore.getCachedAt(url)
-                cachedAt == null || now - cachedAt >= Configuration.CACHE_TTL_TRUST_LIST
-            }
-            .map { syncSingleUrl(it) }
-            .any { !it }
-    }
+    private suspend fun refreshStaleEntries(urls: List<String>): Boolean = urls
+        .map { url ->
+            syncSingleUrl(url) { cachedAt -> clock.now() - cachedAt < Configuration.CACHE_TTL_TRUST_LIST }
+        }
+        .any { !it }
 
-    private suspend fun syncSingleUrl(url: String, httpClient: HttpClient = client): Boolean = catchingUnlessCancelled {
-        val rawJwsText = fetchTrustList(url, httpClient).getOrThrow()
-        persistentTrustListStore.persistTrustList(url, rawJwsText, clock.now())
-        Napier.i("Successfully synced and persisted Trust List: $url")
-    }.onFailure { e ->
-        Napier.e("Background sync failed for Trust List: $url", e)
-    }.isSuccess
+    /**
+     * Downloads and persists the list of [url], unless the time its cached list was fetched [isCurrent] once it is
+     * this list's turn, e.g. because a concurrent refresh fetched it while this one waited.
+     */
+    private suspend fun syncSingleUrl(
+        url: String,
+        httpClient: HttpClient = client,
+        isCurrent: (cachedAt: Instant) -> Boolean,
+    ): Boolean = syncMutex.withLock {
+        catchingUnlessCancelled {
+            val cachedAt = persistentTrustListStore.getCachedAt(url)
+            if (cachedAt != null && isCurrent(cachedAt)) {
+                Napier.d("Trust List is current, not fetching it again: $url")
+                return@catchingUnlessCancelled
+            }
+            val rawJwsText = fetchTrustList(url, httpClient).getOrThrow()
+            persistentTrustListStore.persistTrustList(url, rawJwsText, clock.now())
+            Napier.i("Successfully synced and persisted Trust List: $url")
+        }.onFailure { e ->
+            Napier.e("Background sync failed for Trust List: $url", e)
+        }.isSuccess
+    }
 
     /**
      * Fetches the signed List of Trusted Entities (LoTE)
@@ -358,6 +376,8 @@ class TrustListService(
             accept(ContentType.Application.Json)
         }
         val responseBody = response.bodyAsText()
+        // An error, e.g. an XML page of a 403 response, would otherwise fail as an invalid JWS
+        require(response.status.isSuccess()) { "Fetching Trust List failed with ${response.status}" }
         val jws = JwsCompact.parse<TrustListPayload>(responseBody).getOrThrow()
         verifyJwsObject(jws.first).getOrThrow()
         Napier.i("Successfully validated Trust List signature from $url")
