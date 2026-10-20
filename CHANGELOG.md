@@ -30,6 +30,7 @@
  * Trust Lists: Continue a presentation with the cached lists if refreshing them, or the WRPRC trust anchors, fails in any way, e.g. as a request failed, was cancelled by its client or is in its failure cooldown, which could end the DC API flow on iOS; lists that can not be read establish no trust, a status list that can not be fetched is reported as unknown, and the lists are parsed off the main thread
  * Trust Lists: Parse each persisted list once per process, one at a time, and only when it changed, instead of every list for every trust state shown and again on every change of any stored value, which exceeded the memory limit of the iOS Identity Document Provider extension, so that the system terminated it with the lists of several stages enabled
  * Trust Lists: Download each list once if “Refresh trust lists” and the background refresh run at the same time, e.g. after enabling a stage, which downloaded every list twice, and report an HTTP error of a list, e.g. 403, as such instead of failing to parse the error page as a list
+ * DC API: Do not start the periodic checks of the stored credentials, of the Trust Lists and of the WRPRC trust anchors, nor load the ZK circuits ahead of time, in the iOS Identity Document Provider extension, to reduce its memory usage; its requests still refresh stale Trust Lists, and load the ZK circuits when the presentation is finalized
 
 # Release 5.9.0:
  * Issuing and presentation: Accept Launchpad `eu-eaa-offer` and `eu-eaap` links on Android and iOS
