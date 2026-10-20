@@ -33,6 +33,7 @@
  * DC API: Do not start the periodic checks of the stored credentials, of the Trust Lists and of the WRPRC trust anchors, nor load the ZK circuits ahead of time, in the iOS Identity Document Provider extension, to reduce its memory usage; its requests still refresh stale Trust Lists, and load the ZK circuits when a presentation that requests a zero-knowledge proof is finalized
  * Credentials: Decode the stored credentials again only if they changed, instead of on every change of any stored value, e.g. of the HTTP cache, which held a second copy of every credential, to reduce the memory usage of the iOS Identity Document Provider extension
  * Presentation: Load the ZK circuits only for requests that ask for a zero-knowledge proof, which took several megabytes of memory for every presentation, e.g. in the iOS Identity Document Provider extension
+ * Logging: Log only the headers of HTTP requests and responses in release builds and in the iOS Identity Document Provider extension, as logging their bodies, e.g. of the Trust Lists, took megabytes of memory
 
 # Release 5.9.0:
  * Issuing and presentation: Accept Launchpad `eu-eaa-offer` and `eu-eaap` links on Android and iOS

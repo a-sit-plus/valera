@@ -96,6 +96,11 @@ class HttpService(private val buildContext: BuildContext) {
             failureCooldown = Configuration.HTTP_FAILURE_COOLDOWN,
         )
 
+    // Logging a body buffers it and copies it into every log, which takes megabytes for a Trust List, e.g. of the
+    // memory of the iOS Identity Document Provider extension
+    private val logLevel =
+        if (buildContext.buildType == BuildType.RELEASE || isAppExtension()) LogLevel.HEADERS else LogLevel.ALL
+
     val loggingConfig: HttpClientConfig<*>.() -> Unit
         get() = {
             install(Logging) {
@@ -104,7 +109,7 @@ class HttpService(private val buildContext: BuildContext) {
                         Napier.i(message, tag = "HTTP")
                     }
                 }
-                level = LogLevel.ALL
+                level = logLevel
             }
             install(DefaultRequest) {
                 header(HttpHeaders.UserAgent, "Valera/${buildContext.versionName} (${buildContext.osVersion})")

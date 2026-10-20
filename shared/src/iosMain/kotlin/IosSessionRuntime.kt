@@ -5,6 +5,7 @@ import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.createMainWalletSessionScope
 import at.asitplus.wallet.app.common.createTransientFlowWalletSessionScope
+import at.asitplus.wallet.app.common.isAppExtension
 import at.asitplus.wallet.app.common.di.appModule
 import at.asitplus.wallet.app.dcapi.IosDcApiPreRequestData
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
@@ -25,7 +26,6 @@ import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import org.multipaz.prompt.IosPromptModel
 import org.multipaz.prompt.PromptModel
-import platform.Foundation.NSBundle
 import ui.navigation.IntentService.Companion.IOS_DC_API_CALL
 import ui.navigation.IntentService.Companion.IOS_DC_API_PRE_REQUEST
 
@@ -418,6 +418,3 @@ private fun createIosWalletSessionScope(
         )
     }
 }
-
-/** Whether this process is an app extension, i.e. the Identity Document Provider extension, instead of the app. */
-private fun isAppExtension(): Boolean = NSBundle.mainBundle.bundlePath.endsWith(".appex")
