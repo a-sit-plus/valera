@@ -1,9 +1,9 @@
 
 
 This directory contains a Credman matcher written in C/C++ based on the
-[Multipaz matcher](https://github.com/openwallet-foundation/multipaz/tree/main/multipaz-dcapi/src/androidMain/matcher).
+[Multipaz matcher](https://github.com/openwallet-foundation/multipaz/tree/main/multipaz-dcapi-credman/src/androidMain/matcher).
 The source was last synchronized with upstream commit
-[`e4b1d4381be562064a284dc0278899f5313eba58`](https://github.com/openwallet-foundation/multipaz/commit/e4b1d4381be562064a284dc0278899f5313eba58).
+[`f7d8e684a3d32bfd498c07742bfc0bc1b75b0bb9`](https://github.com/openwallet-foundation/multipaz/commit/f7d8e684a3d32bfd498c07742bfc0bc1b75b0bb9).
 
 To compile it you need the [WASI SDK](https://github.com/WebAssembly/wasi-sdk/releases)
 toolchain installed, specifically version 20. It should be installed in `~/wasi-sdk-20.0`.

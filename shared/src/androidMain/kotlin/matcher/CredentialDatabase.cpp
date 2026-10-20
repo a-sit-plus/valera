@@ -47,6 +47,9 @@ CredentialDatabase::CredentialDatabase(const uint8_t* encodedDatabase, size_t en
         std::vector<std::vector<uint8_t>> readerIdentifiers;
         std::vector<std::string> keyAuthorizedNamespaces;
         std::map<std::string, std::vector<std::string>> keyAuthorizedDataElements;
+        bool supportsPortraitImageEquivalence = false;
+        bool omitClaims = false;
+        std::map<std::string, std::string> claimDisplayNames;
         std::map resultingClaims = std::map<std::string, Claim>();
 
         auto& docProtocolsPtr = cred->get("protocols");
@@ -65,6 +68,26 @@ CredentialDatabase::CredentialDatabase(const uint8_t* encodedDatabase, size_t en
             auto mdoc = mdocPtr->asMap();
             documentId = mdoc->get("documentId")->asTstr()->value();
             mdocDoctype = mdoc->get("docType")->asTstr()->value();
+
+            const auto& piePtr = mdoc->get("supportsPortraitImageEquivalence");
+            if (piePtr != nullptr && piePtr->asBool() != nullptr) {
+                supportsPortraitImageEquivalence = piePtr->asBool()->value();
+            }
+
+            const auto& omitClaimsPtr = mdoc->get("omitClaims");
+            if (omitClaimsPtr != nullptr && omitClaimsPtr->asBool() != nullptr) {
+                omitClaims = omitClaimsPtr->asBool()->value();
+            }
+
+            const auto& claimDisplayNamesPtr = mdoc->get("claimDisplayNames");
+            if (claimDisplayNamesPtr != nullptr && claimDisplayNamesPtr->asMap() != nullptr) {
+                auto cdnMap = claimDisplayNamesPtr->asMap();
+                for (auto it = cdnMap->begin(); it != cdnMap->end(); ++it) {
+                    if (it->first->asTstr() != nullptr && it->second->asTstr() != nullptr) {
+                        claimDisplayNames[it->first->asTstr()->value()] = it->second->asTstr()->value();
+                    }
+                }
+            }
 
             const auto& issuerIdentifiersPtr = mdoc->get("issuerIdentifiers");
             if (issuerIdentifiersPtr != nullptr && issuerIdentifiersPtr->asArray() != nullptr) {
@@ -115,20 +138,23 @@ CredentialDatabase::CredentialDatabase(const uint8_t* encodedDatabase, size_t en
                 }
             }
 
-            auto namespaces = mdoc->get("namespaces")->asMap();
-            for (auto j = namespaces->begin(); j != namespaces->end(); ++j) {
-                auto namespaceName = j->first->asTstr()->value();
-                auto dataElementsMap = j->second->asMap();
+            const auto& namespacesPtr = mdoc->get("namespaces");
+            if (namespacesPtr != nullptr && namespacesPtr->asMap() != nullptr) {
+                auto namespaces = namespacesPtr->asMap();
+                for (auto j = namespaces->begin(); j != namespaces->end(); ++j) {
+                    auto namespaceName = j->first->asTstr()->value();
+                    auto dataElementsMap = j->second->asMap();
 
-                for (auto k = dataElementsMap->begin(); k != dataElementsMap->end(); ++k) {
-                    auto dataElementName = k->first->asTstr()->value();
-                    auto dataElementDetailsArray = k->second->asArray();
-                    auto displayName = dataElementDetailsArray->get(0)->asTstr()->value();
-                    auto value = dataElementDetailsArray->get(1)->asTstr()->value();
-                    auto matchValue = dataElementDetailsArray->get(2)->asTstr()->value();
+                    for (auto k = dataElementsMap->begin(); k != dataElementsMap->end(); ++k) {
+                        auto dataElementName = k->first->asTstr()->value();
+                        auto dataElementDetailsArray = k->second->asArray();
+                        auto displayName = dataElementDetailsArray->get(0)->asTstr()->value();
+                        auto value = dataElementDetailsArray->get(1)->asTstr()->value();
+                        auto matchValue = dataElementDetailsArray->get(2)->asTstr()->value();
 
-                    auto combinedName = namespaceName + "." + dataElementName;
-                    resultingClaims[combinedName] = Claim(combinedName, displayName, value, matchValue);
+                        auto combinedName = namespaceName + "." + dataElementName;
+                        resultingClaims[combinedName] = Claim(combinedName, displayName, value, matchValue);
+                    }
                 }
             }
         }
@@ -138,6 +164,21 @@ CredentialDatabase::CredentialDatabase(const uint8_t* encodedDatabase, size_t en
             auto sdjwt = sdjwtPtr->asMap();
             documentId = sdjwt->get("documentId")->asTstr()->value();
             vcVct = sdjwt->get("vct")->asTstr()->value();
+
+            const auto& omitClaimsPtr = sdjwt->get("omitClaims");
+            if (omitClaimsPtr != nullptr && omitClaimsPtr->asBool() != nullptr) {
+                omitClaims = omitClaimsPtr->asBool()->value();
+            }
+
+            const auto& claimDisplayNamesPtr = sdjwt->get("claimDisplayNames");
+            if (claimDisplayNamesPtr != nullptr && claimDisplayNamesPtr->asMap() != nullptr) {
+                auto cdnMap = claimDisplayNamesPtr->asMap();
+                for (auto it = cdnMap->begin(); it != cdnMap->end(); ++it) {
+                    if (it->first->asTstr() != nullptr && it->second->asTstr() != nullptr) {
+                        claimDisplayNames[it->first->asTstr()->value()] = it->second->asTstr()->value();
+                    }
+                }
+            }
 
             const auto& issuerIdentifiersPtr = sdjwt->get("issuerIdentifiers");
             if (issuerIdentifiersPtr != nullptr && issuerIdentifiersPtr->asArray() != nullptr) {
@@ -159,15 +200,18 @@ CredentialDatabase::CredentialDatabase(const uint8_t* encodedDatabase, size_t en
                 }
             }
 
-            auto claims = sdjwt->get("claims")->asMap();
-            for (auto j = claims->begin(); j != claims->end(); ++j) {
-                auto claimName = j->first->asTstr()->value();
-                auto claimDetailsArray = j->second->asArray();
-                auto displayName = claimDetailsArray->get(0)->asTstr()->value();
-                auto value = claimDetailsArray->get(1)->asTstr()->value();
-                auto matchValue = claimDetailsArray->get(2)->asTstr()->value();
+            const auto& claimsPtr = sdjwt->get("claims");
+            if (claimsPtr != nullptr && claimsPtr->asMap() != nullptr) {
+                auto claims = claimsPtr->asMap();
+                for (auto j = claims->begin(); j != claims->end(); ++j) {
+                    auto claimName = j->first->asTstr()->value();
+                    auto claimDetailsArray = j->second->asArray();
+                    auto displayName = claimDetailsArray->get(0)->asTstr()->value();
+                    auto value = claimDetailsArray->get(1)->asTstr()->value();
+                    auto matchValue = claimDetailsArray->get(2)->asTstr()->value();
 
-                resultingClaims[claimName] = Claim(claimName, displayName, value, matchValue);
+                    resultingClaims[claimName] = Claim(claimName, displayName, value, matchValue);
+                }
             }
         }
 
@@ -182,7 +226,10 @@ CredentialDatabase::CredentialDatabase(const uint8_t* encodedDatabase, size_t en
                 readerIdentifiers,
                 keyAuthorizedNamespaces,
                 keyAuthorizedDataElements,
-                resultingClaims
+                resultingClaims,
+                supportsPortraitImageEquivalence,
+                omitClaims,
+                claimDisplayNames
             )
         );
     }
@@ -197,8 +244,84 @@ bool Credential::supportsProtocol(const std::string& protocol) {
     return false;
 }
 
+static bool isNumericSegment(const std::string& seg) {
+    if (seg.empty()) {
+        return false;
+    }
+    for (char c : seg) {
+        if (c < '0' || c > '9') {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::string Credential::lookupClaimDisplayName(const std::vector<std::string>& path) const {
+    if (path.empty()) {
+        return "";
+    }
+    std::string joinedPath;
+    for (size_t i = 0; i < path.size(); ++i) {
+        if (i > 0) {
+            joinedPath += ".";
+        }
+        joinedPath += path[i];
+    }
+    auto it = claimDisplayNames.find(joinedPath);
+    if (it != claimDisplayNames.end()) {
+        return it->second;
+    }
+    if (!vcVct.empty()) {
+        std::string strippedPath;
+        std::string lastStringSegment;
+        for (const auto& seg : path) {
+            if (seg == "null" || isNumericSegment(seg)) {
+                continue;
+            }
+            if (!strippedPath.empty()) {
+                strippedPath += ".";
+            }
+            strippedPath += seg;
+            lastStringSegment = seg;
+        }
+        if (!strippedPath.empty()) {
+            auto strippedIt = claimDisplayNames.find(strippedPath);
+            if (strippedIt != claimDisplayNames.end()) {
+                return strippedIt->second;
+            }
+        }
+        if (!lastStringSegment.empty()) {
+            return lastStringSegment;
+        }
+    }
+    return path.back();
+}
+
 Claim* Credential::findMatchingClaim(const DcqlRequestedClaim& requestedClaim) {
     auto joinedPath = requestedClaim.joinPath();
+    if (omitClaims) {
+        bool isDeviceSigned = false;
+        if (requestedClaim.path.size() == 2) {
+            const std::string& ns = requestedClaim.path[0];
+            const std::string& elem = requestedClaim.path[1];
+            if (ns == "org.iso.transactiondata") {
+                isDeviceSigned = true;
+            } else if (ns == "org.iso.23220.5.1" && elem == "CHV_1") {
+                isDeviceSigned = true;
+            }
+        }
+        auto dynIt = dynamicDeviceClaims.find(joinedPath);
+        if (dynIt == dynamicDeviceClaims.end()) {
+            std::string displayName = isDeviceSigned ? "" : lookupClaimDisplayName(requestedClaim.path);
+            auto [newIt, _] = dynamicDeviceClaims.emplace(
+                joinedPath,
+                Claim(joinedPath, displayName, "", "", isDeviceSigned, /* omitValue = */ true)
+            );
+            return &(newIt->second);
+        }
+        return &(dynIt->second);
+    }
+
     auto ret = claims.find(joinedPath);
     if (ret != claims.end()) {
         // Perform value matching, if requested
@@ -222,6 +345,19 @@ Claim* Credential::findMatchingClaim(const DcqlRequestedClaim& requestedClaim) {
         bool authorized = false;
         if (!vcVct.empty() && ns == "org.iso.transactiondata") {
             authorized = true;
+        } else if (ns == "org.iso.23220.5.1") {
+            if (elem == "CHV_1" && supportsPortraitImageEquivalence) {
+                if (std::find(keyAuthorizedNamespaces.begin(), keyAuthorizedNamespaces.end(), ns) != keyAuthorizedNamespaces.end()) {
+                    authorized = true;
+                } else {
+                    auto it = keyAuthorizedDataElements.find(ns);
+                    if (it != keyAuthorizedDataElements.end()) {
+                        if (std::find(it->second.begin(), it->second.end(), elem) != it->second.end()) {
+                            authorized = true;
+                        }
+                    }
+                }
+            }
         } else if (std::find(keyAuthorizedNamespaces.begin(), keyAuthorizedNamespaces.end(), ns) != keyAuthorizedNamespaces.end()) {
             authorized = true;
         } else {
@@ -320,17 +456,18 @@ void Combination::addToCredmanPicker(const Request& request) const {
                 if (claim->isDeviceSigned) {
                     continue;
                 }
+                char *fieldValue = claim->omitValue ? nullptr : strdup(claim->value.c_str());
                 if (credmanRuntimeVersion >= 2) {
                     ::AddFieldToEntrySet(entryId,
                                          strdup(claim->displayName.c_str()),
-                                         strdup(claim->value.c_str()),
+                                         fieldValue,
                                          setId,
                                          setIndex
                     );
                 } else {
                     ::AddFieldForStringIdEntry(entryId,
                                                strdup(claim->displayName.c_str()),
-                                               strdup(claim->value.c_str())
+                                               fieldValue
                     );
                 }
             }

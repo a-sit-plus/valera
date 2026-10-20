@@ -112,6 +112,7 @@ static constexpr uint8_t base64_lut[256][7] = {
     return ret;
 }
 
+
 [[nodiscard]] inline std::string to_base64(const void* data, size_t size_bytes) {
     return to_base64({ reinterpret_cast<const char*>(data), size_bytes });
 }
