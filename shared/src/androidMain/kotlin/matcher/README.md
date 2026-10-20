@@ -1,9 +1,9 @@
 
 
 This directory contains a Credman matcher written in C/C++ based on the
-[Multipaz matcher](https://github.com/openwallet-foundation/multipaz/tree/main/multipaz-dcapi/src/androidMain/matcher).
+[Multipaz matcher](https://github.com/openwallet-foundation/multipaz/tree/main/multipaz-dcapi-credman/src/androidMain/matcher).
 The source was last synchronized with upstream commit
-[`e4b1d4381be562064a284dc0278899f5313eba58`](https://github.com/openwallet-foundation/multipaz/commit/e4b1d4381be562064a284dc0278899f5313eba58).
+[`f7d8e684a3d32bfd498c07742bfc0bc1b75b0bb9`](https://github.com/openwallet-foundation/multipaz/commit/f7d8e684a3d32bfd498c07742bfc0bc1b75b0bb9).
 
 To compile it you need the [WASI SDK](https://github.com/WebAssembly/wasi-sdk/releases)
 toolchain installed, specifically version 20. It should be installed in `~/wasi-sdk-20.0`.
@@ -55,3 +55,10 @@ the selected protocol to each entry's subtitle. Upstream stops after the first m
 boolean `enforceTrustedAuthorityAndReaderIdentifierMatching`. Matching is disabled when the field
 is absent, malformed, or `false`; setting it to `true` enforces both trusted-authority issuer
 identifiers and reader identifiers while preserving all other matching criteria.
+
+`wildcard-value-matching.patch` matches the `values` of a DCQL claim whose path contains a `null`
+wildcard against each selected array element, which the wallet registers under its index, e.g.
+`nationalities.0` for `["nationalities", null]`. The claim matches if any element does, as in
+VC-K's DCQL evaluation, and the picker shows the matching elements. Upstream compares the values
+against the single entry registered for the wildcard, whose comparison value is empty, so it
+rejects matching credentials and accepts `values: [""]`.
