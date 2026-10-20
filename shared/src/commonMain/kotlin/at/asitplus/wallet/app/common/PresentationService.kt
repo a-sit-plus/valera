@@ -78,7 +78,7 @@ class PresentationService(
         credentialPresentation: CredentialPresentation,
         preparationState: AuthorizationResponsePreparationState,
     ): OpenId4VpKtorHolder.AuthenticationResult {
-        LongfellowZkRegistration.ensureRegistered()
+        LongfellowZkRegistration.ensureRegisteredFor(credentialPresentation)
         return presentationService.finalizeAuthorizationResponse(
             credentialPresentation = credentialPresentation,
             preparationState = preparationState
@@ -90,7 +90,7 @@ class PresentationService(
         preparationState: DcApiPreparationState,
     ) {
         Napier.d("Finalizing DCAPI response")
-        LongfellowZkRegistration.ensureRegistered()
+        LongfellowZkRegistration.ensureRegisteredFor(credentialPresentation)
         val response = presentationService.finalizeDcApiResponse(
             state = preparationState,
             credentialPresentation = credentialPresentation,
@@ -105,7 +105,7 @@ class PresentationService(
         sessionTranscript: SessionTranscript
     ) {
         Napier.d("Finalizing local response")
-        LongfellowZkRegistration.ensureRegistered()
+        LongfellowZkRegistration.ensureRegisteredFor(credentialPresentation)
 
         val presentationResult = holderAgent.createPresentation(
             request = PresentationRequestParameters(
