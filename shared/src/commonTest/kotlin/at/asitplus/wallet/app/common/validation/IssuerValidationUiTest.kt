@@ -2,10 +2,12 @@ package at.asitplus.wallet.app.common.validation
 
 import at.asitplus.etsi.relyingParty.WrpCredential
 import at.asitplus.etsi.relyingParty.WrpCredentialMeta
+import at.asitplus.etsi.relyingParty.WrpConstants
 import at.asitplus.etsi.relyingParty.WrpLangString
 import at.asitplus.etsi.relyingParty.WrpPayload
 import at.asitplus.etsi.relyingParty.WrpStatus
 import at.asitplus.etsi.relyingParty.WrpStatusList
+import at.asitplus.etsi.relyingParty.WrpSupervisoryAuthority
 import at.asitplus.openid.IssuerMetadata
 import at.asitplus.openid.SupportedCredentialFormat
 import at.asitplus.wallet.lib.oidvci.LoadedIssuerMetadata
@@ -126,10 +128,13 @@ class IssuerValidationUiTest {
         subjectIdentifier = "NTREU-123456789",
         country = "EU",
         registryUri = "https://registry.example.com",
-        srvDescription = listOf(listOf(WrpLangString(lang = "en", value = "PID issuance"))),
-        entitlements = emptyList(),
-        privacyPolicy = "$ISSUER/privacy",
-        infoUri = ISSUER,
+        serviceDescription = listOf(WrpLangString(lang = "en", value = "PID issuance")),
+        entitlements = listOf(WrpConstants.ENTITLEMENT_PID_PROVIDER),
+        privacyPolicies = listOf("$ISSUER/privacy"),
+        infoUris = listOf(ISSUER),
+        supportUris = listOf("$ISSUER/support"),
+        supervisoryAuthority = WrpSupervisoryAuthority(),
+        policyId = listOf(WrpConstants.POLICY_IDENTIFIER),
         certificatePolicy = "https://registrar.example.com/policy",
         iat = now,
         status = WrpStatus(WrpStatusList(idx = 0u, uri = "https://registrar.example.com/status")),

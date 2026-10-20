@@ -1,9 +1,11 @@
 package at.asitplus.wallet.app.common.relyingParty
 
+import at.asitplus.etsi.relyingParty.WrpConstants
 import at.asitplus.etsi.relyingParty.WrpLangString
 import at.asitplus.etsi.relyingParty.WrpPayload
 import at.asitplus.etsi.relyingParty.WrpStatus
 import at.asitplus.etsi.relyingParty.WrpStatusList
+import at.asitplus.etsi.relyingParty.WrpSupervisoryAuthority
 import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.openid.dcql.DCQLIsoMdocCredentialMetadataAndValidityConstraints
 import at.asitplus.openid.dcql.DCQLIsoMdocCredentialQuery
@@ -126,10 +128,13 @@ internal class RelyingPartyValidationUiTest : ValidationReportFixtures() {
             subjectIdentifier = "ATU12345678",
             country = "AT",
             registryUri = "https://registry.example.com",
-            srvDescription = emptyList(),
-            entitlements = emptyList(),
-            privacyPolicy = "https://shop.example.com/privacy",
-            infoUri = "https://shop.example.com",
+            serviceDescription = listOf(WrpLangString(lang = "en", value = "Online shop")),
+            entitlements = listOf(WrpConstants.ENTITLEMENT_SERVICE_PROVIDER),
+            privacyPolicies = listOf("https://shop.example.com/privacy"),
+            infoUris = listOf("https://shop.example.com"),
+            supportUris = listOf("https://shop.example.com/support"),
+            supervisoryAuthority = WrpSupervisoryAuthority(),
+            policyId = listOf(WrpConstants.POLICY_IDENTIFIER),
             certificatePolicy = "https://registrar.example.com/policy",
             iat = Instant.parse("2026-10-01T00:00:00Z"),
             status = WrpStatus(WrpStatusList(idx = 0u, uri = "https://registrar.example.com/status")),
