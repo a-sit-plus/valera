@@ -30,6 +30,7 @@ import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.identifier
+import at.asitplus.wallet.app.common.validation.PendingCredentialReview
 import at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult
 import io.github.aakira.napier.Napier
 import io.ktor.http.URLBuilder
@@ -413,8 +414,11 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
     composable<CredentialReviewRoute> {
         val entries by walletMain.provisioningService.credentialsUnderReview.collectAsState()
         var isBusy by rememberSaveable { mutableStateOf(false) }
+        // Keeping or discarding them empties the review at once, but the screen shows them until it is left
+        var decidedEntries by remember { mutableStateOf<List<PendingCredentialReview.Entry>?>(null) }
         val onDiscard = {
             isBusy = true
+            decidedEntries = entries
             walletMain.provisioningService.discardCredentialsUnderReview()
             walletMain.scope.launch {
                 if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
@@ -431,9 +435,10 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
         val backState = rememberNavigationEventState(NavigationEventInfo.None)
         NavigationBackHandler(state = backState, onBackCompleted = onDiscard)
         CredentialReviewView(
-            entries = entries,
+            entries = decidedEntries ?: entries,
             onKeep = {
                 isBusy = true
+                decidedEntries = entries
                 walletMain.scope.launch {
                     try {
                         val storedEntryIds = walletMain.provisioningService.keepCredentialsUnderReview()
