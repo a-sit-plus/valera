@@ -38,6 +38,7 @@
  * UI: Reduce the images of a successful and a failed presentation to the size they are shown in, which took about 6 MB of memory each
  * DC API: Keep ISO mdoc requests as received on Android and iOS, as their reader authentication failed to verify after re-encoding a request whose encoding differs from the one of VC-K, e.g. a `zkRequest` of the age verification verifier, which was rejected
  * Presentation: Name the failed signature as the reason for rejecting a request instead of the parsing of its access certificate, which is not checked without a valid signature
+ * DC API: Send an error to the caller and end the flow when the error screen of a failed presentation is confirmed, e.g. of a rejected request, on Android and iOS, where the Identity Document Provider extension stayed open; errors while sending a presentation are now reported to the caller as well, instead of only cancelling the request
 
 # Release 5.9.0:
  * Issuing and presentation: Accept Launchpad `eu-eaa-offer` and `eu-eaap` links on Android and iOS

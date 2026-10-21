@@ -451,7 +451,7 @@ class IosPlatformAdapter(
             )
             throw throwable
         } finally {
-            IosSessionBridge.clearDcapiInvocation()
+            IosSessionBridge.clearAnsweredDcapiInvocation()
         }
     }
 
@@ -465,7 +465,7 @@ class IosPlatformAdapter(
             // sendResponse closure with a protocol-neutral validation error.
             invocation.sendCredentialError(ISO_DC_API_VALIDATION_ERROR)
         } finally {
-            IosSessionBridge.clearDcapiInvocation()
+            IosSessionBridge.clearAnsweredDcapiInvocation()
         }
     }
 

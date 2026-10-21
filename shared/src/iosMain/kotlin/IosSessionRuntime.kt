@@ -215,12 +215,14 @@ private object IosSessionRuntime {
         Napier.d("IosSessionRuntime registered DCAPI pre-request for origin=${data.origin}")
     }
 
-    fun clearDcapiInvocation() {
+    // keepFinishApp keeps the flow finishable after its invocation has been answered, e.g. from the error screen whose
+    // acknowledgement sends the error; its onCancel then leaves ending the request to the extension
+    fun clearDcapiInvocation(keepFinishApp: Boolean = false) {
         synchronized(stateLock) {
             if (pendingTransientState is PendingTransientState.Invocation) pendingTransientState = null
             transientFlowHandle?.intentState?.let { intentState ->
                 intentState.dcapiInvocationData.value = null
-                intentState.finishApp = null
+                if (!keepFinishApp) intentState.finishApp = null
                 if (intentState.appLink.value == IOS_DC_API_CALL) {
                     intentState.appLink.value = null
                 }
@@ -361,6 +363,11 @@ object IosSessionBridge {
 
     fun clearDcapiInvocation() {
         IosSessionRuntime.clearDcapiInvocation()
+    }
+
+    /** Clears the invocation once its response or error has been sent, and keeps the flow finishable */
+    internal fun clearAnsweredDcapiInvocation() {
+        IosSessionRuntime.clearDcapiInvocation(keepFinishApp = true)
     }
 
     fun clearDcapiPreRequest() {
