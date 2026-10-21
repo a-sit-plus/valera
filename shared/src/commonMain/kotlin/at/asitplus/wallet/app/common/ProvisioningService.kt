@@ -25,11 +25,9 @@ import at.asitplus.wallet.app.common.validation.describeProblems
 import at.asitplus.wallet.app.common.validation.integrityRejection
 import at.asitplus.wallet.app.common.validation.needsReview
 import at.asitplus.wallet.app.common.validation.rejection
-import at.asitplus.wallet.app.common.validation.scheme
 import at.asitplus.wallet.app.common.validation.toUi
 import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
 import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
-import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.PreparedCredentialStorage
@@ -46,6 +44,7 @@ import at.asitplus.wallet.lib.oauth2.OAuth2Client
 import at.asitplus.wallet.lib.oidvci.CredentialIdentifierInfo
 import at.asitplus.wallet.lib.oidvci.LoadedIssuerMetadata
 import at.asitplus.wallet.lib.oidvci.OpenId4VciClient
+import at.asitplus.wallet.lib.oidvci.ReceivedCredential
 import at.asitplus.wallet.lib.utils.MapStore
 import at.asitplus.wallet.lib.validation.IssuerMetadataValidator
 import at.asitplus.wallet.lib.validation.ValidationDecision
@@ -324,12 +323,12 @@ class ProvisioningService(
                 val idsBefore =
                     subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
                 Napier.d("resumeWithAuthCode idsBefore=$idsBefore")
-                Napier.d("resumeWithAuthCode received ${result.credentials.size} credential(s)")
+                Napier.d("resumeWithAuthCode received ${result.receivedCredentials.size} credential(s)")
                 onProgress?.invoke(LoadingMessageKey.StoringCredential)
                 // A credential replacing a stored one is not reviewed, as the stored one is removed below
                 val review = storedState.context.reissuingStoreEntryId == null
-                val storageResults = result.credentials.map { cred ->
-                    storeCredential(cred, result.refreshToken, review)
+                val storageResults = result.receivedCredentials.map { cred ->
+                    storeCredential(cred, result.scheme, result.refreshToken, review)
                 }
                 val needsReview = storageResults.any { it.getOrNull() == null }
                 val storedEntryIds = if (storageResults.any { it.getOrNull() != null }) {
@@ -433,8 +432,8 @@ class ProvisioningService(
         clearCaches()
         Napier.d("refreshCredential with identifier ${renewalInfo.credentialIdentifier}")
         openId4VciClient().refreshCredentialReturningResult(renewalInfo).getOrThrow().also { result ->
-            val storageResults = result.credentials.map { credentialInput ->
-                storeCredential(credentialInput, result.refreshToken, review = false)
+            val storageResults = result.receivedCredentials.map { credential ->
+                storeCredential(credential, result.scheme, result.refreshToken, review = false)
             }
 
             if (storageResults.all { it.isSuccess }) {
@@ -501,10 +500,10 @@ class ProvisioningService(
                 val idsBefore =
                     subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
                 Napier.d("loadCredentialWithOffer idsBefore=$idsBefore")
-                Napier.d("loadCredentialWithOffer received ${result.credentials.size} credential(s) without browser auth")
+                Napier.d("loadCredentialWithOffer received ${result.receivedCredentials.size} credential(s) without browser auth")
                 onProgress?.invoke(LoadingMessageKey.StoringCredential)
-                val storedEntries = result.credentials.map {
-                    storeCredential(it, review = true).getOrThrow()
+                val storedEntries = result.receivedCredentials.map {
+                    storeCredential(it, result.scheme, review = true).getOrThrow()
                 }
                 val storedEntryIds = if (storedEntries.any { it != null }) {
                     resolveNewStoreEntryIds(idsBefore)
@@ -535,21 +534,24 @@ class ProvisioningService(
     fun discardCredentialsUnderReview() = pendingCredentialReview.clear()
 
     /**
-     * Validates [credential] under [ValidationPolicies.issuance], see [HolderAgent.prepareCredentialStorage], and stores
-     * it if it is accepted, returning its entry. A credential rejected only for problems the user may tolerate, e.g. an
+     * Validates [credential] as the type of [scheme] under [ValidationPolicies.issuance] with the key and validator of
+     * the [holderAgent], see [ReceivedCredential.prepareCredentialStorage], and stores it if it is accepted, returning
+     * its entry. A credential rejected only for problems the user may tolerate, e.g. an
      * untrusted issuer, an expired one, an unknown status, or claims its type requires that the issuer left out, waits
      * in [credentialsUnderReview] if [review] is set, so `null` is returned; otherwise, e.g. when refreshing a
      * credential in the background, it is stored nevertheless, as before. A credential failing a check of its
-     * integrity, e.g. its signature or its binding to the key of the wallet, fails with that check, see
-     * [integrityRejection]. Every problem of a rejected credential is logged.
+     * integrity, e.g. its signature or its binding to the key of the wallet, or one that can not be decoded at all,
+     * fails with that check, see [integrityRejection]. Every problem of a rejected credential is logged.
      */
     private suspend fun storeCredential(
-        credential: Holder.StoreCredentialInput,
+        credential: ReceivedCredential,
+        scheme: CredentialScheme,
         renewalInfo: CredentialRenewalInfo? = null,
         review: Boolean,
     ): KmmResult<SubjectCredentialStore.StoreEntry?> = catching {
         val prepared = withContext(Dispatchers.Default) {
-            holderAgent.prepareCredentialStorage(credential, ValidationPolicies.issuance, renewalInfo).getOrThrow()
+            credential.prepareCredentialStorage(holderAgent, scheme, ValidationPolicies.issuance, renewalInfo)
+                .getOrThrow()
         }
         val report = prepared.validation.report
         if (report.decision == ValidationDecision.ACCEPTED) {
@@ -557,14 +559,14 @@ class ProvisioningService(
                 .storedEntry ?: throw IllegalStateException("The credential has not been stored")
         }
         Napier.w("Issued credential rejected: ${report.describeProblems()}")
-        val outcome = report.toUi { credential.scheme.claimLabel(it) }
+        val outcome = report.toUi { scheme.claimLabel(it) }
         when {
             outcome.integrityFailed || prepared.validation.unacceptedCredential == null ->
                 throw report.integrityRejection() ?: report.rejection()
                     ?: IllegalStateException("The credential has not been stored")
 
             review && report.needsReview() -> null.also {
-                pendingCredentialReview.add(PendingCredentialReview.Entry(prepared, outcome))
+                pendingCredentialReview.add(PendingCredentialReview.Entry(prepared, scheme, outcome))
             }
 
             else -> storeAfterUserConsent(prepared)
