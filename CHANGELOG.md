@@ -1,4 +1,5 @@
 # Release 5.9.1 (unreleased):
+ * Presentation: Parse and validate incoming requests, including certificate trust checks, off the UI thread for DC API, OpenID4VP, and proximity flows
  * Authentication: Use “Authenticate to continue” consistently for credential issuance, refresh, and presentation prompts on Android and iOS
  * Update to VC-K 9.0.0-SNAPSHOT
  * Presentation: Resolve and display DCQL `mso_mdoc_zk` credential queries on the consent screens like ISO mdoc queries

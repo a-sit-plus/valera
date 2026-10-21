@@ -17,8 +17,10 @@ import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import at.asitplus.wallet.lib.openid.DcApiPreparationState
 import at.asitplus.wallet.lib.validation.RelyingPartyValidator
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToByteArray
 
 class PresentationService(
@@ -48,13 +50,18 @@ class PresentationService(
     /**
      * Loads and validates the request [input] under [ValidationPolicies.strict], returning its report next to the
      * state to answer it with, also if the request is rejected, so that the user can decide whether to continue.
+     * Request parsing and certificate trust validation run off the UI dispatcher, like the other validation entry points.
      */
     suspend fun startAuthorizationResponsePreparation(input: String) =
-        presentationService.startAuthorizationResponsePreparation(input, ValidationPolicies.strict)
+        withContext(Dispatchers.Default) {
+            presentationService.startAuthorizationResponsePreparation(input, ValidationPolicies.strict)
+        }
 
     /** Validates [input] under [ValidationPolicies.strict], see the overload taking a string. */
     suspend fun startAuthorizationResponsePreparation(input: RequestParametersFrom<AuthenticationRequestParameters>) =
-        presentationService.startAuthorizationResponsePreparation(input, ValidationPolicies.strict)
+        withContext(Dispatchers.Default) {
+            presentationService.startAuthorizationResponsePreparation(input, ValidationPolicies.strict)
+        }
 
     suspend fun getMatchingCredentials(
         preparationState: AuthorizationResponsePreparationState
@@ -65,11 +72,15 @@ class PresentationService(
      * reader authentication over [sessionTranscript] with the WRPAC, and its WRPRCs.
      */
     suspend fun validateRelyingParty(deviceRequest: DeviceRequest, sessionTranscript: SessionTranscript) =
-        relyingPartyValidator.validate(deviceRequest, sessionTranscript, ValidationPolicies.strict)
+        withContext(Dispatchers.Default) {
+            relyingPartyValidator.validate(deviceRequest, sessionTranscript, ValidationPolicies.strict)
+        }
 
     /** Validates [request] under [ValidationPolicies.strict], returning its report next to the state. */
     suspend fun prepareDcApiRequest(request: RequestParametersFrom.DcApiRequest) =
-        presentationService.prepareDcApiRequest(request, ValidationPolicies.strict)
+        withContext(Dispatchers.Default) {
+            presentationService.prepareDcApiRequest(request, ValidationPolicies.strict)
+        }
 
     suspend fun getMatchingCredentials(preparationState: DcApiPreparationState) =
         presentationService.getMatchingCredentials(preparationState)
