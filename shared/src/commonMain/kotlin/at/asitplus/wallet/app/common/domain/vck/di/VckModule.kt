@@ -21,6 +21,12 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import ui.models.CredentialFreshnessSummaryModelEvaluator
 
+/**
+ * Qualifies the validation of credentials received from a credential issuer, which checks their status with a status
+ * list fetched again instead of a cached one, as the wallet stores them only after showing their validation.
+ */
+val ISSUANCE = named("issuance")
+
 fun vckModule() = module {
     scope(named(SESSION_NAME)) {
         scoped<StatusValidator> {
@@ -30,6 +36,12 @@ fun vckModule() = module {
             CredentialValidator(
                 trustAnchors = get<TrustListService>().credentialTrustAnchors(),
                 statusValidator = get(),
+            )
+        }
+        scoped<CredentialValidator>(ISSUANCE) {
+            CredentialValidator(
+                trustAnchors = get<TrustListService>().credentialTrustAnchors(),
+                statusValidator = StatusValidator(statusListTokenResolver = get<StatusListTokenResolver>(ISSUANCE)),
             )
         }
         scoped<RegistrationCertificateAnchors> {
@@ -68,6 +80,14 @@ fun vckModule() = module {
                 keyMaterial = keyMaterial,
                 subjectCredentialStore = subjectCredentialStore,
                 credentialValidator = get(),
+            )
+        }
+        // Shares the key and the store of the default holder, and validates credentials as received, see ISSUANCE
+        scoped<HolderAgent>(ISSUANCE) {
+            HolderAgent(
+                keyMaterial = get(),
+                subjectCredentialStore = get(),
+                credentialValidator = get(ISSUANCE),
             )
         }
         scoped<CredentialFreshnessSummaryModelEvaluator> {

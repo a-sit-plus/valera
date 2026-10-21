@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.common.validation
 
-import at.asitplus.wallet.lib.agent.Holder
 import at.asitplus.wallet.lib.agent.PreparedCredentialStorage
 import at.asitplus.wallet.lib.data.CredentialScheme
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,16 +15,14 @@ import kotlinx.coroutines.flow.update
  */
 class PendingCredentialReview {
     /**
-     * A [prepared] credential with its validation and renewal info, to store it after the user's consent, and the
-     * [outcome] of its validation to show.
+     * A [prepared] credential with its validation and renewal info, to store it after the user's consent, the [scheme]
+     * the wallet requested it as, and the [outcome] of its validation to show.
      */
     data class Entry(
         val prepared: PreparedCredentialStorage,
+        val scheme: CredentialScheme,
         val outcome: ValidationOutcomeUi,
-    ) {
-        val scheme: CredentialScheme
-            get() = prepared.credential.scheme
-    }
+    )
 
     private val _entries = MutableStateFlow<List<Entry>>(emptyList())
     val entries: StateFlow<List<Entry>> = _entries.asStateFlow()
@@ -37,11 +34,3 @@ class PendingCredentialReview {
 
     fun clear() = _entries.update { emptyList() }
 }
-
-/** The scheme the wallet requested this credential as. */
-val Holder.StoreCredentialInput.scheme: CredentialScheme
-    get() = when (this) {
-        is Holder.StoreCredentialInput.Vc -> scheme
-        is Holder.StoreCredentialInput.SdJwt -> scheme
-        is Holder.StoreCredentialInput.Iso -> scheme
-    }
