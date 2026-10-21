@@ -21,10 +21,12 @@ fun DCAPIPresentationGraphView(
     showStartRoute: Boolean = true,
     viewModel: DCAPIPresentationGraphViewModel = koinViewModel(scope = koinScope),
 ) {
+    // The flow ends with any error, which is to be sent to the caller instead of a presentation
+    val onError: (Throwable) -> Unit = { errorAction(viewModel.withErrorResponse(it)) }
     val dcApiRequest = try {
         viewModel.dcApiWalletRequest.getOrThrow()
     } catch (it: Throwable) {
-        return errorAction(it)
+        return onError(it)
     }
 
     val spName = dcApiRequest.callingPackageName
@@ -52,7 +54,7 @@ fun DCAPIPresentationGraphView(
         serviceProviderLocationLocalized = spLocation,
         authenticateAtRelyingParty = authenticateAtRelyingParty,
         onNavigateUp = onNavigateUp,
-        onError = errorAction,
+        onError = onError,
         onClickLogo = onClickLogo,
         navigateUpIsClose = true,
         selectionProvider = matchingResult.map {
@@ -62,7 +64,7 @@ fun DCAPIPresentationGraphView(
         submitPresentation = { it, navigate ->
             viewModel.confirmSelection(
                 credentialPresentationSubmissions = it,
-                onFailure = errorAction,
+                onFailure = onError,
                 onSuccess = {
                     navigate(
                         PresentationSuccessRoute(

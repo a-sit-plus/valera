@@ -76,20 +76,31 @@ class DCAPIPresentationGraphViewModel(
                 // Rethrows the cancellation of the flow, but not one of e.g. a request whose job was cancelled, which
                 // would leave the request loading forever
                 ensureActive()
-                val response = when (it) {
-                    is OAuth2Exception -> it
-                    else -> OAuth2Exception.InvalidRequest(it.message)
-                }.serialize()
-                UiStateError(
-                    ErrorHandlingOverrideException(
-                        onAcknowledge = {
-                            walletMain.platformAdapter.prepareDCAPICredentialError(response)
-                        },
-                        cause = it,
-                    )
-                )
+                UiStateError(withErrorResponse(it))
             }
         }
+    }
+
+    /**
+     * Sends [error] to the caller of the DC API once the user acknowledges it, as the flow ends without a
+     * presentation, unless [error] already sends a response on acknowledgement.
+     */
+    fun withErrorResponse(error: Throwable): Throwable {
+        val override = error as? ErrorHandlingOverrideException
+        if (override?.onAcknowledge != null) return error
+        val cause = override?.cause ?: error
+        val response = when (cause) {
+            is OAuth2Exception -> cause
+            else -> OAuth2Exception.InvalidRequest(cause.message)
+        }.serialize()
+        return ErrorHandlingOverrideException(
+            resetStackOverride = override?.resetStackOverride,
+            actionDescriptionOverride = override?.actionDescriptionOverride,
+            onAcknowledge = {
+                walletMain.platformAdapter.prepareDCAPICredentialError(response)
+            },
+            cause = cause,
+        )
     }
 
     private val mutableIsSubmitting = MutableStateFlow(false)

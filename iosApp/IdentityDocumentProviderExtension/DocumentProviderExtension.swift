@@ -62,10 +62,12 @@ private struct DcApiValidationError: LocalizedError {
 // control to the shared UI. This gate makes all response, validation-error, and cancellation
 // callbacks idempotent so the checked continuation is resumed at most once. A cancellation that
 // arrives before the continuation is attached resumes it as soon as it is, without starting the flow.
+// One that arrives after a response or validation error has been sent is ignored, as that settles the request.
 private final class DcApiResponseCompletion: @unchecked Sendable {
     private let lock = NSLock()
     private var continuation: CheckedContinuation<Data, Error>?
     private var isCancelled = false
+    private var isAnswered = false
 
     /// Whether the flow is to be started, i.e. the request has not been cancelled already.
     func attach(_ continuation: CheckedContinuation<Data, Error>) -> Bool {
@@ -81,18 +83,35 @@ private final class DcApiResponseCompletion: @unchecked Sendable {
     }
 
     func returnResponse(_ data: Data) {
-        takeContinuation()?.resume(returning: data)
+        takeAnsweringContinuation()?.resume(returning: data)
     }
 
     func failValidation(_ message: String) {
-        takeContinuation()?.resume(throwing: DcApiValidationError(message: message))
+        takeAnsweringContinuation()?.resume(throwing: DcApiValidationError(message: message))
     }
 
-    func cancel() {
+    /// Whether the request has been cancelled, i.e. no response or validation error has been sent before.
+    @discardableResult
+    func cancel() -> Bool {
         lock.lock()
+        guard !isAnswered else {
+            lock.unlock()
+            return false
+        }
         isCancelled = true
         lock.unlock()
         takeContinuation()?.resume(throwing: CancellationError())
+        return true
+    }
+
+    private func takeAnsweringContinuation() -> CheckedContinuation<Data, Error>? {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !isCancelled else { return nil }
+        isAnswered = true
+        let value = continuation
+        continuation = nil
+        return value
     }
 
     private func takeContinuation() -> CheckedContinuation<Data, Error>? {
@@ -289,8 +308,11 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                                         Napier.shared.log(priority: LogLevel.error, tag: "DocumentProviderExtension", throwable: nil, message: "sendCredentialError called: \(message)")
                                         completion.failValidation(message)
                                     }
+                                    // The shared UI finishes the flow after it has sent a validation error as well,
+                                    // e.g. from its error screen. Cancelling the request then could replace that
+                                    // error, so it is ended below once sendResponse has returned instead.
                                     let cancelInvocation: () -> Void = {
-                                        completion.cancel()
+                                        guard completion.cancel() else { return }
                                         cancelRequest()
                                     }
 
@@ -319,6 +341,9 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                         Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse cancelled")
                     } catch {
                         Napier.shared.log(priority: LogLevel.error, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse failed: \(error)")
+                        // The system keeps the extension open after a failed response, e.g. a validation error
+                        // sent from the error screen, and there is nothing left to show: end the request
+                        requestContext.cancel()
                     }
                 }
             }

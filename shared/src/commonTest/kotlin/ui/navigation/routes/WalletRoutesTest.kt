@@ -10,6 +10,7 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.LoadingMessageKey
+import at.asitplus.wallet.app.common.dcapi.isoMdocDcApiRequest
 import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
 import at.asitplus.wallet.app.common.relyingParty.WrpDisplayInfo
 import at.asitplus.wallet.app.common.validation.ArtifactKind
@@ -20,10 +21,13 @@ import at.asitplus.wallet.app.common.validation.FindingUi
 import at.asitplus.wallet.app.common.validation.HeadlineUi
 import at.asitplus.wallet.app.common.validation.UnregisteredRequestUi
 import at.asitplus.wallet.app.common.validation.ValidationOutcomeUi
+import at.asitplus.wallet.lib.agent.validation.relyingParty.ReaderAuthenticationVerifier
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.RequestDataValidity
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.WrpCredentialRequest
 import at.asitplus.wallet.lib.data.JsonClaimReference
 import at.asitplus.wallet.lib.data.MdocClaimReference
+import at.asitplus.wallet.lib.openid.IsoMdocDcapiResponseBuilder
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -84,6 +88,20 @@ class WalletRoutesTest {
         val route = DCAPIPresentationViewRoute(request)
 
         assertEquals(request, route.request)
+    }
+
+    @Test
+    fun dcApiPresentationRouteKeepsTheSignedIsoMdocRequest() = runTest {
+        val request = isoMdocDcApiRequest(AGE_VERIFICATION_ZK_REQUEST, callingOrigin = AGE_VERIFICATION_ORIGIN)
+
+        val routed = DCAPIPresentationViewRoute(request).request as RequestParametersFrom.IsoMdocDcApi
+
+        assertEquals(AGE_VERIFICATION_ZK_REQUEST, routed.jsonString)
+        val reader = ReaderAuthenticationVerifier().authenticate(
+            routed.parameters.isoMdocRequest.deviceRequest,
+            IsoMdocDcapiResponseBuilder.sessionTranscriptFor(routed),
+        )
+        assertTrue(reader.isSuccess, reader.exceptionOrNull()?.toString())
     }
 
     @Test

@@ -9,13 +9,12 @@ import at.asitplus.KmmResult
 import at.asitplus.dcapi.DigitalCredentialInterface
 import at.asitplus.dcapi.toIosIsoMdocResponseBytes
 import at.asitplus.dcapi.ios.IosDcApiMdocPreRequestSummary
-import at.asitplus.dcapi.request.IsoMdocRequest
-import at.asitplus.dcapi.request.toRequestParametersFrom
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
+import at.asitplus.wallet.app.common.dcapi.isoMdocDcApiRequest
 import at.asitplus.wallet.app.common.AV_DOC_TYPE
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
@@ -411,8 +410,11 @@ class IosPlatformAdapter(
         Napier.d("getCurrentDCAPIVerificationData called")
         return (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let {
             try {
-                val isoMdocRequest = it.rawRequest?.let { request -> Json.decodeFromString<IsoMdocRequest>(request) }
-                    ?: throw IllegalStateException("No request data available")
+                val walletRequest = isoMdocDcApiRequest(
+                    rawRequest = it.rawRequest ?: throw IllegalStateException("No request data available"),
+                    callingOrigin = it.origin ?: throw IllegalStateException("No origin received"),
+                )
+                val isoMdocRequest = walletRequest.parameters.isoMdocRequest
                 Napier.d("getCurrentDCAPIVerificationData: rawRequest docTypes=${isoMdocRequest.deviceRequest.docRequests.map { req -> req.itemsRequest.value.docType }}")
                 Napier.d("getCurrentDCAPIVerificationData: rawRequest namespaces=${isoMdocRequest.deviceRequest.docRequests.map { req -> req.itemsRequest.value.namespaces.mapValues { (_, items) -> items.entries.map { item -> "${item.dataElementIdentifier}→retain=${item.intentToRetain}" } } }}")
 
@@ -424,10 +426,6 @@ class IosPlatformAdapter(
                 require(parsedRequestSummary.isConsistentWith(isoMdocRequest)) {
                     "Parsed ISO18013 mobile document pre-request is inconsistent with rawRequest"
                 }
-                val walletRequest = isoMdocRequest.toRequestParametersFrom(
-                    callingOrigin = it.origin ?: throw IllegalStateException("No origin received"),
-                    credentialIds = null,
-                )
                 KmmResult.success(walletRequest)
             } catch (e: Throwable) {
                 Napier.e("Error parsing mdoc request", e)
@@ -453,7 +451,7 @@ class IosPlatformAdapter(
             )
             throw throwable
         } finally {
-            IosSessionBridge.clearDcapiInvocation()
+            IosSessionBridge.clearAnsweredDcapiInvocation()
         }
     }
 
@@ -467,7 +465,7 @@ class IosPlatformAdapter(
             // sendResponse closure with a protocol-neutral validation error.
             invocation.sendCredentialError(ISO_DC_API_VALIDATION_ERROR)
         } finally {
-            IosSessionBridge.clearDcapiInvocation()
+            IosSessionBridge.clearAnsweredDcapiInvocation()
         }
     }
 
