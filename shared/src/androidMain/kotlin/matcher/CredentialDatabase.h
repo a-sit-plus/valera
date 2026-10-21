@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <optional>
 
 //#include "Request.h"
 struct Request;
@@ -29,6 +30,15 @@ struct Claim {
     std::string matchValue;
     bool isDeviceSigned = false;
     bool omitValue = false;
+};
+
+// Object members are literal keys; array positions are never encoded in member names.
+struct SdJwtClaimNode {
+    std::string kind;
+    std::string scalar;
+    Claim display;
+    std::map<std::string, SdJwtClaimNode> members;
+    std::vector<SdJwtClaimNode> elements;
 };
 
 struct Credential {
@@ -66,6 +76,10 @@ struct Credential {
 
     // Maps from claimName to Claim.
     std::map<std::string, Claim> claims;
+
+    std::optional<SdJwtClaimNode> sdJwtClaimsTree;
+    // Dedicated immutable-result cache: std::map preserves Claim pointers across insertions.
+    std::map<std::string, Claim> sdJwtQueryClaims;
 
     // Claims dynamically created for authorized device-signed data elements or omitted claims
     mutable std::map<std::string, Claim> dynamicDeviceClaims;

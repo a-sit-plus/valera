@@ -18,11 +18,11 @@ import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme
 import at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme
+import data.credentials.CredentialAdapter.Companion.toComplexJson
 import data.credentials.CredentialAdapter.Companion.toNamespaceAttributeMap
 import data.credentials.EuPidCredentialAdapter
 import data.credentials.MobileDrivingLicenceCredentialAdapter
 import data.credentials.metadataLabel
-import data.credentials.toGenericAttributeList
 import data.storage.StoreContainer
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
@@ -85,10 +85,11 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
 
     private suspend fun SubjectCredentialStore.StoreEntry.SdJwt.toSdJwtEntry(
         scheme: CredentialScheme,
-    ): SdJwtEntry = SdJwtEntry(
+    ): SdJwtEntry = SdJwtEntry.fromJson(
         jwtId = getDcApiId(),
         verifiableCredentialType = schemeIdentifier,
-        claims = SdJwtEntry.fromAttributeList(toGenericAttributeList()) { path -> scheme.metadataLabel(path) }
+        claims = requireNotNull(toComplexJson()) { "Unable to reconstruct SD-JWT claims for DC API export" },
+        attributeLabel = { path -> scheme.metadataLabel(path) },
     )
 
     private fun SubjectCredentialStore.StoreEntry.extractPicture(scheme: CredentialScheme) = scheme.let { s ->

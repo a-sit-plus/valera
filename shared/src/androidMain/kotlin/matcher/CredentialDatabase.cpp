@@ -10,6 +10,51 @@ extern "C" {
 #include "cppbor_parse.h"
 #include "logger.h"
 
+static std::string canonicalNumber(const std::string& input);
+
+// Reject malformed typed trees instead of reconstructing ambiguous flattened paths.
+static bool parseSdJwtNode(const cppbor::Item* item, SdJwtClaimNode& node, size_t depth = 0) {
+    if (item == nullptr || item->asMap() == nullptr || depth > 256) return false;
+    auto map = item->asMap();
+    const auto& kind = map->get("kind");
+    if (!kind || !kind->asTstr()) return false;
+    node.kind = kind->asTstr()->value();
+    if (node.kind != "object" && node.kind != "array" && node.kind != "string" &&
+        node.kind != "number" && node.kind != "boolean" && node.kind != "null") return false;
+    auto text = [&](const char* key, std::string& target) {
+        const auto& value = map->get(key);
+        if (!value) return true;
+        if (!value->asTstr()) return false;
+        target = value->asTstr()->value();
+        return true;
+    };
+    if (!text("value", node.scalar) || !text("displayName", node.display.displayName) ||
+        !text("displayValue", node.display.value)) return false;
+    node.display.matchValue = node.scalar;
+    const auto& members = map->get("members");
+    const auto& elements = map->get("elements");
+    if (members) {
+        if (node.kind != "object" || !members->asMap()) return false;
+        for (const auto& [key, value] : *members->asMap()) {
+            if (!key->asTstr()) return false;
+            SdJwtClaimNode child;
+            if (!parseSdJwtNode(value.get(), child, depth + 1) ||
+                !node.members.emplace(key->asTstr()->value(), std::move(child)).second) return false;
+        }
+    }
+    if (elements) {
+        if (node.kind != "array" || !elements->asArray()) return false;
+        for (const auto& value : *elements->asArray()) {
+            SdJwtClaimNode child;
+            if (!parseSdJwtNode(value.get(), child, depth + 1)) return false;
+            node.elements.push_back(std::move(child));
+        }
+    }
+    if (node.kind == "boolean" && node.scalar != "true" && node.scalar != "false") return false;
+    if (node.kind == "number" && canonicalNumber(node.scalar).empty()) return false;
+    return true;
+}
+
 CredentialDatabase::CredentialDatabase(const uint8_t* encodedDatabase, size_t encodedDatabaseLength) {
     auto [item, pos, message] =
             cppbor::parse(encodedDatabase, encodedDatabaseLength);
@@ -18,6 +63,7 @@ CredentialDatabase::CredentialDatabase(const uint8_t* encodedDatabase, size_t en
         return;
     }
     auto topMap = item->asMap();
+    if (!topMap) return;
 
     const auto& enforceIdentifierMatching =
             topMap->get("enforceTrustedAuthorityAndReaderIdentifierMatching");
@@ -50,6 +96,7 @@ CredentialDatabase::CredentialDatabase(const uint8_t* encodedDatabase, size_t en
         bool supportsPortraitImageEquivalence = false;
         bool omitClaims = false;
         std::map<std::string, std::string> claimDisplayNames;
+        std::optional<SdJwtClaimNode> sdJwtTree;
         std::map resultingClaims = std::map<std::string, Claim>();
 
         auto& docProtocolsPtr = cred->get("protocols");
@@ -162,6 +209,8 @@ CredentialDatabase::CredentialDatabase(const uint8_t* encodedDatabase, size_t en
         auto& sdjwtPtr = cred->get("sdjwt");
         if (sdjwtPtr != nullptr) {
             auto sdjwt = sdjwtPtr->asMap();
+            if (!sdjwt || !sdjwt->get("documentId") || !sdjwt->get("documentId")->asTstr() ||
+                !sdjwt->get("vct") || !sdjwt->get("vct")->asTstr()) continue;
             documentId = sdjwt->get("documentId")->asTstr()->value();
             vcVct = sdjwt->get("vct")->asTstr()->value();
 
@@ -200,19 +249,14 @@ CredentialDatabase::CredentialDatabase(const uint8_t* encodedDatabase, size_t en
                 }
             }
 
-            const auto& claimsPtr = sdjwt->get("claims");
-            if (claimsPtr != nullptr && claimsPtr->asMap() != nullptr) {
-                auto claims = claimsPtr->asMap();
-                for (auto j = claims->begin(); j != claims->end(); ++j) {
-                    auto claimName = j->first->asTstr()->value();
-                    auto claimDetailsArray = j->second->asArray();
-                    auto displayName = claimDetailsArray->get(0)->asTstr()->value();
-                    auto value = claimDetailsArray->get(1)->asTstr()->value();
-                    auto matchValue = claimDetailsArray->get(2)->asTstr()->value();
-
-                    resultingClaims[claimName] = Claim(claimName, displayName, value, matchValue);
-                }
+            const auto& version = sdjwt->get("claimsFormatVersion");
+            const auto& tree = sdjwt->get("claimsTree");
+            SdJwtClaimNode parsed;
+            if (version && version->asUint() && version->asUint()->value() == 1 &&
+                parseSdJwtNode(tree.get(), parsed) && parsed.kind == "object") {
+                sdJwtTree = std::move(parsed);
             }
+
         }
 
         credentials.push_back(
@@ -232,6 +276,7 @@ CredentialDatabase::CredentialDatabase(const uint8_t* encodedDatabase, size_t en
                 claimDisplayNames
             )
         );
+        credentials.back().sdJwtClaimsTree = std::move(sdJwtTree);
     }
 }
 
@@ -297,66 +342,134 @@ std::string Credential::lookupClaimDisplayName(const std::vector<std::string>& p
     return path.back();
 }
 
-// Whether claimName, from position pos on, is the requested path from index on, joined with "." and with each
-// "null" (wildcard) segment replaced by an array index, e.g. "nationalities.0" for ["nationalities", null].
-static bool matchesWildcardPath(
-        const std::string& claimName,
-        size_t pos,
-        const std::vector<std::string>& path,
-        size_t index
-) {
-    if (index == path.size()) {
-        return pos == claimName.size();
+// Canonical decimal form compares the numeric value without rounding the stored lexical
+// content to a double. cJSON query values are printed once by the request parser.
+static std::string canonicalNumber(const std::string& input) {
+    // Validate JSON number grammar independently: no whitespace, prefix parses, leading
+    // zeros or missing fraction/exponent digits. Never round registry values to doubles.
+    size_t cursor = 0;
+    auto digit = [&](size_t p) { return p < input.size() && input[p] >= '0' && input[p] <= '9'; };
+    if (cursor < input.size() && input[cursor] == '-') ++cursor;
+    if (!digit(cursor)) return "";
+    if (input[cursor] == '0') ++cursor;
+    else while (digit(cursor)) ++cursor;
+    if (cursor < input.size() && input[cursor] == '.') {
+        ++cursor;
+        if (!digit(cursor)) return "";
+        while (digit(cursor)) ++cursor;
     }
-    if (index > 0) {
-        if (pos >= claimName.size() || claimName[pos] != '.') {
-            return false;
+    if (cursor < input.size() && (input[cursor] == 'e' || input[cursor] == 'E')) {
+        ++cursor;
+        if (cursor < input.size() && (input[cursor] == '+' || input[cursor] == '-')) ++cursor;
+        if (!digit(cursor)) return "";
+        while (digit(cursor)) ++cursor;
+    }
+    if (cursor != input.size()) return "";
+    size_t i = 0;
+    bool negative = i < input.size() && input[i] == '-';
+    if (negative) ++i;
+    std::string digits;
+    int64_t exponent = 0;
+    bool fraction = false;
+    bool sawDigit = false;
+    for (; i < input.size() && input[i] != 'e' && input[i] != 'E'; ++i) {
+        char c = input[i];
+        if (c == '.' && !fraction) { fraction = true; continue; }
+        if (c < '0' || c > '9') return "";
+        sawDigit = true;
+        digits += c;
+        if (fraction) --exponent;
+    }
+    if (!sawDigit) return "";
+    if (i < input.size()) {
+        ++i;
+        bool expNegative = i < input.size() && input[i] == '-';
+        if (i < input.size() && (input[i] == '-' || input[i] == '+')) ++i;
+        if (i == input.size()) return "";
+        int64_t exp = 0;
+        for (; i < input.size(); ++i) {
+            if (input[i] < '0' || input[i] > '9' || exp > 1000000) return "";
+            exp = exp * 10 + input[i] - '0';
         }
-        pos++;
+        exponent += expNegative ? -exp : exp;
     }
-    const std::string& segment = path[index];
-    if (segment == "null") {
-        size_t end = pos;
-        while (end < claimName.size() && claimName[end] >= '0' && claimName[end] <= '9') {
-            end++;
-        }
-        return end > pos && matchesWildcardPath(claimName, end, path, index + 1);
-    }
-    return claimName.compare(pos, segment.size(), segment) == 0 &&
-            matchesWildcardPath(claimName, pos + segment.size(), path, index + 1);
+    auto first = digits.find_first_not_of('0');
+    if (first == std::string::npos) return "0";
+    digits.erase(0, first);
+    while (digits.back() == '0') { digits.pop_back(); ++exponent; }
+    return (negative ? "-" : "") + digits + "e" + std::to_string(exponent);
 }
 
-// A wildcard selects all elements of an array, so its values match if those of any selected element do. The
-// wallet registers each element under its index; the claim registered for the wildcard itself has no single
-// value to compare against. Returns the matching element, or a claim listing all of them if several match.
-static Claim* findMatchingWildcardElements(Credential& credential, const DcqlRequestedClaim& requestedClaim) {
-    const std::vector<std::string>& values = requestedClaim.values;
-    std::vector<Claim*> matches;
-    for (auto& [claimName, claim] : credential.claims) {
-        if (matchesWildcardPath(claimName, 0, requestedClaim.path, 0) &&
-                std::find(values.begin(), values.end(), claim.matchValue) != values.end()) {
-            matches.push_back(&claim);
+static void appendCachePart(std::string& key, const std::string& part) {
+    key += std::to_string(part.size()) + ":" + part;
+}
+
+// Processes the claims path pointer as in OpenID4VP 1.0, 7.1.1: a selected element of the wrong type for the
+// next component, like a selection that becomes empty, is an error of this claim, so the claim does not match,
+// while other claim sets of the credential query may still match.
+static Claim* findSdJwtClaim(Credential& credential, const DcqlRequestedClaim& request) {
+    if (!request.typedValid) return nullptr;
+    if (!credential.sdJwtClaimsTree) return nullptr;
+    std::vector<const SdJwtClaimNode*> selected = {&*credential.sdJwtClaimsTree};
+    std::string key;
+    for (const auto& segment : request.typedPath) {
+        key += std::to_string(static_cast<int>(segment.kind));
+        appendCachePart(key, segment.kind == DcqlPathSegment::Kind::Member ? segment.member :
+                        segment.kind == DcqlPathSegment::Kind::Index ? std::to_string(segment.index) : "");
+        std::vector<const SdJwtClaimNode*> next;
+        for (auto node : selected) {
+            if (segment.kind == DcqlPathSegment::Kind::Member) {
+                if (node->kind != "object") return nullptr;
+                auto found = node->members.find(segment.member);
+                if (found != node->members.end()) next.push_back(&found->second);
+            } else {
+                if (node->kind != "array") return nullptr;
+                if (segment.kind == DcqlPathSegment::Kind::Wildcard) {
+                    for (const auto& child : node->elements) next.push_back(&child);
+                } else if (segment.index < node->elements.size()) {
+                    next.push_back(&node->elements[segment.index]);
+                }
+            }
         }
+        selected = std::move(next);
     }
-    if (matches.size() <= 1) {
-        return matches.empty() ? nullptr : matches[0];
+    key += request.hasValueConstraint ? "V" : "N";
+    for (const auto& value : request.typedValues) {
+        appendCachePart(key, value.kind);
+        appendCachePart(key, value.value);
     }
-    std::string key = requestedClaim.joinPath() + " values";
-    std::string combinedValue;
-    for (const auto& value : values) {
-        key += " " + value;
+    std::vector<const SdJwtClaimNode*> matches;
+    for (auto node : selected) {
+        bool match = !request.hasValueConstraint;
+        for (const auto& value : request.typedValues) {
+            if (node->kind != value.kind) continue;
+            if (value.kind == "number") {
+                auto number = canonicalNumber(node->scalar);
+                match = match || (!number.empty() && number == canonicalNumber(value.value));
+            } else {
+                match = match || node->scalar == value.value;
+            }
+        }
+        if (match) matches.push_back(node);
     }
-    for (const auto* match : matches) {
-        combinedValue += (combinedValue.empty() ? "" : ", ") + match->value;
+    if (matches.empty()) return nullptr;
+    auto cached = credential.sdJwtQueryClaims.find(key);
+    if (cached != credential.sdJwtQueryClaims.end()) return &cached->second;
+    Claim display = matches.front()->display;
+    // claimName is a collision-free typed identifier, never used for structural lookup.
+    display.claimName = key;
+    if (display.displayName.empty()) display.displayName = request.path.back();
+    for (size_t i = 1; i < matches.size(); ++i) {
+        display.value += ", " + matches[i]->display.value;
     }
-    auto [it, _] = credential.dynamicDeviceClaims.insert_or_assign(
-        key,
-        Claim(requestedClaim.joinPath(), matches[0]->displayName, combinedValue, "")
-    );
-    return &(it->second);
+    return &credential.sdJwtQueryClaims.emplace(key, std::move(display)).first->second;
 }
 
 Claim* Credential::findMatchingClaim(const DcqlRequestedClaim& requestedClaim) {
+    if (!vcVct.empty()) return findSdJwtClaim(*this, requestedClaim);
+    // Malformed/unsafe constraints must not turn into an unconstrained legacy mdoc
+    // request when the parser intentionally omitted an unrepresentable value.
+    if (requestedClaim.invalidRequest) return nullptr;
     auto joinedPath = requestedClaim.joinPath();
     if (omitClaims) {
         bool isDeviceSigned = false;
@@ -379,11 +492,6 @@ Claim* Credential::findMatchingClaim(const DcqlRequestedClaim& requestedClaim) {
             return &(newIt->second);
         }
         return &(dynIt->second);
-    }
-
-    if (!requestedClaim.values.empty() &&
-            std::find(requestedClaim.path.begin(), requestedClaim.path.end(), "null") != requestedClaim.path.end()) {
-        return findMatchingWildcardElements(*this, requestedClaim);
     }
 
     auto ret = claims.find(joinedPath);

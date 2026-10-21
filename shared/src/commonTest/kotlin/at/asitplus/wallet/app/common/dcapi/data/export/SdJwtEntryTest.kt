@@ -1,88 +1,140 @@
 package at.asitplus.wallet.app.common.dcapi.data.export
 
 import at.asitplus.jsonpath.core.NormalizedJsonPath
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonArray
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.cbor.Cbor
+import kotlinx.serialization.decodeFromByteArray
+import kotlinx.serialization.encodeToByteArray
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
+@OptIn(ExperimentalSerializationApi::class)
 class SdJwtEntryTest {
-    private val labels = mapOf(
-        "nationalities" to "Nationalities",
-        "family_name" to "Family name",
-        "address.country" to "Country",
+    private fun export(json: String): SdJwtEntry = SdJwtEntry.fromJson(
+        jwtId = "synthetic-document",
+        verifiableCredentialType = "urn:example:synthetic",
+        claims = Json.parseToJsonElement(json).jsonObject,
+        attributeLabel = { path ->
+            when (path) {
+                NormalizedJsonPath() + "family_name" -> "Family name"
+                NormalizedJsonPath() + "addresses" + "country" -> "Country"
+                else -> null
+            }
+        },
     )
 
-    private fun label(path: NormalizedJsonPath): String? =
-        labels[path.toDcqlPathKey()]
-
     @Test
-    fun exportsPrimitiveAndNestedClaimsUnderJoinedNames() {
-        val claims = SdJwtEntry.fromAttributeList(
-            listOf(
-                (NormalizedJsonPath() + "family_name") to JsonPrimitive("Mustermann"),
-                (NormalizedJsonPath() + "address" + "country") to JsonPrimitive("AT"),
-            ),
-            ::label,
-        )
+    fun exportsRealParentsEmptyContainersAndNull() {
+        val root = export("""{
+            "place_of_birth":{"locality":"Wien","country":"AT"},
+            "emptyObject":{},"emptyArray":[],"absentValue":null
+        }""").claimsTree
 
-        assertEquals(setOf("family_name", "address.country"), claims.keys)
-        assertEquals(ExportedElements("Family name", "Mustermann", "Mustermann"), claims["family_name"])
-        assertEquals(ExportedElements("Country", "AT", "AT"), claims["address.country"])
+        assertEquals("object", root.kind)
+        assertEquals(setOf("place_of_birth", "emptyObject", "emptyArray", "absentValue"), root.members.keys)
+        val parent = root.members.getValue("place_of_birth")
+        assertEquals("object", parent.kind)
+        assertEquals("Wien", parent.members.getValue("locality").value)
+        assertEquals("", parent.value)
+        assertEquals("object", root.members.getValue("emptyObject").kind)
+        assertTrue(root.members.getValue("emptyObject").members.isEmpty())
+        assertEquals("array", root.members.getValue("emptyArray").kind)
+        assertTrue(root.members.getValue("emptyArray").elements.isEmpty())
+        assertEquals("null", root.members.getValue("absentValue").kind)
+        assertEquals("", root.members.getValue("absentValue").value)
     }
 
     @Test
-    fun exportsArrayOfStringsPerIndexAndAsWildcard() {
-        val nationalities = buildJsonArray {
-            add(JsonPrimitive("AT"))
-            add(JsonPrimitive("DE"))
+    fun preservesNestedArraysWithoutWildcardProjections() {
+        val root = export("""{
+            "addresses":[{"country":"AT"},{"country":"DE"}],
+            "matrix":[[{"value":"nested"}],[],[null]]
+        }""").claimsTree
+
+        val addresses = root.members.getValue("addresses")
+        assertEquals("array", addresses.kind)
+        assertTrue(addresses.members.isEmpty())
+        assertEquals(listOf("AT", "DE"), addresses.elements.map { it.members.getValue("country").value })
+        assertEquals("Country", addresses.elements.first().members.getValue("country").displayName)
+        val matrix = root.members.getValue("matrix")
+        assertEquals("array", matrix.elements.first().kind)
+        assertEquals("nested", matrix.elements.first().elements.first().members.getValue("value").value)
+        assertTrue(matrix.elements[1].elements.isEmpty())
+        assertEquals("null", matrix.elements[2].elements.single().kind)
+    }
+
+    @Test
+    fun preservesLiteralMemberNamesWithoutPathCollisions() {
+        val root = export("""{
+            "a.b":"literal","a":{"b":"nested"},
+            "0":"zero","null":"literal null","":"empty name",
+            "items":[{"0":"object member","null":"member"}]
+        }""").claimsTree
+
+        assertEquals("literal", root.members.getValue("a.b").value)
+        assertEquals("nested", root.members.getValue("a").members.getValue("b").value)
+        assertEquals("zero", root.members.getValue("0").value)
+        assertEquals("literal null", root.members.getValue("null").value)
+        assertEquals("empty name", root.members.getValue("").value)
+        assertEquals("object member", root.members.getValue("items").elements.single().members.getValue("0").value)
+    }
+
+    @Test
+    fun retainsExactPrimitiveTypesAndNumericLexicalValues() {
+        val root = export("""{
+            "number":9007199254740993,"decimal":1.2300e+4,"boolean":true,
+            "falseBoolean":false,"stringNumber":"9007199254740993",
+            "stringBoolean":"true","stringNull":"null","emptyString":""
+        }""").claimsTree
+
+        assertEquals("number", root.members.getValue("number").kind)
+        assertEquals("9007199254740993", root.members.getValue("number").value)
+        assertEquals("1.2300e+4", root.members.getValue("decimal").value)
+        assertEquals("boolean", root.members.getValue("boolean").kind)
+        assertEquals("true", root.members.getValue("boolean").value)
+        assertEquals("false", root.members.getValue("falseBoolean").value)
+        listOf("stringNumber", "stringBoolean", "stringNull", "emptyString").forEach {
+            assertEquals("string", root.members.getValue(it).kind)
         }
-
-        val claims = SdJwtEntry.fromAttributeList(
-            listOf((NormalizedJsonPath() + "nationalities") to nationalities),
-            ::label,
-        )
-
-        assertEquals(
-            setOf("nationalities", "nationalities.0", "nationalities.1", "nationalities.null"),
-            claims.keys,
-        )
-        assertEquals(ExportedElements("Nationalities", "AT", "AT"), claims["nationalities.0"])
-        assertEquals(ExportedElements("Nationalities", "DE", "DE"), claims["nationalities.1"])
-        // DCQL path ["nationalities", null], as requested e.g. by the EUDI reference verifier
-        assertEquals(ExportedElements("Nationalities", """["AT","DE"]""", ""), claims["nationalities.null"])
+        assertEquals("", root.members.getValue("emptyString").value)
     }
 
     @Test
-    fun exportsArrayOfObjectsPerIndexAndAsWildcardProjection() {
-        val addresses = buildJsonArray {
-            add(buildJsonObject { put("country", "AT"); put("locality", "Graz") })
-            add(buildJsonObject { put("country", "DE") })
-        }
+    fun truncatesOnlyDisplayValuesAndUsesMetadataLabels() {
+        val longValue = "x".repeat(300)
+        val root = export("""{"family_name":"$longValue"}""").claimsTree
+        val child = root.members.getValue("family_name")
 
-        val claims = SdJwtEntry.fromAttributeList(
-            listOf((NormalizedJsonPath() + "address") to addresses),
-            ::label,
-        )
-
-        assertEquals(ExportedElements("Country", "AT", "AT"), claims["address.0.country"])
-        assertEquals(ExportedElements("locality", "Graz", "Graz"), claims["address.0.locality"])
-        assertEquals(ExportedElements("Country", "DE", "DE"), claims["address.1.country"])
-        assertNull(claims["address.1.locality"])
-        assertEquals(ExportedElements("Country", """["AT","DE"]""", ""), claims["address.null.country"])
-        assertEquals(ExportedElements("locality", """["Graz"]""", ""), claims["address.null.locality"])
+        assertEquals("Family name", child.displayName)
+        assertEquals(longValue, child.value)
+        assertEquals("x".repeat(128) + "...", child.displayValue)
+        assertTrue(root.displayValue.length < longValue.length)
     }
 
     @Test
-    fun doesNotExportWildcardForEmptyArray() {
-        val claims = SdJwtEntry.fromAttributeList(
-            listOf((NormalizedJsonPath() + "nationalities") to buildJsonArray { }),
-            ::label,
-        )
+    fun cborRoundTripPreservesTreeAndRequiredVersionWithoutEncodingDefaults() {
+        val entry = export("""{"object":{},"array":[],"null":null,"empty":"","nested":[[1,true,"1"]]}""")
+        val cbor = Cbor { encodeDefaults = false }
+        val bytes = cbor.encodeToByteArray(entry)
+        assertEquals(entry, cbor.decodeFromByteArray<SdJwtEntry>(bytes))
 
-        assertEquals(setOf("nationalities"), claims.keys)
+        // JSON uses the same generated serializer descriptor and exposes exact wire field names.
+        val wire = Json { encodeDefaults = false }.encodeToJsonElement(SdJwtEntry.serializer(), entry).jsonObject
+        assertEquals(setOf("documentId", "vct", "claimsFormatVersion", "claimsTree"), wire.keys)
+        assertEquals("1", wire.getValue("claimsFormatVersion").jsonPrimitive.content)
+        assertFalse("claims" in wire)
+        val tree = wire.getValue("claimsTree").jsonObject
+        assertEquals("object", tree.getValue("kind").jsonPrimitive.content)
+        val members = tree.getValue("members").jsonObject
+        assertEquals("object", members.getValue("object").jsonObject.getValue("kind").jsonPrimitive.content)
+        assertFalse("members" in members.getValue("object").jsonObject)
+        assertFalse("elements" in members.getValue("array").jsonObject)
+        assertFalse("value" in members.getValue("null").jsonObject)
+        assertEquals("string", members.getValue("empty").jsonObject.getValue("kind").jsonPrimitive.content)
     }
 }
