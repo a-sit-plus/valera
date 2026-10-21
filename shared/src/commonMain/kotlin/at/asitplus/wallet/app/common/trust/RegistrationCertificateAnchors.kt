@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.common.trust
 
-import at.asitplus.catching
 import at.asitplus.catchingUnwrapped
 import at.asitplus.signum.indispensable.io.ByteArrayBase64Serializer
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
@@ -8,6 +7,7 @@ import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.valera.resources.Res
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.HttpService
+import at.asitplus.wallet.app.common.catchingUnlessCancelled
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.nextRefreshIn
 import at.asitplus.wallet.lib.agent.TrustedCertificates
@@ -66,24 +66,27 @@ class RegistrationCertificateAnchors(
         .distinctUntilChanged()
 
     /** For the registration certificates of relying parties and credential issuers. */
-    val trustedCertificates = TrustedCertificates { bundledCertificates() + configured().providers }
+    val trustedCertificates = TrustedCertificates { bundledCertificates() + configuredOrEmpty().providers }
 
     /** For the status lists of registration certificates: those of the dedicated signers, and of the providers. */
     val statusCertificates = TrustedCertificates {
-        bundledCertificates() + configured().let { it.providers + it.statusListSigners }
+        bundledCertificates() + configuredOrEmpty().let { it.providers + it.statusListSigners }
     }
 
     /**
      * Loads the anchors from the configured URL if they are missing or expired, or with [force] in any case, then
      * without a conditional request, i.e. downloading the whole file again.
      *
-     * @return whether fresh anchors are available, `true` if no URL is configured
+     * @return whether fresh anchors are available, `true` if no URL is configured, `false` for any error
      */
-    suspend fun refresh(force: Boolean = false): Boolean {
-        val url = url.first() ?: return true
-        return mutex.withLock {
+    suspend fun refresh(force: Boolean = false): Boolean = catchingUnlessCancelled {
+        val url = url.first() ?: return@catchingUnlessCancelled true
+        mutex.withLock {
             loadStored(url)?.takeIf { !force && it.isFresh() } != null || download(url, force) != null
         }
+    }.getOrElse {
+        Napier.w("Could not refresh WRPRC trust anchors", it)
+        false
     }
 
     /**
@@ -96,12 +99,17 @@ class RegistrationCertificateAnchors(
             pruneUnless(url)
             if (url == null) return@collectLatest
             while (currentCoroutineContext().isActive) {
-                val fresh = refresh()
-                val cachedAt = loadStored(url)?.cachedAt
-                delay(
+                // An exception would end keeping them fresh, and be reported by the session as an error
+                val nextRefreshIn = catchingUnlessCancelled {
+                    val fresh = refresh()
+                    val cachedAt = loadStored(url)?.cachedAt
                     if (!fresh || cachedAt == null) retryInterval
                     else maxOf(1.seconds, listOf(cachedAt).nextRefreshIn(clock.now(), Configuration.CACHE_TTL_TRUST_LIST))
-                )
+                }.getOrElse {
+                    Napier.w("Keeping WRPRC trust anchors fresh failed", it)
+                    retryInterval
+                }
+                delay(nextRefreshIn)
             }
         }
     }
@@ -112,6 +120,16 @@ class RegistrationCertificateAnchors(
         Napier.w("Could not load bundled WRPRC trust anchors", it)
         emptySet()
     }.also { bundled = it }
+
+    /**
+     * The anchors of the configured URL, none if they can not be loaded: read by the validators of VC-K, which do
+     * not catch exceptions of them, so that one would end validating a request.
+     */
+    private suspend fun configuredOrEmpty(): RegistrationTrustAnchors = catchingUnlessCancelled { configured() }
+        .getOrElse {
+            Napier.w("Could not load WRPRC trust anchors, trusting the bundled ones only", it)
+            RegistrationTrustAnchors.EMPTY
+        }
 
     /** The anchors of the configured URL, loaded if they are missing or expired. */
     private suspend fun configured(): RegistrationTrustAnchors {
@@ -124,7 +142,7 @@ class RegistrationCertificateAnchors(
             .also { parsed = stored to it }
     }
 
-    private suspend fun download(url: String, force: Boolean): StoredAnchors? = catching {
+    private suspend fun download(url: String, force: Boolean): StoredAnchors? = catchingUnlessCancelled {
         // A client of its own bypasses the HTTP cache and the cooldown after failures of the shared one.
         val content = if (force) {
             val client = httpService.buildHttpClient()
@@ -159,9 +177,9 @@ class RegistrationCertificateAnchors(
 
     /** Removes the stored anchors, and their cached HTTP response, unless they were loaded from [url]. */
     private suspend fun pruneUnless(url: String?) {
-        val stored = loadStored() ?: return
-        if (stored.url == url) return
-        catchingUnwrapped {
+        catchingUnlessCancelled {
+            val stored = loadStored() ?: return
+            if (stored.url == url) return
             dataStoreService.deletePreference(Configuration.DATASTORE_KEY_WRPRC_TRUST_ANCHORS)
             parsed = null
             val cachedUrl = Url(stored.url)
@@ -170,7 +188,7 @@ class RegistrationCertificateAnchors(
             }
             Napier.i("Removed WRPRC trust anchors of a URL that is no longer configured: ${stored.url}")
         }.onFailure {
-            Napier.w("Could not remove WRPRC trust anchors of ${stored.url}", it)
+            Napier.w("Could not remove WRPRC trust anchors of a URL that is no longer configured", it)
         }
     }
 

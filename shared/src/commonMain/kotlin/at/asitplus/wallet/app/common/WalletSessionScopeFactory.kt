@@ -63,7 +63,7 @@ private fun createWalletSessionScope(
     }
 }
 
-/** Creates the persistent main wallet session and immediately triggers DC API credential registration. */
+/** Creates the persistent main wallet session, starts its background work and DC API credential registration. */
 fun createMainWalletSessionScope(
     sessionName: String,
     intentState: IntentState,
@@ -82,11 +82,23 @@ fun createMainWalletSessionScope(
         platformAdapter = platformAdapter,
         dataStoreService = dataStoreService,
     ).also { sessionHandle ->
-        sessionHandle.scope.get<WalletMain>().startDcApiCredentialRegistration()
+        sessionHandle.scope.get<WalletMain>().apply {
+            startBackgroundWork()
+            startDcApiCredentialRegistration()
+        }
     }
 }
 
-/** Creates a short-lived session for external-flow activities (e.g. presentation or issuance initiated by a third party). Does not register DC API credentials. */
+/**
+ * Creates a short-lived session for external-flow activities (e.g. presentation or issuance initiated by a third
+ * party). Does not register DC API credentials.
+ *
+ * @param startBackgroundWork whether to start [WalletMain.startBackgroundWork], which the iOS Identity Document
+ * Provider extension does not: it answers a single DC API request under a much lower memory limit than the app, which
+ * the checks of every credential, the WRPRC trust anchors and the ZK circuits contributed to. Its requests refresh
+ * stale Trust Lists themselves, the main app checks the rest, and a presentation loads the ZK circuits when it is
+ * finalized.
+ */
 fun createTransientFlowWalletSessionScope(
     sessionName: String,
     intentState: IntentState,
@@ -95,6 +107,7 @@ fun createTransientFlowWalletSessionScope(
     promptModel: PromptModel,
     platformAdapter: PlatformAdapter,
     dataStoreService: DataStoreService,
+    startBackgroundWork: Boolean = true,
 ): SessionHandle = createWalletSessionScope(
     sessionName = sessionName,
     intentState = intentState,
@@ -103,4 +116,6 @@ fun createTransientFlowWalletSessionScope(
     promptModel = promptModel,
     platformAdapter = platformAdapter,
     dataStoreService = dataStoreService,
-)
+).also { sessionHandle ->
+    if (startBackgroundWork) sessionHandle.scope.get<WalletMain>().startBackgroundWork()
+}

@@ -86,13 +86,20 @@ class WalletMain(
     private var dcApiRegistrationJob: Job? = null
 
     init {
-        credentialValidityService.startChecking()
-        trustListService.startChecking()
-        // Load the ZK circuits ahead of the first presentation, which waits for them
-        scope.launch { LongfellowZkRegistration.ensureRegistered() }
         if (keyMaterial.keyMaterial is FallBackKeyMaterial) {
             Napier.e("FallBackKeyMaterial: ${keyMaterial.keyMaterial.reason}")
         }
+    }
+
+    /**
+     * Starts the periodic checks of the stored credentials, of the Trust Lists and the WRPRC trust anchors, and loads
+     * the ZK circuits ahead of the first presentation, which waits for them. Not started in the iOS Identity Document
+     * Provider extension, see [createTransientFlowWalletSessionScope].
+     */
+    fun startBackgroundWork() {
+        credentialValidityService.startChecking()
+        trustListService.startChecking()
+        scope.launch { LongfellowZkRegistration.ensureRegistered() }
     }
 
     suspend fun resetApp() {

@@ -18,6 +18,7 @@ import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.openid.DcApiPreparationState
 import at.asitplus.wallet.lib.oidvci.OAuth2Exception
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -72,6 +73,9 @@ class DCAPIPresentationGraphViewModel(
                     )
                 )
             } catch (it: Throwable) {
+                // Rethrows the cancellation of the flow, but not one of e.g. a request whose job was cancelled, which
+                // would leave the request loading forever
+                ensureActive()
                 val response = when (it) {
                     is OAuth2Exception -> it
                     else -> OAuth2Exception.InvalidRequest(it.message)
@@ -130,6 +134,8 @@ class DCAPIPresentationGraphViewModel(
                     getString(Res.string.warning_authentication_cancelled)
                 )
             } catch (it: Throwable) {
+                // The flow has been left if it is cancelled, there is no one to report a failure to
+                ensureActive()
                 mutableIsSubmitting.value = false
                 onFailure(it)
             }
