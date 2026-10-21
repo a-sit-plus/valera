@@ -3,7 +3,6 @@ package at.asitplus.wallet.app.common
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
 import at.asitplus.dcapi.DigitalCredentialInterface
-import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
@@ -11,6 +10,7 @@ import at.asitplus.wallet.app.common.attestation.AttestationService
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.dcapi.DCAPIExportService
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
+import at.asitplus.wallet.app.common.dcapi.DCAPIVerificationRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.app.common.presentation.LongfellowZkRegistration
@@ -274,7 +274,7 @@ interface PlatformAdapter {
     /**
      * Retrieves request from the digital credentials browser API
      */
-    fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest>
+    fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIVerificationRequest>
 
     /**
      * Retrieves creation request from the digital credentials browser API
@@ -336,7 +336,7 @@ class DummyPlatformAdapter : PlatformAdapter {
     override suspend fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope) {
     }
 
-    override fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest> {
+    override fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIVerificationRequest> {
         return KmmResult.failure(IllegalStateException("Using dummy platform adapter"))
     }
 

@@ -37,6 +37,8 @@ class DCAPIPresentationGraphViewModel(
 
     val dcApiWalletRequest = catching { route.request }
 
+    val credentialQuerySelections = catching { route.credentialQuerySelections }
+
     val trustListService = walletMain.trustListService
 
     val selectionProvider = MutableStateFlow<UiState<DcApiPresentationUiState>>(

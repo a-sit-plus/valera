@@ -10,6 +10,8 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.ByteStringWrapper
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.LoadingMessageKey
+import at.asitplus.wallet.app.common.dcapi.DCAPICredentialQuerySelection
+import at.asitplus.wallet.app.common.dcapi.DCAPIVerificationRequest
 import at.asitplus.wallet.app.common.dcapi.isoMdocDcApiRequest
 import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
 import at.asitplus.wallet.app.common.relyingParty.WrpDisplayInfo
@@ -85,16 +87,19 @@ class WalletRoutesTest {
             callingOrigin = "https://verifier.example.com",
         )
 
-        val route = DCAPIPresentationViewRoute(request)
+        val selections = listOf(DCAPICredentialQuerySelection("test-credential", "test-query"))
+
+        val route = DCAPIPresentationViewRoute(DCAPIVerificationRequest(request, selections))
 
         assertEquals(request, route.request)
+        assertEquals(selections, route.credentialQuerySelections)
     }
 
     @Test
     fun dcApiPresentationRouteKeepsTheSignedIsoMdocRequest() = runTest {
         val request = isoMdocDcApiRequest(AGE_VERIFICATION_ZK_REQUEST, callingOrigin = AGE_VERIFICATION_ORIGIN)
 
-        val routed = DCAPIPresentationViewRoute(request).request as RequestParametersFrom.IsoMdocDcApi
+        val routed = DCAPIPresentationViewRoute(DCAPIVerificationRequest(request)).request as RequestParametersFrom.IsoMdocDcApi
 
         assertEquals(AGE_VERIFICATION_ZK_REQUEST, routed.jsonString)
         val reader = ReaderAuthenticationVerifier().authenticate(

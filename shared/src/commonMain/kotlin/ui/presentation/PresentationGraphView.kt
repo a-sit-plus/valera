@@ -26,6 +26,7 @@ import at.asitplus.valera.resources.heading_label_select_data
 import at.asitplus.valera.resources.heading_label_show_data
 import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.TrustListService
+import at.asitplus.wallet.app.common.dcapi.DCAPICredentialQuerySelection
 import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
@@ -59,6 +60,7 @@ fun PresentationGraphView(
     showStartRoute: Boolean = true,
     trustListService: TrustListService,
     fixedCredentialSelection: Boolean = false,
+    fixedCredentialQuerySelections: List<DCAPICredentialQuerySelection> = emptyList(),
     relyingPartyValidation: RelyingPartyValidationUi? = null,
 ) {
     LaunchedEffect(selectionProvider) {
@@ -171,6 +173,7 @@ fun PresentationGraphView(
                     },
                     trustListService = trustListService,
                     fixedCredentialSelection = fixedCredentialSelection,
+                    fixedCredentialQuerySelections = fixedCredentialQuerySelections,
                     request = request,
                     relyingPartyValidation = relyingPartyValidation,
                     showRelyingPartyValidationOnSelection = !showStartRoute,

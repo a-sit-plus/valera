@@ -9,11 +9,11 @@ import at.asitplus.KmmResult
 import at.asitplus.dcapi.DigitalCredentialInterface
 import at.asitplus.dcapi.toIosIsoMdocResponseBytes
 import at.asitplus.dcapi.ios.IosDcApiMdocPreRequestSummary
-import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
+import at.asitplus.wallet.app.common.dcapi.DCAPIVerificationRequest
 import at.asitplus.wallet.app.common.dcapi.isoMdocDcApiRequest
 import at.asitplus.wallet.app.common.AV_DOC_TYPE
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
@@ -406,7 +406,7 @@ class IosPlatformAdapter(
         }
     }
 
-    override fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest> {
+    override fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIVerificationRequest> {
         Napier.d("getCurrentDCAPIVerificationData called")
         return (intentState.dcapiInvocationData.value as IosDCAPIInvocationData?)?.let {
             try {
@@ -426,7 +426,7 @@ class IosPlatformAdapter(
                 require(parsedRequestSummary.isConsistentWith(isoMdocRequest)) {
                     "Parsed ISO18013 mobile document pre-request is inconsistent with rawRequest"
                 }
-                KmmResult.success(walletRequest)
+                KmmResult.success(DCAPIVerificationRequest(walletRequest))
             } catch (e: Throwable) {
                 Napier.e("Error parsing mdoc request", e)
                 KmmResult.failure(e)
