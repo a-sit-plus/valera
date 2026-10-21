@@ -6,6 +6,7 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.openid.SignatureRequestParameters
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.LoadingMessageKey
+import at.asitplus.wallet.app.common.dcapi.withRawIsoMdocRequest
 import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import data.storage.StoreEntryId
@@ -166,8 +167,10 @@ data class DCAPIPresentationViewRoute(
         apiRequestSerialized = joseCompliantSerializer.encodeToString<RequestParametersFrom.DcApiRequest>(request),
     )
 
+    /** The request, an ISO mdoc request decoded from its raw request, whose reader authentication signs it as received */
     val request: RequestParametersFrom.DcApiRequest
-        get() = joseCompliantSerializer.decodeFromString(apiRequestSerialized)
+        get() = joseCompliantSerializer.decodeFromString<RequestParametersFrom.DcApiRequest>(apiRequestSerialized)
+            .withRawIsoMdocRequest()
 }
 
 @Serializable

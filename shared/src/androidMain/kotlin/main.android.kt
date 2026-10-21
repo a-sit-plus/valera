@@ -31,6 +31,7 @@ import androidx.credentials.registry.provider.selectedEntryId
 import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.dcapi.*
+import at.asitplus.dcapi.request.ExchangeProtocolIdentifier
 import at.asitplus.dcapi.request.verifier.DigitalCredentialRequestOptions
 import at.asitplus.dcapi.request.verifier.toRequestParametersFrom
 import at.asitplus.openid.RequestParametersFrom
@@ -40,6 +41,7 @@ import at.asitplus.wallet.app.android.dcapi.AndroidDCAPIInvocationData
 import at.asitplus.wallet.app.android.dcapi.CustomRegistry
 import at.asitplus.wallet.app.common.*
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
+import at.asitplus.wallet.app.common.dcapi.isoMdocDcApiRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.lib.openid.OpenId4VpHolder
 import io.github.aakira.napier.Napier
@@ -50,6 +52,10 @@ import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.multipaz.compose.prompt.PromptDialogs
 import org.multipaz.prompt.PromptModel
 import ui.theme.darkScheme
@@ -365,9 +371,10 @@ public class AndroidPlatformAdapter(
             Napier.d("DC API: Got request ${option.requestJson}")
             // Android's Bundle-to-JSON conversion currently serializes arrays as numerically-indexed objects
             // (e.g. ["a","b"] becomes {"0":"a","1":"b"}), which breaks deserialization of list properties.
+            val requestJson = joseCompliantSerializer.parseToJsonElement(option.requestJson).coerceIndexedObjectsToArrays()
             val dcRequestOptions = joseCompliantSerializer.decodeFromJsonElement(
                 DigitalCredentialRequestOptions.serializer(),
-                joseCompliantSerializer.parseToJsonElement(option.requestJson).coerceIndexedObjectsToArrays(),
+                requestJson,
             )
 
             Napier.d("DC API: Selection $dcRequestOptions")
@@ -378,12 +385,22 @@ public class AndroidPlatformAdapter(
             Napier.d("DC API: Selection $selectionInfo")
 
             val credentialIds = selectionInfo.documentIds
-            dcRequestOptions.toRequestParametersFrom(
-                selectedProtocol = selectionInfo.protocol,
-                credentialIds = credentialIds,
-                callingPackageName = callingPackageName,
-                callingOrigin = callingOrigin,
-            )
+            if (ExchangeProtocolIdentifier(selectionInfo.protocol).isIsoMdocRequest) {
+                // Keeps the request as received, whose reader authentication signs it
+                isoMdocDcApiRequest(
+                    rawRequest = requestJson.rawRequestData(selectionInfo.protocol),
+                    callingOrigin = callingOrigin,
+                    credentialIds = credentialIds,
+                    callingPackageName = callingPackageName,
+                )
+            } else {
+                dcRequestOptions.toRequestParametersFrom(
+                    selectedProtocol = selectionInfo.protocol,
+                    credentialIds = credentialIds,
+                    callingPackageName = callingPackageName,
+                    callingOrigin = callingOrigin,
+                )
+            }
         } ?: throw IllegalStateException("DCAPIInvocationData not set")
     }
 
@@ -491,6 +508,13 @@ public class AndroidPlatformAdapter(
         is JsonArray -> JsonArray(map { it.coerceIndexedObjectsToArrays() })
         else -> this
     }
+
+    /** The `data` of the request for [protocol] in these DC API request options, as received. */
+    private fun JsonElement.rawRequestData(protocol: String): String =
+        jsonObject["requests"]?.jsonArray
+            ?.firstOrNull { it.jsonObject["protocol"]?.jsonPrimitive?.contentOrNull == protocol }
+            ?.jsonObject?.get("data")?.toString()
+            ?: throw IllegalStateException("Unable to find the DC API request for $protocol")
 
     private companion object {
         /**
