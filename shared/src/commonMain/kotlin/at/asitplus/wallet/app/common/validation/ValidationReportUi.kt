@@ -386,14 +386,17 @@ private fun TimelinessException.finding(evaluatedAt: Instant): FindingUi {
 /**
  * Why [this] report fails its integrity, see [ValidationOutcomeUi.integrityFailed]: its first check, depth-first, that
  * is not satisfied and that the user may not continue past, with the cause of its outcome, `null` if there is none.
- * Unlike [rejection], it does not name a check the user may continue past, e.g. trust, which may come first.
+ * Unlike [rejection], it does not name a check the user may continue past, e.g. trust, which may come first. A check
+ * that failed is named before one that could not be checked because of it, e.g. the `signature` of an access
+ * certificate before its `parsing`, which is blocked without the chain of a signature that does not verify.
  */
 fun ValidationReport.integrityRejection(): Throwable? = integrityRejection(warningOnly = false)
 
 private fun ValidationReport.integrityRejection(warningOnly: Boolean): Throwable? {
     val inWarningOnly = warningOnly || checks.kind in WARNING_ONLY_KINDS
     if (!inWarningOnly) {
-        namedChecks.firstOrNull { !it.satisfied && !it.tolerable(checks) }?.let {
+        val rejecting = namedChecks.filter { !it.satisfied && !it.tolerable(checks) }
+        (rejecting.firstOrNull { it.outcome is CheckOutcome.Failed } ?: rejecting.firstOrNull())?.let {
             val cause = it.outcome.cause()
             val message = "The ${it.name} check of the ${checks::class.simpleName} failed" +
                 (cause?.let { cause -> ": ${cause.displayText()}" } ?: "")

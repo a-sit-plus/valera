@@ -213,6 +213,27 @@ internal class ValidationReportUiTest : ValidationReportFixtures() {
     }
 
     @Test
+    fun integrityRejectionNamesTheFailedSignatureBeforeTheBlockedParsing() {
+        val signature = IllegalArgumentException("No readerAuthAll signature verifies")
+        val report = relyingParty(
+            accessCertificate(
+                parsing = Blocked(),
+                signature = Failed(signature),
+                trust = Blocked(),
+                timeliness = Blocked(),
+            )
+        )
+
+        val rejection = report.integrityRejection()
+
+        assertEquals(
+            "The signature check of the AccessCertificateChecks failed: No readerAuthAll signature verifies",
+            rejection?.message,
+        )
+        assertEquals(signature, rejection?.cause)
+    }
+
+    @Test
     fun problemsAreDescribedWithTheirCauses() {
         val report = request(
             relyingParty = relyingParty(accessCertificate(trust = Failed(IllegalArgumentException("untrusted")))),
