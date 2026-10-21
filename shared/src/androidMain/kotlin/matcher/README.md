@@ -101,7 +101,7 @@ synthetic cppbor fixtures. It covers parent claims, nested wildcard/index paths,
 numeric, null and empty names, wrong selected types with and without alternative claim sets,
 malformed paths next to alternative claim sets, missing paths,
 empty containers and JSON null, scalar types, long and empty values, safe-integer boundaries,
-malformed trees/paths/values, distinct result caches and stable pointers, mdoc matching.
+malformed trees/paths/values, distinct result caches and stable pointers, mdoc and query IDs.
 The host GCC invocation supplies the Clang `__has_feature` fallback used by bundled cppbor;
 unused picker integration sections are discarded by the linker. This is not a WASM runtime test.
 
@@ -115,3 +115,9 @@ It prints `MATCH` (exit 0) or `NO MATCH` (exit 1), using `openid4vp-v1-unsigned`
 An optional final protocol argument overrides that default. Pass the DCQL object itself,
 not an OpenID4VP request envelope. Rebuild and exercise the actual WASM asset separately after
 source changes; host checks do not replace the bundled-asset requirement.
+
+`report-credential-query-id.patch` appends the identifier of the DCQL credential query to each
+entry ID, i.e. `<combination> <protocol> <documentId> <credentialQueryId>`, as the picker shows
+the claims of that query. The wallet presents the selected credential for exactly that query.
+Upstream reports only the document, which may match several queries, e.g. alternative options of
+one credential set, so the wallet could not tell which claims the user agreed to share.

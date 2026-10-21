@@ -119,6 +119,8 @@ struct DcqlQuery {
 struct DcqlResponseCredentialSetOptionMemberMatch {
     Credential* credential;
     std::vector<Claim*> claims;
+    // The credential query this credential matches, reported to the wallet with the selection
+    std::string credentialQueryId;
 };
 
 struct DcqlResponseCredentialSetOptionMember {

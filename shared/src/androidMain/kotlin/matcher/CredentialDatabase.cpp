@@ -575,6 +575,10 @@ void Combination::addToCredmanPicker(const Request& request) const {
             std::string entryIdStr =
                     std::to_string(combinationNumber) + " " + request.protocol + " " +
                     credential->documentId;
+            // The wallet presents the credential for the query the user selected it for, whose claims are shown
+            if (!match.credentialQueryId.empty()) {
+                entryIdStr += " " + match.credentialQueryId;
+            }
             char *entryId = (char *) strdup(entryIdStr.c_str());
 
             void *icon = nullptr;

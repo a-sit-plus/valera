@@ -61,6 +61,7 @@ static void expect(CredentialDatabase& db, const std::string& claim, bool expect
         std::cerr << "Unexpected match=" << result.has_value() << ": " << claim << '\n';
         std::abort();
     }
+    if (result) assert(result->credentialSets[0].options[0].members[0].matches[0].credentialQueryId == "q");
     ++checks;
 }
 static std::string readFile(const char* path) {
@@ -161,7 +162,7 @@ int main(int argc, char** argv) {
     CredentialDatabase mdoc(mdocBytes.data(), mdocBytes.size());
     auto mq = parse("{\"credentials\":[{\"id\":\"mdoc-query\",\"format\":\"mso_mdoc\",\"meta\":{\"doctype_value\":\"org.test\"},\"claims\":[{\"path\":[\"ns\",\"a\"],\"values\":[\"match\"]}]}]}");
     auto mr = mq.execute(&mdoc, "openid4vp");
-    assert(mr); ++checks;
+    assert(mr && mr->credentialSets[0].options[0].members[0].matches[0].credentialQueryId == "mdoc-query"); ++checks;
     assert(mr->credentialSets[0].options[0].members[0].matches[0].claims[0]->value == "display"); ++checks;
     for (auto invalidValues : {"[9007199254740992]", "[]", "[null]", "{}"}) {
         auto badMdocQuery = parse(std::string(R"({"credentials":[{"id":"m","format":"mso_mdoc","meta":{"doctype_value":"org.test"},"claims":[{"path":["ns","a"],"values":)") + invalidValues + "}]}]}");

@@ -137,6 +137,8 @@ struct CredentialDatabase {
 struct CredentialPresentment {
     Credential* credential;
     std::vector<Claim*> claims;
+    // The credential query this credential is presented for, empty if unknown
+    std::string credentialQueryId;
 };
 
 struct CombinationElement {
