@@ -69,8 +69,7 @@
     <string name="credential_representation_format_label_mso_mdoc">ISO mDoc</string>
 
     <string name="issuing_label_host">Issuing service</string>
-    <string name="issuing_label_scheme">Scheme</string>
-    <string name="issuing_label_representation">Representation</string>
+    <string name="issuing_label_credentials">Credentials</string>
     <string name="issuing_label_transaction_code">Transaction code</string>
     <string name="issuing_label_information">All available data will be loaded</string>
 
@@ -122,7 +121,6 @@
     <string name="text_label_openid4vp_allowed_origin_schemes">Allowed OpenID4VP origin schemes</string>
     <string name="text_supporting_openid4vp_allowed_origin_schemes">Comma-separated, for example https,android:apk-key-hash. Spaces are ignored; clear to disable all.</string>
     <string name="text_label_wallet_provider_attestation">Use Wallet Attestation</string>
-    <string name="text_label_id_identifier">Identifier</string>
     <string name="text_label_id_format">Representation</string>
     <string name="text_label_id_scheme">Credential Type</string>
     <string name="text_label_sex">Sex</string>

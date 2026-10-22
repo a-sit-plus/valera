@@ -20,8 +20,8 @@ import ui.composables.validation.IssuerValidationView
 @Composable
 fun StatefulLoadDataForm(
     host: String,
-    credentialIdentifierInfo: CredentialIdentifierInfo,
-    onChangeCredentialIdentifierInfo: (CredentialIdentifierInfo) -> Unit,
+    credentialIdentifierInfos: List<CredentialIdentifierInfo>,
+    onChangeCredentialIdentifierInfos: (List<CredentialIdentifierInfo>) -> Unit,
     transactionCode: TextFieldValue,
     onChangeTransactionCode: (TextFieldValue) -> Unit,
     modifier: Modifier = Modifier,
@@ -32,8 +32,8 @@ fun StatefulLoadDataForm(
 
     LoadDataForm(
         host = host,
-        credentialIdentifierInfo = credentialIdentifierInfo,
-        onChangeCredentialIdentifierInfo = onChangeCredentialIdentifierInfo,
+        credentialIdentifierInfos = credentialIdentifierInfos,
+        onChangeCredentialIdentifierInfos = onChangeCredentialIdentifierInfos,
         transactionCode = transactionCode,
         onChangeTransactionCode = onChangeTransactionCode,
         modifier = modifier,
@@ -46,8 +46,8 @@ fun StatefulLoadDataForm(
 @Composable
 fun LoadDataForm(
     host: String,
-    credentialIdentifierInfo: CredentialIdentifierInfo,
-    onChangeCredentialIdentifierInfo: (CredentialIdentifierInfo) -> Unit,
+    credentialIdentifierInfos: List<CredentialIdentifierInfo>,
+    onChangeCredentialIdentifierInfos: (List<CredentialIdentifierInfo>) -> Unit,
     transactionCode: TextFieldValue,
     onChangeTransactionCode: (TextFieldValue) -> Unit,
     modifier: Modifier = Modifier,
@@ -65,18 +65,18 @@ fun LoadDataForm(
             Text(stringResource(Res.string.info_text_redirection_to_browser_for_credential_provisioning))
             CredentialMetadataSelectionForm(
                 host = host,
-                credentialIdentifierInfo = credentialIdentifierInfo,
-                onChangeCredentialIdentifierInfo = onChangeCredentialIdentifierInfo,
+                credentialIdentifierInfos = credentialIdentifierInfos,
+                onChangeCredentialIdentifierInfos = onChangeCredentialIdentifierInfos,
                 modifier = columnSpacingModifier,
                 availableIdentifiers = availableIdentifiers,
                 transactionCode = transactionCode,
                 onChangeTransactionCode = onChangeTransactionCode,
                 showTransactionCode = showTransactionCode,
+                issuer = issuer,
             )
             issuer?.let {
                 IssuerValidationView(
                     issuer = it,
-                    format = credentialIdentifierInfo.supportedCredentialFormat,
                     modifier = columnSpacingModifier,
                 )
             }
