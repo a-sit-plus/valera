@@ -13,7 +13,6 @@ import at.asitplus.signum.indispensable.pki.CertificateChain
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.indispensable.pki.leaf
 import at.asitplus.wallet.app.common.data.SettingsRepository
-import at.asitplus.wallet.app.common.trust.RegistrationCertificateAnchors
 import at.asitplus.wallet.lib.agent.TrustedCertificates
 import at.asitplus.wallet.lib.etsi.LoTEFilterService
 import at.asitplus.wallet.lib.etsi.LoTEStage
@@ -87,13 +86,11 @@ class TrustListService(
     private val httpService: HttpService,
     dataStoreService: DataStoreService,
     settingsRepository: SettingsRepository,
-    private val registrationCertificateAnchors: RegistrationCertificateAnchors,
     private val sessionCoroutineScope: CoroutineScope,
     private val verifyJwsObject: VerifyJwsObjectFun = VerifyJwsObjectJades(),
     private val clock: Clock = Clock.System,
 ) {
     private var job: Job? = null
-    private var registrationAnchorsJob: Job? = null
 
     // One refresh at a time, shared by the periodic check and callers waiting for fresh lists
     private val refreshMutex = Mutex()
@@ -247,19 +244,13 @@ class TrustListService(
                 }
             }
         }
-        registrationAnchorsJob?.cancel()
-        registrationAnchorsJob = sessionCoroutineScope.launch {
-            delay(5.seconds)
-            registrationCertificateAnchors.keepFresh(retryInterval)
-        }
     }
 
     /**
-     * Downloads every list of the enabled stages, and the anchors of WRPRC providers, again, regardless of their age
-     * and without conditional requests, and persists them. Runs in the session, so that leaving the screen that
-     * started it does not cancel it.
+     * Downloads every list of the enabled stages again, regardless of their age and without conditional requests, and
+     * persists them. Runs in the session, so that leaving the screen that started it does not cancel it.
      *
-     * @return whether every list and the anchors could be loaded
+     * @return whether every list could be loaded
      */
     suspend fun reloadAllTrustLists(): Boolean = sessionCoroutineScope.async {
         catchingUnlessCancelled {
@@ -267,14 +258,13 @@ class TrustListService(
             val reloadStartedAt = clock.now()
             // A client of its own bypasses the HTTP cache and the cooldown after failures of the shared one.
             val client = httpService.buildHttpClient()
-            val listsLoaded = try {
+            try {
                 urls.map { url ->
                     syncSingleUrl(url, client) { cachedAt -> cachedAt >= reloadStartedAt }
                 }.all { it }
             } finally {
                 client.close()
             }
-            registrationCertificateAnchors.refresh(force = true) && listsLoaded
         }.getOrElse {
             Napier.e("Reloading Trust Lists failed", it)
             false
@@ -382,14 +372,6 @@ class TrustListService(
         verifyJwsObject(jws.first).getOrThrow()
         Napier.i("Successfully validated Trust List signature from $url")
         responseBody
-    }
-
-    suspend fun getTrustList(
-        profile: LoteProfile
-    ) = catchingUnlessCancelled {
-        freshTrustLists()
-            .flatMap { lote -> loTeFilterService.extractIssuanceCertificates(lote, profile) }
-            .mapNotNull { it.certificate } + asitIssuerCert
     }
 
     /**

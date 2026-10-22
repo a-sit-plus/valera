@@ -26,9 +26,6 @@ import kotlin.time.Duration
  * OpenID4VP requests over the Digital Credentials API.
  * @property trustListStages the stages of the European Commission's trust infrastructure whose Lists of
  * Trusted Entities are loaded and evaluated.
- * @property wrprcTrustAnchorsUrl the URL of the certificates of providers of registration certificates (WRPRC), and of
- * the signers of their status lists, which are trusted in addition to the bundled ones, as a ZIP archive or a PEM
- * bundle, by default [DEFAULT_WRPRC_TRUST_ANCHORS_URL]; `null` if none is configured.
  * @property presentmentNegotiatedHandoverPreferredOrder a list specifying the preferred order of transport methods to use when creating an NFC negotiated handover.
  */
 
@@ -52,7 +49,6 @@ interface SettingsRepository {
     val defaultOpenId4VpAllowedOriginSchemes: Set<String>
     val trustListStages: Flow<Set<LoTEStage>>
     val defaultTrustListStages: Set<LoTEStage>
-    val wrprcTrustAnchorsUrl: Flow<String?>
 
     val presentmentNegotiatedHandoverPreferredOrder: List<String>
         get() = listOf(
@@ -69,9 +65,6 @@ interface SettingsRepository {
 
     /** Adds or removes [stage] from [trustListStages], leaving the other stages untouched. */
     fun setTrustListStageEnabled(stage: LoTEStage, enabled: Boolean): Result<Unit>
-
-    /** Sets [wrprcTrustAnchorsUrl], a blank [url] removes it. */
-    fun setWrprcTrustAnchorsUrl(url: String?): Result<Unit>
 
     fun set(
         host: String? = null,
@@ -119,9 +112,6 @@ interface SettingsRepository {
     companion object {
         const val DEFAULT_CLIENT_ID = "https://wallet.a-sit.plus/app"
         const val DEFAULT_PRESENTMENT_DEVICE_ENGAGEMENT_METHOD = "QR_CODE"
-
-        /** Trusted certificates of the EUDI Wallets Launchpad 2026, a ZIP archive including those of WRPRC providers. */
-        const val DEFAULT_WRPRC_TRUST_ANCHORS_URL = "https://launchpad2026.eudiw.dev/certificates/trustedcertificates"
         private const val BLE_CENTRAL_CLIENT_MODE = "ble:central_client_mode:"
         private const val BLE_PERIPHERAL_SERVER_MODE = "ble:peripheral_server_mode:"
         private const val NFC_DATA_TRANSFER = "nfc:"
