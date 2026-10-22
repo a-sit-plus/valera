@@ -4,7 +4,6 @@ import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.domain.vck.tokenStatusList.di.tokenStatusListModule
 import at.asitplus.wallet.app.common.iso.verifier.ProximityResponseValidator
-import at.asitplus.wallet.app.common.trust.RegistrationCertificateAnchors
 import at.asitplus.wallet.app.common.validation.StoredCredentialValidator
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
@@ -16,6 +15,7 @@ import at.asitplus.wallet.lib.validation.IssuerMetadataValidator
 import at.asitplus.wallet.lib.validation.RelyingPartyTrustAnchors
 import at.asitplus.wallet.lib.validation.RelyingPartyValidator
 import at.asitplus.wallet.lib.validation.StatusValidator
+import at.asitplus.wallet.lib.validation.TrustPurpose
 import org.koin.core.module.dsl.scopedOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -44,30 +44,23 @@ fun vckModule() = module {
                 statusValidator = StatusValidator(statusListTokenResolver = get<StatusListTokenResolver>(ISSUANCE)),
             )
         }
-        scoped<RegistrationCertificateAnchors> {
-            RegistrationCertificateAnchors(
-                httpService = get(),
-                dataStoreService = get(),
-                settingsRepository = get(),
-            )
-        }
         scoped<RelyingPartyValidator> {
-            val registrationAnchors = get<RegistrationCertificateAnchors>()
             RelyingPartyValidator(
                 trust = RelyingPartyTrustAnchors(
                     accessCertificates = get<TrustListService>().trustedCertificates(LoteProfile.WRPAC),
-                    registrationCertificates = registrationAnchors.trustedCertificates,
-                    registrationStatus = registrationAnchors.statusCertificates,
+                    registrationCertificates = get<TrustListService>().trustedCertificates(LoteProfile.WRPRC),
+                    registrationStatus = get<TrustListService>()
+                        .trustedCertificates(LoteProfile.WRPRC, TrustPurpose.STATUS),
                 ),
                 statusValidator = get(),
             )
         }
         scoped<IssuerMetadataValidator> {
-            val registrationAnchors = get<RegistrationCertificateAnchors>()
             IssuerMetadataValidator(
                 accessCertificates = get<TrustListService>().trustedCertificates(LoteProfile.WRPAC),
-                registrationCertificates = registrationAnchors.trustedCertificates,
-                registrationStatus = registrationAnchors.statusCertificates,
+                registrationCertificates = get<TrustListService>().trustedCertificates(LoteProfile.WRPRC),
+                registrationStatus = get<TrustListService>()
+                    .trustedCertificates(LoteProfile.WRPRC, TrustPurpose.STATUS),
                 statusValidator = get(),
             )
         }

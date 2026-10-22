@@ -62,7 +62,6 @@ fun appModule(): Module = module {
                 httpService = get(),
                 dataStoreService = get(),
                 settingsRepository = get(),
-                registrationCertificateAnchors = get(),
                 sessionCoroutineScope = get()
             )
         }
