@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import at.asitplus.data.NonEmptyList.Companion.nonEmptyListOf
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.heading_label_add_credential_screen
 import org.jetbrains.compose.resources.stringResource
@@ -75,7 +76,7 @@ fun LoadCredentialView(
                 if (!isSubmitting) {
                     isSubmitting = true
                     try {
-                        vm.onSubmit(credentialIdentifierInfo, transactionCode.text, vm.offer)
+                        vm.onSubmit(nonEmptyListOf(credentialIdentifierInfo), transactionCode.text, vm.offer)
                     } catch (e: Throwable) {
                         isSubmitting = false
                         throw e

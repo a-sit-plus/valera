@@ -263,7 +263,7 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
                     walletMain = walletMain,
                     navigateUp = navigator::navigateBack,
                     offer = offer,
-                    onSubmit = { credentialIdentifierInfo, transactionCode, _ ->
+                    onSubmit = { credentialIdentifierInfos, transactionCode, _ ->
                         navigator.popToInvoker()
                         walletMain.loadingStatusService.set(LoadingMessageKey.IssuingCredential)
                         navigator.navigate(LoadingRoute(LoadingMessageKey.IssuingCredential))
@@ -271,7 +271,7 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
                             try {
                                 val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
                                     credentialOffer = offer,
-                                    credentialIdentifierInfo = credentialIdentifierInfo,
+                                    credentialIdentifierInfos = credentialIdentifierInfos,
                                     transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null },
                                     onProgress = walletMain.loadingStatusService::set,
                                 )
@@ -310,14 +310,14 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
         LaunchedEffect(Unit) {
             catchingUnwrapped {
                 lateinit var dcapiVm: LoadCredentialViewModel
-                val onSubmit: CredentialSelection = { credentialIdentifierInfo, transactionCode, _ ->
+                val onSubmit: CredentialSelection = { credentialIdentifierInfos, transactionCode, _ ->
                     walletMain.loadingStatusService.set(LoadingMessageKey.IssuingCredential)
                     navigator.navigate(LoadingRoute(LoadingMessageKey.IssuingCredential))
                     walletMain.scope.launch {
                         try {
                             val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
                                 credentialOffer = offer,
-                                credentialIdentifierInfo = credentialIdentifierInfo,
+                                credentialIdentifierInfos = credentialIdentifierInfos,
                                 transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null },
                                 authorizationServerMetadata = offer.authorizationServerMetadata,
                                 onProgress = walletMain.loadingStatusService::set,
@@ -381,11 +381,11 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
                     walletMain = walletMain,
                     navigateUp = navigator::navigateBack,
                     hostString = credentialIssuer,
-                    onSubmit = { credentialIdentifierInfo, _, _ ->
+                    onSubmit = { credentialIdentifierInfos, _, _ ->
                         walletMain.scope.launch {
                             walletMain.startProvisioning(
                                 host = credentialIssuer,
-                                credentialIdentifierInfo = credentialIdentifierInfo,
+                                credentialIdentifierInfos = credentialIdentifierInfos,
                             ) {}
                         }
                     },
@@ -671,14 +671,14 @@ private fun LoadCredentialFromUrlContent(
                 walletMain = walletMain,
                 navigateUp = navigator::navigateBack,
                 url = uri,
-                onSubmit = { credentialIdentifierInfo, transactionCode, offer ->
+                onSubmit = { credentialIdentifierInfos, transactionCode, offer ->
                     walletMain.loadingStatusService.set(LoadingMessageKey.IssuingCredential)
                     navigator.navigate(LoadingRoute(LoadingMessageKey.IssuingCredential))
                     walletMain.scope.launch {
                         try {
                             val issuanceResult = walletMain.provisioningService.loadCredentialWithOffer(
                                 credentialOffer = offer!!,
-                                credentialIdentifierInfo = credentialIdentifierInfo,
+                                credentialIdentifierInfos = credentialIdentifierInfos,
                                 transactionCode = transactionCode?.ifEmpty { null }?.ifBlank { null },
                                 onProgress = walletMain.loadingStatusService::set,
                             )

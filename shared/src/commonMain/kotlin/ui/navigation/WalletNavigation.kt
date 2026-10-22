@@ -566,12 +566,12 @@ private fun WalletNavHost(
                         walletMain = walletMain,
                         navigateUp = navigator::navigateBack,
                         hostString = backStackEntry.toRoute<LoadCredentialRoute>().host,
-                        onSubmit = { credentialIdentifierInfo, _, _ ->
+                        onSubmit = { credentialIdentifierInfos, _, _ ->
                             navigator.popToInvoker()
                             walletMain.scope.launch {
                                 walletMain.startProvisioning(
                                     host = backStackEntry.toRoute<LoadCredentialRoute>().host,
-                                    credentialIdentifierInfo = credentialIdentifierInfo,
+                                    credentialIdentifierInfos = credentialIdentifierInfos,
                                 ) {}
                             }
                         },

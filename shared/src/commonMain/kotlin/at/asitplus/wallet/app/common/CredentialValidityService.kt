@@ -1,6 +1,7 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.catchingUnwrapped
+import at.asitplus.data.NonEmptyList.Companion.nonEmptyListOf
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_no_refresh_token
@@ -152,10 +153,12 @@ class CredentialValidityService(
         return try {
             provisioningService.startProvisioningWithAuthRequest(
                 credentialIssuer = renewalInfo.issuerMetadata.credentialIssuer,
-                credentialIdentifierInfo = CredentialIdentifierInfo(
-                    issuerMetadata = renewalInfo.issuerMetadata,
-                    credentialIdentifier = renewalInfo.credentialIdentifier,
-                    supportedCredentialFormat = renewalInfo.credentialFormat
+                credentialIdentifierInfos = nonEmptyListOf(
+                    CredentialIdentifierInfo(
+                        issuerMetadata = renewalInfo.issuerMetadata,
+                        credentialIdentifier = renewalInfo.credentialIdentifier,
+                        supportedCredentialFormat = renewalInfo.credentialFormat
+                    )
                 ),
                 reissuingStoreEntryId = storeId
             )

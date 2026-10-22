@@ -2,6 +2,7 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.KmmResult
 import at.asitplus.catching
+import at.asitplus.data.NonEmptyList
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.IssuerMetadata
 import at.asitplus.openid.OAuth2AuthorizationServerMetadata
@@ -254,12 +255,12 @@ class ProvisioningService(
     )
 
     /**
-     * Starts the issuing process at [credentialIssuer]
+     * Starts the issuing process at [credentialIssuer] for all of [credentialIdentifierInfos] with one authorization
      */
     @Throws(Throwable::class)
     suspend fun startProvisioningWithAuthRequest(
         credentialIssuer: String,
-        credentialIdentifierInfo: CredentialIdentifierInfo,
+        credentialIdentifierInfos: NonEmptyList<CredentialIdentifierInfo>,
         reissuingStoreEntryId: StoreEntryId? = null
     ) {
         provisioningFlowMutex.withLock {
@@ -269,7 +270,7 @@ class ProvisioningService(
             cookieStorage.reset()
             openId4VciClient().startProvisioningWithAuthRequestReturningResult(
                 credentialIssuer,
-                credentialIdentifierInfo,
+                credentialIdentifierInfos,
                 reissuingStoreEntryId
             ).getOrThrow().run {
                 storeContextOpenIntent()
@@ -463,10 +464,11 @@ class ProvisioningService(
     }
 
     /**
-     * Loads a user-selected credential with pre-authorized code from the OID4VCI credential issuer
+     * Loads the user-selected credentials with pre-authorized code from the OID4VCI credential issuer, with one token
+     * for all of them
      *
      * @param credentialOffer as loaded and decoded from the QR Code
-     * @param credentialIdentifierInfo as selected by the user from the issuer's metadata
+     * @param credentialIdentifierInfos as selected by the user from the issuer's metadata
      * @param transactionCode if required from Issuing service, i.e. transmitted out-of-band to the user
      * @param authorizationServerMetadata oauthMetadata optionally transmitted via the DC API. Set to null for other flows.
      *
@@ -474,7 +476,7 @@ class ProvisioningService(
     @Throws(Throwable::class)
     suspend fun loadCredentialWithOffer(
         credentialOffer: CredentialOffer,
-        credentialIdentifierInfo: CredentialIdentifierInfo,
+        credentialIdentifierInfos: NonEmptyList<CredentialIdentifierInfo>,
         transactionCode: String? = null,
         authorizationServerMetadata: OAuth2AuthorizationServerMetadata? = null,
         onProgress: ((LoadingMessageKey) -> Unit)? = null,
@@ -484,7 +486,7 @@ class ProvisioningService(
             onProgress?.invoke(LoadingMessageKey.IssuingCredential)
             val result = openId4VciClient().loadCredentialWithOfferReturningResult(
                 credentialOffer,
-                credentialIdentifierInfo,
+                credentialIdentifierInfos,
                 transactionCode,
                 authorizationServerMetadata
             ).getOrThrow()
