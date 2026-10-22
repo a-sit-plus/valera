@@ -33,14 +33,9 @@ import ui.viewmodels.LoadCredentialViewModel
 fun LoadCredentialView(
     vm: LoadCredentialViewModel
 ) {
-    // The selected credentials by their identifier, in the order of the metadata: every credential of an offer, else
-    // the first one the credential issuer supports
-    var selectedIdentifiers by rememberSaveable(stateSaver = stringListSaver) {
-        mutableStateOf(
-            vm.credentialIdentifiers.take(if (vm.offer != null) vm.credentialIdentifiers.size else 1)
-                .map { it.credentialIdentifier }
-        )
-    }
+    // The selected credentials by their identifier, in the order of the metadata: none at first, as the user selects
+    // every credential to request explicitly
+    var selectedIdentifiers by rememberSaveable(stateSaver = stringListSaver) { mutableStateOf(emptyList<String>()) }
     val credentialIdentifierInfos = vm.credentialIdentifiers.filter { it.credentialIdentifier in selectedIdentifiers }
 
     var transactionCode by rememberSaveable(stateSaver = TextFieldValue.Saver) {
