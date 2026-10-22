@@ -6,6 +6,8 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.openid.SignatureRequestParameters
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.LoadingMessageKey
+import at.asitplus.wallet.app.common.dcapi.DCAPICredentialQuerySelection
+import at.asitplus.wallet.app.common.dcapi.DCAPIVerificationRequest
 import at.asitplus.wallet.app.common.dcapi.withRawIsoMdocRequest
 import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
@@ -162,15 +164,26 @@ data class AuthenticationViewRoute(
 @Serializable
 data class DCAPIPresentationViewRoute(
     val apiRequestSerialized: String,
+    val credentialQuerySelectionsSerialized: String? = null,
 ) : Route() {
-    constructor(request: RequestParametersFrom.DcApiRequest) : this(
-        apiRequestSerialized = joseCompliantSerializer.encodeToString<RequestParametersFrom.DcApiRequest>(request),
+    constructor(request: DCAPIVerificationRequest) : this(
+        apiRequestSerialized = joseCompliantSerializer.encodeToString<RequestParametersFrom.DcApiRequest>(
+            request.request
+        ),
+        credentialQuerySelectionsSerialized = request.credentialQuerySelections.takeIf { it.isNotEmpty() }
+            ?.let { joseCompliantSerializer.encodeToString(it) },
     )
 
     /** The request, an ISO mdoc request decoded from its raw request, whose reader authentication signs it as received */
     val request: RequestParametersFrom.DcApiRequest
         get() = joseCompliantSerializer.decodeFromString<RequestParametersFrom.DcApiRequest>(apiRequestSerialized)
             .withRawIsoMdocRequest()
+
+    /** The DCQL credential query the system selected each credential of [request] for */
+    val credentialQuerySelections: List<DCAPICredentialQuerySelection>
+        get() = credentialQuerySelectionsSerialized?.let {
+            joseCompliantSerializer.decodeFromString<List<DCAPICredentialQuerySelection>>(it)
+        }.orEmpty()
 }
 
 @Serializable

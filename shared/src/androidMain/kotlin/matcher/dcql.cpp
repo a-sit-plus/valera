@@ -346,7 +346,8 @@ std::optional<DcqlResponse> DcqlQuery::execute(CredentialDatabase* credentialDat
                         // At least one claim matched, or no claims requested, we have a candidate
                         matches.push_back(DcqlResponseCredentialSetOptionMemberMatch(
                             cred,
-                            matchingClaimValues
+                            matchingClaimValues,
+                            query.id
                         ));
                     }
                 } else {
@@ -366,7 +367,8 @@ std::optional<DcqlResponse> DcqlQuery::execute(CredentialDatabase* credentialDat
                         // All claims matched, we have a candidate
                         matches.push_back(DcqlResponseCredentialSetOptionMemberMatch(
                             cred,
-                            matchingClaimValues
+                            matchingClaimValues,
+                            query.id
                         ));
                     }
                 }
@@ -393,7 +395,8 @@ std::optional<DcqlResponse> DcqlQuery::execute(CredentialDatabase* credentialDat
                         // All claims matched, we have a candidate
                         matches.push_back(DcqlResponseCredentialSetOptionMemberMatch(
                                 cred,
-                                matchingClaimValues
+                                matchingClaimValues,
+                                query.id
                         ));
                         break;
                     }
@@ -416,7 +419,7 @@ std::optional<DcqlResponse> DcqlQuery::execute(CredentialDatabase* credentialDat
             }
             std::vector<DcqlResponseCredentialSetOptionMemberMatch> matches;
             for (const auto& match : pair.second.matches) {
-                matches.push_back(DcqlResponseCredentialSetOptionMemberMatch(match.credential, match.claims));
+                matches.push_back(match);
             }
             std::vector<DcqlResponseCredentialSetOptionMember> members;
             members.push_back(DcqlResponseCredentialSetOptionMember(matches));
@@ -531,7 +534,7 @@ std::vector<Combination> DcqlResponse::getCredentialCombinations() {
                 for (const auto& member : option.members) {
                     std::vector<CredentialPresentment> cmatches;
                     for (const auto& match : member.matches) {
-                        cmatches.push_back(CredentialPresentment(match.credential, match.claims));
+                        cmatches.push_back(CredentialPresentment(match.credential, match.claims, match.credentialQueryId));
                     }
                     elements.push_back(CombinationElement(cmatches));
                 }

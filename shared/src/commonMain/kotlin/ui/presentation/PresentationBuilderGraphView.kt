@@ -17,6 +17,7 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.unexpected_screen_text
 import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.TrustListService
+import at.asitplus.wallet.app.common.dcapi.DCAPICredentialQuerySelection
 import at.asitplus.wallet.lib.agent.DCQLMatchingResult
 import at.asitplus.wallet.lib.agent.IsoDeviceRetrievalMatchingResult
 import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
@@ -35,9 +36,9 @@ import ui.views.authentication.AuthenticationNoCredentialView
 import ui.views.authentication.AuthenticationSelectionIsoDeviceRequestView
 import kotlin.time.Duration.Companion.seconds
 
-private typealias FixedDcApiSubmissions = Map<
+internal typealias FixedDcApiSubmissions<Credential> = Map<
     DCQLCredentialQueryIdentifier,
-    List<DCQLCredentialSubmissionOption<SubjectCredentialStore.StoreEntry>>,
+    List<DCQLCredentialSubmissionOption<Credential>>,
 >
 
 @ExperimentalMaterial3Api
@@ -56,6 +57,8 @@ fun PresentationBuilderGraphView(
     trustListService: TrustListService,
     request: RequestParametersFrom<*>,
     fixedCredentialSelection: Boolean = false,
+    /** The DCQL credential query the system selected each credential for, see [toFixedDcApiSubmissions] */
+    fixedCredentialQuerySelections: List<DCAPICredentialQuerySelection> = emptyList(),
     relyingPartyValidation: RelyingPartyValidationUi? = null,
     /** Whether the selection shows [relyingPartyValidation], because no start page has shown it. */
     showRelyingPartyValidationOnSelection: Boolean = false,
@@ -93,7 +96,10 @@ fun PresentationBuilderGraphView(
                         trustListService = trustListService,
                     )
                     if (fixedCredentialSelection) {
-                        val fixedSubmissionsResult = queryMatchingResult.toFixedDcApiSubmissions()
+                        val fixedSubmissionsResult = queryMatchingResult.toFixedDcApiSubmissions(
+                            credentialQuerySelections = fixedCredentialQuerySelections,
+                            dcApiId = { it.getDcApiId() },
+                        )
                         fixedSubmissionsResult.exceptionOrNull()?.let { throwable ->
                             LaunchedEffect(throwable.message) {
                                 onError(throwable)
@@ -223,19 +229,25 @@ fun PresentationBuilderGraphView(
     }
 }
 
-private fun DCQLMatchingResult<SubjectCredentialStore.StoreEntry>.toFixedDcApiSubmissions():
-    KmmResult<FixedDcApiSubmissions> =
+/**
+ * Submits the credentials the system selected through the DC API.
+ *
+ * Each credential is presented for the credential query the system selected it for, see [credentialQuerySelections],
+ * as the system showed the claims of that query to the user. The matching only determines the claims to disclose.
+ * Without [credentialQuerySelections], the first option of each credential set the selected credentials satisfy is
+ * submitted, so that a credential is not presented once per matching query.
+ */
+internal fun <Credential : Any> DCQLMatchingResult<Credential>.toFixedDcApiSubmissions(
+    credentialQuerySelections: List<DCAPICredentialQuerySelection>,
+    dcApiId: (Credential) -> String,
+): KmmResult<FixedDcApiSubmissions<Credential>> =
     catching {
         val dcqlQuery = presentationRequest.dcqlQuery
-        val queriesAllowingMultiple = dcqlQuery.credentials
-            .filter { it.multiple }
-            .map { it.id }
-            .toSet()
-        val submissions = matchingResult.credentialQueryMatches
-            .mapValues { (queryId, matches) ->
-                if (queryId in queriesAllowingMultiple) matches else matches.take(1)
-            }
-            .filterValues { it.isNotEmpty() }
+        val submissions = if (credentialQuerySelections.isNotEmpty()) {
+            toSelectedSubmissions(credentialQuerySelections, dcApiId)
+        } else {
+            toFirstSatisfiableOptionSubmissions()
+        }
 
         require(submissions.isNotEmpty()) {
             "No credential matching the fixed DC API selection was found"
@@ -243,6 +255,58 @@ private fun DCQLMatchingResult<SubjectCredentialStore.StoreEntry>.toFixedDcApiSu
         dcqlQuery.checkCredentialSetQueryRequirements(submissions.keys).getOrThrow()
         submissions
     }
+
+private fun <Credential : Any> DCQLMatchingResult<Credential>.toSelectedSubmissions(
+    credentialQuerySelections: List<DCAPICredentialQuerySelection>,
+    dcApiId: (Credential) -> String,
+): FixedDcApiSubmissions<Credential> {
+    val dcqlQuery = presentationRequest.dcqlQuery
+    val credentialMatchingResults = matchingResult.dcqlQueryMatchingResult.credentialMatchingResults
+    return credentialQuerySelections.distinct().groupBy(
+        keySelector = { DCQLCredentialQueryIdentifier(it.credentialQueryId) },
+    ).mapValues { (queryId, selections) ->
+        val query = dcqlQuery.credentials.firstOrNull { it.id == queryId }
+            ?: throw IllegalArgumentException("The system selected a credential for the unknown credential query $queryId")
+        require(selections.size == 1 || query.multiple) {
+            "The system selected several credentials for credential query $queryId, which allows only one"
+        }
+        selections.map { selection ->
+            val index = matchingResult.credentials.indexOfFirst { dcApiId(it) == selection.credentialId }
+            require(index >= 0) { "The selected credential ${selection.credentialId} is not available" }
+            val match = credentialMatchingResults[queryId]?.getOrNull(index)?.getOrElse {
+                throw IllegalArgumentException(
+                    "The selected credential ${selection.credentialId} does not satisfy credential query $queryId",
+                    it,
+                )
+            } ?: throw IllegalStateException("Failed to find the matching result of credential query $queryId")
+            DCQLCredentialSubmissionOption(
+                credential = matchingResult.credentials[index],
+                matchingResult = match,
+            )
+        }
+    }
+}
+
+private fun <Credential : Any> DCQLMatchingResult<Credential>.toFirstSatisfiableOptionSubmissions():
+    FixedDcApiSubmissions<Credential> {
+    val dcqlQuery = presentationRequest.dcqlQuery
+    val queriesAllowingMultiple = dcqlQuery.credentials
+        .filter { it.multiple }
+        .map { it.id }
+        .toSet()
+    val satisfiableQueries = matchingResult.credentialQueryMatches
+        .filterValues { it.isNotEmpty() }
+    val queriesToBePresented = dcqlQuery.requestedCredentialSetQueries.flatMap { credentialSet ->
+        credentialSet.options.firstOrNull { option ->
+            option.all { it in satisfiableQueries }
+        }.orEmpty()
+    }.toSet()
+    return satisfiableQueries
+        .filterKeys { it in queriesToBePresented }
+        .mapValues { (queryId, matches) ->
+            if (queryId in queriesAllowingMultiple) matches else matches.take(1)
+        }
+}
 
 private fun DCQLMatchingResult<SubjectCredentialStore.StoreEntry>.toSelectableCredentialSubmissionCards(
     credentialFreshnessProviders: List<StateFlow<CredentialFreshnessValidationStateUiModel>>,

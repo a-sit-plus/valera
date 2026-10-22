@@ -28,6 +28,11 @@ fun DCAPIPresentationGraphView(
     } catch (it: Throwable) {
         return onError(it)
     }
+    val credentialQuerySelections = try {
+        viewModel.credentialQuerySelections.getOrThrow()
+    } catch (it: Throwable) {
+        return onError(it)
+    }
 
     val spName = dcApiRequest.callingPackageName
     val spLocation = dcApiRequest.callingOrigin
@@ -39,9 +44,9 @@ fun DCAPIPresentationGraphView(
     val queryMatchingResult = (matchingResult as? UiStateSuccess)?.value
         ?.selectionProvider?.queryMatchingResult
     val selectedCredentialQueryIds = if (dcApiRequest.credentialIds?.isNotEmpty() == true) {
-        (queryMatchingResult as? DCQLMatchingResult<*>)
-            ?.matchingResult?.credentialQueryMatches
-            ?.filterValues { it.isNotEmpty() }
+        (queryMatchingResult as? DCQLMatchingResult)
+            ?.toFixedDcApiSubmissions(credentialQuerySelections) { it.getDcApiId() }
+            ?.getOrNull()
             ?.keys
             .orEmpty()
     } else {
@@ -86,6 +91,7 @@ fun DCAPIPresentationGraphView(
         credentialQueryIdsSelectedForPresentation = selectedCredentialQueryIds,
         showStartRoute = showStartRoute,
         fixedCredentialSelection = dcApiRequest.credentialIds?.isNotEmpty() == true,
+        fixedCredentialQuerySelections = credentialQuerySelections,
         trustListService = viewModel.trustListService,
         request = dcApiRequest,
         relyingPartyValidation = (matchingResult as? UiStateSuccess)?.value?.relyingPartyValidation,
