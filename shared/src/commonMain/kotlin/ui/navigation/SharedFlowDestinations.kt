@@ -416,7 +416,10 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
         var isBusy by rememberSaveable { mutableStateOf(false) }
         // Keeping or discarding them empties the review at once, but the screen shows them until it is left
         var decidedEntries by remember { mutableStateOf<List<PendingCredentialReview.Entry>?>(null) }
-        val onDiscard = {
+        val onDiscard = onDiscard@{
+            // Also ignores going back while keeping them, which navigates on by itself, so that the back handler
+            // consumes it instead of leaving the screen
+            if (isBusy) return@onDiscard
             isBusy = true
             decidedEntries = entries
             walletMain.provisioningService.discardCredentialsUnderReview()
