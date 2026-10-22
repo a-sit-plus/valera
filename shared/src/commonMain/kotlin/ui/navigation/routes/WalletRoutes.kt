@@ -84,8 +84,9 @@ data class AddCredentialDcApiRoute(
         get() = joseCompliantSerializer.decodeFromString(credentialOfferSerialized)
 }
 
+/** Shows the credentials stored in [storeEntryIds], all of those issued at once, in their order. */
 @Serializable
-data class TransientFlowIssuingResultRoute(val storeEntryId: StoreEntryId? = null) : Route()
+data class TransientFlowIssuingResultRoute(val storeEntryIds: List<StoreEntryId> = emptyList()) : Route()
 
 /** Issued credentials that have been rejected wait for the user to keep or discard them, see `PendingCredentialReview`. */
 @Serializable
