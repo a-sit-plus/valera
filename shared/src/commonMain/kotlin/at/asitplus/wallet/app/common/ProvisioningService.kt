@@ -326,9 +326,10 @@ class ProvisioningService(
                 Napier.d("resumeWithAuthCode received ${result.receivedCredentials.size} credential(s)")
                 onProgress?.invoke(LoadingMessageKey.StoringCredential)
                 // A credential replacing a stored one is not reviewed, as the stored one is removed below
-                val review = storedState.context.reissuingStoreEntryId == null
+                val underReview = mutableListOf<PendingCredentialReview.Entry>()
+                    .takeIf { storedState.context.reissuingStoreEntryId == null }
                 val storageResults = result.receivedCredentials.map { cred ->
-                    storeCredential(cred, result.scheme, result.refreshToken, review)
+                    storeCredential(cred, result.scheme, result.refreshToken, underReview)
                 }
                 val needsReview = storageResults.any { it.getOrNull() == null }
                 val storedEntryIds = if (storageResults.any { it.getOrNull() != null }) {
@@ -345,6 +346,7 @@ class ProvisioningService(
                     storedState.context.reissuingStoreEntryId?.let { statusUpdater?.invoke(it, RefreshStatus.Failed) }
                     storageResults.first { it.isFailure }.getOrThrow()
                 }
+                underReview?.takeIf { it.isNotEmpty() }?.let { pendingCredentialReview.replace(it) }
                 StoredCredentials(storedEntryIds, needsReview)
             }
         } finally {
@@ -433,7 +435,7 @@ class ProvisioningService(
         Napier.d("refreshCredential with identifier ${renewalInfo.credentialIdentifier}")
         openId4VciClient().refreshCredentialReturningResult(renewalInfo).getOrThrow().also { result ->
             val storageResults = result.receivedCredentials.map { credential ->
-                storeCredential(credential, result.scheme, result.refreshToken, review = false)
+                storeCredential(credential, result.scheme, result.refreshToken, underReview = null)
             }
 
             if (storageResults.all { it.isSuccess }) {
@@ -502,9 +504,11 @@ class ProvisioningService(
                 Napier.d("loadCredentialWithOffer idsBefore=$idsBefore")
                 Napier.d("loadCredentialWithOffer received ${result.receivedCredentials.size} credential(s) without browser auth")
                 onProgress?.invoke(LoadingMessageKey.StoringCredential)
+                val underReview = mutableListOf<PendingCredentialReview.Entry>()
                 val storedEntries = result.receivedCredentials.map {
-                    storeCredential(it, result.scheme, review = true).getOrThrow()
+                    storeCredential(it, result.scheme, underReview = underReview).getOrThrow()
                 }
+                if (underReview.isNotEmpty()) pendingCredentialReview.replace(underReview)
                 val storedEntryIds = if (storedEntries.any { it != null }) {
                     resolveNewStoreEntryIds(idsBefore)
                 } else emptyList()
@@ -538,7 +542,7 @@ class ProvisioningService(
      * the [holderAgent], see [ReceivedCredential.prepareCredentialStorage], and stores it if it is accepted, returning
      * its entry. A credential rejected only for problems the user may tolerate, e.g. an
      * untrusted issuer, an expired one, an unknown status, or claims its type requires that the issuer left out, waits
-     * in [credentialsUnderReview] if [review] is set, so `null` is returned; otherwise, e.g. when refreshing a
+     * in [underReview] if it is set, so `null` is returned; otherwise, e.g. when refreshing a
      * credential in the background, it is stored nevertheless, as before. A credential failing a check of its
      * integrity, e.g. its signature or its binding to the key of the wallet, or one that can not be decoded at all,
      * fails with that check, see [integrityRejection]. Every problem of a rejected credential is logged.
@@ -547,7 +551,7 @@ class ProvisioningService(
         credential: ReceivedCredential,
         scheme: CredentialScheme,
         renewalInfo: CredentialRenewalInfo? = null,
-        review: Boolean,
+        underReview: MutableList<PendingCredentialReview.Entry>?,
     ): KmmResult<SubjectCredentialStore.StoreEntry?> = catching {
         val prepared = withContext(Dispatchers.Default) {
             credential.prepareCredentialStorage(holderAgent, scheme, ValidationPolicies.issuance, renewalInfo)
@@ -565,8 +569,8 @@ class ProvisioningService(
                 throw report.integrityRejection() ?: report.rejection()
                     ?: IllegalStateException("The credential has not been stored")
 
-            review && report.needsReview() -> null.also {
-                pendingCredentialReview.add(PendingCredentialReview.Entry(prepared, scheme, outcome))
+            underReview != null && report.needsReview() -> null.also {
+                underReview += PendingCredentialReview.Entry(prepared, scheme, outcome)
             }
 
             else -> storeAfterUserConsent(prepared)
