@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -34,8 +36,10 @@ import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_ok
 import at.asitplus.valera.resources.heading_label_credential_added_screen
+import at.asitplus.valera.resources.heading_label_credentials_added_screen
 import at.asitplus.valera.resources.icon_presentation_success
 import at.asitplus.valera.resources.info_text_credential_added
+import at.asitplus.valera.resources.info_text_credentials_added
 import at.asitplus.valera.resources.info_text_error_action_return_to_invoker
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.painterResource
@@ -44,6 +48,10 @@ import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.TextIconButton
 
+/**
+ * Confirms that [credentialCount] credentials have been added, showing [credentialContent] below, e.g. a card of each
+ * of them, which scrolls if it does not fit.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CredentialAddedView(
@@ -51,10 +59,14 @@ fun CredentialAddedView(
     onClickButton: () -> Unit,
     onClickLogo: () -> Unit,
     isAutoDismissEnabled: Boolean = true,
+    credentialCount: Int = 1,
     credentialContent: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     var secondsRemaining by remember { mutableIntStateOf(5) }
     var isAcknowledged by remember { mutableStateOf(false) }
+    val infoText = stringResource(
+        if (credentialCount > 1) Res.string.info_text_credentials_added else Res.string.info_text_credential_added
+    )
 
     val acknowledge = {
         if (!isAcknowledged) {
@@ -84,7 +96,10 @@ fun CredentialAddedView(
                 title = {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         ScreenHeading(
-                            stringResource(Res.string.heading_label_credential_added_screen),
+                            stringResource(
+                                if (credentialCount > 1) Res.string.heading_label_credentials_added_screen
+                                else Res.string.heading_label_credential_added_screen
+                            ),
                             Modifier.weight(1f)
                         )
                     }
@@ -108,7 +123,7 @@ fun CredentialAddedView(
                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 ) {
                     Text(
-                        text = stringResource(Res.string.info_text_credential_added),
+                        text = infoText,
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Text(
@@ -150,15 +165,18 @@ fun CredentialAddedView(
                 modifier = Modifier.size(160.dp).padding(bottom = 16.dp)
             )
             Text(
-                text = stringResource(Res.string.info_text_credential_added),
+                text = infoText,
                 style = MaterialTheme.typography.bodyLarge,
             )
             credentialContent?.let {
                 Spacer(Modifier.height(24.dp))
                 Column(
                     modifier = Modifier
+                        .weight(1f, fill = false)
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     it()
                 }

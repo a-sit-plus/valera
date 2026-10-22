@@ -165,6 +165,7 @@
     <string name="heading_label_show_data_third_party">Present data to third-party citizens</string>
     <string name="heading_label_authentication_success">Authenticated</string>
     <string name="heading_label_credential_added_screen">Credential added</string>
+    <string name="heading_label_credentials_added_screen">Credentials added</string>
     <string name="heading_label_settings_screen">Settings</string>
     <string name="heading_label_error_screen">Error</string>
     <string name="heading_label_loading_screen">Loading</string>
@@ -252,6 +253,7 @@
     <string name="info_text_data_items_missing">missing</string>
     <string name="info_text_authentication_success">The authentication has been carried out successfully.</string>
     <string name="info_text_credential_added">The credential was added successfully.</string>
+    <string name="info_text_credentials_added">The credentials were added successfully.</string>
     <string name="info_text_no_credentials_available">No data is available yet.</string>
     <string name="info_text_available_credentials">Available data</string>
     <string name="info_text_requested_credentials">Requested data</string>
