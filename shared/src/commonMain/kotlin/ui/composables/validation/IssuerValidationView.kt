@@ -10,7 +10,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import at.asitplus.openid.SupportedCredentialFormat
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.label_issuer_registration
 import at.asitplus.valera.resources.label_issuer_registration_attestations
@@ -21,7 +20,6 @@ import at.asitplus.valera.resources.label_issuer_registration_unverified
 import at.asitplus.valera.resources.label_registration_cert_details_trade_name
 import at.asitplus.valera.resources.section_heading_issuer_validation
 import at.asitplus.valera.resources.validation_finding_unsigned
-import at.asitplus.valera.resources.warning_issuer_not_registered_for_credential
 import at.asitplus.wallet.app.common.relyingParty.getCurrentLocalization
 import at.asitplus.wallet.app.common.validation.IssuerRegistrationUi
 import at.asitplus.wallet.app.common.validation.IssuerValidationUi
@@ -31,11 +29,12 @@ import ui.composables.LabeledHyperlinkText
 import ui.composables.LabeledText
 
 /**
- * The validation of a credential issuer before issuance: the verdict on its metadata, whether it is registered for
- * the credential of [format], its registration, and every check of its metadata and registration certificate.
+ * The validation of a credential issuer before issuance: the verdict on its metadata, its registration, and every
+ * check of its metadata and registration certificate. Whether it is registered for an offered credential is shown with
+ * that credential, see `CredentialIdentifierSelection`.
  */
 @Composable
-fun IssuerValidationView(issuer: IssuerValidationUi, format: SupportedCredentialFormat, modifier: Modifier = Modifier) {
+fun IssuerValidationView(issuer: IssuerValidationUi, modifier: Modifier = Modifier) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = stringResource(Res.string.section_heading_issuer_validation),
@@ -43,12 +42,6 @@ fun IssuerValidationView(issuer: IssuerValidationUi, format: SupportedCredential
         )
         issuer.outcome?.let { ValidationBanner(it) }
             ?: Text(stringResource(Res.string.validation_finding_unsigned))
-        if (issuer.registeredFor(format) == false) {
-            Text(
-                text = stringResource(Res.string.warning_issuer_not_registered_for_credential),
-                color = MaterialTheme.colorScheme.error,
-            )
-        }
         issuer.registration?.let { IssuerRegistrationCard(it, verified = issuer.verified) }
         issuer.outcome?.let { ValidationDetails(it) }
     }

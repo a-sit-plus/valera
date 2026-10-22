@@ -2,6 +2,7 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
+import at.asitplus.data.NonEmptyList
 import at.asitplus.dcapi.DigitalCredentialInterface
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
@@ -142,14 +143,14 @@ class WalletMain(
 
     fun startProvisioning(
         host: String,
-        credentialIdentifierInfo: CredentialIdentifierInfo,
+        credentialIdentifierInfos: NonEmptyList<CredentialIdentifierInfo>,
         onSuccess: () -> Unit,
     ) {
         scope.launch {
             try {
                 provisioningService.startProvisioningWithAuthRequest(
                     credentialIssuer = host,
-                    credentialIdentifierInfo = credentialIdentifierInfo,
+                    credentialIdentifierInfos = credentialIdentifierInfos,
                 )
                 onSuccess()
             } catch (e: Throwable) {

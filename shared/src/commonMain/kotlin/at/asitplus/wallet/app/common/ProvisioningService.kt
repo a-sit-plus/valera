@@ -2,6 +2,7 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.KmmResult
 import at.asitplus.catching
+import at.asitplus.data.NonEmptyList
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.IssuerMetadata
 import at.asitplus.openid.OAuth2AuthorizationServerMetadata
@@ -37,6 +38,7 @@ import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.ISO_MD
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.SD_JWT
 import at.asitplus.wallet.lib.data.CredentialScheme
 import at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult
+import at.asitplus.wallet.lib.ktor.openid.IssuedCredentials
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VciKtorClient
 import at.asitplus.wallet.lib.ktor.openid.ProvisioningContext
 import at.asitplus.wallet.lib.oauth2.ClientAttestation
@@ -253,12 +255,12 @@ class ProvisioningService(
     )
 
     /**
-     * Starts the issuing process at [credentialIssuer]
+     * Starts the issuing process at [credentialIssuer] for all of [credentialIdentifierInfos] with one authorization
      */
     @Throws(Throwable::class)
     suspend fun startProvisioningWithAuthRequest(
         credentialIssuer: String,
-        credentialIdentifierInfo: CredentialIdentifierInfo,
+        credentialIdentifierInfos: NonEmptyList<CredentialIdentifierInfo>,
         reissuingStoreEntryId: StoreEntryId? = null
     ) {
         provisioningFlowMutex.withLock {
@@ -268,7 +270,7 @@ class ProvisioningService(
             cookieStorage.reset()
             openId4VciClient().startProvisioningWithAuthRequestReturningResult(
                 credentialIssuer,
-                credentialIdentifierInfo,
+                credentialIdentifierInfos,
                 reissuingStoreEntryId
             ).getOrThrow().run {
                 storeContextOpenIntent()
@@ -323,13 +325,13 @@ class ProvisioningService(
                 val idsBefore =
                     subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
                 Napier.d("resumeWithAuthCode idsBefore=$idsBefore")
-                Napier.d("resumeWithAuthCode received ${result.receivedCredentials.size} credential(s)")
+                Napier.d("resumeWithAuthCode received ${result.credentialsByConfiguration.size} credential(s)")
                 onProgress?.invoke(LoadingMessageKey.StoringCredential)
                 // A credential replacing a stored one is not reviewed, as the stored one is removed below
                 val underReview = mutableListOf<PendingCredentialReview.Entry>()
                     .takeIf { storedState.context.reissuingStoreEntryId == null }
-                val storageResults = result.receivedCredentials.map { cred ->
-                    storeCredential(cred, result.scheme, result.refreshToken, underReview)
+                val storageResults = result.credentialsByConfiguration.map { (issued, credential) ->
+                    storeCredential(credential, issued.scheme, issued.refreshToken, underReview)
                 }
                 val needsReview = storageResults.any { it.getOrNull() == null }
                 val storedEntryIds = if (storageResults.any { it.getOrNull() != null }) {
@@ -434,8 +436,8 @@ class ProvisioningService(
         clearCaches()
         Napier.d("refreshCredential with identifier ${renewalInfo.credentialIdentifier}")
         openId4VciClient().refreshCredentialReturningResult(renewalInfo).getOrThrow().also { result ->
-            val storageResults = result.receivedCredentials.map { credential ->
-                storeCredential(credential, result.scheme, result.refreshToken, underReview = null)
+            val storageResults = result.credentialsByConfiguration.map { (issued, credential) ->
+                storeCredential(credential, issued.scheme, issued.refreshToken, underReview = null)
             }
 
             if (storageResults.all { it.isSuccess }) {
@@ -462,10 +464,11 @@ class ProvisioningService(
     }
 
     /**
-     * Loads a user-selected credential with pre-authorized code from the OID4VCI credential issuer
+     * Loads the user-selected credentials with pre-authorized code from the OID4VCI credential issuer, with one token
+     * for all of them
      *
      * @param credentialOffer as loaded and decoded from the QR Code
-     * @param credentialIdentifierInfo as selected by the user from the issuer's metadata
+     * @param credentialIdentifierInfos as selected by the user from the issuer's metadata
      * @param transactionCode if required from Issuing service, i.e. transmitted out-of-band to the user
      * @param authorizationServerMetadata oauthMetadata optionally transmitted via the DC API. Set to null for other flows.
      *
@@ -473,7 +476,7 @@ class ProvisioningService(
     @Throws(Throwable::class)
     suspend fun loadCredentialWithOffer(
         credentialOffer: CredentialOffer,
-        credentialIdentifierInfo: CredentialIdentifierInfo,
+        credentialIdentifierInfos: NonEmptyList<CredentialIdentifierInfo>,
         transactionCode: String? = null,
         authorizationServerMetadata: OAuth2AuthorizationServerMetadata? = null,
         onProgress: ((LoadingMessageKey) -> Unit)? = null,
@@ -483,7 +486,7 @@ class ProvisioningService(
             onProgress?.invoke(LoadingMessageKey.IssuingCredential)
             val result = openId4VciClient().loadCredentialWithOfferReturningResult(
                 credentialOffer,
-                credentialIdentifierInfo,
+                credentialIdentifierInfos,
                 transactionCode,
                 authorizationServerMetadata
             ).getOrThrow()
@@ -502,11 +505,11 @@ class ProvisioningService(
                 val idsBefore =
                     subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
                 Napier.d("loadCredentialWithOffer idsBefore=$idsBefore")
-                Napier.d("loadCredentialWithOffer received ${result.receivedCredentials.size} credential(s) without browser auth")
+                Napier.d("loadCredentialWithOffer received ${result.credentialsByConfiguration.size} credential(s) without browser auth")
                 onProgress?.invoke(LoadingMessageKey.StoringCredential)
                 val underReview = mutableListOf<PendingCredentialReview.Entry>()
-                val storedEntries = result.receivedCredentials.map {
-                    storeCredential(it, result.scheme, underReview = underReview).getOrThrow()
+                val storedEntries = result.credentialsByConfiguration.map { (issued, credential) ->
+                    storeCredential(credential, issued.scheme, underReview = underReview).getOrThrow()
                 }
                 if (underReview.isNotEmpty()) pendingCredentialReview.replace(underReview)
                 val storedEntryIds = if (storedEntries.any { it != null }) {
@@ -582,6 +585,13 @@ class ProvisioningService(
         withContext(Dispatchers.Default) { holderAgent.storeAfterUserConsent(prepared).getOrThrow() }.storedEntry
             ?: throw prepared.validation.report.rejection()
                 ?: IllegalStateException("The credential has not been stored")
+
+    /**
+     * Every credential of [CredentialIssuanceResult.Success.issued], with the configuration it has been issued for,
+     * i.e. the scheme it has been requested as and its renewal info.
+     */
+    private val CredentialIssuanceResult.Success.credentialsByConfiguration: List<Pair<IssuedCredentials, ReceivedCredential>>
+        get() = issued.flatMap { issued -> issued.receivedCredentials.map { issued to it } }
 
     // Wait for the DataStore flow to emit a container that includes at least one new entry.
     private suspend fun resolveNewStoreEntryIds(idsBefore: Set<StoreEntryId>): List<StoreEntryId> {

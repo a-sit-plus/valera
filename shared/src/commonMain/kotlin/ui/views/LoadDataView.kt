@@ -19,8 +19,8 @@ import ui.composables.forms.StatefulLoadDataForm
 fun LoadDataView(
     // state
     host: String,
-    credentialIdentifierInfo: CredentialIdentifierInfo,
-    onChangeCredentialIdentifierInfo: (CredentialIdentifierInfo) -> Unit,
+    credentialIdentifierInfos: List<CredentialIdentifierInfo>,
+    onChangeCredentialIdentifierInfos: (List<CredentialIdentifierInfo>) -> Unit,
     transactionCode: TextFieldValue,
     onChangeTransactionCode: (TextFieldValue) -> Unit,
     // other
@@ -49,8 +49,8 @@ fun LoadDataView(
     ) { scaffoldPadding ->
         StatefulLoadDataForm(
             host = host,
-            credentialIdentifierInfo = credentialIdentifierInfo,
-            onChangeCredentialIdentifierInfo = onChangeCredentialIdentifierInfo,
+            credentialIdentifierInfos = credentialIdentifierInfos,
+            onChangeCredentialIdentifierInfos = onChangeCredentialIdentifierInfos,
             transactionCode = transactionCode,
             onChangeTransactionCode = onChangeTransactionCode,
             modifier = Modifier.padding(scaffoldPadding),

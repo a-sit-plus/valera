@@ -1,6 +1,7 @@
 package ui.viewmodels
 
 import ErrorHandlingOverrideException
+import at.asitplus.data.NonEmptyList
 import at.asitplus.dcapi.issuance.DigitalCredentialOfferReturn
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
@@ -12,9 +13,10 @@ import at.asitplus.wallet.lib.oidvci.CredentialIdentifierInfo
 import kotlinx.coroutines.async
 
 /**
- * Selected transaction identifier, requested attributes, transaction code
+ * The credentials the user selected, in the order of [LoadCredentialViewModel.credentialIdentifiers], to request with
+ * one authorization, the transaction code, and the offer
  */
-typealias CredentialSelection = (CredentialIdentifierInfo, String?, CredentialOffer?) -> Unit
+typealias CredentialSelection = (NonEmptyList<CredentialIdentifierInfo>, String?, CredentialOffer?) -> Unit
 
 class LoadCredentialViewModel(
     val walletMain: WalletMain,

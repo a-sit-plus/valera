@@ -68,8 +68,7 @@
     <string name="credential_representation_format_label_mso_mdoc">ISO mDoc</string>
 
     <string name="issuing_label_host">Issuing service</string>
-    <string name="issuing_label_scheme">Schema</string>
-    <string name="issuing_label_representation">Repräsentation</string>
+    <string name="issuing_label_credentials">Nachweise</string>
     <string name="issuing_label_transaction_code">Transaktionscode</string>
     <string name="issuing_label_information">Es werden alle verfügbaren Daten geladen werden</string>
 
@@ -121,7 +120,6 @@
     <string name="text_label_openid4vp_allowed_origin_schemes">Erlaubte OpenID4VP-Origin-Schemata</string>
     <string name="text_supporting_openid4vp_allowed_origin_schemes">Kommagetrennt, z. B. https,android:apk-key-hash. Leerzeichen werden ignoriert; leeren, um alle zu deaktivieren.</string>
     <string name="text_label_wallet_provider_attestation">Wallet Attestierung verwenden</string>
-    <string name="text_label_id_identifier">Bezeichnung</string>
     <string name="text_label_id_format">Datenrepräsentation</string>
     <string name="text_label_id_scheme">Credential Typ</string>
     <string name="text_label_sex">Geschlecht</string>
@@ -162,6 +160,7 @@
     <string name="heading_label_show_data_third_party">Daten vorzeigen an dritte Bürger</string>
     <string name="heading_label_authentication_success">Angemeldet</string>
     <string name="heading_label_credential_added_screen">Ausweis hinzugefügt</string>
+    <string name="heading_label_credentials_added_screen">Nachweise hinzugefügt</string>
     <string name="heading_label_settings_screen">Einstellungen</string>
     <string name="heading_label_error_screen">Fehler</string>
     <string name="heading_label_loading_screen">Laden</string>
@@ -248,6 +247,7 @@
     <string name="info_text_data_items_missing">fehlend</string>
     <string name="info_text_authentication_success">Die Anmeldung wurde erfolgreich durchgeführt.</string>
     <string name="info_text_credential_added">Das Credential wurde erfolgreich hinzugefügt.</string>
+    <string name="info_text_credentials_added">Die Nachweise wurden erfolgreich hinzugefügt.</string>
     <string name="info_text_no_credentials_available">Es sind noch keine Daten verfügbar.</string>
     <string name="info_text_available_credentials">Verfügbare Daten</string>
     <string name="info_text_requested_credentials">Angefragte Daten</string>
