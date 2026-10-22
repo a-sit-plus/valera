@@ -11,10 +11,35 @@ extern "C" {
 #include "cJSON.h"
 }
 
+struct DcqlPathSegment {
+    enum class Kind { Member, Index, Wildcard };
+    Kind kind;
+    std::string member;
+    uint64_t index = 0;
+};
+
+struct DcqlScalarValue {
+    std::string kind;
+    std::string value;
+};
+
 struct DcqlRequestedClaim {
     std::string id;
     std::vector<std::string> values;
     std::vector<std::string> path;
+
+    // Legacy strings above remain for mdoc/other request producers. SD-JWT uses only these
+    // typed fields, populated by the DCQL parser, never joinPath().
+    std::vector<DcqlPathSegment> typedPath;
+    std::vector<DcqlScalarValue> typedValues;
+    bool typedValid = false;
+    bool invalidRequest = false;
+    bool hasValueConstraint = false;
+
+    DcqlRequestedClaim(std::string id_, std::vector<std::string> values_,
+                       std::vector<std::string> path_, bool retain_)
+        : id(std::move(id_)), values(std::move(values_)), path(std::move(path_)),
+          intentToRetain(retain_) {}
 
     // Only relevant for ISO mdoc
     bool intentToRetain;

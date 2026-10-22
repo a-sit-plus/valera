@@ -3,6 +3,8 @@
 #include "logger.h"
 #include "paths.h"
 #include "base64.h"
+#include <cmath>
+#include <algorithm>
 
 extern "C" {
 #include "credentialmanager.h"
@@ -44,48 +46,71 @@ DcqlQuery DcqlQuery::parse(cJSON* dcqlQuery) {
                 id = std::string(cJSON_GetStringValue(idObj));
             }
             std::vector<std::string> path;
+            std::vector<DcqlPathSegment> typedPath;
+            std::vector<DcqlScalarValue> typedValues;
+            cJSON* pathObj = cJSON_GetObjectItem(claim, "path");
+            bool valid = cJSON_IsArray(pathObj) && cJSON_GetArraySize(pathObj) > 0;
             cJSON* pathElem;
-            cJSON_ArrayForEach(pathElem, cJSON_GetObjectItem(claim, "path")) {
+            cJSON_ArrayForEach(pathElem, pathObj) {
                 if (cJSON_IsString(pathElem)) {
-                    path.push_back(std::string(cJSON_GetStringValue(pathElem)));
+                    path.push_back(cJSON_GetStringValue(pathElem));
+                    typedPath.push_back({DcqlPathSegment::Kind::Member, path.back(), 0});
                 } else if (cJSON_IsNull(pathElem)) {
                     path.push_back("null");
-                } else if (cJSON_IsNumber(pathElem)) {
-                    path.push_back(std::to_string(pathElem->valueint));
+                    typedPath.push_back({DcqlPathSegment::Kind::Wildcard, "", 0});
+                } else if (cJSON_IsNumber(pathElem) && std::isfinite(pathElem->valuedouble) &&
+                           pathElem->valuedouble >= 0 && pathElem->valuedouble < 9007199254740992.0 &&
+                           std::floor(pathElem->valuedouble) == pathElem->valuedouble) {
+                    auto index = static_cast<uint64_t>(pathElem->valuedouble);
+                    path.push_back(std::to_string(index));
+                    typedPath.push_back({DcqlPathSegment::Kind::Index, "", index});
                 } else {
-                    LOG("Warning: unhandled JSON type for claim path element");
-                    path.push_back("<invalid>");
+                    valid = false;
                 }
             }
 
             std::vector<std::string> values;
             cJSON* valuesObj = cJSON_GetObjectItem(claim, "values");
             if (valuesObj != nullptr) {
-                // For value matching, the values in the database are already strings
-                // so just convert to string and we'll match...
+                valid = valid && cJSON_IsArray(valuesObj) && cJSON_GetArraySize(valuesObj) > 0;
                 cJSON* value;
                 cJSON_ArrayForEach(value, valuesObj) {
                     if (cJSON_IsBool(value)) {
                         values.push_back(cJSON_IsTrue(value) ? "true" : "false");
+                        typedValues.push_back({"boolean", values.back()});
                     } else if (cJSON_IsNumber(value)) {
-                        // TODO: handle double?
-                        values.push_back(std::to_string(value->valueint));
+                        // cJSON stores doubles, so reject the unsafe integer boundary and beyond.
+                        // Never use valueint (which saturates at INT_MAX).
+                        if (!std::isfinite(value->valuedouble) ||
+                            std::fabs(value->valuedouble) >= 9007199254740992.0) {
+                            valid = false;
+                            continue;
+                        }
+                        char* printed = cJSON_PrintUnformatted(value);
+                        if (printed == nullptr) { valid = false; continue; }
+                        if (std::floor(value->valuedouble) == value->valuedouble) {
+                            values.push_back(std::to_string(static_cast<int64_t>(value->valuedouble)));
+                        } else {
+                            values.emplace_back(printed);
+                        }
+                        cJSON_free(printed);
+                        typedValues.push_back({"number", values.back()});
                     } else if (cJSON_IsString(value)) {
-                        values.push_back(std::string(cJSON_GetStringValue(value)));
+                        values.push_back(cJSON_GetStringValue(value));
+                        typedValues.push_back({"string", values.back()});
                     } else {
-                        LOG("Warning: unhandled JSON type for value matching");
+                        valid = false;
                     }
                 }
             }
 
             auto intentToRetain = cJSON_IsTrue(cJSON_GetObjectItem(claim, "required"));
-
-            auto requestedClaim = DcqlRequestedClaim(
-                    id,
-                    values,
-                    path,
-                    intentToRetain
-            );
+            auto requestedClaim = DcqlRequestedClaim(id, values, path, intentToRetain);
+            requestedClaim.typedPath = std::move(typedPath);
+            requestedClaim.typedValues = std::move(typedValues);
+            requestedClaim.typedValid = valid;
+            requestedClaim.invalidRequest = !valid;
+            requestedClaim.hasValueConstraint = valuesObj != nullptr;
             requestedClaims.push_back(requestedClaim);
         }
 
@@ -242,6 +267,9 @@ std::optional<DcqlResponse> DcqlQuery::execute(CredentialDatabase* credentialDat
     for (auto& query: dcqlCredentialQueries) {
         std::vector<Credential*> credsSatifyingMeta;
         for (auto& cred: credentialDatabase->credentials) {
+            if (query.format == "dc+sd-jwt" && !cred.sdJwtClaimsTree.has_value()) {
+                continue;
+            }
             if (!cred.supportsProtocol(protocol)) {
                 continue;
             }
@@ -292,8 +320,14 @@ std::optional<DcqlResponse> DcqlQuery::execute(CredentialDatabase* credentialDat
             credsSatifyingMeta.push_back(&cred);
         }
 
+        // A malformed claims path pointer or value makes the request invalid, so no credential matches the query,
+        // even if an alternative claim set would not need that claim
+        bool invalidSdJwtQuery = query.format == "dc+sd-jwt" &&
+                std::any_of(query.requestedClaims.begin(), query.requestedClaims.end(),
+                            [](const DcqlRequestedClaim& claim) { return !claim.typedValid; });
         std::vector<DcqlResponseCredentialSetOptionMemberMatch> matches;
         for (auto& cred : credsSatifyingMeta) {
+            if (invalidSdJwtQuery) break;
             if (query.claimSets.size() == 0) {
                 if (query.lenientClaimMatching) {
                     bool failedRequiredClaim = false;
