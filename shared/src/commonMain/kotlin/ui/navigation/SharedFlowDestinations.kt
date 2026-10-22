@@ -356,12 +356,7 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
                         resetStackOverride = navigator::invocationAwareBack,
                         actionDescriptionOverride = Res.string.info_text_error_action_return_to_invoker,
                         onAcknowledge = {
-                            if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
-                                val response = flow.encodeDigitalCredentialOfferReturn(
-                                    DigitalCredentialOfferReturn.error(status = "offer_declined")
-                                )
-                                walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, false)
-                            }
+                            flow.declinePendingDCAPIIssuingRequest(walletMain)
                             navigator.invocationAwareBack()
                         },
                         cause = it
@@ -424,13 +419,7 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
             decidedEntries = entries
             walletMain.provisioningService.discardCredentialsUnderReview()
             walletMain.scope.launch {
-                if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
-                    // TODO replace with official status messages once specification defines them
-                    val response = flow.encodeDigitalCredentialOfferReturn(
-                        DigitalCredentialOfferReturn.error(status = "offer_declined")
-                    )
-                    walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, false)
-                }
+                flow.declinePendingDCAPIIssuingRequest(walletMain)
                 navigator.popToInvoker()
             }
             Unit
@@ -746,7 +735,22 @@ private fun SharedDestinationFlow.handleCredentialFlowFailure(
     if (this == SharedDestinationFlow.Wallet) {
         navigator.popToInvoker()
     }
-    walletMain.errorService.emit(throwable)
+    // The flow ends with the error, so a DC API request is answered once the user acknowledged it
+    walletMain.errorService.emit(
+        ErrorHandlingOverrideException(
+            onAcknowledge = { declinePendingDCAPIIssuingRequest(walletMain) },
+            cause = throwable,
+        )
+    )
+}
+
+/** Answers a pending DC API issuing request, if any, as declined, e.g. as the issuance failed or has been discarded. */
+private fun SharedDestinationFlow.declinePendingDCAPIIssuingRequest(walletMain: WalletMain) {
+    if (walletMain.platformAdapter.hasPendingDCAPIIssuingRequest()) {
+        // TODO replace with official status messages once specification defines them
+        val response = encodeDigitalCredentialOfferReturn(DigitalCredentialOfferReturn.error(status = "offer_declined"))
+        walletMain.platformAdapter.prepareDCAPIIssuingResponse(response, false)
+    }
 }
 
 private fun SharedDestinationFlow.encodeDigitalCredentialOfferReturn(

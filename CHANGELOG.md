@@ -38,6 +38,7 @@
  * Presentation: Load the ZK circuits only for requests that ask for a zero-knowledge proof, which took several megabytes of memory for every presentation, e.g. in the iOS Identity Document Provider extension
  * Logging: Log only the headers of HTTP requests and responses in release builds and in the iOS Identity Document Provider extension, as logging their bodies, e.g. of the Trust Lists, took megabytes of memory
  * UI: Reduce the images of a successful and a failed presentation to the size they are shown in, which took about 6 MB of memory each
+ * DC API: Answer an issuance request as declined once the user acknowledges that loading the offer, issuing, or storing the credentials failed, which left the request without an answer
  * DC API: Keep ISO mdoc requests as received on Android and iOS, as their reader authentication failed to verify after re-encoding a request whose encoding differs from the one of VC-K, e.g. a `zkRequest` of the age verification verifier, which was rejected
  * Presentation: Name the failed signature as the reason for rejecting a request instead of the parsing of its access certificate, which is not checked without a valid signature
  * DC API: Present a credential selected by the system on Android only for the credential query it was selected for, whose claims the system showed, instead of once for every credential query it matches, e.g. twice for a PID requested by two alternative ISO mdoc queries; the matcher reports the query with each entry of the picker
