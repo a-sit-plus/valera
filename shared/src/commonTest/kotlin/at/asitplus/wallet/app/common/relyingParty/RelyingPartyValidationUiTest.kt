@@ -130,7 +130,7 @@ internal class RelyingPartyValidationUiTest : ValidationReportFixtures() {
             registryUri = "https://registry.example.com",
             serviceDescription = listOf(WrpLangString(lang = "en", value = "Online shop")),
             entitlements = listOf(WrpConstants.ENTITLEMENT_SERVICE_PROVIDER),
-            privacyPolicies = listOf("https://shop.example.com/privacy"),
+            privacyPolicy = "https://shop.example.com/privacy",
             infoUris = listOf("https://shop.example.com"),
             supportUris = listOf("https://shop.example.com/support"),
             supervisoryAuthority = WrpSupervisoryAuthority(),
