@@ -1,7 +1,7 @@
 # Release 5.9.1 (unreleased):
+ * Update to VC-K 9.0.0-RC2
  * Presentation: Parse and validate incoming requests, including certificate trust checks, off the UI thread for DC API, OpenID4VP, and proximity flows
  * Authentication: Use “Authenticate to continue” consistently for credential issuance, refresh, and presentation prompts on Android and iOS
- * Update to VC-K 9.0.0-SNAPSHOT
  * Presentation: Resolve and display DCQL `mso_mdoc_zk` credential queries on the consent screens like ISO mdoc queries
  * Presentation: Show a badge on the consent screens stating whether an ISO mdoc is requested as a plain mdoc or as a zero-knowledge proof (with or without plain fallback)
  * Presentation: Show why the WRPAC or WRPRC of a relying party is invalid, e.g. because the WRPRC could not be parsed, is revoked or suspended, its status could not be checked, or it is not linked to a valid WRPAC, and evaluate each of them even if the other one is invalid. A WRPAC or WRPRC missing from the request is shown as not provided instead of invalid
@@ -15,7 +15,7 @@
  * Issuing: Validate each received credential once as VC-K decodes it from the credential response, so that an ISO mdoc is stored with exactly the bytes the issuer signed, and reject a credential that can not be decoded as failing its parsing
  * Issuing: Check the status of an issued credential with its status list fetched again, replacing a cached one, instead of a status list cached for up to its time to live, also while a recent error response of its URL would suppress fetching it
  * Issuing: Select the credentials of an offer with a checkbox each instead of a dropdown, showing the scheme and representation of every offered credential, and whether the issuer is not registered for it; none is selected at first, so that the user selects each one to request explicitly, and all selected ones are requested with one authorization
- * Issuing: Show every credential issued at once on the result screen, with a card each, instead of only the first one
+ * Issuing: Show every credential issued at once on the result screen, with its summary card each, instead of only the first one, also when the store has not yet shown all of them, and replace the large success image with a banner above the cards; issuing from within the wallet says that the user returns to “My Data” instead of to the requesting app or website
  * Proximity: Verify the reader authentication of requests over BLE and NFC, reject an invalid one, and show the validation of the reader and its registration certificates like for other relying parties
  * Proximity verifier: Sign the reader authentication over the session transcript itself instead of its encoding as a byte string, which holders rejected as an invalid signature
  * Proximity verifier: Validate received documents with VC-K's `CredentialValidator`, which now also verifies their device signature or device MAC over the session transcript and trusts their issuers per credential type from the Lists of Trusted Entities, and show the validation of each document with every check; untrusted, expired, or revoked documents are shown with a warning, the claims of documents failing their integrity, e.g. their signature or digests, are not shown
@@ -45,6 +45,8 @@
  * DC API: Present a credential selected by the system on Android only for the credential query it was selected for, whose claims the system showed, instead of once for every credential query it matches, e.g. twice for a PID requested by two alternative ISO mdoc queries; the matcher reports the query with each entry of the picker
  * DC API: Match SD-JWT claims on Android against their original object and array structure, including whole objects such as `place_of_birth`, nested wildcards and indices, and exact typed values; distinguish literal claim names containing dots, numbers or `null` from path operations, and rebuild registrations with the updated matcher format; as OpenID4VP 1.0, 7.1.1 specifies, a claim whose path selects an element of the wrong type does not match, while other options of `claim_sets` without it still may
  * DC API: Send an error to the caller and end the flow when the error screen of a failed presentation is confirmed, e.g. of a rejected request, on Android and iOS, where the Identity Document Provider extension stayed open; errors while sending a presentation are now reported to the caller as well, instead of only cancelling the request
+ * Credentials: Check the status of ISO mdoc credentials with CWT status lists and identifier lists (ISO/IEC 18013-5, 12.3.6), which were requested and parsed as JWTs only and therefore reported as unknown, cache them like JWT status lists, and report an HTTP error of a status list, e.g. 406, as such instead of failing to parse the error page as a JWT
+ * Logging: Write the stack trace of a logged exception to the log file at every log level, not only for errors, and keep the logged message of an error
 
 # Release 5.9.0:
  * Issuing and presentation: Accept Launchpad `eu-eaa-offer` and `eu-eaap` links on Android and iOS

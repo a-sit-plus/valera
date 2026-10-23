@@ -12,15 +12,25 @@ import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.cookies.CookiesStorage
 import io.ktor.client.plugins.cookies.HttpCookies
+import io.ktor.client.plugins.logging.BinaryLogBodyFilter
+import io.ktor.client.plugins.logging.BodyFilterResult
+import io.ktor.client.plugins.logging.LogBodyFilter
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.plugins.logging.LoggingFormat
 import io.ktor.client.request.header
 import io.ktor.http.ContentType
+import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
+import io.ktor.http.Url
 import io.ktor.serialization.kotlinx.json.json
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.discard
+import io.ktor.utils.io.readRemaining
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
+import kotlinx.io.readByteArray
 import kotlin.time.Duration
 
 /**
@@ -110,9 +120,39 @@ class HttpService(private val buildContext: BuildContext) {
                     }
                 }
                 level = logLevel
+                // Only this format applies the bodyFilter
+                format = LoggingFormat.OkHttp
+                bodyFilter = TruncatingResponseBodyFilter
             }
             install(DefaultRequest) {
                 header(HttpHeaders.UserAgent, "Valera/${buildContext.versionName} (${buildContext.osVersion})")
             }
         }
+}
+
+/**
+ * Logs only the first [MAX_LOGGED_RESPONSE_BODY_BYTES] of a response body, so that large documents like Lists of
+ * Trusted Entities don't flood the log. Request bodies are logged in full.
+ */
+private object TruncatingResponseBodyFilter : LogBodyFilter by BinaryLogBodyFilter {
+    private const val MAX_LOGGED_RESPONSE_BODY_BYTES = 5 * 1024L
+
+    override suspend fun filterResponse(
+        url: Url,
+        contentLength: Long?,
+        contentType: ContentType?,
+        headers: Headers,
+        body: ByteReadChannel,
+    ): BodyFilterResult {
+        val head = body.readRemaining(MAX_LOGGED_RESPONSE_BODY_BYTES).readByteArray()
+        // Drain the logged copy of the body without buffering it
+        val omitted = body.discard()
+        val result = BinaryLogBodyFilter.filterResponse(url, contentLength, contentType, headers, ByteReadChannel(head))
+        if (omitted == 0L || result !is BodyFilterResult.Content) return result
+        val text = result.read()
+        return object : BodyFilterResult.Content {
+            override val byteSize = head.size + omitted
+            override fun read() = "$text\n[... $omitted more bytes omitted]"
+        }
+    }
 }

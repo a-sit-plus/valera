@@ -23,6 +23,7 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.dcapi.issuance.DigitalCredentialOfferReturn
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.info_text_action_return_to_my_data
 import at.asitplus.valera.resources.info_text_error_action_return_to_invoker
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.LoadingMessageKey
@@ -495,6 +496,10 @@ internal fun NavGraphBuilder.sharedFlowDestinations(
             onClickLogo = onClickLogo,
             isAutoDismissEnabled = isAutoDismissEnabled,
             credentialCount = route.storeEntryIds.size,
+            returnInfoText = when (flow) {
+                SharedDestinationFlow.Wallet -> Res.string.info_text_action_return_to_my_data
+                SharedDestinationFlow.Transient -> Res.string.info_text_error_action_return_to_invoker
+            },
             credentialContent = storeEntries.takeIf { it.isNotEmpty() }?.let { credentials ->
                 {
                     credentials.forEach { (storeEntryId, credential) ->

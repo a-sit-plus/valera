@@ -130,7 +130,7 @@ class IssuerValidationUiTest {
         registryUri = "https://registry.example.com",
         serviceDescription = listOf(WrpLangString(lang = "en", value = "PID issuance")),
         entitlements = listOf(WrpConstants.ENTITLEMENT_PID_PROVIDER),
-        privacyPolicies = listOf("$ISSUER/privacy"),
+        privacyPolicy = "$ISSUER/privacy",
         infoUris = listOf(ISSUER),
         supportUris = listOf("$ISSUER/support"),
         supervisoryAuthority = WrpSupervisoryAuthority(),
