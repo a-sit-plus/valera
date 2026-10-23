@@ -1,6 +1,6 @@
 package ui.views
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -8,20 +8,21 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.BottomAppBarDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,26 +32,26 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.button_label_ok
 import at.asitplus.valera.resources.heading_label_credential_added_screen
 import at.asitplus.valera.resources.heading_label_credentials_added_screen
-import at.asitplus.valera.resources.icon_presentation_success
 import at.asitplus.valera.resources.info_text_credential_added
 import at.asitplus.valera.resources.info_text_credentials_added
 import at.asitplus.valera.resources.info_text_error_action_return_to_invoker
 import kotlinx.coroutines.delay
-import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.Logo
 import ui.composables.ScreenHeading
 import ui.composables.TextIconButton
 
 /**
- * Confirms that [credentialCount] credentials have been added, showing [credentialContent] below, e.g. a card of each
- * of them, which scrolls if it does not fit.
+ * Confirms that [credentialCount] credentials have been added with a banner, showing [credentialContent] below it,
+ * e.g. the summary card of each of them, all of which scrolls if it does not fit. [returnInfoText] tells where the
+ * user returns to afterwards.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,6 +61,7 @@ fun CredentialAddedView(
     onClickLogo: () -> Unit,
     isAutoDismissEnabled: Boolean = true,
     credentialCount: Int = 1,
+    returnInfoText: StringResource = Res.string.info_text_error_action_return_to_invoker,
     credentialContent: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     var secondsRemaining by remember { mutableIntStateOf(5) }
@@ -112,22 +114,14 @@ fun CredentialAddedView(
             )
         },
         bottomBar = {
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceColorAtElevation(
-                    BottomAppBarDefaults.ContainerElevation
-                )
-            ) {
+            Surface(color = NavigationBarDefaults.containerColor) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.SpaceEvenly,
                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 ) {
                     Text(
-                        text = infoText,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Text(
-                        text = stringResource(Res.string.info_text_error_action_return_to_invoker),
+                        text = stringResource(returnInfoText),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Row(
@@ -154,33 +148,37 @@ fun CredentialAddedView(
         }
     ) { scaffoldPadding ->
         Column(
-            modifier = Modifier.padding(scaffoldPadding).fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(scaffoldPadding).fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Image(
-                painter = painterResource(Res.drawable.icon_presentation_success),
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.size(160.dp).padding(bottom = 16.dp)
-            )
-            Text(
-                text = infoText,
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            credentialContent?.let {
-                Spacer(Modifier.height(24.dp))
-                Column(
-                    modifier = Modifier
-                        .weight(1f, fill = false)
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    it()
-                }
-            }
+            CredentialAddedBanner(infoText)
+            credentialContent?.invoke(this)
         }
+    }
+}
+
+@Composable
+private fun CredentialAddedBanner(text: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = Icons.Filled.CheckCircle,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = text,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            style = MaterialTheme.typography.titleSmall,
+        )
     }
 }

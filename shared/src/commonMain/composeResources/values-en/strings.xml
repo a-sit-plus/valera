@@ -26,7 +26,7 @@
     <string name="button_label_use_device_credential">Passcode</string>
     <string name="button_label_confirm">Confirm</string>
     <string name="button_label_dismiss">Dismiss</string>
-    <string name="button_label_ok">Ok</string>
+    <string name="button_label_ok">OK</string>
     <string name="button_label_retry">Retry</string>
     <string name="button_label_authenticate">Authenticate</string>
     <string name="button_label_present_data">Present Data</string>
@@ -249,6 +249,7 @@
     <string name="info_text_error_action_reset_app">You will be redirected to the initialization screen.</string>
     <string name="info_text_error_action_close_intent">You will be returned to the previous screen.</string>
     <string name="info_text_error_action_return_to_invoker">You will be returned to the requesting app/website.</string>
+    <string name="info_text_action_return_to_my_data">You will be returned to “My Data”.</string>
     <string name="info_text_error_cause_reset_app">Due to breaking changes the App needs a reset.</string>
     <string name="info_text_data_items_missing">missing</string>
     <string name="info_text_authentication_success">The authentication has been carried out successfully.</string>

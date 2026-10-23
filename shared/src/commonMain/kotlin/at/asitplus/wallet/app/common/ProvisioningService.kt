@@ -64,6 +64,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -334,9 +335,7 @@ class ProvisioningService(
                     storeCredential(credential, issued.scheme, issued.refreshToken, underReview)
                 }
                 val needsReview = storageResults.any { it.getOrNull() == null }
-                val storedEntryIds = if (storageResults.any { it.getOrNull() != null }) {
-                    resolveNewStoreEntryIds(idsBefore)
-                } else emptyList()
+                val storedEntryIds = resolveNewStoreEntryIds(idsBefore, storageResults.count { it.getOrNull() != null })
                 Napier.d("resumeWithAuthCode resolved storeEntryIds=$storedEntryIds")
 
                 if (storageResults.all { it.isSuccess }) {
@@ -512,9 +511,7 @@ class ProvisioningService(
                     storeCredential(credential, issued.scheme, underReview = underReview).getOrThrow()
                 }
                 if (underReview.isNotEmpty()) pendingCredentialReview.replace(underReview)
-                val storedEntryIds = if (storedEntries.any { it != null }) {
-                    resolveNewStoreEntryIds(idsBefore)
-                } else emptyList()
+                val storedEntryIds = resolveNewStoreEntryIds(idsBefore, storedEntries.count { it != null })
                 Napier.d("loadCredentialWithOffer resolved storeEntryIds=$storedEntryIds")
                 StoredCredentialIssuanceResult(
                     credentialIssuanceResult = result,
@@ -533,8 +530,9 @@ class ProvisioningService(
     @Throws(Throwable::class)
     suspend fun keepCredentialsUnderReview(): List<StoreEntryId> {
         val idsBefore = subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
-        pendingCredentialReview.take().forEach { storeAfterUserConsent(it.prepared) }
-        return resolveNewStoreEntryIds(idsBefore)
+        val entries = pendingCredentialReview.take()
+        entries.forEach { storeAfterUserConsent(it.prepared) }
+        return resolveNewStoreEntryIds(idsBefore, entries.size)
     }
 
     /** Drops every credential under review, as the user decided not to keep it. */
@@ -593,15 +591,21 @@ class ProvisioningService(
     private val CredentialIssuanceResult.Success.credentialsByConfiguration: List<Pair<IssuedCredentials, ReceivedCredential>>
         get() = issued.flatMap { issued -> issued.receivedCredentials.map { issued to it } }
 
-    // Wait for the DataStore flow to emit a container that includes at least one new entry.
-    private suspend fun resolveNewStoreEntryIds(idsBefore: Set<StoreEntryId>): List<StoreEntryId> {
+    /**
+     * Waits for the store to emit a container with all [count] entries stored since [idsBefore], as the session's hot
+     * store may still show only some of them, returning those found so far on a timeout.
+     */
+    private suspend fun resolveNewStoreEntryIds(idsBefore: Set<StoreEntryId>, count: Int): List<StoreEntryId> {
+        if (count == 0) return emptyList()
+        var newIds = emptyList<StoreEntryId>()
         return withTimeoutOrNull(3_000.milliseconds) {
             subjectCredentialStore.observeStoreContainer()
-                .map { container -> (container.credentials.map { it.first }.toSet() - idsBefore).toList() }
-                .first { it.isNotEmpty() }
+                .map { container -> container.credentials.map { it.first }.filterNot { it in idsBefore } }
+                .onEach { newIds = it }
+                .first { it.size >= count }
         } ?: run {
-            Napier.w("resolveNewStoreEntryIds timed out waiting for new store entries")
-            emptyList()
+            Napier.w("resolveNewStoreEntryIds timed out waiting for $count new store entries, found ${newIds.size}")
+            newIds
         }
     }
 

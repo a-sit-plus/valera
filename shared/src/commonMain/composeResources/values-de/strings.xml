@@ -26,7 +26,7 @@
     <string name="button_label_use_device_credential">Passwort</string>
     <string name="button_label_confirm">Bestätigen</string>
     <string name="button_label_dismiss">Abbrechen</string>
-    <string name="button_label_ok">Ok</string>
+    <string name="button_label_ok">OK</string>
     <string name="button_label_retry">Erneut versuchen</string>
     <string name="button_label_authenticate">Anmelden</string>
     <string name="button_label_present_data">Vorzeigen</string>
@@ -243,6 +243,7 @@
     <string name="info_text_error_action_reset_app">Sie werden zur Erstkonfiguration weitergeleitet.</string>
     <string name="info_text_error_action_close_intent">Sie kehren zum vorherigen Bildschirm zurück.</string>
     <string name="info_text_error_action_return_to_invoker">Sie kehren zur anfragenden App/Webseite zurück.</string>
+    <string name="info_text_action_return_to_my_data">Sie kehren zu „Meine Daten“ zurück.</string>
     <string name="info_text_error_cause_reset_app">Aufgrund technischer Verbesserungen muss die App zurückgesetzt werden.</string>
     <string name="info_text_data_items_missing">fehlend</string>
     <string name="info_text_authentication_success">Die Anmeldung wurde erfolgreich durchgeführt.</string>
