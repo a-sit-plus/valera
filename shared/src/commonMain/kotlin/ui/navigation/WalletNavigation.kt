@@ -35,10 +35,14 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import at.asitplus.catchingUnwrapped
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.capabilities_heading_dc_api
+import at.asitplus.valera.resources.info_text_capabilities_no_dc_api
 import at.asitplus.valera.resources.info_text_error_action_return_to_invoker
 import at.asitplus.valera.resources.refresh_snackbar_action
 import at.asitplus.valera.resources.refresh_snackbar_message_multiple
 import at.asitplus.valera.resources.refresh_snackbar_message_single
+import at.asitplus.valera.resources.snackbar_dc_api_permission_denied
+import at.asitplus.valera.resources.snackbar_dc_api_permission_denied_action
 import at.asitplus.valera.resources.snackbar_local_presentment_busy
 import at.asitplus.valera.resources.snackbar_local_presentment_cancel_action
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
@@ -49,6 +53,7 @@ import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
+import at.asitplus.wallet.app.common.dcapi.DigitalCredentialsPermission
 import at.asitplus.wallet.app.common.domain.platform.UrlOpener
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.app.common.presentation.NfcDispatchSuppressionMode
@@ -56,9 +61,12 @@ import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import at.asitplus.wallet.app.common.presentation.PresentmentCanceled
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.core.scope.Scope
 import ui.composables.BottomBar
@@ -69,6 +77,7 @@ import ui.navigation.routes.AuthenticationSuccessRoute
 import ui.navigation.routes.AuthenticationViewRoute
 import ui.navigation.routes.CredentialDetailsRoute
 import ui.navigation.routes.DCAPIPresentationViewRoute
+import ui.navigation.routes.DcApiNoticeRoute
 import ui.navigation.routes.ErrorRoute
 import ui.navigation.routes.HomeScreenRoute
 import ui.navigation.routes.InitializationRoute
@@ -96,6 +105,7 @@ import ui.viewmodels.authentication.PresentationViewModel
 import ui.viewmodels.intents.SigningCredentialIntentViewModel
 import ui.viewmodels.intents.SigningPreloadIntentViewModel
 import ui.viewmodels.intents.SigningServiceIntentViewModel
+import ui.views.CapabilitiesNoticeView
 import ui.views.CredentialsView
 import ui.views.ErrorView
 import ui.views.InitializationView
@@ -252,6 +262,27 @@ fun WalletNavigation(
                 }
             }.collect {
                 navigator.navigate(ErrorRoute)
+            }
+        }
+        this.launch {
+            // Initialization and onboarding replace the whole back stack, which would drop the details screen
+            walletMain.dcApiPermissionNotice.combineTransform(navController.currentBackStackEntryFlow) { notice, entry ->
+                val destination = entry.destination
+                val isSettingUp = destination.hasRoute<InitializationRoute>() ||
+                        destination.hasRoute<OnboardingStartRoute>() ||
+                        destination.hasRoute<OnboardingInformationRoute>()
+                if (notice && !isSettingUp) {
+                    emit(Unit)
+                }
+            }.collect {
+                walletMain.consumeDcApiPermissionNotice()
+                snackbarService.showSnackbar(
+                    text = getString(Res.string.snackbar_dc_api_permission_denied),
+                    actionLabel = getString(Res.string.snackbar_dc_api_permission_denied_action),
+                    duration = SnackbarDuration.Long,
+                ) {
+                    navigator.navigate(DcApiNoticeRoute)
+                }
             }
         }
     }
@@ -604,6 +635,26 @@ private fun WalletNavHost(
             localPresentmentSessionCoordinator = localPresentmentSessionCoordinator,
             intentState = intentState,
         )
+
+        composable<DcApiNoticeRoute> {
+            val permission by walletMain.capabilitiesService.dcApiPermission.collectAsState(null)
+            CapabilitiesNoticeView(
+                heading = stringResource(Res.string.capabilities_heading_dc_api),
+                info = stringResource(Res.string.info_text_capabilities_no_dc_api),
+                // Only a denial can be fixed by the user, so everything else counts as fulfilled
+                isFulfilled = permission?.let { it != DigitalCredentialsPermission.DENIED },
+                onOpenSettings = walletMain.platformAdapter::openDeviceSettings,
+                onRefresh = {
+                    walletMain.scope.launch(Dispatchers.IO) {
+                        walletMain.capabilitiesService.refreshStatus()
+                    }
+                },
+                onContinue = navigator::navigateBack,
+                onClickLogo = onClickLogo,
+                onClickSettings = { navigator.navigate(SettingsRoute) },
+                onNavigateUp = navigator::navigateBack,
+            )
+        }
 
         composable<SettingsRoute> { backStackEntry ->
             SettingsView(
