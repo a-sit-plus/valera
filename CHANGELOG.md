@@ -1,3 +1,7 @@
+# Next:
+
+ * DC API: On iOS, show a snackbar once per app start when credentials can not be registered with the Digital Credentials API because access was denied, whose action opens the details with a link to the settings, instead of showing an error for every credential; credentials are registered as soon as access is allowed again
+
 # Release 5.9.1:
 
 Valera now checks issuers, relying parties, and credentials against the Lists of Trusted Entities, shows every check, and asks before storing a credential that fails one. Several offered credentials can be selected and issued at once, and all of them are shown afterwards. Readers over BLE, NFC, and the DC API are now verified, and the iOS Identity Document Provider extension uses far less memory, so the system no longer terminates it.

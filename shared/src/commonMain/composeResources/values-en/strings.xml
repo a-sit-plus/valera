@@ -18,6 +18,8 @@
     <string name="snackbar_update_action">Open</string>
     <string name="snackbar_sign_successful">Signed successfully</string>
     <string name="snackbar_digital_credentials_store_failed">Digital Credential API support could not be activated.</string>
+    <string name="snackbar_dc_api_permission_denied">Access to the Digital Credentials API was denied.</string>
+    <string name="snackbar_dc_api_permission_denied_action">Details</string>
     <string name="snackbar_nfc_tag_lost_retrying">NFC connection lost. Hold the other device close again.</string>
     <string name="snackbar_local_presentment_busy">A presentation is already in progress.</string>
     <string name="snackbar_local_presentment_cancel_action">Cancel</string>
@@ -409,6 +411,7 @@
     <string name="capabilities_heading_attestation">Attestation</string>
     <string name="capabilities_heading_internet">Internet</string>
     <string name="capabilities_heading_camera">Camera</string>
+    <string name="capabilities_heading_dc_api">Digital Credentials API</string>
 
     <string name="info_text_capabilities_no_internet">Ensure that you have an active internet connection. Adjust features such as mobile data or airplane mode in your system settings accordingly.</string>
     <string name="info_text_capabilities_no_device_lock_set">There is no screen lock set on this device. Please check the device settings.</string>
@@ -419,6 +422,7 @@
     <string name="info_text_capabilities_missing_capabilities">Your device currently does not support all features.</string>
     <string name="info_text_capabilities_continue">Please adjust the settings accordingly to continue.</string>
     <string name="info_text_capabilities_no_camera">Access to the camera was denied. Please adjust the settings.</string>
+    <string name="info_text_capabilities_no_dc_api">Access to the Digital Credentials API was denied, so your credentials cannot be offered through this API. Please allow the permission in the settings.</string>
     <string name="button_label_capabilities_settings">Device settings</string>
     <string name="additional_text_other_untranslated_claims">other claims</string>
 
