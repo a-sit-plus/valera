@@ -1,0 +1,108 @@
+diff --git a/shared/src/androidMain/kotlin/matcher/Request.cpp b/shared/src/androidMain/kotlin/matcher/Request.cpp
+index fa33894..065edfe 100644
+--- a/shared/src/androidMain/kotlin/matcher/Request.cpp
++++ b/shared/src/androidMain/kotlin/matcher/Request.cpp
+@@ -1,4 +1,5 @@
+ #include <map>
++#include <optional>
+ #include <set>
+ #include <algorithm>
+ #include <sstream>
+@@ -12,6 +13,41 @@
+ 
+ using namespace std;
+ 
++// Parses an SD-JWT claim path of WG10 N2933 v2, `[+ PathComponent]` with `PathComponent = tstr / uint / null`, into the
++// typed segments of a claims path pointer: a name, an array index, or all elements. Any other component, e.g. a
++// negative integer, or an empty path, is invalid.
++static std::optional<std::vector<DcqlPathSegment>> parseSdJwtClaimPath(const cppbor::Array* pathArray) {
++    if (!pathArray || pathArray->size() == 0) return std::nullopt;
++    std::vector<DcqlPathSegment> segments;
++    for (size_t k = 0; k < pathArray->size(); ++k) {
++        const auto& component = pathArray->get(k);
++        if (!component) return std::nullopt;
++        if (component->asTstr()) {
++            segments.push_back({DcqlPathSegment::Kind::Member, component->asTstr()->value(), 0});
++        } else if (component->asUint()) {
++            segments.push_back({DcqlPathSegment::Kind::Index, "", component->asUint()->unsignedValue()});
++        } else if (component->asNull()) {
++            segments.push_back({DcqlPathSegment::Kind::Wildcard, "", 0});
++        } else {
++            return std::nullopt;
++        }
++    }
++    return segments;
++}
++
++// The legacy string path of a typed claim path, only shown to the user: names, indices, and `*` for all elements.
++static std::vector<std::string> displayPath(const std::vector<DcqlPathSegment>& segments) {
++    std::vector<std::string> path;
++    for (const auto& segment : segments) {
++        switch (segment.kind) {
++            case DcqlPathSegment::Kind::Member: path.push_back(segment.member); break;
++            case DcqlPathSegment::Kind::Index: path.push_back(std::to_string(segment.index)); break;
++            case DcqlPathSegment::Kind::Wildcard: path.push_back("*"); break;
++        }
++    }
++    return path;
++}
++
+ // Helper to extract AKIs from a COSE_Sign1 structure
+ static void extractAkisFromCoseSign1(const cppbor::Item* coseSign1Item, std::vector<std::vector<uint8_t>>& outAkis) {
+     if (!coseSign1Item) return;
+@@ -222,6 +258,9 @@ std::unique_ptr<MdocRequest> MdocRequest::parseMdocApi(const std::string& protoc
+         cppbor::Array* altDataElementsArray = nullptr;
+         std::string docFormat = "mso_mdoc";
+         std::map<std::string, std::vector<std::string>> dataElementIdentifierMapping;
++        // WG10 N2933: the claim path of each data element of an SD-JWT VC, `[+ PathComponent]` with
++        // `PathComponent = tstr / uint / null`; a malformed path is kept as invalid, so its element never matches.
++        std::map<std::string, std::optional<std::vector<DcqlPathSegment>>> sdJwtClaimPaths;
+         std::vector<std::vector<uint8_t>> issuerIdentifiers;
+ 
+         const auto& requestInfoItem = itemsRequestMap->get("requestInfo");
+@@ -251,8 +290,10 @@ std::unique_ptr<MdocRequest> MdocRequest::parseMdocApi(const std::string& protoc
+                 if (deimItem && deimItem->asMap()) {
+                     auto deimMap = deimItem->asMap();
+                     for (auto it = deimMap->begin(); it != deimMap->end(); ++it) {
++                        if (!it->first->asTstr()) continue;
+                         std::string deName = it->first->asTstr()->value();
+                         auto pathArray = it->second->asArray();
++                        sdJwtClaimPaths[deName] = parseSdJwtClaimPath(pathArray);
+                         if (pathArray) {
+                             std::vector<std::string> path;
+                             for (size_t k = 0; k < pathArray->size(); ++k) {
+@@ -280,6 +321,24 @@ std::unique_ptr<MdocRequest> MdocRequest::parseMdocApi(const std::string& protoc
+                 return claimIdRegistry[key];
+             }
+             std::string id = "claim" + std::to_string(claimCounter++);
++            if (docFormat == "dc+sd-jwt") {
++                // An SD-JWT VC is matched by the typed claim path its data element is mapped to (WG10 N2933 v2), as the
++                // DCQL parser does for claims path pointers. Claims of another namespace, or without a valid mapping,
++                // can not be satisfied, so they make the request invalid, and no credential matches it.
++                DcqlRequestedClaim claim{id, {}, {ns, elem}, intent};
++                auto mapped = sdJwtClaimPaths.find(elem);
++                if (ns == "_" && mapped != sdJwtClaimPaths.end() && mapped->second) {
++                    claim.typedPath = *mapped->second;
++                    claim.path = displayPath(claim.typedPath);
++                    claim.typedValid = true;
++                } else {
++                    LOG("Warning: No valid claim path for element %s in namespace %s", elem.c_str(), ns.c_str());
++                    claim.invalidRequest = true;
++                }
++                dcqlClaims.push_back(std::move(claim));
++                claimIdRegistry[key] = id;
++                return id;
++            }
+             std::vector<std::string> path;
+             if (ns == "_") {
+                 if (dataElementIdentifierMapping.count(elem) > 0) {
+@@ -446,7 +505,8 @@ std::unique_ptr<MdocRequest> MdocRequest::parseMdocApi(const std::string& protoc
+                 readerAuthAkis,
+                 dcqlClaims,
+                 claimSets,
+-                isVersion10
++                // Every requested claim of an SD-JWT VC has to be present (WG10 N2933 v2, proposed section 6.4.1)
++                isVersion10 && format != "dc+sd-jwt"
+         ));
+     }
+ 

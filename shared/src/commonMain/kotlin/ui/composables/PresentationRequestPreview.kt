@@ -73,7 +73,7 @@ fun IsoDeviceRequestPreview(
     consentData?.forEach { request ->
         RequestedCredentialPreview(
             scheme = request.scheme,
-            representation = ConstantIndex.CredentialRepresentation.ISO_MDOC,
+            representation = request.representation,
             attributes = request.attributes.associateWith { false },
             intendsToRetain = request::intendsToRetain,
             zkMode = if (showZkMode) request.zkMode else ZkMode.UNKNOWN,

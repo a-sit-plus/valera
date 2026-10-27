@@ -155,7 +155,7 @@ Common Android verification:
 Common metadata verification:
 
 ```bash
-./gradlew :shared:compileCommonMainKotlinMetadata
+./gradlew :shared:compileKotlinMetadata
 ```
 
 On a compatible macOS host, also compile the relevant iOS target and run iOS tests. A Linux iOS failure consisting only of unresolved `DigitalCredentials` cinterop symbols is an environment limitation; do not classify unrelated Kotlin errors as the same limitation.
