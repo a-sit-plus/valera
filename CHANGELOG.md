@@ -1,3 +1,6 @@
+# Release 5.9.2 (unreleased):
+ * DC API: On iOS, treat a stale document registration the system no longer knows, e.g. one removed by the Identity Document Provider extension, as removed instead of showing an `invalidRequest` snackbar on every sync, and log the identifiers and document types of added and removed registrations
+
 # Release 5.9.1:
 
 Valera now checks issuers, relying parties, and credentials against the Lists of Trusted Entities, shows every check, and asks before storing a credential that fails one. Several offered credentials can be selected and issued at once, and all of them are shown afterwards. Readers over BLE, NFC, and the DC API are now verified, and the iOS Identity Document Provider extension uses far less memory, so the system no longer terminates it.

@@ -129,6 +129,8 @@ class IosPlatformAdapter(
     private companion object {
         const val REGISTERED_DOCUMENT_IDS_DEFAULTS_KEY = "dcapi.registeredDocumentIds"
         const val ISO_DC_API_VALIDATION_ERROR = "ISO 18013-7 Annex C request validation failed"
+        // Returned by DigitalCredentials.removeDocument when no registration exists for the identifier
+        const val REGISTRATION_NOT_FOUND = "invalidRequest"
         val registeredDocumentIdsLock = Mutex()
         val registeredDocumentIds = mutableSetOf<String>().apply {
             addAll(loadRegisteredDocumentIds())
@@ -322,6 +324,10 @@ class IosPlatformAdapter(
                     entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
                 }.toSet()
                 val staleIds = registeredDocumentIds - currentIds
+                Napier.d(
+                    "DC API: ${registeredDocumentIds.size} registered, ${currentIds.size} current, " +
+                        "removing stale ids=$staleIds"
+                )
                 staleIds.forEach { id ->
                     if (removeDocumentFromSwift(id, scope)) {
                         registeredDocumentIds.remove(id)
@@ -350,16 +356,18 @@ class IosPlatformAdapter(
         scope: CoroutineScope
     ): Boolean = suspendCancellableCoroutine { cont ->
         try {
-            Napier.d("storeDocumentFromSwift invoked")
             if (docType !in SUPPORTED_DOC_TYPES) {
                 Napier.w("DocType '$docType' is not supported on iOS, will not add it to the system")
                 if (cont.isActive) cont.resume(false)
                 return@suspendCancellableCoroutine
             }
+            Napier.d("storeDocumentFromSwift: adding registration for id=$id docType=$docType")
             DigitalCredentials.storeDocumentWithId(id, docType) { errorMessage ->
                 val success = errorMessage == null
-                Napier.d("storeDocumentFromSwift callback with success=$success error=$errorMessage")
-                if (!success) {
+                if (success) {
+                    Napier.d("storeDocumentFromSwift: added registration for id=$id")
+                } else {
+                    Napier.w("storeDocumentFromSwift: failed to add registration for id=$id: $errorMessage")
                     scope.launch {
                         val baseMessage = getString(Res.string.snackbar_digital_credentials_store_failed)
                         val details = errorMessage.takeIf { it.isNotBlank() }
@@ -372,7 +380,6 @@ class IosPlatformAdapter(
                 }
                 if (cont.isActive) cont.resume(success)
             }
-            Napier.d("storeDocumentFromSwift got back from swift")
         } catch (e: Throwable) {
             Napier.e("Error while invoking Swift code", e)
             if (cont.isActive) cont.resume(false)
@@ -385,21 +392,34 @@ class IosPlatformAdapter(
         scope: CoroutineScope
     ): Boolean = suspendCancellableCoroutine { cont ->
         try {
-            Napier.d("removeDocumentFromSwift invoked")
+            Napier.d("removeDocumentFromSwift: removing registration for id=$id")
             DigitalCredentials.removeDocumentWithId(id) { errorMessage ->
-                val success = errorMessage == null
-                Napier.d("removeDocumentFromSwift callback with success=$success error=$errorMessage")
-                if (!success) {
-                    scope.launch {
-                        IosSessionBridge.showSnackbar(
-                            errorMessage.takeUnless { it.isNullOrBlank() } ?: "Unable to remove stale document registration",
-                            SnackbarDuration.Long
-                        )
+                val success = when (errorMessage) {
+                    null -> {
+                        Napier.d("removeDocumentFromSwift: removed registration for id=$id")
+                        true
+                    }
+
+                    REGISTRATION_NOT_FOUND -> {
+                        // The system no longer knows this registration (e.g. removed by the other process,
+                        // app or extension, which tracks its own ids), so the desired state is reached already
+                        Napier.i("removeDocumentFromSwift: no registration found for id=$id, treating it as removed")
+                        true
+                    }
+
+                    else -> {
+                        Napier.w("removeDocumentFromSwift: failed to remove registration for id=$id: $errorMessage")
+                        scope.launch {
+                            IosSessionBridge.showSnackbar(
+                                errorMessage.takeUnless { it.isNullOrBlank() } ?: "Unable to remove stale document registration",
+                                SnackbarDuration.Long
+                            )
+                        }
+                        false
                     }
                 }
                 if (cont.isActive) cont.resume(success)
             }
-            Napier.d("removeDocumentFromSwift got back from swift")
         } catch (e: Throwable) {
             Napier.e("Error while invoking Swift code", e)
             if (cont.isActive) cont.resume(false)
