@@ -48,6 +48,20 @@ and generated asset together.
 a DCQL credential query omits `claims`, so Android's system picker can display that all
 mandatory attributes are requested.
 
+`shared-cjson-build.patch` builds the shared cJSON from `../matcher_common`, which the issuing
+matcher uses as well, instead of a copy next to the sources.
+
+`typed-sdjwt-iso-requests.patch` matches SD-JWT VCs requested in an ISO/IEC 18013-7 Annex C
+device request as proposed by WG10 N2933 (experimental): a `DocRequest` with `docFormat`
+`dc+sd-jwt` requests the SD-JWT VC of its `docType` (the `vct`), with each data element of the
+namespace `_` mapped by `dataElementIdentifierMapping` to a claim path of text strings, unsigned
+integers and `null`. The paths become typed claims path pointers, matched like those of a DCQL
+query against the typed claims tree (see `typed-sdjwt-claims.patch`). Every requested claim is
+required, or one of its `alternativeDataElements` sets, also in requests of version 1.0, unlike
+the data elements of an mdoc. An element without a valid mapping, e.g. with a negative integer or
+an empty path, or in another namespace, makes the request match no credential. Without requested
+elements, the credential is offered for its mandatory claims only.
+
 `show-all-protocols.patch` keeps all matching request protocols visible in the picker and adds
 the selected protocol to each entry's subtitle. Upstream stops after the first matching protocol.
 
@@ -102,6 +116,9 @@ numeric, null and empty names, wrong selected types with and without alternative
 malformed paths next to alternative claim sets, missing paths,
 empty containers and JSON null, scalar types, long and empty values, safe-integer boundaries,
 malformed trees/paths/values, distinct result caches and stable pointers, mdoc and query IDs.
+A second binary, `iso-sdjwt-test`, parses Annex C device requests with `MdocRequest::parseMdocApi` and
+covers SD-JWT document requests: typed paths, vct and namespace checks, invalid mappings, strict
+matching in version 1.0, alternative sets, and requests without claims.
 The host GCC invocation supplies the Clang `__has_feature` fallback used by bundled cppbor;
 unused picker integration sections are discarded by the linker. This is not a WASM runtime test.
 
