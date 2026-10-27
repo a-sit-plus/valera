@@ -47,6 +47,7 @@
  * DC API: Send an error to the caller and end the flow when the error screen of a failed presentation is confirmed, e.g. of a rejected request, on Android and iOS, where the Identity Document Provider extension stayed open; errors while sending a presentation are now reported to the caller as well, instead of only cancelling the request
  * Credentials: Check the status of ISO mdoc credentials with CWT status lists and identifier lists (ISO/IEC 18013-5, 12.3.6), which were requested and parsed as JWTs only and therefore reported as unknown, cache them like JWT status lists, and report an HTTP error of a status list, e.g. 406, as such instead of failing to parse the error page as a JWT
  * Logging: Write the stack trace of a logged exception to the log file at every log level, not only for errors, and keep the logged message of an error
+ * Credentials: Cache status lists and identifier lists for at most one day, also when their time to live or expiration is later, so that they are requested again daily; a shorter time to live or an earlier expiration still applies
 
 # Release 5.9.0:
  * Issuing and presentation: Accept Launchpad `eu-eaa-offer` and `eu-eaap` links on Android and iOS

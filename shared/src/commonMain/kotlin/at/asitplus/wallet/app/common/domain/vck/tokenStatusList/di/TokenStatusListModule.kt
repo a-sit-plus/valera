@@ -36,6 +36,8 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Instant
 
 
 fun tokenStatusListModule() = module {
@@ -51,15 +53,7 @@ fun tokenStatusListModule() = module {
                     ),
                     clock = Clock.System,
                     getCachingDuration = { (_, value) ->
-                        val payload = value.parsedPayload.getOrNull()
-                        listOfNotNull(
-                            payload?.expirationTime?.let { expiration ->
-                                expiration - (value.resolvedAt ?: Clock.System.now())
-                            },
-                            payload?.timeToLive?.duration
-                        ).minOrNull()?.also {
-                            Napier.d("Entry specific caching duration is used: $it")
-                        } ?: Configuration.CACHE_TTL_TOKEN_STATUS
+                        value.parsedPayload.getOrNull().cachingDuration(value.resolvedAt ?: Clock.System.now())
                     },
                     onEntryFiltered = {
                         // Keep expired entries until a fresh token replaces them.
@@ -73,6 +67,20 @@ fun tokenStatusListModule() = module {
         } bind StatusListTokenResolver::class
         scoped<StatusListTokenResolver>(ISSUANCE) { get<CachingStatusListTokenResolver>().fresh }
     }
+}
+
+/**
+ * How long a status list token resolved at [resolvedAt] is cached: until it expires or its `ttl` elapses, but at most
+ * [Configuration.CACHE_TTL_TOKEN_STATUS], so that a token with a long `ttl` or a distant expiration is still requested
+ * again regularly. `ttl` is the maximum time a token may be cached (Token Status List, 5.1), so caching it shorter is
+ * allowed.
+ */
+internal fun StatusListTokenPayload?.cachingDuration(resolvedAt: Instant): Duration = listOfNotNull(
+    this?.expirationTime?.let { expiration -> expiration - resolvedAt },
+    this?.timeToLive?.duration,
+    Configuration.CACHE_TTL_TOKEN_STATUS,
+).min().also {
+    Napier.d("Caching duration of the status list token: $it")
 }
 
 /** Media types of CWT status list tokens: status lists (Token Status List, 5.2) and identifier lists (ISO/IEC 18013-5, 12.3.6.4). */
