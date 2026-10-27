@@ -2,6 +2,7 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.iso.DeviceRequest
 import at.asitplus.iso.DocRequest
+import at.asitplus.iso.DocRequestInfo
 import at.asitplus.iso.ItemsRequest
 import at.asitplus.iso.ItemsRequestList
 import at.asitplus.iso.SingleItemsRequest
@@ -189,6 +190,47 @@ class ConsentDataResolutionTest {
         assertTrue(
             consentData.intendsToRetain(NormalizedJsonPath(NameSegment(TEST_NAMESPACE), NameSegment("family_name")))
         )
+    }
+
+    /** An SD-JWT VC requested in an ISO device request as proposed by WG10 N2933, e.g. over ISO/IEC 18013-7 Annex C. */
+    @Test
+    fun resolvesSdJwtDocumentRequestByVctAndMappedClaimPaths() = runTest {
+        registerTestMetadata()
+        val request = DeviceRequest(
+            parsedVersion = Version(1, 0),
+            docRequests = arrayOf(
+                DocRequest(
+                    itemsRequest = ByteStringWrapper(
+                        ItemsRequest(
+                            docType = TEST_VCT,
+                            namespaces = mapOf(
+                                DocRequestInfo.SD_JWT_NAMESPACE to ItemsRequestList(
+                                    listOf(
+                                        SingleItemsRequest("family_name", true),
+                                        SingleItemsRequest("unmapped", false),
+                                    )
+                                )
+                            ),
+                            requestInfo = DocRequestInfo(
+                                docFormat = DocRequestInfo.DOC_FORMAT_SD_JWT,
+                                dataElementIdentifierMapping = mapOf(
+                                    "family_name" to DCQLClaimsPathPointer("family_name"),
+                                ),
+                            ),
+                        )
+                    )
+                )
+            )
+        )
+
+        val consentData = request.extractConsentData().single()
+
+        assertEquals(SD_JWT, consentData.representation)
+        assertEquals(TEST_VCT, consentData.scheme.sdJwtType)
+        val familyName = consentData.attributes.single()
+        assertEquals(NormalizedJsonPath(NameSegment("family_name")).toString(), familyName.toString())
+        assertEquals(TEST_LABEL, consentData.scheme.getLocalization(familyName))
+        assertTrue(consentData.intendsToRetain(familyName))
     }
 
     private fun deviceRequest(

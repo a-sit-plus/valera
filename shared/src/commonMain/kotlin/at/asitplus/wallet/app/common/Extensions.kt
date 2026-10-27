@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import at.asitplus.catchingUnwrapped
 import at.asitplus.iso.DeviceRequest
 import at.asitplus.iso.DocRequest
+import at.asitplus.iso.DocRequestInfo
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.IndexSegment
 import at.asitplus.jsonpath.core.NormalizedJsonPathSegment.NameSegment
@@ -91,6 +92,8 @@ data class IsoDeviceRequestConsentData(
      */
     val retainedAttributePaths: Set<String>,
     val zkMode: ZkMode = ZkMode.UNKNOWN,
+    /** [ISO_MDOC], or [SD_JWT] for an SD-JWT VC requested as proposed by WG10 N2933, see [DocRequestInfo.isSdJwt]. */
+    val representation: CredentialRepresentation = ISO_MDOC,
 ) {
     fun intendsToRetain(path: NormalizedJsonPath) = path.toString() in retainedAttributePaths
 }
@@ -99,9 +102,28 @@ data class IsoDeviceRequestConsentData(
 internal fun DocRequest.zkMode(): ZkMode = itemsRequest.value.requestInfo?.zkRequest
     ?.let { zkModeOf(it.systemSpecs.isNotEmpty(), it.zkRequired) } ?: ZkMode.PLAIN
 
-/** Resolves one ISO document request and preserves namespace and element order. */
+/**
+ * Resolves one ISO document request and preserves namespace and element order. An SD-JWT VC requested as proposed by
+ * WG10 N2933 ([DocRequestInfo.isSdJwt]) is resolved by its `vct`, the `docType`, and requests the claims its data
+ * elements are mapped to by [DocRequestInfo.dataElementIdentifierMapping]; an element without mapping is not shown, as
+ * no credential can satisfy it.
+ */
 suspend fun DocRequest.extractConsentData(): IsoDeviceRequestConsentData {
     val request = itemsRequest.value
+    request.requestInfo?.takeIf { it.isSdJwt }?.let { requestInfo ->
+        val mapping = requestInfo.dataElementIdentifierMapping.orEmpty()
+        val claims = request.namespaces[DocRequestInfo.SD_JWT_NAMESPACE]?.entries.orEmpty().mapNotNull { element ->
+            mapping[element.dataElementIdentifier]
+                ?.let { it.toNormalizedJsonPathUntilWildcard() to element.intentToRetain }
+        }
+        return IsoDeviceRequestConsentData(
+            scheme = resolveConsentScheme(SD_JWT, listOf(request.docType)),
+            attributes = claims.map { it.first },
+            retainedAttributePaths = claims.filter { it.second }.mapTo(mutableSetOf()) { it.first.toString() },
+            zkMode = ZkMode.PLAIN,
+            representation = SD_JWT,
+        )
+    }
     val elements = request.namespaces.flatMap { (namespace, elements) ->
         elements.entries.map { element ->
             (NormalizedJsonPath() + namespace + element.dataElementIdentifier) to element.intentToRetain
