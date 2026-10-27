@@ -21,6 +21,23 @@ import IdentityDocumentServices
         }
     }
 
+    @objc public class func getStatus() async -> String {
+        let store = IdentityDocumentProviderRegistrationStore()
+        let currentStatus = await store.status
+        switch currentStatus {
+        case .authorized:
+            return "authorized"
+        case .notAuthorized:
+            return "notAuthorized"
+        case .notDetermined:
+            return "notDetermined"
+        case .notSupported:
+            return "notSupported"
+        @unknown default:
+            return "unknown"
+        }
+    }
+
     @objc public class func storeDocument(id: String, docType: String) async -> String? {
         let store = IdentityDocumentProviderRegistrationStore()
 

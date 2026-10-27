@@ -11,7 +11,9 @@ import at.asitplus.wallet.app.common.attestation.AttestationService
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.dcapi.DCAPIExportService
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
+import at.asitplus.wallet.app.common.dcapi.DCAPIRegistrationResult
 import at.asitplus.wallet.app.common.dcapi.DCAPIVerificationRequest
+import at.asitplus.wallet.app.common.dcapi.DigitalCredentialsPermission
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.app.common.presentation.LongfellowZkRegistration
@@ -31,6 +33,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -85,6 +91,14 @@ class WalletMain(
             )
     )
     private var dcApiRegistrationJob: Job? = null
+    private var dcApiPermissionNoticeShown = false
+    private val _dcApiPermissionNotice = MutableStateFlow(false)
+
+    /**
+     * Whether to tell the user that credentials could not be registered with the DC API because access was denied.
+     * Raised at most once per session, see [consumeDcApiPermissionNotice].
+     */
+    val dcApiPermissionNotice: StateFlow<Boolean> = _dcApiPermissionNotice.asStateFlow()
 
     init {
         if (keyMaterial.keyMaterial is FallBackKeyMaterial) {
@@ -165,8 +179,12 @@ class WalletMain(
         }
         try {
             Napier.d("DC API: Starting to observe credentials")
-            dcApiRegistrationJob = subjectCredentialStore.observeStoreContainer().onEach { storeContainer ->
-                dcApiExportService.registerCredentialWithSystem(storeContainer, scope)
+            // Also registers again when the permission changes, e.g. after the user granted access in the settings
+            dcApiRegistrationJob = combine(
+                subjectCredentialStore.observeStoreContainer(),
+                capabilitiesService.dcApiPermission.distinctUntilChanged(),
+            ) { storeContainer, _ -> storeContainer }.onEach { storeContainer ->
+                handleDcApiRegistrationResult(dcApiExportService.registerCredentialWithSystem(storeContainer, scope))
             }.launchIn(scope)
         } catch (e: Throwable) {
             Napier.w("DC API: Could not update credentials with system", e)
@@ -177,9 +195,21 @@ class WalletMain(
         try {
             Napier.d("DC API: Refreshing credential registration")
             val storeContainer = subjectCredentialStore.observeStoreContainer().first()
-            dcApiExportService.registerCredentialWithSystem(storeContainer, scope)
+            handleDcApiRegistrationResult(dcApiExportService.registerCredentialWithSystem(storeContainer, scope))
         } catch (e: Throwable) {
             Napier.w("DC API: Could not refresh credentials with system", e)
+        }
+    }
+
+    fun consumeDcApiPermissionNotice() {
+        _dcApiPermissionNotice.value = false
+    }
+
+    private fun handleDcApiRegistrationResult(result: DCAPIRegistrationResult) {
+        if (result == DCAPIRegistrationResult.PERMISSION_DENIED && !dcApiPermissionNoticeShown) {
+            Napier.i("DC API: Access denied, notifying the user")
+            dcApiPermissionNoticeShown = true
+            _dcApiPermissionNotice.value = true
         }
     }
 
@@ -269,8 +299,18 @@ interface PlatformAdapter {
      * Registers credentials with the digital credentials browser API
      * @param entries credentials to add
      * @param scope CoroutineScope for registering credentials
+     * @return [DCAPIRegistrationResult.PERMISSION_DENIED] if credentials were not registered because the user
+     * denied access
      */
-    suspend fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope)
+    suspend fun registerWithDigitalCredentialsAPI(
+        entries: CredentialRegistry,
+        scope: CoroutineScope
+    ): DCAPIRegistrationResult
+
+    /**
+     * Returns whether the app may register credentials with the digital credentials browser API.
+     */
+    suspend fun getDigitalCredentialsPermission(): DigitalCredentialsPermission
 
     /**
      * Retrieves request from the digital credentials browser API
@@ -334,8 +374,13 @@ class DummyPlatformAdapter : PlatformAdapter {
     override fun shareLog() {
     }
 
-    override suspend fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope) {
-    }
+    override suspend fun registerWithDigitalCredentialsAPI(
+        entries: CredentialRegistry,
+        scope: CoroutineScope
+    ): DCAPIRegistrationResult = DCAPIRegistrationResult.OK
+
+    override suspend fun getDigitalCredentialsPermission(): DigitalCredentialsPermission =
+        DigitalCredentialsPermission.GRANTED
 
     override fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIVerificationRequest> {
         return KmmResult.failure(IllegalStateException("Using dummy platform adapter"))

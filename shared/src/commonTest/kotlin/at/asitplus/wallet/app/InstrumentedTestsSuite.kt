@@ -42,6 +42,7 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.BuildType
 import at.asitplus.wallet.app.common.CapabilitiesData
 import at.asitplus.wallet.app.common.CapabilitiesService
+import at.asitplus.wallet.app.common.dcapi.DigitalCredentialsPermission
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.KeystoreService
 import at.asitplus.wallet.app.common.PlatformAdapter
@@ -414,6 +415,9 @@ class TestPromptModel private constructor(
 }
 
 class DummyCapabilitiesService : CapabilitiesService {
+    override val dcApiPermission: Flow<DigitalCredentialsPermission> =
+        flow { emit(DigitalCredentialsPermission.GRANTED) }
+
     override fun getDeviceStatus(): Flow<CapabilitiesData?> =
         flow { emit(CapabilitiesData(true, true, true, true, true, true)) }
 

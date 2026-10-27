@@ -18,6 +18,8 @@
     <string name="snackbar_update_action">Öffnen</string>
     <string name="snackbar_sign_successful">Signatur erfolgreich</string>
     <string name="snackbar_digital_credentials_store_failed">Die Digital Credentials API Unterstützung konnte nicht aktiviert werden.</string>
+    <string name="snackbar_dc_api_permission_denied">Der Zugriff auf die Digital Credentials API wurde verweigert.</string>
+    <string name="snackbar_dc_api_permission_denied_action">Details</string>
     <string name="snackbar_nfc_tag_lost_retrying">NFC-Verbindung verloren. Bitte das andere Gerät erneut nahe halten.</string>
     <string name="snackbar_local_presentment_busy">Eine Präsentation läuft bereits.</string>
     <string name="snackbar_local_presentment_cancel_action">Abbrechen</string>
@@ -415,6 +417,7 @@
 
     <string name="capabilities_heading_internet">Internet</string>
     <string name="capabilities_heading_camera">Kamera</string>
+    <string name="capabilities_heading_dc_api">Digital Credentials API</string>
 
     <string name="info_text_capabilities_no_internet">Bitte prüfen Sie Ihre Internetverbindung und aktivieren Sie in den Systemeinstellungen gegebenenfalls mobile Daten oder deaktivieren Sie den Flugmodus.</string>
     <string name="info_text_capabilities_no_device_lock_set">Auf diesem Gerät ist keine Displaysperre aktiviert. Passen Sie die Geräteeinstellungen an.</string>
@@ -425,6 +428,7 @@
     <string name="info_text_capabilities_missing_capabilities">Ihr Gerät unterstützt zur Zeit nicht alle Funktionen.</string>
     <string name="info_text_capabilities_continue">Passen Sie die Einstellungen an um fortzufahren.</string>
     <string name="info_text_capabilities_no_camera">Der Zugriff auf die Kamera wurde verweigert. Bitte passen Sie die Einstellungen an.</string>
+    <string name="info_text_capabilities_no_dc_api">Der Zugriff auf die Digital Credentials API wurde verweigert, daher können Ihre Credentials über diese Schnittstelle nicht angeboten werden. Bitte erlauben Sie die Berechtigung in den Einstellungen.</string>
     <string name="button_label_capabilities_settings">Geräteeinstellungen</string>
     <string name="additional_text_other_untranslated_claims">weitere Attribute</string>
 
