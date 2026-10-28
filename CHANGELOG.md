@@ -1,3 +1,6 @@
+# Release 5.9.2:
+ * Status: Accept the signature of a CWT status list or identifier list whose protected header is not in the order Signum encodes it in, e.g. of the EUDI Wallet reference implementation, which failed as invalid, by verifying it again with the header in deterministic order
+
 # Release 5.9.1:
 
 Valera now checks issuers, relying parties, and credentials against the Lists of Trusted Entities, shows every check, and asks before storing a credential that fails one. Several offered credentials can be selected and issued at once, and all of them are shown afterwards. Readers over BLE, NFC, and the DC API are now verified, and the iOS Identity Document Provider extension uses far less memory, so the system no longer terminates it.

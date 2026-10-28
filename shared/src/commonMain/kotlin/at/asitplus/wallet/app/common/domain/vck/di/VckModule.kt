@@ -2,6 +2,7 @@ package at.asitplus.wallet.app.common.domain.vck.di
 
 import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.TrustListService
+import at.asitplus.wallet.app.common.domain.vck.tokenStatusList.DeterministicCoseHeaderVerifySignature
 import at.asitplus.wallet.app.common.domain.vck.tokenStatusList.di.tokenStatusListModule
 import at.asitplus.wallet.app.common.iso.verifier.ProximityResponseValidator
 import at.asitplus.wallet.app.common.validation.StoredCredentialValidator
@@ -14,6 +15,7 @@ import at.asitplus.wallet.lib.validation.CredentialValidator
 import at.asitplus.wallet.lib.validation.IssuerMetadataValidator
 import at.asitplus.wallet.lib.validation.RelyingPartyTrustAnchors
 import at.asitplus.wallet.lib.validation.RelyingPartyValidator
+import at.asitplus.wallet.lib.validation.SignatureCheck
 import at.asitplus.wallet.lib.validation.StatusValidator
 import at.asitplus.wallet.lib.validation.TrustPurpose
 import org.koin.core.module.dsl.scopedOf
@@ -27,10 +29,19 @@ import ui.models.CredentialFreshnessSummaryModelEvaluator
  */
 val ISSUANCE = named("issuance")
 
+/**
+ * Verifies the signatures of status list CWTs also if their protected header is not in the order Signum encodes it in,
+ * see [DeterministicCoseHeaderVerifySignature].
+ */
+private fun statusValidator(statusListTokenResolver: StatusListTokenResolver) = StatusValidator(
+    statusListTokenResolver = statusListTokenResolver,
+    signatureCheck = SignatureCheck(DeterministicCoseHeaderVerifySignature()),
+)
+
 fun vckModule() = module {
     scope(named(SESSION_NAME)) {
         scoped<StatusValidator> {
-            StatusValidator(statusListTokenResolver = get<StatusListTokenResolver>())
+            statusValidator(get<StatusListTokenResolver>())
         }
         scoped<CredentialValidator> {
             CredentialValidator(
@@ -41,7 +52,7 @@ fun vckModule() = module {
         scoped<CredentialValidator>(ISSUANCE) {
             CredentialValidator(
                 trustAnchors = get<TrustListService>().credentialTrustAnchors(),
-                statusValidator = StatusValidator(statusListTokenResolver = get<StatusListTokenResolver>(ISSUANCE)),
+                statusValidator = statusValidator(get<StatusListTokenResolver>(ISSUANCE)),
             )
         }
         scoped<RelyingPartyValidator> {
