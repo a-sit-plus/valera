@@ -34,6 +34,8 @@ fun DefaultPresentationGraphView(
 
     val selectionProvider by viewModel.selectionProvider.collectAsState()
     val isSubmitting by viewModel.isSubmitting.collectAsState()
+    val relyingPartyValidation by viewModel.relyingPartyValidation.collectAsState()
+    PendingRelyingPartyStatusDialog(viewModel.statusGate)
 
     PresentationGraphView(
         koinScope = koinScope,
@@ -63,7 +65,7 @@ fun DefaultPresentationGraphView(
             )
         },
         transactionData = try {
-            viewModel.route.authenticationRequest.parameters.transactionData?.firstOrNull()
+            viewModel.preparationState.getOrThrow().request.parameters.transactionData?.firstOrNull()
         } catch (throwable: Throwable) {
             LaunchedEffect(Unit) {
                 errorAction(throwable)
@@ -72,7 +74,7 @@ fun DefaultPresentationGraphView(
         },
         trustListService = viewModel.trustListService,
         request = viewModel.preparationState.getOrThrow().request,
-        relyingPartyValidation = viewModel.relyingPartyValidation,
+        relyingPartyValidation = relyingPartyValidation,
     )
 }
 

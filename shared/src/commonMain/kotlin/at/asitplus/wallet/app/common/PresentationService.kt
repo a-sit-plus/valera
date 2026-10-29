@@ -7,6 +7,7 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.presentation.LongfellowZkRegistration
+import at.asitplus.wallet.app.common.presentation.PresentationRequestStore
 import at.asitplus.wallet.app.common.validation.ValidationPolicies
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.PresentationRequestParameters
@@ -32,6 +33,9 @@ class PresentationService(
     private val relyingPartyValidator: RelyingPartyValidator,
 ) {
     private val client = httpService.buildHttpClient()
+
+    /** The requests validated in this session, until their consent screen is left, see [PresentationRequestStore]. */
+    val validatedRequests = PresentationRequestStore()
     private val presentationService = OpenId4VpKtorHolder(
         httpClient = client,
         keyMaterial = keyMaterial,
@@ -51,10 +55,13 @@ class PresentationService(
      * Loads and validates the request [input] under [ValidationPolicies.strict], returning its report next to the
      * state to answer it with, also if the request is rejected, so that the user can decide whether to continue.
      * Request parsing and certificate trust validation run off the UI dispatcher, like the other validation entry points.
+     * The status of the registration certificates of its relying party is not waited for, but resolved with
+     * [at.asitplus.wallet.lib.openid.AuthorizationRequestValidationPendingStatus.resolveStatus], so that a slow status
+     * list does not delay the consent screen.
      */
     suspend fun startAuthorizationResponsePreparation(input: String) =
         withContext(Dispatchers.Default) {
-            presentationService.startAuthorizationResponsePreparation(input, ValidationPolicies.strict)
+            presentationService.startAuthorizationResponsePreparationDeferringStatus(input, ValidationPolicies.strict)
         }
 
     /** Validates [input] under [ValidationPolicies.strict], see the overload taking a string. */
@@ -72,17 +79,22 @@ class PresentationService(
 
     /**
      * Validates the relying party of the proximity request [deviceRequest] under [ValidationPolicies.strict]: its
-     * reader authentication over [sessionTranscript] with the WRPAC, and its WRPRCs.
+     * reader authentication over [sessionTranscript] with the WRPAC, and its WRPRCs, whose status is not waited for,
+     * but resolved with [at.asitplus.wallet.lib.validation.RelyingPartyValidationPendingStatus.resolveStatus].
      */
     suspend fun validateRelyingParty(deviceRequest: DeviceRequest, sessionTranscript: SessionTranscript) =
         withContext(Dispatchers.Default) {
-            relyingPartyValidator.validate(deviceRequest, sessionTranscript, ValidationPolicies.strict)
+            relyingPartyValidator.validateDeferringStatus(deviceRequest, sessionTranscript, ValidationPolicies.strict)
         }
 
-    /** Validates [request] under [ValidationPolicies.strict], returning its report next to the state. */
+    /**
+     * Validates [request] under [ValidationPolicies.strict], returning its report next to the state. The status of the
+     * registration certificates of its relying party is not waited for, but resolved with
+     * [at.asitplus.wallet.lib.openid.DcApiRequestValidationPendingStatus.resolveStatus].
+     */
     suspend fun prepareDcApiRequest(request: RequestParametersFrom.DcApiRequest) =
         withContext(Dispatchers.Default) {
-            presentationService.prepareDcApiRequest(request, ValidationPolicies.strict)
+            presentationService.prepareDcApiRequestDeferringStatus(request, ValidationPolicies.strict)
         }
 
     /** Matches the stored credentials off the UI dispatcher, see the overload for OpenID4VP requests. */

@@ -13,7 +13,6 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.getString
 import ui.navigation.routes.AddCredentialPreAuthnRoute
-import ui.navigation.routes.AuthenticationViewRoute
 import ui.navigation.routes.QrCodeScannerRoute
 import ui.navigation.routes.Route
 import ui.navigation.routes.SigningQtspSelectionRoute
@@ -73,16 +72,10 @@ class QrCodeScannerViewModel(
         val buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase =
             BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
                 presentationService = walletMain.presentationService,
+                sessionScope = walletMain.scope,
             )
-        val page =
-            buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link).getOrThrow()
-        AuthenticationViewRoute(
-            authenticationRequest = page.authenticationRequest,
-            authorizationResponsePreparationState = page.authorizationResponsePreparationState,
-            recipientLocation = page.recipientLocation,
-            isCrossDeviceFlow = true,
-            relyingPartyValidation = page.relyingPartyValidation,
-        )
+        buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link).getOrThrow()
+            .copy(isCrossDeviceFlow = true)
     }
 
 

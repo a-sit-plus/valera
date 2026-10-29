@@ -572,4 +572,8 @@
     <string name="info_text_credential_review">Der ausgestellte Nachweis hat nicht alle Prüfungen bestanden. Er wurde noch nicht gespeichert: trotzdem behalten, oder abbrechen, um ihn zu verwerfen.</string>
     <string name="prompt_credential_review">Den Nachweis behalten, obwohl nicht alle Prüfungen bestanden wurden?</string>
     <string name="button_label_keep_anyway">Trotzdem behalten</string>
+    <string name="heading_label_relying_party_status_pending">Status noch nicht geprüft</string>
+    <string name="info_text_relying_party_status_pending">Der Status des Registrierungszertifikats der vertrauenden Partei ist noch nicht eingetroffen, z. B. wegen einer langsamen Verbindung. Die Registrierung könnte widerrufen oder ausgesetzt sein. Warten Sie auf den Status, oder senden Sie die Daten trotzdem.</string>
+    <string name="button_label_send_anyway">Trotzdem senden</string>
+    <string name="button_label_wait">Warten</string>
 </resources>
