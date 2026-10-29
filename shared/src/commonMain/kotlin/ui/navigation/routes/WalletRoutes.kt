@@ -1,6 +1,5 @@
 package ui.navigation.routes
 
-import at.asitplus.openid.AuthenticationRequestParameters
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.openid.SignatureRequestParameters
@@ -9,8 +8,6 @@ import at.asitplus.wallet.app.common.LoadingMessageKey
 import at.asitplus.wallet.app.common.dcapi.DCAPICredentialQuerySelection
 import at.asitplus.wallet.app.common.dcapi.DCAPIVerificationRequest
 import at.asitplus.wallet.app.common.dcapi.withRawIsoMdocRequest
-import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
-import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import data.storage.StoreEntryId
 import kotlinx.serialization.Serializable
 import ui.viewmodels.QrCodeScannerMode
@@ -132,35 +129,16 @@ data class LoadingRoute(val message: String = LoadingMessageKey.Generic.name) : 
 @Serializable
 object PresentDataRoute : Route()
 
+/**
+ * The consent screen of the OpenID4VP request [requestId] in [at.asitplus.wallet.app.common.PresentationService.validatedRequests]:
+ * the request itself is kept in the session, as it can exceed what Android saves for a back stack entry.
+ */
 @Serializable
 data class AuthenticationViewRoute(
-    val authenticationRequestParametersFromSerialized: String,
-    val authorizationPreparationStateSerialized: String,
+    val requestId: String,
     val recipientLocation: String,
     val isCrossDeviceFlow: Boolean,
-    val relyingPartyValidationSerialized: String?
-) : Route() {
-    constructor(
-        authenticationRequest: RequestParametersFrom<AuthenticationRequestParameters>,
-        authorizationResponsePreparationState: AuthorizationResponsePreparationState,
-        recipientLocation: String,
-        isCrossDeviceFlow: Boolean,
-        relyingPartyValidation: RelyingPartyValidationUi? = null
-    ) : this(
-        authenticationRequestParametersFromSerialized = joseCompliantSerializer.encodeToString(authenticationRequest),
-        authorizationPreparationStateSerialized = joseCompliantSerializer.encodeToString(authorizationResponsePreparationState),
-        recipientLocation = recipientLocation,
-        isCrossDeviceFlow = isCrossDeviceFlow,
-        relyingPartyValidationSerialized = relyingPartyValidation?.let { joseCompliantSerializer.encodeToString(it) }
-    )
-
-    val authenticationRequest: RequestParametersFrom<AuthenticationRequestParameters>
-        get() = joseCompliantSerializer.decodeFromString(authenticationRequestParametersFromSerialized)
-    val authorizationResponsePreparationState: AuthorizationResponsePreparationState
-        get() = joseCompliantSerializer.decodeFromString(authorizationPreparationStateSerialized)
-    val relyingPartyValidation: RelyingPartyValidationUi?
-        get() = relyingPartyValidationSerialized?.let { joseCompliantSerializer.decodeFromString(it) }
-}
+) : Route()
 
 @Serializable
 data class DCAPIPresentationViewRoute(

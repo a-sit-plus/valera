@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import at.asitplus.catching
-import at.asitplus.catchingUnwrapped
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
@@ -26,11 +25,16 @@ class DefaultPresentationGraphViewModel(
 ) : ViewModel() {
     val route = savedStateHandle.toRoute<AuthenticationViewRoute>()
     val trustListService = walletMain.trustListService
-    val preparationState = catching {
-        route.authorizationResponsePreparationState
-    }
+    private val validatedRequests = walletMain.presentationService.validatedRequests
 
-    val relyingPartyValidation = catchingUnwrapped { route.relyingPartyValidation }.getOrNull()
+    /** The request of [route], which is gone if the session is not the one that validated it, e.g. after process death */
+    private val request = catching {
+        validatedRequests[route.requestId]
+            ?: throw IllegalStateException("The request is no longer available, open it again")
+    }
+    val preparationState = request.map { it.preparationState }
+
+    val relyingPartyValidation = request.getOrNull()?.relyingPartyValidation
     val selectionProvider = MutableStateFlow<UiState<CredentialSelectionProvider<SubjectCredentialStore.StoreEntry>>>(
         UiStateLoading
     ).apply {
@@ -38,7 +42,7 @@ class DefaultPresentationGraphViewModel(
             value = try {
                 UiStateSuccess(
                     walletMain.presentationService.getMatchingCredentials(
-                        preparationState = route.authorizationResponsePreparationState
+                        preparationState = preparationState.getOrThrow()
                     ).getOrThrow().toCredentialSelectionProvider(
                         scope = viewModelScope
                     ) {
@@ -102,9 +106,14 @@ class DefaultPresentationGraphViewModel(
     private suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpKtorHolder.AuthenticationSuccess {
         val authenticationResult = walletMain.presentationService.finalizeAuthorizationResponse(
             credentialPresentation = credentialPresentation,
-            preparationState = route.authorizationResponsePreparationState
+            preparationState = preparationState.getOrThrow()
         )
         return authenticationResult as? OpenId4VpKtorHolder.AuthenticationSuccess
             ?: throw IllegalStateException("DC API requests must use the DC API presentation flow")
+    }
+
+    /** The consent screen is left for good, so its request is not needed any more. */
+    override fun onCleared() {
+        validatedRequests.remove(route.requestId)
     }
 }

@@ -63,7 +63,7 @@ fun DefaultPresentationGraphView(
             )
         },
         transactionData = try {
-            viewModel.route.authenticationRequest.parameters.transactionData?.firstOrNull()
+            viewModel.preparationState.getOrThrow().request.parameters.transactionData?.firstOrNull()
         } catch (throwable: Throwable) {
             LaunchedEffect(Unit) {
                 errorAction(throwable)
