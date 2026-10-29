@@ -1,4 +1,5 @@
 # Release 5.9.2:
+ * Issuing: Show a loading screen after selecting the credentials to load via the browser until the browser opens, instead of returning to “My Data” at once while the authorization is started in the background
  * Status: Accept the signature of a CWT status list or identifier list whose protected header is not in the order Signum encodes it in, e.g. of the EUDI Wallet reference implementation, which failed as invalid, by verifying it again with the header in deterministic order
 
 # Release 5.9.1:
