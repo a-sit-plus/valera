@@ -76,17 +76,22 @@ class PresentationService(
 
     /**
      * Validates the relying party of the proximity request [deviceRequest] under [ValidationPolicies.strict]: its
-     * reader authentication over [sessionTranscript] with the WRPAC, and its WRPRCs.
+     * reader authentication over [sessionTranscript] with the WRPAC, and its WRPRCs, whose status is not waited for,
+     * but resolved with [at.asitplus.wallet.lib.validation.RelyingPartyValidationPendingStatus.resolveStatus].
      */
     suspend fun validateRelyingParty(deviceRequest: DeviceRequest, sessionTranscript: SessionTranscript) =
         withContext(Dispatchers.Default) {
-            relyingPartyValidator.validate(deviceRequest, sessionTranscript, ValidationPolicies.strict)
+            relyingPartyValidator.validateDeferringStatus(deviceRequest, sessionTranscript, ValidationPolicies.strict)
         }
 
-    /** Validates [request] under [ValidationPolicies.strict], returning its report next to the state. */
+    /**
+     * Validates [request] under [ValidationPolicies.strict], returning its report next to the state. The status of the
+     * registration certificates of its relying party is not waited for, but resolved with
+     * [at.asitplus.wallet.lib.openid.DcApiRequestValidationPendingStatus.resolveStatus].
+     */
     suspend fun prepareDcApiRequest(request: RequestParametersFrom.DcApiRequest) =
         withContext(Dispatchers.Default) {
-            presentationService.prepareDcApiRequest(request, ValidationPolicies.strict)
+            presentationService.prepareDcApiRequestDeferringStatus(request, ValidationPolicies.strict)
         }
 
     suspend fun getMatchingCredentials(preparationState: DcApiPreparationState) =

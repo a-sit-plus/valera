@@ -15,6 +15,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import kotlinx.coroutines.flow.MutableStateFlow
+import ui.presentation.PendingRelyingPartyStatusDialog
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -85,6 +89,10 @@ fun PresentationView(
     val blePermissionState = rememberBluetoothPermissionState()
 
     val state = presentationStateModel.state.collectAsState().value
+    val relyingParty by presentationViewModel.relyingParty.collectAsState()
+    val relyingPartyValidation by remember(relyingParty) {
+        relyingParty?.validation ?: MutableStateFlow(null)
+    }.collectAsState()
     val dismissible = presentationStateModel.dismissible.collectAsState().value
     val cancelPresentment = {
         presentationStateModel.dismiss(PresentationStateModel.DismissType.CLICK)
@@ -117,6 +125,7 @@ fun PresentationView(
 
         PresentationStateModel.State.PROCESSING -> {}
         PresentationStateModel.State.WAITING_FOR_DOCUMENT_SELECTION -> {
+            PendingRelyingPartyStatusDialog(presentationViewModel.statusGate)
             when (presentationViewModel.viewState) {
                 AuthenticationViewState.Consent -> {
                     AuthenticationConsentView(
@@ -137,7 +146,7 @@ fun PresentationView(
                             onClickLogo = presentationViewModel.onClickLogo,
                             onUnauthenticated = {},
                             verifierCertificateChain = presentationViewModel.verifierCertificateChain,
-                            relyingPartyValidation = presentationViewModel.relyingPartyValidation,
+                            relyingPartyValidation = relyingPartyValidation,
                         ),
                         onError = onError,
                         trustListService = trustListService

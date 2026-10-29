@@ -11,6 +11,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
@@ -19,6 +21,15 @@ import at.asitplus.valera.resources.button_label_wait
 import at.asitplus.valera.resources.heading_label_relying_party_status_pending
 import at.asitplus.valera.resources.info_text_relying_party_status_pending
 import org.jetbrains.compose.resources.stringResource
+
+/** Shows [PendingRelyingPartyStatusDialog] while [gate] holds back a presentation. */
+@Composable
+fun PendingRelyingPartyStatusDialog(gate: RelyingPartyStatusGate<*>) {
+    val isAwaitingStatus by gate.isAwaitingStatus.collectAsState(false)
+    if (isAwaitingStatus) {
+        PendingRelyingPartyStatusDialog(onSendAnyway = gate::sendWithoutStatus, onWait = gate::waitForStatus)
+    }
+}
 
 /**
  * Asks before sending a presentation while the status of the registration certificate of the relying party is still
