@@ -14,7 +14,10 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.materialIcon
+import androidx.compose.material.icons.materialPath
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -66,12 +69,15 @@ import at.asitplus.valera.resources.validation_finding_expired_at
 import at.asitplus.valera.resources.validation_finding_missing_claims
 import at.asitplus.valera.resources.validation_finding_missing_registration
 import at.asitplus.valera.resources.validation_finding_not_checked
+import at.asitplus.valera.resources.validation_finding_not_checked_reason
 import at.asitplus.valera.resources.validation_finding_not_linked
 import at.asitplus.valera.resources.validation_finding_not_yet_valid
 import at.asitplus.valera.resources.validation_finding_not_yet_valid_at
 import at.asitplus.valera.resources.validation_finding_other_status
 import at.asitplus.valera.resources.validation_finding_revoked
+import at.asitplus.valera.resources.validation_finding_skipped
 import at.asitplus.valera.resources.validation_finding_status_unavailable
+import at.asitplus.valera.resources.validation_finding_status_unavailable_reason
 import at.asitplus.valera.resources.validation_finding_suspended
 import at.asitplus.valera.resources.validation_finding_trust_not_checked
 import at.asitplus.valera.resources.validation_finding_unregistered
@@ -168,22 +174,42 @@ private fun ArtifactDetails(artifact: ArtifactUi, depth: Int) {
     }
 }
 
+/**
+ * A check, marked as passed, failed, not checked on its own, e.g. without a reachable status list, or skipped because
+ * other checks failed, which is shown in a muted color to not count as a problem of its own.
+ */
 @Composable
 private fun CheckRow(check: CheckUi) {
+    val muted = MaterialTheme.colorScheme.onSurfaceVariant
     val (icon, tint) = when {
         check.state == CheckState.PASSED -> Icons.Outlined.Check to validColor()
-        !check.satisfied -> Icons.Outlined.Clear to invalidColor()
-        else -> Icons.Outlined.Info to MaterialTheme.colorScheme.onSurfaceVariant
+        check.state == CheckState.SKIPPED -> SkippedIcon to muted
+        check.satisfied -> Icons.Outlined.Info to muted
+        check.state == CheckState.NOT_CHECKED -> Icons.Outlined.Warning to warningColor()
+        else -> Icons.Outlined.Clear to invalidColor()
     }
+    val textColor = if (check.state == CheckState.SKIPPED) muted else Color.Unspecified
     Row(modifier = Modifier.padding(start = 8.dp, top = 4.dp)) {
         StateIcon(icon, tint)
         Spacer(modifier = Modifier.width(8.dp))
         Column {
-            Text(text = check.label(), style = MaterialTheme.typography.bodyMedium)
+            Text(text = check.label(), color = textColor, style = MaterialTheme.typography.bodyMedium)
             check.finding?.let {
-                Text(text = it.text(check), style = MaterialTheme.typography.bodySmall)
+                Text(text = it.text(check), color = textColor, style = MaterialTheme.typography.bodySmall)
             }
         }
+    }
+}
+
+/** A dash, i.e. Material's "Remove" icon, which is not part of the core icons. */
+private val SkippedIcon: ImageVector = materialIcon(name = "Outlined.Remove") {
+    materialPath {
+        moveTo(19f, 13f)
+        horizontalLineTo(5f)
+        verticalLineToRelative(-2f)
+        horizontalLineToRelative(14f)
+        verticalLineToRelative(2f)
+        close()
     }
 }
 
@@ -197,6 +223,9 @@ private fun validColor() = LocalExtendedColors.current.validationDark.valid
 
 @Composable
 private fun invalidColor() = LocalExtendedColors.current.validationDark.invalid
+
+@Composable
+private fun warningColor() = LocalExtendedColors.current.validationDark.warning
 
 /** A sentence for a problem in the headline, e.g. "Access certificate: Not trusted by WRPAC providers". */
 @Composable
@@ -223,13 +252,18 @@ fun FindingUi.text(check: CheckUi): String = when (this) {
     FindingUi.Revoked -> stringResource(Res.string.validation_finding_revoked)
     FindingUi.Suspended -> stringResource(Res.string.validation_finding_suspended)
     is FindingUi.OtherStatus -> stringResource(Res.string.validation_finding_other_status, value.toString())
-    is FindingUi.StatusUnavailable -> stringResource(Res.string.validation_finding_status_unavailable)
+    is FindingUi.StatusUnavailable -> reason?.let { stringResource(Res.string.validation_finding_status_unavailable_reason, it) }
+        ?: stringResource(Res.string.validation_finding_status_unavailable)
+
     is FindingUi.MissingClaims -> stringResource(Res.string.validation_finding_missing_claims, claims.joinToString(", "))
     FindingUi.NotLinked -> stringResource(Res.string.validation_finding_not_linked)
     is FindingUi.Unregistered -> stringResource(Res.string.validation_finding_unregistered)
     FindingUi.MissingRegistration -> stringResource(Res.string.validation_finding_missing_registration)
     FindingUi.Unsigned -> stringResource(Res.string.validation_finding_unsigned)
-    is FindingUi.NotChecked -> stringResource(Res.string.validation_finding_not_checked)
+    is FindingUi.NotChecked -> reason?.let { stringResource(Res.string.validation_finding_not_checked_reason, it) }
+        ?: stringResource(Res.string.validation_finding_not_checked)
+
+    FindingUi.Skipped -> stringResource(Res.string.validation_finding_skipped)
     is FindingUi.Message -> "${check.label()}: $text"
 }
 

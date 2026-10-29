@@ -557,6 +557,9 @@
     <string name="validation_finding_missing_registration">Keine Registrierungsinformationen vorhanden</string>
     <string name="validation_finding_unsigned">Nicht signiert, daher konnte der Absender nicht geprüft werden</string>
     <string name="validation_finding_not_checked">Konnte nicht geprüft werden</string>
+    <string name="validation_finding_status_unavailable_reason">Status konnte nicht geprüft werden: %1$s</string>
+    <string name="validation_finding_not_checked_reason">Konnte nicht geprüft werden: %1$s</string>
+    <string name="validation_finding_skipped">Nicht geprüft</string>
     <string name="section_heading_issuer_validation">Aussteller</string>
     <string name="label_issuer_registration">Registrierung des Ausstellers</string>
     <string name="label_issuer_registration_unverified">Registrierung des Ausstellers (nicht geprüft)</string>
