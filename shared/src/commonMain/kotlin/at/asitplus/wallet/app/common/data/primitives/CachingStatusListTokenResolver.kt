@@ -27,4 +27,13 @@ data class CachingStatusListTokenResolver(
         store.remove(statusListUrl)
         freshStatusListTokenResolver(statusListUrl).also { store[statusListUrl] = it }
     }
+
+    /**
+     * Only returns a cached status list token that is still fresh, and fails for any other, without resolving it,
+     * e.g. to order credentials without waiting for the network: VC-K reports a status that can not be resolved as
+     * not checked.
+     */
+    val cached = StatusListTokenResolver { statusListUrl ->
+        store[statusListUrl] ?: throw NoSuchElementException("No fresh cached status list token for $statusListUrl")
+    }
 }
