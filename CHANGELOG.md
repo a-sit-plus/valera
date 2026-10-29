@@ -9,6 +9,7 @@
  * Presentation: Show the consent screen of a request over OpenID4VP, the Digital Credentials API, or proximity (BLE, NFC) without waiting for the status of the relying party's registration certificate, which is retrieved in the background and updates the validation shown once it arrives. Sending before it arrived asks to wait for it, or to send anyway with a red button. Requires VC-K with `validateDeferringStatus`
  * Presentation: Show the credentials matching a request, and send the presentation, without waiting for the status lists of every stored credential: matching orders credentials by status lists that are cached and fresh only, while the cards of the credentials still resolve their status and sort themselves once it arrives. Requires VC-K with `HolderAgent(orderingValidator)`
  * Privacy: Send no cookies when presenting credentials, checking the status of credentials and relying parties, loading Trust Lists, or checking the online status, so that a verifier can not link presentations, nor a status list provider the status checks of the wallet, by a session cookie; issuing, signing, and the wallet provider keep their cookies
+ * QR code scanner (Android): Start the camera once with its preview instead of twice, without an unused full-resolution photo capture, reuse one barcode scanner for QR codes only instead of creating one for every frame, and keep analyzing frames after one without an image
 
 # Release 5.9.1:
 
