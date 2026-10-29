@@ -8,6 +8,7 @@
  * Presentation: Keep an OpenID4VP request in the session while its consent screen is shown, instead of in the navigation route, whose saved state could exceed what Android allows; a consent screen restored after the system terminated the app in the background shows an error instead, and the request has to be opened again
  * Presentation: Show the consent screen of a request over OpenID4VP, the Digital Credentials API, or proximity (BLE, NFC) without waiting for the status of the relying party's registration certificate, which is retrieved in the background and updates the validation shown once it arrives. Sending before it arrived asks to wait for it, or to send anyway with a red button. Requires VC-K with `validateDeferringStatus`
  * Presentation: Show the credentials matching a request, and send the presentation, without waiting for the status lists of every stored credential: matching orders credentials by status lists that are cached and fresh only, while the cards of the credentials still resolve their status and sort themselves once it arrives. Requires VC-K with `HolderAgent(orderingValidator)`
+ * Privacy: Send no cookies when presenting credentials, checking the status of credentials and relying parties, loading Trust Lists, or checking the online status, so that a verifier can not link presentations, nor a status list provider the status checks of the wallet, by a session cookie; issuing, signing, and the wallet provider keep their cookies
 
 # Release 5.9.1:
 

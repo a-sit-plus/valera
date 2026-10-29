@@ -14,6 +14,7 @@ import at.asitplus.wallet.lib.oauth2.OAuth2ProtocolClient.LoadInstanceAttestatio
 import at.asitplus.wallet.lib.oidvci.OpenId4VciClient.KeyAttestationInput
 import io.github.aakira.napier.Napier
 import io.ktor.client.call.body
+import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.request.get
 import io.ktor.http.URLBuilder
 import io.ktor.http.appendEncodedPathSegments
@@ -36,7 +37,8 @@ class AttestationService(
     httpService: HttpService,
 ) {
     private val scope = CoroutineScope(Dispatchers.IO)
-    private val httpClient = httpService.buildHttpClient()
+    // Keeps the cookies of the wallet provider in memory, as before, in case it binds its challenge to a session
+    private val httpClient = httpService.buildHttpClient(cookieStorage = AcceptAllCookiesStorage())
 
     private fun challengeEndpoint() = config.walletProviderHost.map {
         URLBuilder(it).apply {
