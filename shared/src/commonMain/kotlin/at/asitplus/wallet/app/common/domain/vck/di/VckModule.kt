@@ -2,6 +2,7 @@ package at.asitplus.wallet.app.common.domain.vck.di
 
 import at.asitplus.wallet.app.common.SESSION_NAME
 import at.asitplus.wallet.app.common.TrustListService
+import at.asitplus.wallet.app.common.data.primitives.CachingStatusListTokenResolver
 import at.asitplus.wallet.app.common.domain.vck.tokenStatusList.DeterministicCoseHeaderVerifySignature
 import at.asitplus.wallet.app.common.domain.vck.tokenStatusList.di.tokenStatusListModule
 import at.asitplus.wallet.app.common.iso.verifier.ProximityResponseValidator
@@ -84,6 +85,12 @@ fun vckModule() = module {
                 keyMaterial = keyMaterial,
                 subjectCredentialStore = subjectCredentialStore,
                 credentialValidator = get(),
+                // Orders matching credentials with cached status lists only, so that showing a request and sending
+                // the presentation never wait for status lists; the selection cards resolve them and re-sort
+                orderingValidator = CredentialValidator(
+                    trustAnchors = get<TrustListService>().credentialTrustAnchors(),
+                    statusValidator = statusValidator(get<CachingStatusListTokenResolver>().cached),
+                ),
             )
         }
         // Shares the key and the store of the default holder, and validates credentials as received, see ISSUANCE
