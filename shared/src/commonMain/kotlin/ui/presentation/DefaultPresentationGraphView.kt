@@ -34,6 +34,15 @@ fun DefaultPresentationGraphView(
 
     val selectionProvider by viewModel.selectionProvider.collectAsState()
     val isSubmitting by viewModel.isSubmitting.collectAsState()
+    val relyingPartyValidation by viewModel.relyingPartyValidation.collectAsState()
+    val isAwaitingStatus by viewModel.isAwaitingStatus.collectAsState()
+
+    if (isAwaitingStatus) {
+        PendingRelyingPartyStatusDialog(
+            onSendAnyway = viewModel::sendWithoutStatus,
+            onWait = viewModel::waitForStatus,
+        )
+    }
 
     PresentationGraphView(
         koinScope = koinScope,
@@ -72,7 +81,7 @@ fun DefaultPresentationGraphView(
         },
         trustListService = viewModel.trustListService,
         request = viewModel.preparationState.getOrThrow().request,
-        relyingPartyValidation = viewModel.relyingPartyValidation,
+        relyingPartyValidation = relyingPartyValidation,
     )
 }
 

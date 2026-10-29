@@ -55,10 +55,13 @@ class PresentationService(
      * Loads and validates the request [input] under [ValidationPolicies.strict], returning its report next to the
      * state to answer it with, also if the request is rejected, so that the user can decide whether to continue.
      * Request parsing and certificate trust validation run off the UI dispatcher, like the other validation entry points.
+     * The status of the registration certificates of its relying party is not waited for, but resolved with
+     * [at.asitplus.wallet.lib.openid.AuthorizationRequestValidationPendingStatus.resolveStatus], so that a slow status
+     * list does not delay the consent screen.
      */
     suspend fun startAuthorizationResponsePreparation(input: String) =
         withContext(Dispatchers.Default) {
-            presentationService.startAuthorizationResponsePreparation(input, ValidationPolicies.strict)
+            presentationService.startAuthorizationResponsePreparationDeferringStatus(input, ValidationPolicies.strict)
         }
 
     /** Validates [input] under [ValidationPolicies.strict], see the overload taking a string. */

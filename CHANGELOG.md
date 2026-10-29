@@ -3,6 +3,7 @@
  * Status: Accept the signature of a CWT status list or identifier list whose protected header is not in the order Signum encodes it in, e.g. of the EUDI Wallet reference implementation, which failed as invalid, by verifying it again with the header in deterministic order
  * Validation: Show the status of an artifact that is not checked because other checks failed, e.g. of an untrusted WRPRC, as not checked in grey instead of as a failure, and leave it out of the summary; show a check that could not be checked on its own, e.g. without a reachable status list, in amber with the reason instead of in red
  * Presentation: Keep an OpenID4VP request in the session while its consent screen is shown, instead of in the navigation route, whose saved state could exceed what Android allows; a consent screen restored after the system terminated the app in the background shows an error instead, and the request has to be opened again
+ * Presentation: Show the consent screen of an OpenID4VP request without waiting for the status of the relying party's registration certificate, which is retrieved in the background and updates the validation shown once it arrives. Sending before it arrived asks to wait for it, or to send anyway with a red button. Requires VC-K with `startAuthorizationResponsePreparationDeferringStatus`
 
 # Release 5.9.1:
 
