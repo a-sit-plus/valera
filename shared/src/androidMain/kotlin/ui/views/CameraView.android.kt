@@ -4,7 +4,6 @@ import android.util.Size
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.core.resolutionselector.AspectRatioStrategy
@@ -29,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
@@ -96,9 +96,15 @@ private fun CameraWithGrantedPermission(
     val context = LocalContext.current
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
-    val preview = Preview.Builder().build()
+    // Kept across recompositions, as a new use case would rebind the camera
+    val preview = remember { Preview.Builder().build() }
     val previewView = remember { PreviewView(context) }
-    val imageCapture: ImageCapture = remember { ImageCapture.Builder().build() }
+    // One client for all frames, for QR codes only, which is all the wallet scans
+    val scanner = remember {
+        BarcodeScanning.getClient(
+            BarcodeScannerOptions.Builder().setBarcodeFormats(Barcode.FORMAT_QR_CODE).build()
+        )
+    }
     var isFrontCamera by rememberSaveable { mutableStateOf(false) }
     var cameraProvider: ProcessCameraProvider? by remember { mutableStateOf(null) }
 
@@ -116,6 +122,7 @@ private fun CameraWithGrantedPermission(
     DisposableEffect(Unit) {
         onDispose {
             cameraProvider?.unbindAll()
+            scanner.close()
         }
     }
 
@@ -144,36 +151,34 @@ private fun CameraWithGrantedPermission(
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .build()
         imageAnalysis.setAnalyzer(executor, { imageProxy: ImageProxy ->
-            imageProxy.image?.let { image ->
-                val inputImage =
-                    InputImage.fromMediaImage(image, imageProxy.imageInfo.rotationDegrees)
-                val scanner = BarcodeScanning.getClient()
-                scanner.process(inputImage)
-                    .addOnCompleteListener {
-                        imageProxy.close()
-                        if (it.isSuccessful && !foundQrCode.value) {
-                            for (barcode in it.result as List<Barcode>) {
+            // A frame has to be closed in any case, else no further frames are analyzed
+            val image = imageProxy.image ?: return@setAnalyzer imageProxy.close()
+            val inputImage = InputImage.fromMediaImage(image, imageProxy.imageInfo.rotationDegrees)
+            scanner.process(inputImage)
+                .addOnCompleteListener {
+                    imageProxy.close()
+                    if (!it.isSuccessful) {
+                        Napier.w("CameraWithGrantedPermission: error", throwable = it.exception)
+                    } else if (!foundQrCode.value) {
+                        for (barcode in it.result as List<Barcode>) {
 
-                                val payload = barcode.rawValue.toString()
-                                foundQrCode.value = true
-                                onFoundPayload(payload)
-                                break
-                            }
-                        } else {
-                            Napier.w("CameraWithGrantedPermission: error", throwable = it.exception)
+                            val payload = barcode.rawValue.toString()
+                            foundQrCode.value = true
+                            onFoundPayload(payload)
+                            break
                         }
                     }
-            }
+                }
         })
 
+        // The surface is set before binding, so that the camera is configured once, with the preview
+        preview.setSurfaceProvider(previewView.surfaceProvider)
         cameraProvider?.bindToLifecycle(
             lifecycleOwner,
             cameraSelector,
             preview,
             imageAnalysis,
-            imageCapture
         )
-        preview.setSurfaceProvider(previewView.surfaceProvider)
     }
 
     Box(modifier = modifier.pointerInput(isFrontCamera) {
