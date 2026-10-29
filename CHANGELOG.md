@@ -2,6 +2,7 @@
  * Issuing: Show a loading screen after selecting the credentials to load via the browser until the browser opens, instead of returning to “My Data” at once while the authorization is started in the background
  * Status: Accept the signature of a CWT status list or identifier list whose protected header is not in the order Signum encodes it in, e.g. of the EUDI Wallet reference implementation, which failed as invalid, by verifying it again with the header in deterministic order
  * Validation: Show the status of an artifact that is not checked because other checks failed, e.g. of an untrusted WRPRC, as not checked in grey instead of as a failure, and leave it out of the summary; show a check that could not be checked on its own, e.g. without a reachable status list, in amber with the reason instead of in red
+ * QR code scanner (Android): Start the camera once with its preview instead of twice, without an unused full-resolution photo capture, reuse one barcode scanner for QR codes only instead of creating one for every frame, and keep analyzing frames after one without an image
 
 # Release 5.9.1:
 
