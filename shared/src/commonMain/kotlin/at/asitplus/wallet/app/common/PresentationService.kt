@@ -7,6 +7,7 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.presentation.LongfellowZkRegistration
+import at.asitplus.wallet.app.common.presentation.PresentationRequestStore
 import at.asitplus.wallet.app.common.validation.ValidationPolicies
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.PresentationRequestParameters
@@ -32,6 +33,9 @@ class PresentationService(
     private val relyingPartyValidator: RelyingPartyValidator,
 ) {
     private val client = httpService.buildHttpClient()
+
+    /** The requests validated in this session, until their consent screen is left, see [PresentationRequestStore]. */
+    val validatedRequests = PresentationRequestStore()
     private val presentationService = OpenId4VpKtorHolder(
         httpClient = client,
         keyMaterial = keyMaterial,

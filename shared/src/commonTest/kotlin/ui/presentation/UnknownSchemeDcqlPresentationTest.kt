@@ -63,9 +63,8 @@ import kotlin.time.Duration.Companion.minutes
  * the claims requested by the relying party have to end up in the authentication response.
  *
  * Mirrors the app's QR-code presentation flow: the persistent credential store,
- * [at.asitplus.wallet.app.common.PresentationService] (preparation + matching), the
- * route serialization of `AuthenticationViewRoute`, and `PresentationBuilderGraphView.onSubmit`
- * (submission mapping).
+ * [at.asitplus.wallet.app.common.PresentationService] (preparation + matching), a serialization round trip of the
+ * preparation state, and `PresentationBuilderGraphView.onSubmit` (submission mapping).
  */
 class UnknownSchemeDcqlPresentationTest {
 
@@ -155,7 +154,7 @@ class UnknownSchemeDcqlPresentationTest {
                 holder = holderAgent,
             )
 
-            // the app serializes the preparation state into the navigation route (AuthenticationViewRoute)
+            // the preparation state stays serializable
             val preparationState = joseCompliantSerializer.decodeFromString<AuthorizationResponsePreparationState>(
                 joseCompliantSerializer.encodeToString(
                     wallet.startAuthorizationResponsePreparation(requestUrl).getOrThrow()
