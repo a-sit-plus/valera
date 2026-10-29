@@ -12,6 +12,8 @@ import at.asitplus.wallet.lib.data.StatusListToken
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.StatusListTokenPayload
 import at.asitplus.wallet.lib.data.rfc3986.UniformResourceIdentifier
 import io.github.aakira.napier.Napier
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlin.io.encoding.Base64
@@ -26,6 +28,13 @@ class PersistentStatusListTokenStore(
         preferenceKey = Configuration.DATASTORE_KEY_TOKEN_STATUS_LIST_CACHE,
         maxEntries = Configuration.MAX_PERSISTENT_CACHE_ENTRIES,
     )
+
+    /**
+     * The tokens parsed from their stored values, so that a lookup does not parse a token again while its stored
+     * value is the same, which also keeps handing out the same token, e.g. for VC-K to reuse its validation.
+     */
+    private val parsedLock = SynchronizedObject()
+    private val parsed = mutableMapOf<String, Pair<StoredStatusListToken, CacheStoreEntry<StatusListToken>>>()
 
     override suspend fun get(key: UniformResourceIdentifier): CacheStoreEntry<StatusListToken>? =
         store[key.string]?.toCacheEntry(key)
@@ -60,7 +69,10 @@ class PersistentStatusListTokenStore(
         key: UniformResourceIdentifier,
         removeIfInvalid: Boolean = true,
     ): CacheStoreEntry<StatusListToken>? {
-        val parsed = catchingUnwrapped {
+        synchronized(parsedLock) {
+            parsed[key.string]?.takeIf { (from, _) -> from === this || from == this }?.let { return it.second }
+        }
+        val entry = catchingUnwrapped {
             val resolvedAt = resolvedAtEpochMilliseconds?.let(Instant::fromEpochMilliseconds)
             val token: StatusListToken = when {
                 compactJwt != null -> StatusListJwt(JwsCompactTyped<StatusListTokenPayload>(compactJwt), resolvedAt)
@@ -78,10 +90,14 @@ class PersistentStatusListTokenStore(
         }.onFailure {
             Napier.w("Ignoring invalid cached status list token for $key", it)
         }.getOrNull()
-        if (parsed == null && removeIfInvalid) {
+        if (entry == null && removeIfInvalid) {
             store.remove(key.string)
         }
-        return parsed
+        synchronized(parsedLock) {
+            if (entry != null) parsed[key.string] = this to entry
+            else parsed.remove(key.string)
+        }
+        return entry
     }
 
     private fun CacheStoreEntry<StatusListToken>.toStored() = StoredStatusListToken(
