@@ -35,7 +35,7 @@ internal open class WalletNavigationControllerImpl(
         get() = _pendingRoute.value
         set(value) {
             if (value != null && _pendingRoute.value != null) {
-                Napier.w("pendingRoute overwritten: ${_pendingRoute.value} → $value")
+                Napier.w("pendingRoute overwritten: ${_pendingRoute.value?.logName()} → ${value.logName()}")
             }
             _pendingRoute.value = value
         }
@@ -53,7 +53,7 @@ internal open class WalletNavigationControllerImpl(
                     }
                 }
                 else -> {
-                    Napier.d("Navigate to: $route")
+                    Napier.d("Navigate to: ${route.logName()}")
                     navController.navigateOnMain(route)
                 }
             }
@@ -62,7 +62,7 @@ internal open class WalletNavigationControllerImpl(
 
     override fun navigateReplacingCurrent(route: Route) {
         scope.launch {
-            Napier.d("Navigate to: $route (replacing current)")
+            Napier.d("Navigate to: ${route.logName()} (replacing current)")
             navController.replaceCurrentOnMain(route)
         }
     }
@@ -78,7 +78,7 @@ internal open class WalletNavigationControllerImpl(
 
     override fun popBackStack(route: Route) {
         scope.launch {
-            Napier.d("popBackStack: $route")
+            Napier.d("popBackStack: ${route.logName()}")
             navController.popBackStackOnMain(route)
         }
     }
@@ -95,7 +95,7 @@ internal open class WalletNavigationControllerImpl(
                 }
                 return@launch
             }
-            Napier.d("navigateNewGraph: $route")
+            Napier.d("navigateNewGraph: ${route.logName()}")
             navController.navigateOnMain(route) {
                 popUpTo(navController.graph.startDestinationId) { inclusive = true }
                 launchSingleTop = true
@@ -180,3 +180,6 @@ internal class TransientFlowNavigationControllerImpl(
         intentState.finishApp?.invoke() ?: navigateBack()
     }
 }
+
+/** Names [this] route without its arguments, which may hold whole requests or credentials. */
+internal fun Route.logName() = this::class.simpleName ?: "Route"

@@ -4,6 +4,7 @@
  * Validation: Show the status of an artifact that is not checked because other checks failed, e.g. of an untrusted WRPRC, as not checked in grey instead of as a failure, and leave it out of the summary; show a check that could not be checked on its own, e.g. without a reachable status list, in amber with the reason instead of in red
  * DC API: Offer SD-JWT VCs, e.g. the PID, for ISO/IEC 18013-7 Annex C (`org-iso-mdoc`) requests that ask for them as proposed by WG10 N2933 (experimental): the Android matcher matches the claims of a `dc+sd-jwt` document request by their typed claim paths, requires every requested claim or one of its alternative sets, and matches nothing for an element without a valid claim path or in another namespace; the consent screens show the requested SD-JWT claims with their labels. Requires VC-K with N2933 support (its `feature/iso-sdjwt-n2933` branch as composite build until released). The matcher keeps building the shared cJSON from `matcher_common` as a patch
  * Presentation: Match credentials and create, sign, and send the response off the UI thread, which skipped frames on the consent screen
+ * Logging: Log only the name of a route when navigating instead of all its arguments, e.g. the whole presentation request
 
 # Release 5.9.1:
 
