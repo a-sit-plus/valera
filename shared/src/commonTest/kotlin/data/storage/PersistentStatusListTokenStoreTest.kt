@@ -16,7 +16,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertNotSame
 import kotlin.test.assertNull
+import kotlin.test.assertSame
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
@@ -60,6 +62,37 @@ class PersistentStatusListTokenStoreTest {
         val restored = PersistentStatusListTokenStore(dataStore)[url]
         assertEquals(cwt, restored)
         assertIs<IdentifierList>(restored?.data?.parsedPayload?.getOrThrow()?.revocationList)
+    }
+
+    @Test
+    fun returnsTheSameParsedTokenWhileItsStoredValueIsUnchanged() = runTest {
+        val dataStore = DummyDataStoreService()
+        val url = UniformResourceIdentifier("https://example.test/status")
+        val cachedAt = Instant.fromEpochMilliseconds(1_000_000)
+        val store = PersistentStatusListTokenStore(dataStore)
+        store[url] = CacheStoreEntry(StatusListJwt(StatusListAgent().issueStatusListJwt(), cachedAt), cachedAt)
+
+        assertSame(store[url], store[url])
+    }
+
+    @Test
+    fun seesATokenWrittenByAnotherInstanceAfterParsingOne() = runTest {
+        val dataStore = DummyDataStoreService()
+        val url = UniformResourceIdentifier("https://example.test/status")
+        val cachedAt = Instant.fromEpochMilliseconds(1_000_000)
+        val reader = PersistentStatusListTokenStore(dataStore)
+        val writer = PersistentStatusListTokenStore(dataStore)
+        writer[url] = CacheStoreEntry(StatusListJwt(StatusListAgent().issueStatusListJwt(), cachedAt), cachedAt)
+        val first = reader[url]
+
+        val replaced = CacheStoreEntry<StatusListToken>(
+            StatusListJwt(StatusListAgent().issueStatusListJwt(), cachedAt + 1.minutes),
+            cachedAt + 1.minutes,
+        )
+        writer[url] = replaced
+
+        assertEquals(replaced, reader[url])
+        assertNotSame(first, reader[url])
     }
 
     @Test
