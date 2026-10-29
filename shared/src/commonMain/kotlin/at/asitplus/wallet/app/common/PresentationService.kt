@@ -63,9 +63,12 @@ class PresentationService(
             presentationService.startAuthorizationResponsePreparation(input, ValidationPolicies.strict)
         }
 
+    /** Matches the stored credentials off the UI dispatcher, as it decodes them and may check their status. */
     suspend fun getMatchingCredentials(
         preparationState: AuthorizationResponsePreparationState
-    ) = presentationService.getMatchingCredentials(preparationState)
+    ) = withContext(Dispatchers.Default) {
+        presentationService.getMatchingCredentials(preparationState)
+    }
 
     /**
      * Validates the relying party of the proximity request [deviceRequest] under [ValidationPolicies.strict]: its
@@ -82,15 +85,19 @@ class PresentationService(
             presentationService.prepareDcApiRequest(request, ValidationPolicies.strict)
         }
 
+    /** Matches the stored credentials off the UI dispatcher, see the overload for OpenID4VP requests. */
     suspend fun getMatchingCredentials(preparationState: DcApiPreparationState) =
-        presentationService.getMatchingCredentials(preparationState)
+        withContext(Dispatchers.Default) {
+            presentationService.getMatchingCredentials(preparationState)
+        }
 
+    /** Creates, signs, and sends the response off the UI dispatcher. */
     suspend fun finalizeAuthorizationResponse(
         credentialPresentation: CredentialPresentation,
         preparationState: AuthorizationResponsePreparationState,
-    ): OpenId4VpKtorHolder.AuthenticationResult {
+    ): OpenId4VpKtorHolder.AuthenticationResult = withContext(Dispatchers.Default) {
         LongfellowZkRegistration.ensureRegisteredFor(credentialPresentation)
-        return presentationService.finalizeAuthorizationResponse(
+        presentationService.finalizeAuthorizationResponse(
             credentialPresentation = credentialPresentation,
             preparationState = preparationState
         ).getOrThrow()
@@ -102,10 +109,12 @@ class PresentationService(
     ) {
         Napier.d("Finalizing DCAPI response")
         LongfellowZkRegistration.ensureRegisteredFor(credentialPresentation)
-        val response = presentationService.finalizeDcApiResponse(
-            state = preparationState,
-            credentialPresentation = credentialPresentation,
-        ).getOrThrow()
+        val response = withContext(Dispatchers.Default) {
+            presentationService.finalizeDcApiResponse(
+                state = preparationState,
+                credentialPresentation = credentialPresentation,
+            ).getOrThrow()
+        }
         platformAdapter.prepareDCAPICredentialResponse(response)
     }
 
