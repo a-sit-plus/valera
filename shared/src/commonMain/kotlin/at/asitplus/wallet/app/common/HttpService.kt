@@ -41,6 +41,11 @@ class HttpService(private val buildContext: BuildContext) {
     private var resourceClient: HttpClient? = null
     private var revalidatingResourceClient: HttpClient? = null
 
+    /**
+     * Builds a client with the platform engine. Cookies are only stored and sent with [cookieStorage], e.g. for the
+     * session of an issuer or a signing service: without one, the client sends no cookies, so that a verifier can not
+     * link presentations, nor a status list provider the status checks of this wallet, by a session cookie.
+     */
     fun buildHttpClient(
         cookieStorage: CookiesStorage? = null,
         cacheStorage: CacheStorage? = null,
@@ -59,8 +64,8 @@ class HttpService(private val buildContext: BuildContext) {
             }
         }
         apply(loggingConfig)
-        install(HttpCookies) {
-            cookieStorage?.let {
+        cookieStorage?.let {
+            install(HttpCookies) {
                 storage = it
             }
         }
