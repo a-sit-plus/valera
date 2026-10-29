@@ -66,4 +66,22 @@ class CachingStatusListTokenResolverTest {
         assertFailsWith<IllegalStateException> { resolver.fresh(url) }
         assertNull(store.map[url])
     }
+
+    @Test
+    fun cachedReturnsTheCachedTokenWithoutResolving() = runTest {
+        val cached = token()
+        val store = MapStore().apply { map[url] = cached }
+        val resolver = CachingStatusListTokenResolver(store, StatusListTokenResolver { error("Must not resolve") })
+
+        assertSame(cached, resolver.cached(url))
+    }
+
+    @Test
+    fun cachedFailsWithoutACachedTokenInsteadOfResolvingIt() = runTest {
+        val store = MapStore()
+        val resolver = CachingStatusListTokenResolver(store, StatusListTokenResolver { error("Must not resolve") })
+
+        assertFailsWith<NoSuchElementException> { resolver.cached(url) }
+        assertNull(store.map[url])
+    }
 }
