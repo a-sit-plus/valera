@@ -215,7 +215,7 @@ fun WalletNavigation(
                 Napier.d("appLink.combineTransform $link")
                 catchingUnwrapped {
                     val route = intentService.handleIntent(link)
-                    Napier.d("WalletNavigation handleIntent route=$route")
+                    Napier.d("WalletNavigation handleIntent route=${route.logName()}")
                     navigator.navigateNewGraph(route)
                 }.onFailure {
                     errorService.emit(it)
