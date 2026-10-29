@@ -11,14 +11,20 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.warning_authentication_cancelled
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.extractCertificateChain
+import at.asitplus.wallet.app.common.relyingParty.RelyingPartyStatusResolution
 import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
 import at.asitplus.wallet.app.common.validation.integrityRejection
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.ktor.openid.OpenId4VpKtorHolder
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
+import ui.presentation.RelyingPartyStatusGate
 
 class PresentationViewModel(
     val presentationStateModel: PresentationStateModel,
@@ -43,11 +49,24 @@ class PresentationViewModel(
     private var sessionTranscript: SessionTranscript? = null
     var verifierCertificateChain: CertificateChain? = null
 
+    private val mutableRelyingParty = MutableStateFlow<RelyingPartyStatusResolution?>(null)
+
     /**
-     * The validation of the reader, `null` for a request without reader authentication, or without a session
-     * transcript to verify it over.
+     * The validation of the reader of the current request, whose status is resolved in the background, `null` for a
+     * request without reader authentication, or without a session transcript to verify it over.
      */
-    var relyingPartyValidation: RelyingPartyValidationUi? = null
+    val relyingParty: StateFlow<RelyingPartyStatusResolution?> = mutableRelyingParty.asStateFlow()
+
+    private val gate = RelyingPartyStatusGate(relyingParty, ::submitSelection)
+
+    /** Holds back a presentation confirmed while the status of the reader is pending */
+    val statusGate: RelyingPartyStatusGate<*>
+        get() = gate
+
+    /** The selection confirmed by the user, `null` for the selection by default */
+    private class Selection(
+        val submissions: CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>?,
+    )
 
     /**
      * Validates the relying party of [parsedRequest], i.e. its reader authentication over [sessionTranscript], and
@@ -63,19 +82,33 @@ class PresentationViewModel(
         // blocks, so such requests are not validated; a request without WRPRC only fails its `registration`
         val authenticated = !parsedRequest.readerAuthAll.isNullOrEmpty() ||
                 parsedRequest.docRequests.any { it.readerAuth != null }
-        val validation = sessionTranscript?.takeIf { authenticated }?.let {
+        val pending = sessionTranscript?.takeIf { authenticated }?.let {
             walletMain.presentationService.validateRelyingParty(parsedRequest, it)
         }
+        val validation = pending?.withoutStatus
         val relyingParty = validation?.let { RelyingPartyValidationUi.of(it) }
+        // A pending status never fails the integrity, so this is decided before it is resolved
         if (relyingParty?.outcome?.integrityFailed == true) {
             throw validation.report.integrityRejection() ?: IllegalArgumentException("The reader has been rejected")
         }
         deviceRequest = parsedRequest
         this.finishFunction = finishFunction
         this.sessionTranscript = sessionTranscript
-        this.relyingPartyValidation = relyingParty
+        val resolution = pending?.let {
+            RelyingPartyStatusResolution.start(relyingParty, it.isPending, walletMain.scope) {
+                RelyingPartyValidationUi.of(it.resolveStatus())
+            }
+        }
+        // A reader may send several requests in one session: the status of the previous one is not needed any more
+        mutableRelyingParty.getAndUpdate { resolution }?.cancel()
         this.verifierCertificateChain = parsedRequest.extractCertificateChain()
     }
+
+    override fun confirmSelection(
+        credentialPresentationSubmissions: CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>?,
+    ) = gate.confirm(Selection(credentialPresentationSubmissions))
+
+    private fun submitSelection(selection: Selection) = super.confirmSelection(selection.submissions)
 
     override val transactionData = null
 
@@ -102,6 +135,7 @@ class PresentationViewModel(
         } ?: throw IllegalStateException("No finish method found")
 
     override fun onCancel() {
+        mutableRelyingParty.value?.cancel()
         presentationStateModel.dismiss(PresentationStateModel.DismissType.CLICK)
     }
 

@@ -72,6 +72,7 @@ class QrCodeScannerViewModel(
         val buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase =
             BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
                 presentationService = walletMain.presentationService,
+                sessionScope = walletMain.scope,
             )
         buildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(link).getOrThrow()
             .copy(isCrossDeviceFlow = true)

@@ -15,6 +15,7 @@ class AuthorizationIntentViewModel(
         val consentPageBuilder =
             BuildAuthenticationConsentPageFromAuthenticationRequestUriUseCase(
                 presentationService = walletMain.presentationService,
+                sessionScope = walletMain.scope,
             )
         consentPageBuilder(uri).unwrap().onSuccess {
             onSuccess(it)

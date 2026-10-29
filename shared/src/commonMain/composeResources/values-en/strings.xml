@@ -566,4 +566,8 @@
     <string name="info_text_credential_review">The issued credential did not pass every check. It has not been stored yet: keep it anyway, or cancel to discard it.</string>
     <string name="prompt_credential_review">Keep the credential although not every check passed?</string>
     <string name="button_label_keep_anyway">Keep anyway</string>
+    <string name="heading_label_relying_party_status_pending">Status not checked yet</string>
+    <string name="info_text_relying_party_status_pending">The status of the relying party's registration certificate has not arrived yet, e.g. because the connection is slow. The registration could be revoked or suspended. Wait for the status, or send the data anyway.</string>
+    <string name="button_label_send_anyway">Send anyway</string>
+    <string name="button_label_wait">Wait</string>
 </resources>

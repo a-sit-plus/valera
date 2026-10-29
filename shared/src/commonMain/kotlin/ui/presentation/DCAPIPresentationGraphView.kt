@@ -41,6 +41,9 @@ fun DCAPIPresentationGraphView(
 
     val matchingResult by viewModel.selectionProvider.collectAsState()
     val isSubmitting by viewModel.isSubmitting.collectAsState()
+    val relyingPartyValidation by viewModel.relyingPartyValidation.collectAsState()
+
+    PendingRelyingPartyStatusDialog(viewModel.statusGate)
     val queryMatchingResult = (matchingResult as? UiStateSuccess)?.value
         ?.selectionProvider?.queryMatchingResult
     val selectedCredentialQueryIds = if (dcApiRequest.credentialIds?.isNotEmpty() == true) {
@@ -94,6 +97,6 @@ fun DCAPIPresentationGraphView(
         fixedCredentialQuerySelections = credentialQuerySelections,
         trustListService = viewModel.trustListService,
         request = dcApiRequest,
-        relyingPartyValidation = (matchingResult as? UiStateSuccess)?.value?.relyingPartyValidation,
+        relyingPartyValidation = relyingPartyValidation,
     )
 }

@@ -70,7 +70,7 @@ abstract class AuthenticationViewModel(
         }
     }
 
-    fun confirmSelection(credentialPresentationSubmissions: CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>?) {
+    open fun confirmSelection(credentialPresentationSubmissions: CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>?) {
         walletMain.scope.launch {
             finalizeAuthorization(
                 when(credentialPresentationSubmissions) {

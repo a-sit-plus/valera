@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import at.asitplus.catching
 import at.asitplus.wallet.app.common.WalletMain
+import at.asitplus.wallet.app.common.relyingParty.RelyingPartyStatusResolution
+import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
@@ -34,7 +36,10 @@ class DefaultPresentationGraphViewModel(
     }
     val preparationState = request.map { it.preparationState }
 
-    val relyingPartyValidation = request.getOrNull()?.relyingPartyValidation
+    private val relyingParty = request.getOrNull()?.relyingParty ?: RelyingPartyStatusResolution.resolved(null)
+
+    /** The validation of the relying party, replaced once the status of its registration certificates arrives */
+    val relyingPartyValidation: StateFlow<RelyingPartyValidationUi?> = relyingParty.validation
     val selectionProvider = MutableStateFlow<UiState<CredentialSelectionProvider<SubjectCredentialStore.StoreEntry>>>(
         UiStateLoading
     ).apply {
@@ -60,6 +65,18 @@ class DefaultPresentationGraphViewModel(
     /** Whether a presentation is being submitted, which stays set after success until the flow is left */
     val isSubmitting: StateFlow<Boolean> = mutableIsSubmitting.asStateFlow()
 
+    private val gate = RelyingPartyStatusGate(MutableStateFlow(relyingParty), ::submit)
+
+    /** Holds back a presentation confirmed while the status of the relying party is pending */
+    val statusGate: RelyingPartyStatusGate<*>
+        get() = gate
+
+    private class Submission(
+        val presentation: CredentialPresentation,
+        val onSuccess: (OpenId4VpKtorHolder.AuthenticationSuccess) -> Unit,
+        val onFailure: (Throwable) -> Unit,
+    )
+
     fun confirmSelection(
         credentialPresentationSubmissions: CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>,
         onSuccess: (OpenId4VpKtorHolder.AuthenticationSuccess) -> Unit,
@@ -82,17 +99,21 @@ class DefaultPresentationGraphViewModel(
         } catch (it: Throwable) {
             return onFailure(it)
         }
+        gate.confirm(Submission(presentation, onSuccess, onFailure))
+    }
+
+    private fun submit(submission: Submission) {
         // Ignore repeated confirmations while a presentation is being submitted
         if (!mutableIsSubmitting.compareAndSet(expect = false, update = true)) return
         viewModelScope.launch {
             try {
-                val result = finalizeAuthorization(presentation)
-                onSuccess(result)
+                val result = finalizeAuthorization(submission.presentation)
+                submission.onSuccess(result)
             } catch (_: at.asitplus.signum.supreme.UserInitiatedCancellationReason) {
                 mutableIsSubmitting.value = false
             } catch (it: Throwable) {
                 mutableIsSubmitting.value = false
-                onFailure(it)
+                submission.onFailure(it)
             }
         }
     }

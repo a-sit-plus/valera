@@ -1,7 +1,11 @@
 package at.asitplus.wallet.app.common.presentation
 
+import at.asitplus.wallet.app.common.relyingParty.RelyingPartyStatusResolution
 import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
+import at.asitplus.wallet.lib.openid.AuthorizationRequestValidation
+import at.asitplus.wallet.lib.openid.AuthorizationRequestValidationPendingStatus
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import org.multipaz.util.UUID
@@ -24,11 +28,40 @@ class PresentationRequestStore {
 
     operator fun get(id: String): ValidatedPresentationRequest? = requests.value[id]
 
-    fun remove(id: String) = requests.update { it - id }
+    /** Drops the request [id], and stops resolving the status of its relying party. */
+    fun remove(id: String) {
+        var removed: ValidatedPresentationRequest? = null
+        requests.update { removed = it[id]; it - id }
+        removed?.cancel()
+    }
 }
 
-/** A validated OpenID4VP request, with the [relyingPartyValidation] to show for it. */
-data class ValidatedPresentationRequest(
+/**
+ * A validated OpenID4VP request, with the validation of its [relyingParty] to show, which is replaced once the status
+ * of its registration certificates is resolved, see [resolvingStatus].
+ */
+class ValidatedPresentationRequest(
     val preparationState: AuthorizationResponsePreparationState,
-    val relyingPartyValidation: RelyingPartyValidationUi?,
-)
+    val relyingParty: RelyingPartyStatusResolution,
+) {
+    /** Stops resolving the status, e.g. once the consent screen is left. */
+    fun cancel() = relyingParty.cancel()
+
+    companion object {
+        /** The request of [pending], to show at once, whose relying party status is resolved in [scope]. */
+        fun resolvingStatus(
+            pending: AuthorizationRequestValidationPendingStatus,
+            scope: CoroutineScope,
+        ) = ValidatedPresentationRequest(
+            preparationState = pending.validation.preparationState,
+            relyingParty = RelyingPartyStatusResolution.start(
+                initial = pending.validation.relyingPartyValidationUi(),
+                isPending = pending.isPending,
+                scope = scope,
+            ) { pending.resolveStatus().relyingPartyValidationUi() },
+        )
+
+        private fun AuthorizationRequestValidation.relyingPartyValidationUi() =
+            RelyingPartyValidationUi.of(validationReport, relyingParty)
+    }
+}
