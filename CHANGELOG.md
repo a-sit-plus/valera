@@ -11,6 +11,7 @@
  * Privacy: Send no cookies when presenting credentials, checking the status of credentials and relying parties, loading Trust Lists, or checking the online status, so that a verifier can not link presentations, nor a status list provider the status checks of the wallet, by a session cookie; issuing, signing, and the wallet provider keep their cookies
  * QR code scanner (Android): Start the camera once with its preview instead of twice, without an unused full-resolution photo capture, reuse one barcode scanner for QR codes only instead of creating one for every frame, and keep analyzing frames after one without an image
  * Performance: Look up a cached status list without decoding every cached status list token, and without parsing the token again, while the cache is unchanged; the caches of status lists, HTTP responses, and credential metadata no longer wait for each other
+ * Performance: Reuse the validity and status of a stored credential checked within the last minute, e.g. by the list of credentials, when showing it for a request, instead of verifying it, its issuer, and its status list again; the time of each check is logged
 
 # Release 5.9.1:
 
