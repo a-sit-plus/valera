@@ -16,6 +16,7 @@
  * Performance: Request a status list once for credentials sharing it that are checked at the same time, and no longer let a status list being requested hold up cached status lists and other ones, which were all checked one after another
  * Performance: Do not request a status list, Trust List, or type metadata again for 5 minutes after a request without a response, e.g. offline or timed out, or with an invalid document, instead of waiting for it to fail on every check; give up connecting after 10 seconds and on a stalled response after 15 seconds instead of the platform's default. Issuing still checks the status of a received credential with a fresh status list, and “Refresh trust lists” still loads every list
  * Performance: Cache the HTTP response of each status list and Trust List on its own, so that revalidating one no longer decodes and encodes every cached response, e.g. all Trust Lists; the previous cache is dropped once
+ * Issuing: Store cookies in the background instead of waiting for the DataStore before handing out the response that set them, which delayed e.g. loading issuer metadata by seconds, and load stored cookies without blocking a thread
 
 # Release 5.9.1:
 
