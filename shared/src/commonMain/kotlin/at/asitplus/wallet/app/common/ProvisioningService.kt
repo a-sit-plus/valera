@@ -53,6 +53,7 @@ import at.asitplus.wallet.lib.validation.IssuerMetadataValidator
 import at.asitplus.wallet.lib.validation.ValidationDecision
 import data.credentials.claimLabel
 import data.storage.DataStoreService
+import data.storage.DeferredRemovalMapStore
 import data.storage.PersistentCookieStorage
 import data.storage.StoreEntryId
 import data.storage.WalletSubjectCredentialStore
@@ -108,9 +109,12 @@ class ProvisioningService(
 
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
     private val client = httpService.buildHttpClient(cookieStorage = cookieStorage)
-    private val stateToCodeStore = persistentStringMapStore(
-        dataStoreService = dataStoreService,
-        preferenceKey = Configuration.DATASTORE_KEY_PROVISIONING_STATE_TO_CODE_STORE,
+    // VC-K removes the code verifier right before the token request, which must not wait for a DataStore write
+    private val stateToCodeStore = DeferredRemovalMapStore(
+        persistentStringMapStore(
+            dataStoreService = dataStoreService,
+            preferenceKey = Configuration.DATASTORE_KEY_PROVISIONING_STATE_TO_CODE_STORE,
+        )
     )
     private val provisioningContextStore = persistentStringMapStore(
         dataStoreService = dataStoreService,
@@ -132,6 +136,9 @@ class ProvisioningService(
     private var openId4VciClientCached = null as OpenId4VciKtorClient?
     private var vciClientCached = null as OpenId4VciClient?
     private val provisioningFlowMutex = Mutex()
+    // Callback states being or having been processed, guarded by [provisioningFlowMutex], so that a callback delivered
+    // twice is used once, although its stored state is only removed after the token request
+    private val claimedProvisioningStates = mutableSetOf<String>()
 
     fun close() {
         client.close()
@@ -354,7 +361,8 @@ class ProvisioningService(
                 StoredCredentials(storedEntryIds, needsReview)
             }
         } finally {
-            clearActiveProvisioningState(storedState.state)
+            cleanupProvisioningState(storedState.state)
+            stateToCodeStore.flushRemovals()
         }
     }
 
@@ -364,12 +372,21 @@ class ProvisioningService(
         val instanceAttestation: JwsCompactTyped<JsonWebToken>?,
     )
 
+    /**
+     * Reads the state stored for the callback without removing it: the authorization code may expire within a minute,
+     * so the token request must not wait for DataStore writes. The state is removed after the token request.
+     */
     private suspend fun takeProvisioningState(redirectedUrl: String): StoredProvisioningState? {
         val state = redirectedUrl.stateParameter()
         state?.let { callbackState ->
             validateActiveProvisioningState(callbackState)
-            provisioningContextStore.remove(callbackState)?.let { contextJson ->
-                val instanceAttestation = provisioningInstanceAttestationStore.remove(callbackState)
+            if (callbackState in claimedProvisioningStates) {
+                Napier.w("Provisioning callback for state $callbackState has already been used")
+                return null
+            }
+            provisioningContextStore.get(callbackState)?.let { contextJson ->
+                claimedProvisioningStates += callbackState
+                val instanceAttestation = provisioningInstanceAttestationStore.get(callbackState)
                     ?.let { JwsCompactTyped<JsonWebToken>(it) }
                 return StoredProvisioningState(
                     state = callbackState,
