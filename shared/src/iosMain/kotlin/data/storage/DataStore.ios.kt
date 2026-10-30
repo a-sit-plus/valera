@@ -18,33 +18,42 @@ import platform.Foundation.NSUserDomainMask
 private const val appGroupIdentifierInfoPlistKey = "WalletAppGroupIdentifier"
 
 // Modified from https://github.com/android/kotlin-multiplatform-samples/tree/main
-@OptIn(ExperimentalForeignApi::class)
 fun createDataStore(): DataStore<Preferences> = getDataStoreWithFactory {
     PreferenceDataStoreFactory.create(
-        storage = OkioStorage(
-            fileSystem = FileSystem.SYSTEM,
-            serializer = PreferencesSerializer,
-            coordinatorProducer = { path, fileSystem ->
-                DarwinInterProcessCoordinator(fileSystem, path)
-            },
-            producePath = {
-                resolveCurrentDataStorePath().also { currentPath ->
-                    migrateLegacyDataStoreIfNeeded(currentPath)
-                }.toPath()
+        storage = interProcessStorage {
+            resolveAppGroupPath(dataStoreFileName).also { currentPath ->
+                migrateLegacyDataStoreIfNeeded(currentPath)
             }
-        )
+        },
+        migrations = listOf(DropCachesFromMainDataStore),
     )
 }
 
+/** The caches, see [RealDataStoreService], shared by the app and its extension like the main DataStore. */
+fun createCacheDataStore(): DataStore<Preferences> = getCacheDataStoreWithFactory {
+    PreferenceDataStoreFactory.create(
+        storage = interProcessStorage { resolveAppGroupPath(cacheDataStoreFileName) },
+    )
+}
+
+private fun interProcessStorage(producePath: () -> String) = OkioStorage(
+    fileSystem = FileSystem.SYSTEM,
+    serializer = PreferencesSerializer,
+    coordinatorProducer = { path, fileSystem ->
+        DarwinInterProcessCoordinator(fileSystem, path)
+    },
+    producePath = { producePath().toPath() },
+)
+
 @OptIn(ExperimentalForeignApi::class)
-private fun resolveCurrentDataStorePath(): String {
+private fun resolveAppGroupPath(fileName: String): String {
     val appGroupIdentifier = getAppGroupIdentifier()
     val containerURL: NSURL? =
         NSFileManager.defaultManager.containerURLForSecurityApplicationGroupIdentifier(appGroupIdentifier)
     requireNotNull(containerURL) {
         "Could not get container URL for app group $appGroupIdentifier. Make sure the app group is configured correctly."
     }
-    return requireNotNull(containerURL.path) + "/$dataStoreFileName"
+    return requireNotNull(containerURL.path) + "/$fileName"
 }
 
 @OptIn(ExperimentalForeignApi::class)

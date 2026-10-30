@@ -1,10 +1,12 @@
 package data.storage
 
+import androidx.datastore.core.DataMigration
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.PlatformAdapter
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
@@ -22,12 +24,23 @@ interface DataStoreService {
     fun clearLog()
 }
 
-class RealDataStoreService(private var dataStore: DataStore<Preferences>, private var platformAdapter: PlatformAdapter): DataStoreService{
+/**
+ * Stores caches, see [isCacheKey], in [cacheDataStore] and everything else in [dataStore]: DataStore rewrites its whole
+ * file for every change, one change after the other, so a small write, e.g. of a provisioning state, waited for
+ * several writes of megabytes of cached HTTP responses and Trust Lists.
+ */
+class RealDataStoreService(
+    private val dataStore: DataStore<Preferences>,
+    private val platformAdapter: PlatformAdapter,
+    private val cacheDataStore: DataStore<Preferences>,
+) : DataStoreService {
+    private fun storeOf(key: String) = if (isCacheKey(key)) cacheDataStore else dataStore
+
     override suspend fun setPreference(value: String, key: String){
         try {
             val dataStoreKey = stringPreferencesKey(key)
             measureTime {
-                dataStore.edit {
+                storeOf(key).edit {
                     it[dataStoreKey] = value
                 }
             }.also { Napier.d("Timing: wrote $key (${value.length} characters) to DataStore in $it") }
@@ -40,7 +53,7 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>, privat
     override fun getPreference(key: String): Flow<String?> {
         try {
             val dataStoreKey = stringPreferencesKey(key)
-            val preferences = dataStore.data
+            val preferences = storeOf(key).data
             return preferences.map { it[dataStoreKey] }
         } catch (e: Throwable) {
             throw Exception("Unable to get data from DataStore")
@@ -51,7 +64,7 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>, privat
     override suspend fun deletePreference(key: String){
         try {
             val dataStoreKey = stringPreferencesKey(key)
-            dataStore.edit {
+            storeOf(key).edit {
                 it.remove(dataStoreKey)
             }
         } catch (e: Throwable) {
@@ -63,7 +76,7 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>, privat
     override suspend fun deletePreferenceIfPresent(key: String): Boolean {
         val dataStoreKey = stringPreferencesKey(key)
         var removed = false
-        dataStore.edit { preferences ->
+        storeOf(key).edit { preferences ->
             removed = preferences.remove(dataStoreKey) != null
         }
         return removed
@@ -74,12 +87,47 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>, privat
     }
 }
 
+/** Whether [key] holds a cache, which is stored in its own DataStore file, see [RealDataStoreService]. */
+internal fun isCacheKey(key: String) =
+    key in cacheKeys || key.startsWith("https://") || key.startsWith("http://") // Trust Lists are stored by URL
+
+private val cacheKeys = setOf(
+    Configuration.DATASTORE_KEY_HTTP_CACHE,
+    Configuration.DATASTORE_KEY_TOKEN_STATUS_LIST_CACHE,
+    Configuration.DATASTORE_KEY_CREDENTIAL_METADATA_CACHE,
+)
+
+/**
+ * Drops the caches from the main DataStore, which held them before they moved to their own file. They are not moved,
+ * but loaded again when needed.
+ */
+internal object DropCachesFromMainDataStore : DataMigration<Preferences> {
+    override suspend fun shouldMigrate(currentData: Preferences) =
+        currentData.asMap().keys.any { isCacheKey(it.name) }
+
+    override suspend fun migrate(currentData: Preferences): Preferences =
+        currentData.toMutablePreferences().apply {
+            currentData.asMap().keys.filter { isCacheKey(it.name) }.forEach { remove(it) }
+        }
+
+    override suspend fun cleanUp() {}
+}
+
 // Modified from https://github.com/android/kotlin-multiplatform-samples/tree/main
 /**
  * Gets the singleton DataStore instance, creating it if necessary.
  */
 fun getDataStore(producePath: () -> String): DataStore<Preferences> =
     getDataStoreWithFactory {
+        PreferenceDataStoreFactory.createWithPath(
+            migrations = listOf(DropCachesFromMainDataStore),
+            produceFile = { producePath().toPath() },
+        )
+    }
+
+/** Gets the singleton DataStore instance of the caches, see [RealDataStoreService], creating it if necessary. */
+fun getCacheDataStore(producePath: () -> String): DataStore<Preferences> =
+    getCacheDataStoreWithFactory {
         PreferenceDataStoreFactory.createWithPath(produceFile = { producePath().toPath() })
     }
 
@@ -92,8 +140,19 @@ fun getDataStoreWithFactory(createDataStore: () -> DataStore<Preferences>): Data
         }
     }
 
+fun getCacheDataStoreWithFactory(createDataStore: () -> DataStore<Preferences>): DataStore<Preferences> =
+    synchronized(lock) {
+        if (::cacheDataStore.isInitialized) {
+            cacheDataStore
+        } else {
+            createDataStore().also { cacheDataStore = it }
+        }
+    }
+
 internal const val dataStoreFileName = "wallet.preferences_pb"
+internal const val cacheDataStoreFileName = "wallet-cache.preferences_pb"
 
 private lateinit var dataStore: DataStore<Preferences>
+private lateinit var cacheDataStore: DataStore<Preferences>
 
 private val lock = SynchronizedObject()
