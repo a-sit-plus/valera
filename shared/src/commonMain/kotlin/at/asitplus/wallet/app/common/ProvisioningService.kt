@@ -47,6 +47,7 @@ import at.asitplus.wallet.lib.oidvci.CredentialIdentifierInfo
 import at.asitplus.wallet.lib.oidvci.LoadedIssuerMetadata
 import at.asitplus.wallet.lib.oidvci.OpenId4VciClient
 import at.asitplus.wallet.lib.oidvci.ReceivedCredential
+import at.asitplus.wallet.lib.oidvci.WalletEncryptionService
 import at.asitplus.wallet.lib.utils.MapStore
 import at.asitplus.wallet.lib.validation.IssuerMetadataValidator
 import at.asitplus.wallet.lib.validation.ValidationDecision
@@ -170,6 +171,8 @@ class ProvisioningService(
     private suspend fun vciClient(): OpenId4VciClient = vciClientCached ?: OpenId4VciClient(
         loadKeyAttestation = attestationService::loadKeyAttestation,
         keyMaterial = keyMaterial,
+        // Encrypt every credential request to an issuer that publishes a key for it (OpenID4VCI 1.0, 8.2, 10)
+        encryptionService = WalletEncryptionService(requireRequestEncryption = true),
     ).also { vciClientCached = it }
 
     private suspend fun openId4VciClient(): OpenId4VciKtorClient {
