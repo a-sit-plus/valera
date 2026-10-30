@@ -14,32 +14,55 @@ import io.ktor.util.date.getTimeMillis
 import io.ktor.util.toLowerCasePreservingASCIIRules
 import kotlinx.atomicfu.AtomicLong
 import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlin.jvm.JvmName
+import kotlin.coroutines.CoroutineContext
 import kotlin.math.min
 import kotlin.time.Instant
 
 // Modified from io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
+/**
+ * Keeps cookies in memory and persists them in the background: Ktor waits for [addCookie] before it hands out the
+ * response, and a write to the shared DataStore can take seconds while it is busy, e.g. with caches.
+ */
 class PersistentCookieStorage(
     private val dataStoreService: DataStoreService,
-    private val errorService: ErrorService
+    private val errorService: ErrorService,
+    writeContext: CoroutineContext = Dispatchers.Default,
 ) : CookiesStorage {
-    private val container = importFromDataStore()
+    private var loadedContainer: CookieContainer? = null
     private val mutex = Mutex()
+    private val pendingExport = Channel<String>(Channel.CONFLATED)
+
+    // Ends once [close] closed the channel and the last export has been written, so it needs no parent job
+    private val writer = CoroutineScope(writeContext).launch {
+        for (json in pendingExport) {
+            try {
+                dataStoreService.setPreference(key = Configuration.DATASTORE_KEY_COOKIES, value = json)
+            } catch (e: Throwable) {
+                errorService.emit(e)
+            }
+        }
+    }
 
     suspend fun reset() = mutex.withLock {
+        val container = container()
         container.cookies.clear()
         container.oldestCookie.value = 0L
-        exportToDataStore()
+        exportToDataStore(container)
     }
 
     override suspend fun get(requestUrl: Url): List<Cookie> = mutex.withLock {
+        val container = container()
         val now = getTimeMillis()
-        if (now >= container.oldestCookie.value) cleanup(now)
+        if (now >= container.oldestCookie.value) cleanup(container, now)
 
         return@withLock container.cookies.filter { it.matches(requestUrl) }
     }
@@ -49,6 +72,7 @@ class PersistentCookieStorage(
             if (name.isBlank()) return@withLock
         }
 
+        val container = container()
         container.cookies.removeAll { it.name == cookie.name && it.matches(requestUrl) }
         container.cookies.add(cookie.fillDefaults(requestUrl))
         cookie.expires?.timestamp?.let { expires ->
@@ -56,14 +80,21 @@ class PersistentCookieStorage(
                 container.oldestCookie.value = expires
             }
         }
-        exportToDataStore()
+        exportToDataStore(container)
+    }
+
+    /** Closes the storage and waits until the last cookies have been persisted. */
+    internal suspend fun closeAndAwaitWrites() {
+        close()
+        writer.join()
     }
 
     override fun close() {
+        pendingExport.close()
     }
 
-    private fun cleanup(timestamp: Long) {
-        container.cookies.removeAll { cookie ->
+    private fun cleanup(container: CookieContainer, timestamp: Long) {
+        val removed = container.cookies.removeAll { cookie ->
             val expires = cookie.expires?.timestamp ?: return@removeAll false
             expires < timestamp
         }
@@ -73,33 +104,28 @@ class PersistentCookieStorage(
         }
 
         container.oldestCookie.value = newOldest
-        exportToDataStore()
+        if (removed) exportToDataStore(container)
     }
 
-    private fun exportToDataStore() {
+    private fun exportToDataStore(container: CookieContainer) {
         try {
             val exportableCookies = container.cookies.toExportableCookieList()
             val export = ExportableCookieContainer(
                 cookies = exportableCookies,
                 oldestCookie = container.oldestCookie.value
             )
-            val json = joseCompliantSerializer.encodeToString(export)
-            runBlocking {
-                dataStoreService.setPreference(
-                    key = Configuration.DATASTORE_KEY_COOKIES,
-                    value = json
-                )
-            }
+            pendingExport.trySend(joseCompliantSerializer.encodeToString(export))
         } catch (e: Throwable) {
             errorService.emit(e)
         }
     }
 
-    private fun importFromDataStore(): CookieContainer {
+    private suspend fun container(): CookieContainer =
+        loadedContainer ?: importFromDataStore().also { loadedContainer = it }
+
+    private suspend fun importFromDataStore(): CookieContainer {
         try {
-            val input = runBlocking {
-                dataStoreService.getPreference(Configuration.DATASTORE_KEY_COOKIES).firstOrNull()
-            }
+            val input = dataStoreService.getPreference(Configuration.DATASTORE_KEY_COOKIES).firstOrNull()
             if (input == null) {
                 return CookieContainer(cookies = mutableListOf(), oldestCookie = atomic(0L))
             } else {
