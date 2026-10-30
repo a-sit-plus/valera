@@ -42,6 +42,7 @@ import net.swiftzer.semver.SemVer
 import org.jetbrains.compose.resources.decodeToImageBitmap
 import org.jetbrains.compose.resources.getString
 import org.multipaz.prompt.PromptModel
+import kotlin.time.measureTime
 
 /**
  * Main class to hold all services needed in the Compose App.
@@ -166,7 +167,8 @@ class WalletMain(
         try {
             Napier.d("DC API: Starting to observe credentials")
             dcApiRegistrationJob = subjectCredentialStore.observeStoreContainer().onEach { storeContainer ->
-                dcApiExportService.registerCredentialWithSystem(storeContainer, scope)
+                measureTime { dcApiExportService.registerCredentialWithSystem(storeContainer, scope) }
+                    .also { Napier.d("Timing: DC API registration took $it") }
             }.launchIn(scope)
         } catch (e: Throwable) {
             Napier.w("DC API: Could not update credentials with system", e)

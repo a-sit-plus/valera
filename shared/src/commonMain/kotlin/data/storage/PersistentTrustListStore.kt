@@ -20,6 +20,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlin.time.Instant
+import kotlin.time.measureTimedValue
 
 class PersistentTrustListStore(
     private val dataStoreService: DataStoreService,
@@ -77,8 +78,10 @@ private object ParsedTrustLists {
             return@withLock null
         }
         parsed[url]?.takeIf { (parsedFrom, _) -> parsedFrom == stored }?.let { return@withLock it.second }
-        Napier.d("Parsing Trust List $url (${stored.length} characters)")
-        parseStored(stored).also { parsed[url] = stored to it }
+        measureTimedValue { parseStored(stored) }.let { (list, duration) ->
+            Napier.d("Timing: parsed Trust List $url (${stored.length} characters) in $duration")
+            list
+        }.also { parsed[url] = stored to it }
     }
 }
 

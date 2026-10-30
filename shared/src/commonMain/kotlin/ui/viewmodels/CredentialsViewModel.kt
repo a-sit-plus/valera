@@ -24,6 +24,8 @@ import kotlinx.coroutines.launch
 import ui.models.CredentialFreshnessSummaryUiModel
 import ui.models.toFallbackResolvedCredential
 import ui.models.toResolvedCredential
+import io.github.aakira.napier.Napier
+import kotlin.time.TimeSource
 
 class CredentialsViewModel(
     private val walletMain: WalletMain,
@@ -33,6 +35,7 @@ class CredentialsViewModel(
     private val credentialLoadingDispatcher = Dispatchers.Default.limitedParallelism(2)
 
     val storeContainer = subjectCredentialStore.observeStoreContainer().map { container ->
+        val start = TimeSource.Monotonic.markNow()
         CredentialStateModel.Success(
             coroutineScope {
                 container.credentials.map { (id, entry) ->
@@ -52,7 +55,7 @@ class CredentialsViewModel(
                     }
                 }.awaitAll()
             }
-        )
+        ).also { Napier.d("Timing: prepared ${it.credentials.size} credentials for the list in ${start.elapsedNow()}") }
     }.flowOn(credentialLoadingDispatcher).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),

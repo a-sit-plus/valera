@@ -11,6 +11,8 @@ import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import okio.Path.Companion.toPath
+import io.github.aakira.napier.Napier
+import kotlin.time.measureTime
 
 interface DataStoreService {
     suspend fun setPreference(value: String, key: String)
@@ -24,9 +26,11 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>, privat
     override suspend fun setPreference(value: String, key: String){
         try {
             val dataStoreKey = stringPreferencesKey(key)
-            dataStore.edit {
-                it[dataStoreKey] = value
-            }
+            measureTime {
+                dataStore.edit {
+                    it[dataStoreKey] = value
+                }
+            }.also { Napier.d("Timing: wrote $key (${value.length} characters) to DataStore in $it") }
         } catch (e: Throwable) {
             throw Exception("Unable to set data in DataStore")
         }
