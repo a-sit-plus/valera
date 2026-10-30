@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import at.asitplus.wallet.app.common.PlatformAdapter
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import okio.Path.Companion.toPath
@@ -31,8 +32,11 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>, privat
                     it[dataStoreKey] = value
                 }
             }.also { Napier.d("Timing: wrote $key (${value.length} characters) to DataStore in $it") }
+        } catch (e: CancellationException) {
+            // The caller was cancelled, e.g. its screen closed, which must not be reported as a failed write
+            throw e
         } catch (e: Throwable) {
-            throw Exception("Unable to set data in DataStore")
+            throw Exception("Unable to set data in DataStore", e)
         }
 
     }
@@ -54,8 +58,11 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>, privat
             dataStore.edit {
                 it.remove(dataStoreKey)
             }
+        } catch (e: CancellationException) {
+            // The caller was cancelled, e.g. its screen closed, which must not be reported as a failed write
+            throw e
         } catch (e: Throwable) {
-            throw Exception("Unable to delete data from DataStore")
+            throw Exception("Unable to delete data from DataStore", e)
         }
 
     }
