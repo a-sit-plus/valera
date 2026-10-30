@@ -11,6 +11,7 @@ import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.createMainWalletSessionScope as createSharedMainWalletSessionScope
 import at.asitplus.wallet.app.common.createTransientFlowWalletSessionScope as createSharedTransientFlowWalletSessionScope
 import data.storage.RealDataStoreService
+import data.storage.getCacheDataStore
 import data.storage.getDataStore
 import org.multipaz.prompt.PromptModel
 
@@ -39,7 +40,7 @@ internal fun createAndroidMainWalletSessionScope(
         buildContext = buildContext,
         promptModel = promptModel,
         platformAdapter = platformAdapter,
-        dataStoreService = RealDataStoreService(getDataStore(context), platformAdapter),
+        dataStoreService = RealDataStoreService(getDataStore(context), platformAdapter, getCacheDataStore(context)),
     )
 }
 
@@ -59,6 +60,6 @@ internal fun createAndroidTransientFlowWalletSessionScope(
         buildContext = buildContext,
         promptModel = promptModel,
         platformAdapter = platformAdapter,
-        dataStoreService = RealDataStoreService(getDataStore(context), platformAdapter),
+        dataStoreService = RealDataStoreService(getDataStore(context), platformAdapter, getCacheDataStore(context)),
     )
 }

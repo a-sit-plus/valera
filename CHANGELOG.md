@@ -2,6 +2,7 @@
  * Issuing: Show a loading screen after selecting the credentials to load via the browser until the browser opens, instead of returning to “My Data” at once while the authorization is started in the background
  * Status: Accept the signature of a CWT status list or identifier list whose protected header is not in the order Signum encodes it in, e.g. of the EUDI Wallet reference implementation, which failed as invalid, by verifying it again with the header in deterministic order
  * Validation: Show the status of an artifact that is not checked because other checks failed, e.g. of an untrusted WRPRC, as not checked in grey instead of as a failure, and leave it out of the summary; show a check that could not be checked on its own, e.g. without a reachable status list, in amber with the reason instead of in red
+ * Performance: Store the HTTP cache, the status list and credential metadata caches, and the Trust Lists in their own DataStore file, `wallet-cache.preferences_pb`, so that writing small values, e.g. the state of an issuance, no longer rewrites and waits for megabytes of caches; the caches stored so far are dropped once and loaded again when needed
 
 # Release 5.9.1:
 

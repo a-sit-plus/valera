@@ -23,6 +23,7 @@ import at.asitplus.wallet.app.common.presentation.NfcDispatchSuppressionMode
 import at.asitplus.wallet.app.common.presentation.NfcTransferState
 import at.asitplus.wallet.app.common.presentation.PresentmentTimeout
 import data.storage.RealDataStoreService
+import data.storage.getCacheDataStore
 import data.storage.getDataStore
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineName
@@ -268,7 +269,8 @@ class NdefDeviceEngagementService : HostApduService() {
         walletConfig = WalletConfig(
             dataStoreService = RealDataStoreService(
                 dataStore = getDataStore(applicationContext),
-                platformAdapter = DummyPlatformAdapter()
+                platformAdapter = DummyPlatformAdapter(),
+                cacheDataStore = getCacheDataStore(applicationContext),
             ),
             errorService = ErrorService(serviceScope),
             buildType = BuildType.valueOf(BuildConfig.BUILD_TYPE.uppercase()),

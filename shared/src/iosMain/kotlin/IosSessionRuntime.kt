@@ -12,6 +12,7 @@ import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
 import androidx.compose.material3.SnackbarDuration
 import data.storage.AntilogAdapter
 import data.storage.RealDataStoreService
+import data.storage.createCacheDataStore
 import data.storage.createDataStore
 import io.github.aakira.napier.Antilog
 import io.github.aakira.napier.LogLevel
@@ -402,7 +403,7 @@ private fun createIosWalletSessionScope(
     sessionKind: IosSessionKind,
 ): SessionHandle {
     val platformAdapter = IosPlatformAdapter(intentState)
-    val dataStoreService = RealDataStoreService(createDataStore(), platformAdapter)
+    val dataStoreService = RealDataStoreService(createDataStore(), platformAdapter, createCacheDataStore())
     return when (sessionKind) {
         IosSessionKind.MAIN -> createMainWalletSessionScope(
             sessionName = sessionName,
