@@ -27,6 +27,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlin.random.Random
+import kotlin.time.TimeSource
+import kotlin.time.measureTimedValue
 
 class PersistentSubjectCredentialStore(
     private val dataStore: DataStoreService,
@@ -231,9 +233,17 @@ class PersistentSubjectCredentialStore(
     override fun observeStoreContainer(): Flow<StoreContainer> {
         // The preferences emit on every change of any key, e.g. of the HTTP cache, so the container is decoded only
         // if its own value changed, instead of holding a second copy of every credential while decoding it again
+        val observedAt = TimeSource.Monotonic.markNow()
         return dataStore.getPreference(Configuration.DATASTORE_KEY_VCS).distinctUntilChanged().map {
             withContext(Dispatchers.Default) {
-                dataStoreValueToStoreContainer(it)
+                val read = observedAt.elapsedNow()
+                measureTimedValue { dataStoreValueToStoreContainer(it) }.let { (container, duration) ->
+                    Napier.d(
+                        "Timing: decoded ${container.credentials.size} credentials (${it?.length ?: 0} characters) " +
+                                "in $duration, read $read after observing them"
+                    )
+                    container
+                }
             }
         }
     }
