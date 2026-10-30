@@ -7,6 +7,7 @@ import io.github.aakira.napier.Napier
 import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.client.plugins.cache.storage.CachedResponseData
 import io.ktor.http.HeadersBuilder
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpProtocolVersion
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Url
@@ -43,30 +44,66 @@ class PersistentHttpCacheStorage(
     /** Whether the blob that held every response before they were stored per URL was removed, see [store]. */
     private var legacyBlobRemoved = false
 
+    // Entries refreshed by a `304 Not Modified`, which only changes their times and headers, by URL and vary keys.
+    // Ktor stores the whole response again for every 304, so persisting it rewrote the response, e.g. a Trust List,
+    // and DataStore rewrites its whole file for every write. After a restart, the persisted entry is revalidated again.
+    private val revalidated = mutableMapOf<Pair<String, Map<String, String>>, StoredCacheEntry>()
+
     override suspend fun store(url: Url, data: CachedResponseData): Unit = persistentHttpCacheMutex.withLock {
         removeLegacyBlobLocked()
         val key = url.toString()
-        val others = load(key).filterNot { it.varyKeys == data.varyKeys }
-        val updated = if (data.body.size <= MAX_ENTRY_BYTES) others + data.toStored() else others
+        val persisted = load(key)
+        val stored = data.toStored()
+        val previous = persisted.firstOrNull { it.varyKeys == data.varyKeys }
+        if (previous != null && previous.hasSameContentAs(stored)) {
+            revalidated[key to data.varyKeys] = stored.copy(bodyBase64 = previous.bodyBase64)
+            return@withLock
+        }
+        revalidated.remove(key to data.varyKeys)
+        val others = persisted.filterNot { it.varyKeys == data.varyKeys }
+        val updated = if (data.body.size <= MAX_ENTRY_BYTES) others + stored else others
         saveLocked(key, updated)
         evictLocked()
     }
 
     override suspend fun find(url: Url, varyKeys: Map<String, String>): CachedResponseData? =
-        load(url.toString()).firstOrNull { it.varyKeys == varyKeys }?.toData(url)
+        currentEntries(url.toString()).firstOrNull { it.varyKeys == varyKeys }?.toData(url)
 
     override suspend fun findAll(url: Url): Set<CachedResponseData> =
-        load(url.toString()).mapNotNull { it.toData(url) }.toSet()
+        currentEntries(url.toString()).mapNotNull { it.toData(url) }.toSet()
 
     override suspend fun remove(url: Url, varyKeys: Map<String, String>): Unit =
         persistentHttpCacheMutex.withLock {
             val key = url.toString()
+            revalidated.remove(key to varyKeys)
             saveLocked(key, load(key).filterNot { it.varyKeys == varyKeys })
         }
 
     override suspend fun removeAll(url: Url): Unit = persistentHttpCacheMutex.withLock {
-        saveLocked(url.toString(), emptyList())
+        val key = url.toString()
+        revalidated.keys.removeAll { it.first == key }
+        saveLocked(key, emptyList())
     }
+
+    /** The persisted entries of [url], with the times of those revalidated since. */
+    private suspend fun currentEntries(url: String): List<StoredCacheEntry> {
+        val persisted = load(url)
+        return persistentHttpCacheMutex.withLock {
+            persisted.map { entry ->
+                revalidated[url to entry.varyKeys]?.takeIf { it.hasSameContentAs(entry) } ?: entry
+            }
+        }
+    }
+
+    /** Whether only times or headers other than the validators differ, as after a `304 Not Modified`. */
+    private fun StoredCacheEntry.hasSameContentAs(other: StoredCacheEntry) =
+        statusCode == other.statusCode &&
+            validators() == other.validators() &&
+            bodyBase64 == other.bodyBase64
+
+    private fun StoredCacheEntry.validators() = headers.filterKeys {
+        it.equals(HttpHeaders.ETag, ignoreCase = true) || it.equals(HttpHeaders.LastModified, ignoreCase = true)
+    }.mapKeys { it.key.lowercase() }
 
     private fun entriesKey(url: String) = "$preferenceKey|$url"
 

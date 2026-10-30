@@ -40,13 +40,14 @@ class PersistentHttpCacheStorageTest {
         url: Url = this.url,
         body: ByteArray,
         responseTime: Long = 2_000L,
+        expires: Long = 3_000L,
     ) = CachedResponseData(
         url = url,
         statusCode = HttpStatusCode.OK,
         requestTime = GMTDate(1_000L),
         responseTime = GMTDate(responseTime),
         version = HttpProtocolVersion.HTTP_1_1,
-        expires = GMTDate(3_000L),
+        expires = GMTDate(expires),
         headers = headersOf("ETag", "\"abc\""),
         varyKeys = varyKeys,
         body = body,
@@ -180,5 +181,33 @@ class PersistentHttpCacheStorageTest {
         }
         assertNull(storage.find(Url("https://example.test/0"), varyKeys))
         assertNotNull(storage.find(Url("https://example.test/64"), varyKeys))
+    }
+
+    @Test
+    fun keepsRevalidatedEntryWithoutRewritingIt() = runTest {
+        var writes = 0
+        val delegate = DummyDataStoreService()
+        val dataStore = object : DataStoreService by delegate {
+            override suspend fun setPreference(value: String, key: String) {
+                writes++
+                delegate.setPreference(value, key)
+            }
+        }
+        val storage = storage(dataStore)
+        storage.store(url, entry(body = "body".encodeToByteArray(), responseTime = 2_000L))
+        val writesOfResponse = writes
+
+        // A 304 only refreshes the times of the cached response
+        storage.store(url, entry(body = "body".encodeToByteArray(), responseTime = 5_000L, expires = 9_000L))
+        assertEquals(writesOfResponse, writes)
+        assertEquals(9_000L, storage.find(url, varyKeys)?.expires?.timestamp)
+        assertEquals(9_000L, storage.findAll(url).single().expires.timestamp)
+        // After a restart, the persisted entry is revalidated again
+        assertEquals(3_000L, storage(dataStore).find(url, varyKeys)?.expires?.timestamp)
+
+        storage.store(url, entry(body = "changed".encodeToByteArray(), responseTime = 6_000L))
+        assertTrue(writes > writesOfResponse)
+        assertContentEquals("changed".encodeToByteArray(), storage.find(url, varyKeys)?.body)
+        assertEquals(3_000L, storage.find(url, varyKeys)?.expires?.timestamp)
     }
 }
