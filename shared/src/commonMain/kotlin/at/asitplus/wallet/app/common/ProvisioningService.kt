@@ -59,7 +59,9 @@ import data.storage.WalletSubjectCredentialStore
 import data.storage.persistentStringMapStore
 import io.github.aakira.napier.Napier
 import io.ktor.http.URLBuilder
+import kotlin.concurrent.Volatile
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.StateFlow
@@ -126,12 +128,23 @@ class ProvisioningService(
     )
 
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.plus/app/callback/provisioning"
+    // The public functions run on Dispatchers.Default, so these are read and written from several threads
+    @Volatile
     private var cachedClientId: String? = null
+    @Volatile
     private var cachedWalletProviderAttestationEnabled: Boolean? = null
 
+    @Volatile
     private var openId4VciClientCached = null as OpenId4VciKtorClient?
+    @Volatile
     private var vciClientCached = null as OpenId4VciClient?
     private val provisioningFlowMutex = Mutex()
+
+    /**
+     * Runs a step of issuance off the caller's dispatcher, which is the UI dispatcher for calls from the UI: requests,
+     * signatures, and parsing would otherwise run between frames, and every resumption waits for a free frame.
+     */
+    private suspend fun <T> offMain(block: suspend CoroutineScope.() -> T): T = withContext(Dispatchers.Default, block)
 
     fun close() {
         client.close()
@@ -237,7 +250,7 @@ class ProvisioningService(
      * can decide after being warned, but metadata whose signature or subject failed are not.
      */
     @Throws(Throwable::class)
-    suspend fun loadCredentialMetadata(host: String): IssuerMetadataLoad {
+    suspend fun loadCredentialMetadata(host: String): IssuerMetadataLoad = offMain {
         val client = openId4VciClient()
         val loaded = client.loadIssuerMetadata(host, ValidationPolicies.strict).getOrThrow()
         val issuer = IssuerValidationUi.of(loaded)
@@ -245,7 +258,7 @@ class ProvisioningService(
             throw (loaded as? LoadedIssuerMetadata.Signed)?.validation?.report?.integrityRejection()
                 ?: IllegalArgumentException("The metadata of $host have been rejected")
         }
-        return IssuerMetadataLoad(client.parseCredentialMetadataIgnoringTrust(loaded).getOrThrow(), issuer)
+        IssuerMetadataLoad(client.parseCredentialMetadataIgnoringTrust(loaded).getOrThrow(), issuer)
     }
 
     /**
@@ -253,10 +266,12 @@ class ProvisioningService(
      * Credentials API.
      */
     @Throws(Throwable::class)
-    suspend fun parseCredentialMetadata(issuerMetadata: IssuerMetadata) = IssuerMetadataLoad(
-        credentialIdentifiers = openId4VciClient().parseCredentialMetadata(issuerMetadata).getOrThrow(),
-        issuer = IssuerValidationUi.unsigned(),
-    )
+    suspend fun parseCredentialMetadata(issuerMetadata: IssuerMetadata) = offMain {
+        IssuerMetadataLoad(
+            credentialIdentifiers = openId4VciClient().parseCredentialMetadata(issuerMetadata).getOrThrow(),
+            issuer = IssuerValidationUi.unsigned(),
+        )
+    }
 
     /**
      * Starts the issuing process at [credentialIssuer] for all of [credentialIdentifierInfos] with one authorization
@@ -266,7 +281,7 @@ class ProvisioningService(
         credentialIssuer: String,
         credentialIdentifierInfos: NonEmptyList<CredentialIdentifierInfo>,
         reissuingStoreEntryId: StoreEntryId? = null
-    ) {
+    ): Unit = offMain {
         provisioningFlowMutex.withLock {
             clearAbandonedProvisioningFlow()
             clearCaches()
@@ -308,7 +323,7 @@ class ProvisioningService(
         redirectedUrl: String,
         statusUpdater: ((Long, RefreshStatus) -> Unit)? = null,
         onProgress: ((LoadingMessageKey) -> Unit)? = null,
-    ): StoredCredentials {
+    ): StoredCredentials = offMain {
         Napier.d("handleResponse with $redirectedUrl")
         val storedState = provisioningFlowMutex.withLock {
             takeProvisioningState(redirectedUrl)
@@ -325,7 +340,7 @@ class ProvisioningService(
             }
             onProgress?.invoke(LoadingMessageKey.IssuingCredential)
             clearCaches(resetAttestation = false)
-            return openId4VciClient().resumeWithAuthCode(redirectedUrl, storedState.context).getOrThrow().let { result ->
+            return@offMain openId4VciClient().resumeWithAuthCode(redirectedUrl, storedState.context).getOrThrow().let { result ->
                 val idsBefore =
                     subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
                 Napier.d("resumeWithAuthCode idsBefore=$idsBefore")
@@ -434,7 +449,7 @@ class ProvisioningService(
         renewalInfo: CredentialRenewalInfo,
         oldCredentialId: StoreEntryId,
         statusUpdater: ((Long, RefreshStatus) -> Unit)
-    ) {
+    ): Unit = offMain {
         clearCaches()
         Napier.d("refreshCredential with identifier ${renewalInfo.credentialIdentifier}")
         openId4VciClient().refreshCredentialReturningResult(renewalInfo).getOrThrow().also { result ->
@@ -460,9 +475,9 @@ class ProvisioningService(
     @Throws(Throwable::class)
     suspend fun decodeCredentialOffer(
         qrCodeContent: String
-    ): CredentialOffer {
+    ): CredentialOffer = offMain {
         clearCaches()
-        return openId4VciClient().loadCredentialOffer(qrCodeContent).getOrThrow()
+        openId4VciClient().loadCredentialOffer(qrCodeContent).getOrThrow()
     }
 
     /**
@@ -482,7 +497,7 @@ class ProvisioningService(
         transactionCode: String? = null,
         authorizationServerMetadata: OAuth2AuthorizationServerMetadata? = null,
         onProgress: ((LoadingMessageKey) -> Unit)? = null,
-    ): StoredCredentialIssuanceResult {
+    ): StoredCredentialIssuanceResult = offMain {
         val result = provisioningFlowMutex.withLock {
             clearAbandonedProvisioningFlow()
             onProgress?.invoke(LoadingMessageKey.IssuingCredential)
@@ -499,7 +514,7 @@ class ProvisioningService(
             result
         }
 
-        return when (result) {
+        when (result) {
             is CredentialIssuanceResult.OpenUrlForAuthnRequest ->
                 StoredCredentialIssuanceResult(credentialIssuanceResult = result)
 
@@ -531,11 +546,11 @@ class ProvisioningService(
 
     /** Stores every credential under review, as the user decided to keep it although it has been rejected. */
     @Throws(Throwable::class)
-    suspend fun keepCredentialsUnderReview(): List<StoreEntryId> {
+    suspend fun keepCredentialsUnderReview(): List<StoreEntryId> = offMain {
         val idsBefore = subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
         val entries = pendingCredentialReview.take()
         entries.forEach { storeAfterUserConsent(it.prepared) }
-        return resolveNewStoreEntryIds(idsBefore, entries.size)
+        resolveNewStoreEntryIds(idsBefore, entries.size)
     }
 
     /** Drops every credential under review, as the user decided not to keep it. */
