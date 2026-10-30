@@ -9,6 +9,8 @@ import at.asitplus.wallet.sdjwt.SdJwtTypeMetadata
 import data.storage.DataStoreService
 import data.storage.PersistentSimpleStore
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.time.Clock
@@ -56,7 +58,13 @@ class PersistentCachingCredentialMetadataRegistry(
 
     private fun key(identifier: String, representation: CredentialRepresentation) = "$representation|$identifier"
 
+    // Called from the UI, e.g. while composing the offered credentials, so loading and parsing must leave its thread
     override suspend fun findEntry(
+        identifier: String,
+        representation: CredentialRepresentation,
+    ): ResolvedCredentialMetadata? = withContext(Dispatchers.Default) { findEntryHere(identifier, representation) }
+
+    private suspend fun findEntryHere(
         identifier: String,
         representation: CredentialRepresentation,
     ): ResolvedCredentialMetadata? {
