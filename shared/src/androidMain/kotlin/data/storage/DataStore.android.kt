@@ -8,3 +8,7 @@ import androidx.datastore.preferences.core.Preferences
 fun getDataStore(context: Context): DataStore<Preferences> = getDataStore(
     producePath = { context.filesDir.resolve(dataStoreFileName).absolutePath }
 )
+
+fun getCacheDataStore(context: Context): DataStore<Preferences> = getCacheDataStore(
+    producePath = { context.filesDir.resolve(cacheDataStoreFileName).absolutePath }
+)
