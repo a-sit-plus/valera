@@ -14,6 +14,7 @@
  * Performance: Reuse the validity and status of a stored credential checked within the last minute, e.g. by the list of credentials, when showing it for a request, instead of verifying it, its issuer, and its status list again; the time of each check is logged
  * Performance: Write the log file from a background thread instead of on the thread logging, e.g. the main thread, for every line; errors are still written at once
  * Issuing: Request the token right after returning from the browser, and remove the state of the browser flow afterwards instead of before, so that slow writes to the DataStore no longer delay the request until the authorization code has expired
+ * Issuing: Store cookies in the background instead of waiting for the DataStore before handing out the response that set them, which delayed e.g. loading issuer metadata by seconds, and load stored cookies without blocking a thread
 
 # Release 5.9.1:
 
