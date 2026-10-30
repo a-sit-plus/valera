@@ -12,6 +12,7 @@
  * QR code scanner (Android): Start the camera once with its preview instead of twice, without an unused full-resolution photo capture, reuse one barcode scanner for QR codes only instead of creating one for every frame, and keep analyzing frames after one without an image
  * Performance: Look up a cached status list without decoding every cached status list token, and without parsing the token again, while the cache is unchanged; the caches of status lists, HTTP responses, and credential metadata no longer wait for each other
  * Performance: Reuse the validity and status of a stored credential checked within the last minute, e.g. by the list of credentials, when showing it for a request, instead of verifying it, its issuer, and its status list again; the time of each check is logged
+ * Performance: Write the log file from a background thread instead of on the thread logging, e.g. the main thread, for every line; errors are still written at once
 
 # Release 5.9.1:
 
