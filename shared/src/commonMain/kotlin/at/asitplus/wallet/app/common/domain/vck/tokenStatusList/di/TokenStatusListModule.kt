@@ -9,6 +9,7 @@ import at.asitplus.wallet.app.common.HttpFailureCache
 import at.asitplus.wallet.app.common.HttpService
 import at.asitplus.wallet.app.common.IgnoreFailureCooldown
 import at.asitplus.wallet.app.common.SESSION_NAME
+import at.asitplus.wallet.app.common.coolingDownIfUnusable
 import at.asitplus.wallet.app.common.data.primitives.CachingStatusListTokenResolver
 import at.asitplus.wallet.app.common.data.primitives.SimpleBootstrappingBulkStore
 import at.asitplus.wallet.app.common.data.primitives.SimpleCacheStoreWrapper
@@ -90,8 +91,9 @@ private val CWT_MEDIA_TYPES = setOf(
 )
 
 /**
- * Requests the status list token at [url], also while it cools down after an error response if
- * [ignoreFailureCooldown] is set, see [HttpFailureCache]. The issuer chooses the format: a CWT if the response has the
+ * Requests the status list token at [url], also while it cools down after a failed request if
+ * [ignoreFailureCooldown] is set, see [HttpFailureCache]. A response that is no status list token starts a cooldown
+ * as well. The issuer chooses the format: a CWT if the response has the
  * media type of one, as for the status of an mdoc, otherwise a JWT.
  *
  * VC-K reports a failed resolution as an unknown status, but rethrows a cancellation, also one of a request whose job
@@ -109,22 +111,24 @@ internal suspend fun HttpClient.resolveStatusListToken(
         ).joinToString(", ")
         if (ignoreFailureCooldown) attributes.put(IgnoreFailureCooldown, Unit)
     }
-    val body = httpResponse.bodyAsBytes()
-    require(httpResponse.status.isSuccess()) {
-        "Requesting the status list token at $url failed with ${httpResponse.status}"
-    }
-    val contentType = httpResponse.contentType()
-    val resolvedAt = Clock.System.now()
-    if (contentType != null && CWT_MEDIA_TYPES.any { contentType.match(it) }) {
-        // A CWT status list token is published as a tagged COSE_Sign1 (Token Status List, 5.2)
-        val cwt = CoseSigned.deserialize(ByteArraySerializer(), body.stripCborTag(18)).getOrElse {
-            throw IllegalArgumentException("The status list token of type $contentType is no CWT", it)
+    httpResponse.coolingDownIfUnusable {
+        val body = bodyAsBytes()
+        require(status.isSuccess()) {
+            "Requesting the status list token at $url failed with $status"
         }
-        StatusListCwt(cwt, resolvedAt)
-    } else {
-        val jws = catching { JwsCompactTyped<StatusListTokenPayload>(body.decodeToString()) }.getOrElse {
-            throw IllegalArgumentException("The status list token of type $contentType is no JWT", it)
+        val contentType = contentType()
+        val resolvedAt = Clock.System.now()
+        if (contentType != null && CWT_MEDIA_TYPES.any { contentType.match(it) }) {
+            // A CWT status list token is published as a tagged COSE_Sign1 (Token Status List, 5.2)
+            val cwt = CoseSigned.deserialize(ByteArraySerializer(), body.stripCborTag(18)).getOrElse {
+                throw IllegalArgumentException("The status list token of type $contentType is no CWT", it)
+            }
+            StatusListCwt(cwt, resolvedAt)
+        } else {
+            val jws = catching { JwsCompactTyped<StatusListTokenPayload>(body.decodeToString()) }.getOrElse {
+                throw IllegalArgumentException("The status list token of type $contentType is no JWT", it)
+            }
+            StatusListJwt(jws, resolvedAt)
         }
-        StatusListJwt(jws, resolvedAt)
     }
 }

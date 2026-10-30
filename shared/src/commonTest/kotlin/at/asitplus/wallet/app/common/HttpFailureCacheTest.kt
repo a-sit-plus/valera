@@ -7,6 +7,7 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
+import kotlinx.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -71,6 +72,69 @@ class HttpFailureCacheTest {
 
         assertEquals("ok", client.get(url).bodyAsText())
         assertEquals("ok", client.get(url).bodyAsText())
+        assertEquals(2, requests)
+    }
+
+    @Test
+    fun requestWithoutResponseCoolsDownForTheTransientCooldown() = runTest {
+        var requests = 0
+        val clock = MutableClock(Instant.fromEpochMilliseconds(0))
+        val client = HttpClient(MockEngine { requests++; throw IOException("offline") }) {
+            install(HttpFailureCache) {
+                cooldown = 1.hours
+                transientCooldown = 5.minutes
+                this.clock = clock
+            }
+        }
+
+        assertFailsWith<IOException> { client.get(url) }
+        assertFailsWith<HttpResourceInCooldownException> { client.get(url) }
+        assertEquals(1, requests)
+
+        clock.instant = Instant.fromEpochMilliseconds(6.minutes.inWholeMilliseconds)
+        assertFailsWith<IOException> { client.get(url) }
+        assertEquals(2, requests)
+    }
+
+    @Test
+    fun unusableResponseCoolsDownWithoutShorteningAnErrorCooldown() = runTest {
+        var requests = 0
+        var status = HttpStatusCode.OK
+        val clock = MutableClock(Instant.fromEpochMilliseconds(0))
+        val client = HttpClient(MockEngine { requests++; respond("garbage", status) }) {
+            install(HttpFailureCache) {
+                cooldown = 1.hours
+                transientCooldown = 5.minutes
+                this.clock = clock
+            }
+        }
+
+        assertFailsWith<IllegalStateException> {
+            client.get(url).coolingDownIfUnusable { error("Invalid document: ${bodyAsText()}") }
+        }
+        assertFailsWith<HttpResourceInCooldownException> { client.get(url) }
+        assertEquals(1, requests)
+
+        // An error status cools down for longer, which reporting it as unusable as well keeps
+        clock.instant = Instant.fromEpochMilliseconds(6.minutes.inWholeMilliseconds)
+        status = HttpStatusCode.ServiceUnavailable
+        assertFailsWith<IllegalArgumentException> {
+            client.get(url).coolingDownIfUnusable { require(this.status.value < 400) }
+        }
+        clock.instant = Instant.fromEpochMilliseconds(30.minutes.inWholeMilliseconds)
+        assertFailsWith<HttpResourceInCooldownException> { client.get(url) }
+        assertEquals(2, requests)
+    }
+
+    @Test
+    fun usableResponseIsNotCooledDown() = runTest {
+        var requests = 0
+        val client = HttpClient(MockEngine { requests++; respond("ok", HttpStatusCode.OK) }) {
+            install(HttpFailureCache) { transientCooldown = 5.minutes }
+        }
+
+        assertEquals("ok", client.get(url).coolingDownIfUnusable { bodyAsText() })
+        assertEquals("ok", client.get(url).coolingDownIfUnusable { bodyAsText() })
         assertEquals(2, requests)
     }
 }

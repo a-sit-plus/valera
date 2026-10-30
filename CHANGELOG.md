@@ -13,6 +13,9 @@
  * Performance: Look up a cached status list without decoding every cached status list token, and without parsing the token again, while the cache is unchanged; the caches of status lists, HTTP responses, and credential metadata no longer wait for each other
  * Performance: Reuse the validity and status of a stored credential checked within the last minute, e.g. by the list of credentials, when showing it for a request, instead of verifying it, its issuer, and its status list again; the time of each check is logged
  * Performance: Write the log file from a background thread instead of on the thread logging, e.g. the main thread, for every line; errors are still written at once
+ * Performance: Request a status list once for credentials sharing it that are checked at the same time, and no longer let a status list being requested hold up cached status lists and other ones, which were all checked one after another
+ * Performance: Do not request a status list, Trust List, or type metadata again for 5 minutes after a request without a response, e.g. offline or timed out, or with an invalid document, instead of waiting for it to fail on every check; give up connecting after 10 seconds and on a stalled response after 15 seconds instead of the platform's default. Issuing still checks the status of a received credential with a fresh status list, and “Refresh trust lists” still loads every list
+ * Performance: Cache the HTTP response of each status list and Trust List on its own, so that revalidating one no longer decodes and encodes every cached response, e.g. all Trust Lists; the previous cache is dropped once
 
 # Release 5.9.1:
 

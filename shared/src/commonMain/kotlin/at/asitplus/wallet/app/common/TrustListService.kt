@@ -365,13 +365,15 @@ class TrustListService(
         val response = httpClient.get(url) {
             accept(ContentType.Application.Json)
         }
-        val responseBody = response.bodyAsText()
-        // An error, e.g. an XML page of a 403 response, would otherwise fail as an invalid JWS
-        require(response.status.isSuccess()) { "Fetching Trust List failed with ${response.status}" }
-        val jws = JwsCompact.parse<TrustListPayload>(responseBody).getOrThrow()
-        verifyJwsObject(jws.first).getOrThrow()
-        Napier.i("Successfully validated Trust List signature from $url")
-        responseBody
+        response.coolingDownIfUnusable {
+            val responseBody = bodyAsText()
+            // An error, e.g. an XML page of a 403 response, would otherwise fail as an invalid JWS
+            require(status.isSuccess()) { "Fetching Trust List failed with $status" }
+            val jws = JwsCompact.parse<TrustListPayload>(responseBody).getOrThrow()
+            verifyJwsObject(jws.first).getOrThrow()
+            Napier.i("Successfully validated Trust List signature from $url")
+            responseBody
+        }
     }
 
     /**

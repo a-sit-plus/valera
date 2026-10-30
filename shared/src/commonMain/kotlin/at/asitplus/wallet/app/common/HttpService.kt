@@ -7,6 +7,7 @@ import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.plugins.DefaultRequest
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -51,8 +52,17 @@ class HttpService(private val buildContext: BuildContext) {
         cacheStorage: CacheStorage? = null,
         revalidateCachedResponses: Boolean = false,
         failureCooldown: Duration? = null,
+        transientFailureCooldown: Duration? = null,
+        connectTimeout: Duration? = null,
+        socketTimeout: Duration? = null,
     ) = HttpClient(createPlatformHttpClientEngine()) {
         followRedirects = false
+        if (connectTimeout != null || socketTimeout != null) {
+            install(HttpTimeout) {
+                connectTimeoutMillis = connectTimeout?.inWholeMilliseconds
+                socketTimeoutMillis = socketTimeout?.inWholeMilliseconds
+            }
+        }
         install(ContentNegotiation) {
             json(joseCompliantSerializer)
         }
@@ -77,9 +87,12 @@ class HttpService(private val buildContext: BuildContext) {
                 privateStorage(CacheStorage.Disabled)
             }
         }
-        // Negative cache: after an error status, stop re-fetching that URL until the cooldown elapses.
-        failureCooldown?.let { cooldown ->
-            install(HttpFailureCache) { this.cooldown = cooldown }
+        // Negative cache: after a failed request, stop re-fetching that URL until the cooldown elapses.
+        if (failureCooldown != null || transientFailureCooldown != null) {
+            install(HttpFailureCache) {
+                failureCooldown?.let { cooldown = it }
+                transientFailureCooldown?.let { transientCooldown = it }
+            }
         }
     }
 
@@ -109,6 +122,9 @@ class HttpService(private val buildContext: BuildContext) {
             ),
             revalidateCachedResponses = revalidate,
             failureCooldown = Configuration.HTTP_FAILURE_COOLDOWN,
+            transientFailureCooldown = Configuration.HTTP_TRANSIENT_FAILURE_COOLDOWN,
+            connectTimeout = Configuration.HTTP_CONNECT_TIMEOUT,
+            socketTimeout = Configuration.HTTP_SOCKET_TIMEOUT,
         )
 
     // Logging a body buffers it and copies it into every log, which takes megabytes for a Trust List, e.g. of the

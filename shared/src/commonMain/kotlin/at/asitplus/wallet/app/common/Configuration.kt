@@ -4,6 +4,7 @@ package at.asitplus.wallet.app.common
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 object Configuration {
@@ -29,6 +30,15 @@ object Configuration {
     // After any cached-resource GET returns an error status (e.g. 404/503), suppress retries for that URL
     // this long (in-memory). Stops broken endpoints being re-hit on every freshness check / UI visit.
     val HTTP_FAILURE_COOLDOWN: Duration = 1.hours
+
+    // After a cached-resource GET got no response (offline, DNS, timeout) or an unusable one (e.g. an invalid status
+    // list token), suppress retries for that URL this long, as every check would wait for it to fail again otherwise.
+    val HTTP_TRANSIENT_FAILURE_COOLDOWN: Duration = 5.minutes
+
+    // Timeouts of the cached-resource client, so that an unreachable host fails a check instead of blocking it for
+    // the engine's default. No total request timeout, as a large Trust List may take long on a slow connection.
+    val HTTP_CONNECT_TIMEOUT: Duration = 10.seconds
+    val HTTP_SOCKET_TIMEOUT: Duration = 15.seconds
     const val DATASTORE_KEY_REFRESH_SUPPRESSED_CREDENTIALS = "refresh_suppressed_credentials"
     const val DATASTORE_KEY_PROVISIONING_CONTEXT_BY_STATE = "provisioning_context_by_state"
     const val DATASTORE_KEY_PROVISIONING_INSTANCE_ATTESTATION_BY_STATE = "provisioning_instance_attestation_by_state"

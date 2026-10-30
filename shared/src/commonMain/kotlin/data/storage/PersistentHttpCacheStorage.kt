@@ -1,6 +1,7 @@
 package data.storage
 
 import at.asitplus.catchingUnwrapped
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.Configuration
 import io.github.aakira.napier.Napier
 import io.ktor.client.plugins.cache.storage.CacheStorage
@@ -11,9 +12,11 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.Url
 import io.ktor.util.date.GMTDate
 import io.ktor.util.toMap
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
 import kotlin.io.encoding.Base64
 
 private val persistentHttpCacheMutex = Mutex()
@@ -21,62 +24,98 @@ private val persistentHttpCacheMutex = Mutex()
 /**
  * DataStore-backed Ktor [CacheStorage] so validators (ETag/Last-Modified) and bodies survive app
  * restarts — that is what makes the conditional GET answer with `304 Not Modified` on a cold launch.
- * Entries for a URL are stored as a list, one per `varyKeys` combination.
+ * The entries of a URL are a preference of their own, one per `varyKeys` combination, so that a request decodes and
+ * encodes only those of its URL, not every cached Trust List. A small index of every URL bounds them, see
+ * [evictLocked].
+ *
+ * The other iOS process may write between an entry and the index: a URL in the index without entries is a miss, and
+ * entries missing from the index are replaced by the next response of their URL.
  */
 class PersistentHttpCacheStorage(
-    dataStoreService: DataStoreService,
-    preferenceKey: String,
+    private val dataStoreService: DataStoreService,
+    private val preferenceKey: String,
 ) : CacheStorage {
-    // ponytail: the whole cache is one DataStore blob (≤ MAX_TOTAL_BODY_BYTES) re-parsed on every find/store;
-    // Ktor calls find per GET and find/findAll/store per 304-refresh. Fine while fetches are TTL-gated and
-    // off-main. If cache-parse latency ever shows up, re-key per URL so each op touches only that URL's blob.
-    private val store = PersistentSimpleStore<String, List<StoredCacheEntry>>(
+    private val index = PersistentSimpleStore<String, IndexEntry>(
         dataStoreService = dataStoreService,
-        preferenceKey = preferenceKey,
+        preferenceKey = "${preferenceKey}_index",
     )
 
+    /** Whether the blob that held every response before they were stored per URL was removed, see [store]. */
+    private var legacyBlobRemoved = false
+
     override suspend fun store(url: Url, data: CachedResponseData): Unit = persistentHttpCacheMutex.withLock {
+        removeLegacyBlobLocked()
         val key = url.toString()
-        val others = store[key].orEmpty().filterNot { it.varyKeys == data.varyKeys }
+        val others = load(key).filterNot { it.varyKeys == data.varyKeys }
         val updated = if (data.body.size <= MAX_ENTRY_BYTES) others + data.toStored() else others
-        if (updated.isEmpty()) store.remove(key) else store[key] = updated
+        saveLocked(key, updated)
         evictLocked()
     }
 
     override suspend fun find(url: Url, varyKeys: Map<String, String>): CachedResponseData? =
-        store[url.toString()]?.firstOrNull { it.varyKeys == varyKeys }?.toData(url)
+        load(url.toString()).firstOrNull { it.varyKeys == varyKeys }?.toData(url)
 
     override suspend fun findAll(url: Url): Set<CachedResponseData> =
-        store[url.toString()].orEmpty().mapNotNull { it.toData(url) }.toSet()
+        load(url.toString()).mapNotNull { it.toData(url) }.toSet()
 
     override suspend fun remove(url: Url, varyKeys: Map<String, String>): Unit =
         persistentHttpCacheMutex.withLock {
             val key = url.toString()
-            val remaining = store[key].orEmpty().filterNot { it.varyKeys == varyKeys }
-            if (remaining.isEmpty()) store.remove(key) else store[key] = remaining
+            saveLocked(key, load(key).filterNot { it.varyKeys == varyKeys })
         }
 
     override suspend fun removeAll(url: Url): Unit = persistentHttpCacheMutex.withLock {
-        store.remove(url.toString())
-        Unit
+        saveLocked(url.toString(), emptyList())
     }
 
-    private suspend fun evictLocked() {
-        val entries = store.entries().mapValuesTo(mutableMapOf()) { it.value.toMutableList() }
-        // ponytail: bounded O(n) eviction is simpler than maintaining a second persistent LRU index.
-        while (entries.entryCount() > MAX_ENTRIES || entries.totalBodySize() > MAX_TOTAL_BODY_BYTES) {
-            val oldest = entries.entries
-                .flatMap { (url, responses) -> responses.map { url to it } }
-                .minByOrNull { it.second.responseTimeMillis }
-                ?: break
-            val remaining = entries.getValue(oldest.first).apply { remove(oldest.second) }
-            if (remaining.isEmpty()) {
-                entries.remove(oldest.first)
-                store.remove(oldest.first)
+    private fun entriesKey(url: String) = "$preferenceKey|$url"
+
+    private suspend fun load(url: String): List<StoredCacheEntry> = catchingUnwrapped {
+        dataStoreService.getPreference(entriesKey(url)).first()
+            ?.let { joseCompliantSerializer.decodeFromString(entriesSerializer, it) }
+            .orEmpty()
+    }.onFailure {
+        Napier.w("Ignoring invalid cached HTTP responses for $url", it)
+    }.getOrDefault(emptyList())
+
+    private suspend fun saveLocked(url: String, entries: List<StoredCacheEntry>) {
+        catchingUnwrapped {
+            if (entries.isEmpty()) {
+                dataStoreService.deletePreferenceIfPresent(entriesKey(url))
+                index.remove(url)
             } else {
-                store[oldest.first] = remaining
+                dataStoreService.setPreference(
+                    joseCompliantSerializer.encodeToString(entriesSerializer, entries),
+                    entriesKey(url),
+                )
+                index[url] = IndexEntry(
+                    entryCount = entries.size,
+                    bodySize = entries.sumOf { it.bodySize },
+                    responseTimeMillis = entries.maxOf { it.responseTimeMillis },
+                )
             }
+        }.onFailure {
+            Napier.w("Could not persist cached HTTP responses for $url", it)
         }
+    }
+
+    /** Drops the URLs responded to longest ago until the entries and their bodies fit the limits. */
+    private suspend fun evictLocked() {
+        val entries = index.entries().toMutableMap()
+        // ponytail: bounded O(n) eviction over the small index is simpler than a persistent LRU order.
+        while (entries.values.sumOf { it.entryCount } > MAX_ENTRIES ||
+            entries.values.sumOf { it.bodySize } > MAX_TOTAL_BODY_BYTES
+        ) {
+            val oldest = entries.minByOrNull { it.value.responseTimeMillis }?.key ?: break
+            entries.remove(oldest)
+            saveLocked(oldest, emptyList())
+        }
+    }
+
+    private suspend fun removeLegacyBlobLocked() {
+        if (legacyBlobRemoved) return
+        catchingUnwrapped { dataStoreService.deletePreferenceIfPresent(preferenceKey) }
+            .onSuccess { legacyBlobRemoved = true }
     }
 
     private fun CachedResponseData.toStored() = StoredCacheEntry(
@@ -108,11 +147,9 @@ class PersistentHttpCacheStorage(
         Napier.w("Ignoring invalid cached HTTP response for $url", it)
     }.getOrNull()
 
-    private fun Map<String, List<StoredCacheEntry>>.entryCount() = values.sumOf { it.size }
-    private fun Map<String, List<StoredCacheEntry>>.totalBodySize() =
-        values.sumOf { responses -> responses.sumOf { it.bodySize } }
-
     private companion object {
+        val entriesSerializer = ListSerializer(StoredCacheEntry.serializer())
+
         const val MAX_ENTRIES = Configuration.MAX_PERSISTENT_CACHE_ENTRIES
         const val MAX_ENTRY_BYTES = 1024 * 1024
         const val MAX_TOTAL_BODY_BYTES = 4 * 1024 * 1024
@@ -134,3 +171,11 @@ private data class StoredCacheEntry(
 ) {
     val bodySize: Int get() = bodyBase64.length * 3 / 4
 }
+
+@Serializable
+private data class IndexEntry(
+    val entryCount: Int,
+    val bodySize: Int,
+    /** The latest response of the URL, which [PersistentHttpCacheStorage] evicts the oldest of first. */
+    val responseTimeMillis: Long,
+)

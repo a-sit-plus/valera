@@ -18,10 +18,13 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.Url
 import io.ktor.http.headersOf
 import io.ktor.util.date.GMTDate
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlin.io.encoding.Base64
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -79,10 +82,28 @@ class PersistentHttpCacheStorageTest {
     }
 
     @Test
-    fun ignoresMalformedPersistedBlob() = runTest {
+    fun ignoresMalformedPersistedEntries() = runTest {
         val dataStore = DummyDataStoreService()
-        dataStore.setPreference("not json", Configuration.DATASTORE_KEY_HTTP_CACHE)
+        dataStore.setPreference("not json", "${Configuration.DATASTORE_KEY_HTTP_CACHE}|$url")
         assertTrue(storage(dataStore).findAll(url).isEmpty())
+    }
+
+    @Test
+    fun storesEachUrlOnItsOwnAndDropsTheLegacyBlob() = runTest {
+        val dataStore = DummyDataStoreService()
+        dataStore.setPreference("{}", Configuration.DATASTORE_KEY_HTTP_CACHE)
+        val otherUrl = Url("https://example.test/other.json")
+        storage(dataStore).store(url, entry(body = "first".encodeToByteArray()))
+        storage(dataStore).store(otherUrl, entry(url = otherUrl, body = "second".encodeToByteArray()))
+
+        assertNull(dataStore.getPreference(Configuration.DATASTORE_KEY_HTTP_CACHE).first())
+        val stored = dataStore.getPreference("${Configuration.DATASTORE_KEY_HTTP_CACHE}|$url").first()
+        assertNotNull(stored)
+        assertFalse(stored.contains(Base64.encode("second".encodeToByteArray())))
+
+        storage(dataStore).removeAll(url)
+        assertNull(dataStore.getPreference("${Configuration.DATASTORE_KEY_HTTP_CACHE}|$url").first())
+        assertNotNull(storage(dataStore).find(otherUrl, varyKeys))
     }
 
     @Test

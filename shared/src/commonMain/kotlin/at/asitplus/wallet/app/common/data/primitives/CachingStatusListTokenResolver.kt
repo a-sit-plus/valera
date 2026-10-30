@@ -3,6 +3,10 @@ package at.asitplus.wallet.app.common.data.primitives
 import at.asitplus.wallet.lib.agent.validation.StatusListTokenResolver
 import at.asitplus.wallet.lib.data.StatusListToken
 import at.asitplus.wallet.lib.data.rfc3986.UniformResourceIdentifier
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * This class does not care about the underlying caching rules.
@@ -13,9 +17,18 @@ data class CachingStatusListTokenResolver(
     /** Resolves a status list token for [fresh], bypassing every cache, by default [statusListTokenResolver]. */
     val freshStatusListTokenResolver: StatusListTokenResolver = statusListTokenResolver,
 ) : StatusListTokenResolver {
+    // One resolution per list at a time, so that credentials sharing a list, checked at once, request it once, while
+    // lookups of other lists and of cached tokens do not wait for the network, as with the lock of the store
+    private val resolutionLocksGuard = SynchronizedObject()
+    private val resolutionLocks = mutableMapOf<UniformResourceIdentifier, Mutex>()
+
+    private fun resolutionLock(statusListUrl: UniformResourceIdentifier) =
+        synchronized(resolutionLocksGuard) { resolutionLocks.getOrPut(statusListUrl) { Mutex() } }
+
     override suspend fun invoke(statusListUrl: UniformResourceIdentifier) =
-        store.getOrPut(statusListUrl) {
-            statusListTokenResolver(statusListUrl)
+        store[statusListUrl] ?: resolutionLock(statusListUrl).withLock {
+            // A resolution of the same list, which this one waited for, may have cached it meanwhile
+            store[statusListUrl] ?: statusListTokenResolver(statusListUrl).also { store[statusListUrl] = it }
         }
 
     /**
@@ -25,7 +38,9 @@ data class CachingStatusListTokenResolver(
      */
     val fresh = StatusListTokenResolver { statusListUrl ->
         store.remove(statusListUrl)
-        freshStatusListTokenResolver(statusListUrl).also { store[statusListUrl] = it }
+        resolutionLock(statusListUrl).withLock {
+            freshStatusListTokenResolver(statusListUrl).also { store[statusListUrl] = it }
+        }
     }
 
     /**
