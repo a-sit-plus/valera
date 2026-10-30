@@ -54,9 +54,12 @@ class PersistentMapStore<Key : Any, Value : Any>(
 
     override suspend fun remove(key: Key): Value? = mutex.withLock {
         val entries = loadEntriesLocked()
-        cleanupExpiredLocked(entries)
+        val didCleanup = cleanupExpiredLocked(entries)
         val removed = entries.remove(key)
-        saveEntriesLocked(entries)
+        // Each write rewrites the whole DataStore, so removing a missing key must not write
+        if (removed != null || didCleanup) {
+            saveEntriesLocked(entries)
+        }
         removed?.value
     }
 

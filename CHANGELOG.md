@@ -13,6 +13,7 @@
  * Performance: Look up a cached status list without decoding every cached status list token, and without parsing the token again, while the cache is unchanged; the caches of status lists, HTTP responses, and credential metadata no longer wait for each other
  * Performance: Reuse the validity and status of a stored credential checked within the last minute, e.g. by the list of credentials, when showing it for a request, instead of verifying it, its issuer, and its status list again; the time of each check is logged
  * Performance: Write the log file from a background thread instead of on the thread logging, e.g. the main thread, for every line; errors are still written at once
+ * Issuing: Request the token right after returning from the browser, and remove the state of the browser flow afterwards instead of before, so that slow writes to the DataStore no longer delay the request until the authorization code has expired
 
 # Release 5.9.1:
 
