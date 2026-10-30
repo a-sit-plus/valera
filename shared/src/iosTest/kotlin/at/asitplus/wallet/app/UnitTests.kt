@@ -13,7 +13,7 @@ class UnitTests {
     @Test
     fun testDataStore() {
         val dataStore = createTestDataStore()
-        val realDataStoreService = RealDataStoreService(dataStore, DummyPlatformAdapter())
+        val realDataStoreService = RealDataStoreService(dataStore, DummyPlatformAdapter(), dataStore)
         runBlocking {
             realDataStoreService.setPreference(
                 value = Configuration.DEBUG_DATASTORE_VALUE,
