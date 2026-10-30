@@ -12,6 +12,12 @@ interface WalletSubjectCredentialStore : SubjectCredentialStore {
 
     suspend fun removeStoreEntryById(storeEntryId: StoreEntryId)
 
+    /**
+     * The ID that [entry] has been stored with by this store instance recently, e.g. as returned by
+     * [at.asitplus.wallet.lib.agent.HolderAgent.storeAccepted], without waiting for [observeStoreContainer] to show it.
+     */
+    fun storeEntryIdOf(entry: StoreEntry): StoreEntryId? = null
+
     override suspend fun getCredentials(
         credentialSchemes: Collection<CredentialScheme>?,
     ): KmmResult<List<StoreEntry>> {

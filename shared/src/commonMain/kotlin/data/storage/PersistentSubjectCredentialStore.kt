@@ -19,6 +19,8 @@ import at.asitplus.wallet.lib.data.VcJwtCredentialScheme
 import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
 import io.github.aakira.napier.Napier
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -35,12 +37,24 @@ class PersistentSubjectCredentialStore(
 ) : SubjectCredentialStore, WalletSubjectCredentialStore {
     private val container = this.observeStoreContainer()
 
+    // The IDs of the entries stored last, by identity, see [storeEntryIdOf]
+    private val recentlyStored = ArrayDeque<Pair<SubjectCredentialStore.StoreEntry, StoreEntryId>>()
+    private val recentlyStoredLock = SynchronizedObject()
+
     private suspend fun addStoreEntry(storeEntry: SubjectCredentialStore.StoreEntry) {
+        val id = Random.nextLong()
         val newContainer = container.first().let {
-            it.copy(it.credentials + listOf(Random.nextLong() to storeEntry))
+            it.copy(it.credentials + listOf(id to storeEntry))
         }
         exportToDataStore(newContainer)
+        synchronized(recentlyStoredLock) {
+            recentlyStored.addLast(storeEntry to id)
+            while (recentlyStored.size > RECENTLY_STORED_LIMIT) recentlyStored.removeFirst()
+        }
     }
+
+    override fun storeEntryIdOf(entry: SubjectCredentialStore.StoreEntry): StoreEntryId? =
+        synchronized(recentlyStoredLock) { recentlyStored.lastOrNull { it.first === entry }?.second }
 
     override suspend fun storeCredential(
         entry: SubjectCredentialStore.StoreEntry
@@ -251,6 +265,8 @@ class PersistentSubjectCredentialStore(
 }
 
 typealias StoreEntryId = Long
+
+private const val RECENTLY_STORED_LIMIT = 32
 
 @Serializable
 data class StoreContainer(

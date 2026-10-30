@@ -30,6 +30,8 @@ class HotWalletSubjectCredentialStore(
     override suspend fun getCredentials(credentialSchemes: Collection<CredentialScheme>?) =
         super.getCredentials(credentialSchemes)
 
+    override fun storeEntryIdOf(entry: SubjectCredentialStore.StoreEntry) = delegate.storeEntryIdOf(entry)
+
     override suspend fun removeStoreEntryById(
         storeEntryId: StoreEntryId,
     ) = delegate.removeStoreEntryById(storeEntryId)

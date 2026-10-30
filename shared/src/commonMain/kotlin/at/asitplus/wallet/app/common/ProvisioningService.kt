@@ -338,7 +338,7 @@ class ProvisioningService(
                     storeCredential(credential, issued.scheme, issued.refreshToken, underReview)
                 }
                 val needsReview = storageResults.any { it.getOrNull() == null }
-                val storedEntryIds = resolveNewStoreEntryIds(idsBefore, storageResults.count { it.getOrNull() != null })
+                val storedEntryIds = storedEntryIds(idsBefore, storageResults.mapNotNull { it.getOrNull() })
                 Napier.d("resumeWithAuthCode resolved storeEntryIds=$storedEntryIds")
 
                 if (storageResults.all { it.isSuccess }) {
@@ -514,7 +514,7 @@ class ProvisioningService(
                     storeCredential(credential, issued.scheme, underReview = underReview).getOrThrow()
                 }
                 if (underReview.isNotEmpty()) pendingCredentialReview.replace(underReview)
-                val storedEntryIds = resolveNewStoreEntryIds(idsBefore, storedEntries.count { it != null })
+                val storedEntryIds = storedEntryIds(idsBefore, storedEntries.filterNotNull())
                 Napier.d("loadCredentialWithOffer resolved storeEntryIds=$storedEntryIds")
                 StoredCredentialIssuanceResult(
                     credentialIssuanceResult = result,
@@ -534,8 +534,8 @@ class ProvisioningService(
     suspend fun keepCredentialsUnderReview(): List<StoreEntryId> {
         val idsBefore = subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
         val entries = pendingCredentialReview.take()
-        entries.forEach { storeAfterUserConsent(it.prepared) }
-        return resolveNewStoreEntryIds(idsBefore, entries.size)
+        val stored = entries.map { storeAfterUserConsent(it.prepared) }
+        return storedEntryIds(idsBefore, stored)
     }
 
     /** Drops every credential under review, as the user decided not to keep it. */
@@ -598,6 +598,18 @@ class ProvisioningService(
      * Waits for the store to emit a container with all [count] entries stored since [idsBefore], as the session's hot
      * store may still show only some of them, returning those found so far on a timeout.
      */
+    /**
+     * The IDs of [stored], as the store assigned them. The session's hot store shows new entries only once it decoded
+     * the whole container again, which took longer than [resolveNewStoreEntryIds] waits on a busy device, so the
+     * result screen showed only some of the issued credentials.
+     */
+    private suspend fun storedEntryIds(
+        idsBefore: Set<StoreEntryId>,
+        stored: List<SubjectCredentialStore.StoreEntry>,
+    ): List<StoreEntryId> = stored.map { subjectCredentialStore.storeEntryIdOf(it) }
+        .takeIf { ids -> ids.none { it == null } }?.filterNotNull()
+        ?: resolveNewStoreEntryIds(idsBefore, stored.size)
+
     private suspend fun resolveNewStoreEntryIds(idsBefore: Set<StoreEntryId>, count: Int): List<StoreEntryId> {
         if (count == 0) return emptyList()
         var newIds = emptyList<StoreEntryId>()
