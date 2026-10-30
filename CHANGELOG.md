@@ -16,6 +16,7 @@
  * Issuing: Request the token right after returning from the browser, and remove the state of the browser flow afterwards instead of before, so that slow writes to the DataStore no longer delay the request until the authorization code has expired
  * Issuing: Store cookies in the background instead of waiting for the DataStore before handing out the response that set them, which delayed e.g. loading issuer metadata by seconds, and load stored cookies without blocking a thread
  * Performance: Store the HTTP cache, the status list and credential metadata caches, and the Trust Lists in their own DataStore file, `wallet-cache.preferences_pb`, so that writing small values, e.g. the state of an issuance, no longer rewrites and waits for megabytes of caches; the caches stored so far are dropped once and loaded again when needed
+ * Issuing: Load offers and metadata, request, validate, and store credentials, and refresh them off the UI thread instead of on it, which skipped frames and delayed every step until the UI was idle
 
 # Release 5.9.1:
 
