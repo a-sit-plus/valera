@@ -270,6 +270,10 @@ data class CapabilitiesRoute(val prerequisitesSerialized: String) : Route() {
         get() = joseCompliantSerializer.decodeFromString(prerequisitesSerialized)
 }
 
+/** Tells the user that access to the Digital Credentials API was denied, which is optional for the wallet. */
+@Serializable
+object DcApiNoticeRoute : Route()
+
 @Serializable
 object RefreshCenterRoute
 @Serializable

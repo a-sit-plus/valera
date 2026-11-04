@@ -13,7 +13,9 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.IntentState
 import at.asitplus.wallet.app.common.PlatformAdapter
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
+import at.asitplus.wallet.app.common.dcapi.DCAPIRegistrationResult
 import at.asitplus.wallet.app.common.dcapi.DCAPIVerificationRequest
+import at.asitplus.wallet.app.common.dcapi.DigitalCredentialsPermission
 import at.asitplus.wallet.app.common.dcapi.isoMdocDcApiRequest
 import at.asitplus.wallet.app.common.AV_DOC_TYPE
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
@@ -126,8 +128,11 @@ fun TransientFlowMainViewController(
 class IosPlatformAdapter(
     private val intentState: IntentState
 ) : PlatformAdapter {
+    private enum class StoreDocumentResult { STORED, NOT_AUTHORIZED, FAILED }
+
     private companion object {
         const val REGISTERED_DOCUMENT_IDS_DEFAULTS_KEY = "dcapi.registeredDocumentIds"
+        const val REGISTRATION_ERROR_NOT_AUTHORIZED = "notAuthorized"
         const val ISO_DC_API_VALIDATION_ERROR = "ISO 18013-7 Annex C request validation failed"
         val registeredDocumentIdsLock = Mutex()
         val registeredDocumentIds = mutableSetOf<String>().apply {
@@ -314,52 +319,93 @@ class IosPlatformAdapter(
     override suspend fun registerWithDigitalCredentialsAPI(
         entries: CredentialRegistry,
         scope: CoroutineScope
-    ) {
-        withContext(Dispatchers.Default) {
-            // Serialize the whole removal+add process so concurrent snapshots can't interleave.
-            registeredDocumentIdsLock.withLock {
-                val currentIds = entries.credentials.mapNotNull { entry ->
-                    entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
-                }.toSet()
-                val staleIds = registeredDocumentIds - currentIds
-                staleIds.forEach { id ->
-                    if (removeDocumentFromSwift(id, scope)) {
-                        registeredDocumentIds.remove(id)
-                        saveRegisteredDocumentIds(registeredDocumentIds)
-                    }
+    ): DCAPIRegistrationResult = withContext(Dispatchers.Default) {
+        // Serialize the whole removal+add process so concurrent snapshots can't interleave.
+        registeredDocumentIdsLock.withLock {
+            val currentIds = entries.credentials.mapNotNull { entry ->
+                entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
+            }.toSet()
+            // Only register credentials we haven't registered before.
+            val unregisteredDocuments = entries.credentials.mapNotNull { entry ->
+                val id = entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
+                val docType = entry.isoEntry?.docType ?: entry.sdJwtEntry?.verifiableCredentialType
+                if (id == null || docType == null || id in registeredDocumentIds) {
+                    return@mapNotNull null
                 }
-                for (entry in entries.credentials) {
-                    val id = entry.isoEntry?.id ?: entry.sdJwtEntry?.jwtId
-                    val docType = entry.isoEntry?.docType ?: entry.sdJwtEntry?.verifiableCredentialType
-                    // Only register credentials we haven't registered before.
-                    if (id != null && docType != null && id !in registeredDocumentIds) {
-                        if (storeDocumentFromSwift(id, docType, scope)) {
-                            registeredDocumentIds.add(id)
-                            saveRegisteredDocumentIds(registeredDocumentIds)
-                        }
-                    }
+                if (docType !in SUPPORTED_DOC_TYPES) {
+                    Napier.w("DocType '$docType' is not supported on iOS, will not add it to the system")
+                    return@mapNotNull null
+                }
+                id to docType
+            }
+
+            val permission = getDigitalCredentialsPermission()
+            if (permission == DigitalCredentialsPermission.DENIED ||
+                permission == DigitalCredentialsPermission.NOT_SUPPORTED
+            ) {
+                Napier.w("DC API: Skipping registration, permission is $permission")
+                return@withLock if (permission == DigitalCredentialsPermission.DENIED &&
+                    unregisteredDocuments.isNotEmpty()
+                ) DCAPIRegistrationResult.PERMISSION_DENIED else DCAPIRegistrationResult.OK
+            }
+
+            val staleIds = registeredDocumentIds - currentIds
+            staleIds.forEach { id ->
+                if (removeDocumentFromSwift(id, scope)) {
+                    registeredDocumentIds.remove(id)
+                    saveRegisteredDocumentIds(registeredDocumentIds)
                 }
             }
+            // If the user has not decided yet, the first registration shows the system prompt.
+            for ((id, docType) in unregisteredDocuments) {
+                when (storeDocumentFromSwift(id, docType, scope)) {
+                    StoreDocumentResult.STORED -> {
+                        registeredDocumentIds.add(id)
+                        saveRegisteredDocumentIds(registeredDocumentIds)
+                    }
+
+                    StoreDocumentResult.NOT_AUTHORIZED -> return@withLock DCAPIRegistrationResult.PERMISSION_DENIED
+                    StoreDocumentResult.FAILED -> {}
+                }
+            }
+            DCAPIRegistrationResult.OK
         }
     }
+
+    @OptIn(ExperimentalForeignApi::class)
+    override suspend fun getDigitalCredentialsPermission(): DigitalCredentialsPermission =
+        suspendCancellableCoroutine { cont ->
+            try {
+                DigitalCredentials.getStatusWithCompletionHandler { status ->
+                    val permission = when (status) {
+                        "authorized" -> DigitalCredentialsPermission.GRANTED
+                        "notAuthorized" -> DigitalCredentialsPermission.DENIED
+                        "notDetermined" -> DigitalCredentialsPermission.NOT_DETERMINED
+                        else -> DigitalCredentialsPermission.NOT_SUPPORTED
+                    }
+                    Napier.d("getDigitalCredentialsPermission callback with status=$status")
+                    if (cont.isActive) cont.resume(permission)
+                }
+            } catch (e: Throwable) {
+                Napier.e("Error while invoking Swift code", e)
+                if (cont.isActive) cont.resume(DigitalCredentialsPermission.NOT_SUPPORTED)
+            }
+        }
 
     @OptIn(ExperimentalForeignApi::class)
     private suspend fun storeDocumentFromSwift(
         id: String,
         docType: String,
         scope: CoroutineScope
-    ): Boolean = suspendCancellableCoroutine { cont ->
+    ): StoreDocumentResult = suspendCancellableCoroutine { cont ->
         try {
             Napier.d("storeDocumentFromSwift invoked")
-            if (docType !in SUPPORTED_DOC_TYPES) {
-                Napier.w("DocType '$docType' is not supported on iOS, will not add it to the system")
-                if (cont.isActive) cont.resume(false)
-                return@suspendCancellableCoroutine
-            }
             DigitalCredentials.storeDocumentWithId(id, docType) { errorMessage ->
                 val success = errorMessage == null
+                val notAuthorized = errorMessage == REGISTRATION_ERROR_NOT_AUTHORIZED
                 Napier.d("storeDocumentFromSwift callback with success=$success error=$errorMessage")
-                if (!success) {
+                // A denied access is shown to the user by the DC API notice instead
+                if (!success && !notAuthorized) {
                     scope.launch {
                         val baseMessage = getString(Res.string.snackbar_digital_credentials_store_failed)
                         val details = errorMessage.takeIf { it.isNotBlank() }
@@ -370,12 +416,17 @@ class IosPlatformAdapter(
                         )
                     }
                 }
-                if (cont.isActive) cont.resume(success)
+                val result = when {
+                    success -> StoreDocumentResult.STORED
+                    notAuthorized -> StoreDocumentResult.NOT_AUTHORIZED
+                    else -> StoreDocumentResult.FAILED
+                }
+                if (cont.isActive) cont.resume(result)
             }
             Napier.d("storeDocumentFromSwift got back from swift")
         } catch (e: Throwable) {
             Napier.e("Error while invoking Swift code", e)
-            if (cont.isActive) cont.resume(false)
+            if (cont.isActive) cont.resume(StoreDocumentResult.FAILED)
         }
     }
 

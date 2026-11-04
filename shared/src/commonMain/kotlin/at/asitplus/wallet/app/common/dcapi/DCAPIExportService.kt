@@ -31,7 +31,10 @@ import org.jetbrains.compose.resources.getString
 class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
     private val imageDecoder: (ByteArray) -> Result<ImageBitmap> = { platformAdapter.decodeImage(it) }
 
-    suspend fun registerCredentialWithSystem(container: StoreContainer, scope: CoroutineScope) {
+    suspend fun registerCredentialWithSystem(
+        container: StoreContainer,
+        scope: CoroutineScope
+    ): DCAPIRegistrationResult {
         Napier.d("DC API: Preparing registration of updated credentials with the system")
 
         val credentialListEntries = container.credentials.mapNotNull { (_, storeEntry) ->
@@ -41,8 +44,9 @@ class DCAPIExportService(private val platformAdapter: PlatformAdapter) {
         }
 
         val credentialRegistry = CredentialRegistry.create(credentialListEntries)
-        platformAdapter.registerWithDigitalCredentialsAPI(credentialRegistry, scope)
-        Napier.d("DC API: Registering ${credentialRegistry.credentials.size} credentials with the system")
+        return platformAdapter.registerWithDigitalCredentialsAPI(credentialRegistry, scope).also {
+            Napier.d("DC API: Registering ${credentialRegistry.credentials.size} credentials with the system: $it")
+        }
     }
 
     private suspend fun SubjectCredentialStore.StoreEntry.toCredentialEntry(): CredentialEntry? {

@@ -42,7 +42,9 @@ import at.asitplus.wallet.app.android.dcapi.CustomRegistry
 import at.asitplus.wallet.app.common.*
 import at.asitplus.wallet.app.common.dcapi.DCAPICredentialQuerySelection
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
+import at.asitplus.wallet.app.common.dcapi.DCAPIRegistrationResult
 import at.asitplus.wallet.app.common.dcapi.DCAPIVerificationRequest
+import at.asitplus.wallet.app.common.dcapi.DigitalCredentialsPermission
 import at.asitplus.wallet.app.common.dcapi.isoMdocDcApiRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.lib.openid.OpenId4VpHolder
@@ -172,6 +174,10 @@ public class AndroidPlatformAdapter(
         return ContextCompat.checkSelfPermission(applicationContext, permission) == PackageManager.PERMISSION_GRANTED
     }
 
+    // Credential Manager does not require an app permission for registering credentials
+    override suspend fun getDigitalCredentialsPermission(): DigitalCredentialsPermission =
+        DigitalCredentialsPermission.GRANTED
+
     override fun openUrl(url: String) {
         Napier.d("Open URL: ${url.toUri()}")
         val uri = url.toUri()
@@ -256,7 +262,10 @@ public class AndroidPlatformAdapter(
     }
 
     @OptIn(ExperimentalDigitalCredentialApi::class)
-    override suspend fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope) {
+    override suspend fun registerWithDigitalCredentialsAPI(
+        entries: CredentialRegistry,
+        scope: CoroutineScope
+    ): DCAPIRegistrationResult {
         withContext(Dispatchers.Default) {
             catching {
                 val credentialsListCbor = coseCompliantSerializer.encodeToByteArray(entries)
@@ -276,6 +285,7 @@ public class AndroidPlatformAdapter(
             }.onSuccess { Napier.i("DC API: Credential Manager registration succeeded") }
                 .onFailure { Napier.w("DC API: Credential Manager registration failed", it) }
         }
+        return DCAPIRegistrationResult.OK
     }
 
     // Source: https://github.com/openwallet-foundation/multipaz/blob/5c1845c400875edcc4620e395773d89c3f796256/multipaz-compose/src/androidMain/kotlin/org/multipaz/compose/digitalcredentials/CredentialManagerPresentmentActivity.kt#L206
