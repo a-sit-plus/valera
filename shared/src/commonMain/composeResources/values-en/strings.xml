@@ -551,6 +551,9 @@
     <string name="validation_finding_missing_registration">No registration information provided</string>
     <string name="validation_finding_unsigned">Not signed, so its sender could not be verified</string>
     <string name="validation_finding_not_checked">Could not be checked</string>
+    <string name="validation_finding_status_unavailable_reason">Status could not be checked: %1$s</string>
+    <string name="validation_finding_not_checked_reason">Could not be checked: %1$s</string>
+    <string name="validation_finding_skipped">Not checked</string>
     <string name="section_heading_issuer_validation">Issuer</string>
     <string name="label_issuer_registration">Registration of the issuer</string>
     <string name="label_issuer_registration_unverified">Registration of the issuer (not verified)</string>

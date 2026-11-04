@@ -21,10 +21,12 @@ val lightExtendedColors = ExtendedColors(
     validationLight = ValidationColor(
         valid = Color(red = 235, green = 255, blue = 235),
         invalid = Color(red = 255, green = 235, blue = 235),
+        warning = Color(red = 255, green = 245, blue = 220),
     ),
     validationDark = ValidationColor(
         valid = Color(red = 0, green = 150, blue = 0),
-        invalid = Color(red = 150, green = 0, blue = 0)
+        invalid = Color(red = 150, green = 0, blue = 0),
+        warning = Color(red = 160, green = 100, blue = 0),
     ),
 )
 
@@ -37,14 +39,18 @@ val darkExtendedColors = ExtendedColors(
     validationLight = ValidationColor(
         valid = Color(red = 0, green = 150, blue = 0),
         invalid = Color(red = 150, green = 0, blue = 0),
+        warning = Color(red = 160, green = 100, blue = 0),
     ),
     validationDark = ValidationColor(
         valid = Color(red = 235, green = 255, blue = 235),
-        invalid = Color(red = 255, green = 235, blue = 235)
+        invalid = Color(red = 255, green = 235, blue = 235),
+        warning = Color(red = 255, green = 225, blue = 160),
     ),
 )
 
 data class ValidationColor(
     val valid: Color,
-    val invalid: Color
+    val invalid: Color,
+    /** Of a check that could not be checked, as opposed to one that failed. */
+    val warning: Color,
 )

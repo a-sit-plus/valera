@@ -6,6 +6,7 @@ import at.asitplus.wallet.lib.agent.validation.relyingParty.MissingRegistrationC
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.primitives.TokenStatus
 import at.asitplus.wallet.lib.validation.CheckOutcome.Blocked
 import at.asitplus.wallet.lib.validation.CheckOutcome.Failed
+import at.asitplus.wallet.lib.validation.CheckOutcome.NotApplicable
 import at.asitplus.wallet.lib.validation.CheckOutcome.Passed
 import at.asitplus.wallet.lib.validation.MissingRequiredClaimException
 import at.asitplus.wallet.lib.validation.NamedCheck
@@ -156,6 +157,42 @@ internal class ValidationReportUiTest : ValidationReportFixtures() {
 
         val finding = outcome.headline.first { it.check.name == "status.mechanisms[0]" }.check.finding
         assertEquals(FindingUi.StatusUnavailable("offline"), finding)
+        val registration = outcome.root.children.single { it.kind == ArtifactKind.REGISTRATION_CERTIFICATE }
+        assertEquals(CheckState.NOT_CHECKED, registration.displayedChecks().single { it.name == "status" }.state)
+    }
+
+    @Test
+    fun statusOfAnUntrustedRegistrationCertificateIsSkipped() {
+        val status = StatusValidation(
+            claim = Blocked(IllegalStateException("The status of an invalid WRPRC is not resolved")),
+            agreement = NotApplicable,
+        )
+        val outcome = relyingParty(
+            registrationCertificate = registrationCertificate(
+                trust = Failed(IllegalArgumentException("untrusted")),
+                status = status,
+            )
+        ).toUi()
+
+        val registration = outcome.root.children.single { it.kind == ArtifactKind.REGISTRATION_CERTIFICATE }
+        val statusCheck = registration.displayedChecks().single { it.name == "status" }
+        assertEquals(CheckState.SKIPPED, statusCheck.state)
+        assertEquals(FindingUi.Skipped, statusCheck.finding)
+        assertEquals(listOf("trust"), outcome.headline.map { it.check.name })
+        assertEquals(
+            outcome,
+            joseCompliantSerializer.decodeFromString<ValidationOutcomeUi>(joseCompliantSerializer.encodeToString(outcome)),
+        )
+    }
+
+    @Test
+    fun blockedStatusWithoutAnotherProblemIsNotChecked() {
+        val status = StatusValidation(claim = Blocked(IllegalStateException("blocked")), agreement = NotApplicable)
+        val outcome = relyingParty(registrationCertificate = registrationCertificate(status = status)).toUi()
+
+        val check = outcome.headline.single().check
+        assertEquals("status.claim", check.name)
+        assertEquals(CheckState.NOT_CHECKED, check.state)
     }
 
     @Test

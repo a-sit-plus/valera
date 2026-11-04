@@ -90,6 +90,9 @@ enum class CheckState {
 
     /** The check could not run, e.g. because trust anchors are missing or a status list is unavailable. */
     NOT_CHECKED,
+
+    /** The check did not run because other checks of the artifact did not pass, see [FindingUi.Skipped]. */
+    SKIPPED,
     NOT_APPLICABLE,
 }
 
@@ -180,6 +183,11 @@ sealed interface FindingUi {
     @SerialName("not_checked")
     data class NotChecked(val reason: String?) : FindingUi
 
+    /** The check did not run because other checks of the artifact did not pass. */
+    @Serializable
+    @SerialName("skipped")
+    data object Skipped : FindingUi
+
     @Serializable
     @SerialName("message")
     data class Message(val text: String) : FindingUi
@@ -223,8 +231,9 @@ private val CheckState.severity: Int
     get() = when (this) {
         CheckState.NOT_APPLICABLE -> 0
         CheckState.PASSED -> 1
-        CheckState.NOT_CHECKED -> 2
-        CheckState.FAILED -> 3
+        CheckState.SKIPPED -> 2
+        CheckState.NOT_CHECKED -> 3
+        CheckState.FAILED -> 4
     }
 
 /** At most this many problems are summarized in [ValidationOutcomeUi.headline]. */
@@ -257,10 +266,13 @@ fun ValidationReport.toUi(
 
 private class Problem(val headline: HeadlineUi, val integrity: Boolean)
 
-/** Unsatisfied checks in depth-first order. */
+/**
+ * Unsatisfied checks in depth-first order, without skipped ones, as the checks that caused them to be skipped are
+ * problems themselves.
+ */
 private fun ArtifactUi.problems(warningOnly: Boolean): List<Problem> {
     val inWarningOnly = warningOnly || kind in WARNING_ONLY_KINDS
-    return checks.filterNot { it.satisfied }.map {
+    return checks.filterNot { it.satisfied || it.state == CheckState.SKIPPED }.map {
         Problem(HeadlineUi(kind, it), integrity = !inWarningOnly && !it.tolerable)
     } + children.flatMap { it.problems(inWarningOnly) }
 }
@@ -268,10 +280,27 @@ private fun ArtifactUi.problems(warningOnly: Boolean): List<Problem> {
 private fun ValidationReport.toArtifactUi(claimLabel: (OpenId4VciClaimsPathPointer) -> String): ArtifactUi = ArtifactUi(
     kind = checks.kind,
     accepted = decision == ValidationDecision.ACCEPTED,
-    checks = namedChecks.map { it.toUi(evaluatedAt, checks, claimLabel) },
+    checks = namedChecks.map { it.toUi(evaluatedAt, checks, claimLabel) }.withSkippedStatus(),
     children = children.map { it.toArtifactUi(claimLabel) } +
         namedChecks.mapNotNull { it.statusMechanism?.token?.toArtifactUi(claimLabel) },
 )
+
+/**
+ * These checks of an artifact with a blocked `status.claim` marked as [CheckState.SKIPPED] if other checks did not
+ * pass: VC-K blocks the claim only to not resolve the status of an artifact that is invalid otherwise, e.g. a WRPRC that
+ * is not trusted, while a status that could not be obtained blocks a `status.mechanisms[i]` instead.
+ */
+private fun List<CheckUi>.withSkippedStatus(): List<CheckUi> {
+    if (none { !it.satisfied && it.group != STATUS }) return this
+    return map {
+        if (it.name == STATUS_CLAIM && it.state == CheckState.NOT_CHECKED) {
+            it.copy(state = CheckState.SKIPPED, finding = FindingUi.Skipped)
+        } else it
+    }
+}
+
+private const val STATUS = "status"
+private const val STATUS_CLAIM = "status.claim"
 
 /** The member names of this path, joined by dots, e.g. `address.country`. */
 internal fun OpenId4VciClaimsPathPointer.genericClaimLabel(): String =

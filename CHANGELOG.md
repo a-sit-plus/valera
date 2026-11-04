@@ -1,3 +1,9 @@
+# Release 5.9.2:
+ * Update to VC-K 9.0.0
+ * Issuing: Show a loading screen after selecting the credentials to load via the browser until the browser opens, instead of returning to “My Data” at once while the authorization is started in the background
+ * Status: Accept the signature of a CWT status list or identifier list whose protected header is not in the order Signum encodes it in, e.g. of the EUDI Wallet reference implementation, which failed as invalid, by verifying it again with the header in deterministic order
+ * Validation: Show the status of an artifact that is not checked because other checks failed, e.g. of an untrusted WRPRC, as not checked in grey instead of as a failure, and leave it out of the summary; show a check that could not be checked on its own, e.g. without a reachable status list, in amber with the reason instead of in red
+
 # Release 5.9.1:
 
 Valera now checks issuers, relying parties, and credentials against the Lists of Trusted Entities, shows every check, and asks before storing a credential that fails one. Several offered credentials can be selected and issued at once, and all of them are shown afterwards. Readers over BLE, NFC, and the DC API are now verified, and the iOS Identity Document Provider extension uses far less memory, so the system no longer terminates it.

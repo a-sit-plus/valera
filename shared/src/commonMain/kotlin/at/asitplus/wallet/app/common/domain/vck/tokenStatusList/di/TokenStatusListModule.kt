@@ -117,7 +117,10 @@ internal suspend fun HttpClient.resolveStatusListToken(
     val resolvedAt = Clock.System.now()
     if (contentType != null && CWT_MEDIA_TYPES.any { contentType.match(it) }) {
         // A CWT status list token is published as a tagged COSE_Sign1 (Token Status List, 5.2)
-        StatusListCwt(CoseSigned.deserialize(ByteArraySerializer(), body.stripCborTag(18)).getOrThrow(), resolvedAt)
+        val cwt = CoseSigned.deserialize(ByteArraySerializer(), body.stripCborTag(18)).getOrElse {
+            throw IllegalArgumentException("The status list token of type $contentType is no CWT", it)
+        }
+        StatusListCwt(cwt, resolvedAt)
     } else {
         val jws = catching { JwsCompactTyped<StatusListTokenPayload>(body.decodeToString()) }.getOrElse {
             throw IllegalArgumentException("The status list token of type $contentType is no JWT", it)

@@ -82,6 +82,7 @@ internal open class ValidationReportFixtures(val now: Instant = Instant.parse("2
 
     fun registrationCertificate(
         signature: CheckOutcome = Passed,
+        trust: CheckOutcome = Passed,
         status: StatusValidation = noStatus,
         linkage: CheckOutcome = Passed,
         requestAuthorization: CheckOutcome = Passed,
@@ -89,7 +90,7 @@ internal open class ValidationReportFixtures(val now: Instant = Instant.parse("2
         checks = RegistrationCertificateChecks(
             parsing = Passed,
             signature = signature,
-            trust = TrustValidation(Passed, source = "WRPRC providers"),
+            trust = TrustValidation(trust, source = "WRPRC providers"),
             timeliness = Passed,
             status = status,
             linkage = linkage,
