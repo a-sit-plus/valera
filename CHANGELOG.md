@@ -1,3 +1,6 @@
+# Release 5.9.3 (unreleased):
+
+
 # Release 5.9.2:
  * Update to VC-K 9.0.0
  * Issuing: Show a loading screen after selecting the credentials to load via the browser until the browser opens, instead of returning to “My Data” at once while the authorization is started in the background
