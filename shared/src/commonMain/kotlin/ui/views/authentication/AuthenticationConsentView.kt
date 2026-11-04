@@ -45,10 +45,12 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import at.asitplus.catching
+import at.asitplus.openid.Base64URLTransactionDataSerializer
 import at.asitplus.openid.QCertCreationAcceptance
 import at.asitplus.openid.QesAuthorization
 import at.asitplus.openid.TransactionDataBase64Url
 import at.asitplus.signum.indispensable.io.Base64UrlStrict
+import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_location
 import at.asitplus.valera.resources.attribute_friendly_name_data_recipient_name
@@ -56,12 +58,13 @@ import at.asitplus.valera.resources.heading_label_authenticate_at_device_screen
 import at.asitplus.valera.resources.heading_label_authenticate_at_device_title
 import at.asitplus.valera.resources.heading_label_show_data
 import at.asitplus.valera.resources.heading_label_show_data_third_party
+import at.asitplus.valera.resources.label_registration_cert_request
 import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
 import at.asitplus.valera.resources.section_heading_transaction_data
 import at.asitplus.valera.resources.trust_status_title
 import at.asitplus.wallet.app.common.TrustListService
-import at.asitplus.wallet.lib.data.toTransactionData
+import at.asitplus.wallet.app.common.relyingParty.ui.RelyingPartyValidationView
 import io.github.aakira.napier.Napier
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import kotlinx.coroutines.flow.flowOf
@@ -99,8 +102,9 @@ fun AuthenticationConsentView(
         stringResource(Res.string.heading_label_authenticate_at_device_title)
     }
 
+    // The validation of the relying party covers its trust, so it is evaluated separately only without one
     val relyingPartyTrustState by trustListService
-        .observeTrustStateForCertChain(flowOf(vm.verifierCertificateChain))
+        .observeTrustStateForCertChain(flowOf(vm.verifierCertificateChain.takeIf { vm.relyingPartyValidation == null }))
         .collectAsState(initial = TrustState.EVALUATING)
 
     Scaffold(
@@ -180,10 +184,21 @@ fun AuthenticationConsentView(
                         data = listOfNotNull(
                             vm.spName?.let { stringResource(Res.string.attribute_friendly_name_data_recipient_name) to vm.spName },
                             stringResource(Res.string.attribute_friendly_name_data_recipient_location) to vm.spLocation,
-                            stringResource(Res.string.trust_status_title) to stringResource(relyingPartyTrustState.displayVerifierText)
+                            (stringResource(Res.string.trust_status_title) to
+                                    stringResource(relyingPartyTrustState.displayVerifierText))
+                                .takeIf { vm.relyingPartyValidation == null },
                         ),
                         modifier = paddingModifier,
                     )
+
+                    vm.relyingPartyValidation?.let {
+                        DataDisplaySection(
+                            title = stringResource(Res.string.label_registration_cert_request),
+                            modifier = paddingModifier,
+                        ) {
+                            RelyingPartyValidationView(it)
+                        }
+                    }
 
                     PresentationRequestPreview(vm.presentationRequest, errorAction = onError)
 
@@ -203,8 +218,12 @@ fun TransactionDataView(transactionData: TransactionDataBase64Url) {
         var showContent by remember { mutableStateOf(false) }
 
         val density = LocalDensity.current
-        val parsedTransactionData = catching { transactionData.toTransactionData() }
-            .onFailure { Napier.e("transactionData: error", it) }
+        val parsedTransactionData = catching {
+            joseCompliantSerializer.decodeFromJsonElement(
+                Base64URLTransactionDataSerializer,
+                transactionData
+            )
+        }.onFailure { Napier.e("transactionData: error", it) }
             .getOrNull()
         Text(
             text = stringResource(Res.string.section_heading_transaction_data),
@@ -304,7 +323,7 @@ fun TransactionDataView(transactionData: TransactionDataBase64Url) {
                         }
                     }
 
-                    null -> {
+                    else -> {
                         // can't show anything
                     }
                 }

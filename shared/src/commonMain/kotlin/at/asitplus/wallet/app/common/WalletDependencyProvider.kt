@@ -1,6 +1,5 @@
 package at.asitplus.wallet.app.common
 
-import at.asitplus.wallet.lib.agent.Validator
 import data.storage.DataStoreService
 import data.storage.PersistentSubjectCredentialStore
 import data.storage.PersistentTrustListStore
@@ -13,7 +12,7 @@ data class WalletDependencyProvider(
     val dataStoreService: DataStoreService,
     val platformAdapter: PlatformAdapter,
     var subjectCredentialStore: PersistentSubjectCredentialStore =
-        PersistentSubjectCredentialStore(dataStoreService, Validator()),
+        PersistentSubjectCredentialStore(dataStoreService),
     var trustListStore: PersistentTrustListStore =
         PersistentTrustListStore(dataStoreService),
     val buildContext: BuildContext,

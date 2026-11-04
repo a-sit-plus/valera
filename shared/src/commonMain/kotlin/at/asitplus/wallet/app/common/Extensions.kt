@@ -12,6 +12,7 @@ import at.asitplus.openid.OpenId4VciClaimsPathPointer
 import at.asitplus.openid.OpenId4VciClaimsPathPointerSegmentIndex
 import at.asitplus.openid.OpenId4VciClaimsPathPointerSegmentString
 import at.asitplus.openid.dcql.DCQLAmbiguousClaimsQuery
+import at.asitplus.openid.dcql.DCQLClaimsPathPointer
 import at.asitplus.openid.dcql.DCQLClaimsPathPointerSegment
 import at.asitplus.openid.dcql.DCQLCredentialQuery
 import at.asitplus.openid.dcql.DCQLIsoMdocClaimsQuery
@@ -20,6 +21,7 @@ import at.asitplus.openid.dcql.DCQLIsoMdocZkCredentialQuery
 import at.asitplus.openid.dcql.DCQLJsonClaimsQuery
 import at.asitplus.openid.dcql.DCQLJwtVcCredentialQuery
 import at.asitplus.openid.dcql.DCQLSdJwtCredentialQuery
+import at.asitplus.openid.dcql.DCQLX509CredentialQuery
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.getLocalization
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.RequestCredentialAttributesValidity
@@ -35,7 +37,6 @@ import at.asitplus.wallet.lib.data.SdJwtFallbackCredentialScheme
 import at.asitplus.wallet.lib.data.SingleClaimReference
 import at.asitplus.wallet.lib.data.VcDataModelConstants.VERIFIABLE_CREDENTIAL
 import at.asitplus.wallet.lib.data.VcFallbackCredentialScheme
-import at.asitplus.wallet.lib.oidvci.toFormat
 import data.credentials.jwtClaimLabel
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -49,7 +50,36 @@ import org.jetbrains.compose.resources.stringResource
 import ui.presentation.DCQLCredentialQueryUiModel
 import ui.presentation.DCQLCredentialQueryUiModelAttributeLabels
 
-typealias DcqlConsentData = Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimReference?>?>
+/** How a verifier asks for an ISO mdoc: as a plain mdoc, or as a zero-knowledge proof with or without plain fallback. */
+enum class ZkMode {
+    /** Not shown: the format has no zero-knowledge variant, or the request does not say how it is asked for. */
+    UNKNOWN,
+
+    PLAIN,
+
+    /** A zero-knowledge proof is requested, but the wallet may answer with a plain mdoc if it cannot create one. */
+    ZK_WITH_PLAIN_FALLBACK,
+
+    /** A zero-knowledge proof is mandatory; the presentation fails if it cannot be created. */
+    ZK_REQUIRED,
+}
+
+/**
+ * Maps the zero-knowledge request of a verifier to a [ZkMode]. It is given as plain values, as the request comes in
+ * different representations, e.g. a [DocRequest] of a [DeviceRequest] or a [DCQLIsoMdocZkCredentialQuery].
+ */
+private fun zkModeOf(hasZkSystems: Boolean, zkRequired: Boolean): ZkMode = when {
+    zkRequired -> ZkMode.ZK_REQUIRED
+    !hasZkSystems -> ZkMode.PLAIN
+    else -> ZkMode.ZK_WITH_PLAIN_FALLBACK
+}
+
+data class DcqlConsentData(
+    val representation: CredentialRepresentation,
+    val scheme: CredentialScheme,
+    val claimReferences: Collection<SingleClaimReference?>?,
+    val zkMode: ZkMode = ZkMode.UNKNOWN,
+)
 
 data class IsoDeviceRequestConsentData(
     val scheme: CredentialScheme,
@@ -60,9 +90,14 @@ data class IsoDeviceRequestConsentData(
      * strings because [NormalizedJsonPath] has no value equality; use [intendsToRetain] to query it.
      */
     val retainedAttributePaths: Set<String>,
+    val zkMode: ZkMode = ZkMode.UNKNOWN,
 ) {
     fun intendsToRetain(path: NormalizedJsonPath) = path.toString() in retainedAttributePaths
 }
+
+/** How the verifier asks for this document: as a plain mdoc, or as a zero-knowledge proof. */
+internal fun DocRequest.zkMode(): ZkMode = itemsRequest.value.requestInfo?.zkRequest
+    ?.let { zkModeOf(it.systemSpecs.isNotEmpty(), it.zkRequired) } ?: ZkMode.PLAIN
 
 /** Resolves one ISO document request and preserves namespace and element order. */
 suspend fun DocRequest.extractConsentData(): IsoDeviceRequestConsentData {
@@ -76,6 +111,7 @@ suspend fun DocRequest.extractConsentData(): IsoDeviceRequestConsentData {
         scheme = resolveConsentScheme(ISO_MDOC, listOf(request.docType)),
         attributes = elements.map { it.first },
         retainedAttributePaths = elements.filter { it.second }.mapTo(mutableSetOf()) { it.first.toString() },
+        zkMode = zkMode(),
     )
 }
 
@@ -109,44 +145,42 @@ private fun CredentialScheme.isFallback() = this is VcFallbackCredentialScheme
 suspend fun DCQLCredentialQuery.extractConsentData(): DcqlConsentData {
     val representation = when (format) {
         CredentialFormatEnum.DC_SD_JWT -> SD_JWT
-        CredentialFormatEnum.MSO_MDOC -> ISO_MDOC
+        CredentialFormatEnum.MSO_MDOC, CredentialFormatEnum.MSO_MDOC_ZK -> ISO_MDOC
         else -> PLAIN_JWT
     }
 
     val scheme = when (this) {
         is DCQLIsoMdocCredentialQuery -> resolveConsentScheme(ISO_MDOC, listOf(meta.doctypeValue))
-
         is DCQLSdJwtCredentialQuery -> resolveConsentScheme(SD_JWT, meta.vctValues)
-
         is DCQLJwtVcCredentialQuery -> resolveConsentScheme(
             PLAIN_JWT,
             meta.typeValues.list.flatten().filterNot { it == VERIFIABLE_CREDENTIAL },
         )
 
-        is DCQLIsoMdocZkCredentialQuery -> TODO()
+        is DCQLIsoMdocZkCredentialQuery -> resolveConsentScheme(ISO_MDOC, listOf(meta.doctypeValue))
+        is DCQLX509CredentialQuery -> TODO()
     }
 
     // assuming all claims path pointers are single claim references
     val singleReferenceClaimsQueries = this.claims?.associateWith {
         when (it) {
-            is DCQLJsonClaimsQuery -> JsonClaimReference(
-                NormalizedJsonPath(it.path.map {
-                    when (it) {
-                        is DCQLClaimsPathPointerSegment.IndexSegment -> IndexSegment(it.index)
-                        is DCQLClaimsPathPointerSegment.NameSegment -> NameSegment(it.name)
-                        DCQLClaimsPathPointerSegment.NullSegment -> null
-                    }
-                }.takeWhile {
-                    it != null
-                }.filterNotNull())
-            )
+            is DCQLJsonClaimsQuery -> JsonClaimReference(it.path.toNormalizedJsonPathUntilWildcard())
 
             is DCQLIsoMdocClaimsQuery -> MdocClaimReference(namespace = it.namespace, claimName = it.claimName)
 
             is DCQLAmbiguousClaimsQuery -> throw IllegalStateException("Unsupported claims query format: $it")
         }
     }
-    return Triple(representation, scheme, singleReferenceClaimsQueries?.values)
+    return DcqlConsentData(representation, scheme, singleReferenceClaimsQueries?.values, zkMode())
+}
+
+/** How the verifier asks for this credential, [ZkMode.UNKNOWN] for formats without a zero-knowledge variant. */
+internal fun DCQLCredentialQuery.zkMode(): ZkMode = when (this) {
+    is DCQLIsoMdocZkCredentialQuery ->
+        zkModeOf(meta.zkSystemType.systemSpecs.isNotEmpty(), meta.zkSystemType.zkRequired)
+
+    is DCQLIsoMdocCredentialQuery -> ZkMode.PLAIN
+    else -> ZkMode.UNKNOWN
 }
 
 private fun CredentialScheme.toCredentialClaimStructure(
@@ -250,11 +284,12 @@ fun NormalizedJsonPath.minus(name: String) =
     NormalizedJsonPath(this.filter { it !is NameSegment || it.memberName != name })
 
 @Composable
-fun Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimReference?>?>.toCredentialQueryUiModel(
-    allowedAttributes:  RequestCredentialAttributesValidity? = null
+fun DcqlConsentData.toCredentialQueryUiModel(
+    allowedAttributes: RequestCredentialAttributesValidity? = null
 ): DCQLCredentialQueryUiModel {
     val (representation, scheme, attributePaths) = this
     return DCQLCredentialQueryUiModel(
+        zkMode = zkMode,
         credentialRepresentationLocalized = representation.uiLabel(),
         credentialSchemeLocalized = scheme.uiLabel(),
         requestedAttributesLocalized = attributePaths?.let { claimReferences ->
@@ -280,22 +315,38 @@ fun Triple<CredentialRepresentation, CredentialScheme, Collection<SingleClaimRef
 }
 
 // Last-resort label when no metadata localization exists: render the claim path itself,
-// not the value-class wrapper (path.toString() would print "JsonClaimReference(normalizedJsonPath=$['family_name'])").
+// not the value-class wrapper (toString() would print "JsonClaimReference(path=DCQLClaimsPathPointer([family_name]))").
 fun SingleClaimReference.displayPath(): String = when (this) {
-    is JsonClaimReference -> normalizedJsonPath.toShorthandNameSegmentNotationWherePossible().removePrefix("$.")
+    is JsonClaimReference -> path.toNormalizedJsonPathUntilWildcard()
+        .toShorthandNameSegmentNotationWherePossible().removePrefix("$.")
     is MdocClaimReference -> NormalizedJsonPath(
         NameSegment(namespace),
         NameSegment(claimName)
     ).toShorthandNameSegmentNotationWherePossible().removePrefix("$.")
 }
 
+/**
+ * The concrete part of this claims path pointer, up to its first array wildcard, e.g. `$['nationalities']` for
+ * `["nationalities", null]`, as a [NormalizedJsonPath] can not select all elements of an array.
+ */
+fun DCQLClaimsPathPointer.toNormalizedJsonPathUntilWildcard(): NormalizedJsonPath =
+    NormalizedJsonPath(map {
+        when (it) {
+            is DCQLClaimsPathPointerSegment.IndexSegment -> IndexSegment(it.index)
+            is DCQLClaimsPathPointerSegment.NameSegment -> NameSegment(it.name)
+            DCQLClaimsPathPointerSegment.NullSegment -> null
+        }
+    }.takeWhile {
+        it != null
+    }.filterNotNull())
+
 fun ConstantIndex.CredentialRepresentation.getMetadataLocalization(
     claimReference: SingleClaimReference
 ) = when (claimReference) {
-    is JsonClaimReference -> claimReference.normalizedJsonPath.filterIsInstance<NameSegment>()
+    is JsonClaimReference -> claimReference.path.filterIsInstance<DCQLClaimsPathPointerSegment.NameSegment>()
         .firstOrNull()
         ?.takeIf { this != ISO_MDOC }
-        ?.let { jwtClaimLabel(it.memberName) }
+        ?.let { jwtClaimLabel(it.name) }
 
     is MdocClaimReference -> null
 }

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -22,14 +21,12 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_mdl_driving_privilege_category_expired
 import at.asitplus.valera.resources.error_mdl_driving_privilege_category_not_yet_valid
 import at.asitplus.valera.resources.heading_label_received_data
-import at.asitplus.valera.resources.info_text_credential_status_valid
 import at.asitplus.wallet.app.common.decodeImage
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.iconLabel
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isEuPid
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.isMdl
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabel
 import at.asitplus.wallet.lib.data.ConstantIndex
-import at.asitplus.wallet.lib.data.IsoDocumentParsed
 import at.asitplus.wallet.mdl.DrivingPrivilege
 import at.asitplus.wallet.mdl.MDL_NAMESPACE
 import at.asitplus.wallet.mdl.MobileDrivingLicenceDataElements
@@ -40,7 +37,6 @@ import data.document.DrivingPrivilegeValidator
 import data.document.DrivingPrivilegeValidator.getDrivingPrivilegeStatus
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
-import ui.composables.BigSuccessText
 import ui.composables.ErrorText
 import ui.composables.LabeledText
 import ui.composables.Logo
@@ -49,10 +45,10 @@ import ui.composables.PersonAttributeDetailCardHeadingIcon
 import ui.composables.buttons.NavigateUpButton
 import ui.composables.credentials.CredentialCardLayout
 import ui.composables.credentials.EuPidCredentialViewFromAdapter
-import ui.composables.credentials.MainCredentialIssue
 import ui.composables.credentials.MobileDrivingLicenceCredentialViewFromAdapter
-import ui.models.toCredentialFreshnessSummaryModel
-import ui.theme.LocalExtendedColors
+import ui.composables.validation.ValidationBanner
+import ui.composables.validation.ValidationDetails
+import ui.viewmodels.iso.verifier.ReceivedDocumentUi
 import ui.viewmodels.iso.verifier.VerifierViewModel
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -89,8 +85,8 @@ fun VerifierPresentationView(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.Start
             ) {
-                vm.responseDocumentList.forEach { isoDocParsed ->
-                    IsoMdocCredentialView(isoDocParsed, decodeImage)
+                vm.responseDocumentList.forEach { receivedDocument ->
+                    IsoMdocCredentialView(receivedDocument, decodeImage)
                 }
             }
         }
@@ -99,42 +95,33 @@ fun VerifierPresentationView(
 
 @Composable
 fun IsoMdocCredentialView(
-    isoDocParsed: IsoDocumentParsed,
+    receivedDocument: ReceivedDocumentUi,
     decodeImage: (ByteArray) -> Result<ImageBitmap>
 ) {
-    val isCredentialFresh = isoDocParsed.freshnessSummary.isFresh
+    val document = receivedDocument.document
+    val validation = receivedDocument.validation
+    val scheme = schemeForIsoDocType(document.docType)
 
     CredentialCardLayout(
-        colors = if (isCredentialFresh) {
-            val extendedColors = LocalExtendedColors.current
-            CardDefaults.elevatedCardColors(
-                containerColor = extendedColors.successContainer,
-                contentColor = extendedColors.onSuccessContainer
-            )
-        } else {
-            CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer,
-                contentColor = MaterialTheme.colorScheme.onErrorContainer
-            )
-        },
         modifier = Modifier.padding(end = 16.dp, start = 16.dp, bottom = 16.dp)
     ) {
-        isoDocParsed.document.issuerSigned.namespaces?.forEach { (namespaceKey, entries) ->
+        PersonAttributeDetailCardHeading(
+            icon = { PersonAttributeDetailCardHeadingIcon(scheme.iconLabel()) },
+            title = {
+                LabeledText(
+                    label = ConstantIndex.CredentialRepresentation.ISO_MDOC.uiLabel(),
+                    text = scheme.uiLabel()
+                )
+            }
+        )
+        ValidationBanner(validation, modifier = Modifier.padding(vertical = 12.dp))
+
+        // Claims of a document whose signatures or digests do not verify are not shown, as they may be forged
+        if (!validation.integrityFailed) document.issuerSigned.namespaces?.forEach { (namespaceKey, entries) ->
             val sortedEntries = entries.entries
                 .sortedBy { it.value.elementIdentifier }
                 .associate { it.value.elementIdentifier to it.value.elementValue }
             val namespaces = mapOf(namespaceKey to sortedEntries)
-            val scheme = schemeForIsoDocType(isoDocParsed.document.docType)
-
-            PersonAttributeDetailCardHeading(
-                icon = { PersonAttributeDetailCardHeadingIcon(scheme.iconLabel()) },
-                title = {
-                    LabeledText(
-                        label = ConstantIndex.CredentialRepresentation.ISO_MDOC.uiLabel(),
-                        text = scheme.uiLabel()
-                    )
-                }
-            )
 
             when {
                 scheme.isMdl -> {
@@ -167,12 +154,6 @@ fun IsoMdocCredentialView(
             }
         }
 
-        if (isCredentialFresh) {
-            BigSuccessText(stringResource(Res.string.info_text_credential_status_valid))
-        } else {
-            MainCredentialIssue(
-                isoDocParsed.freshnessSummary.toCredentialFreshnessSummaryModel()
-            )
-        }
+        ValidationDetails(validation)
     }
 }

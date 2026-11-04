@@ -1,5 +1,8 @@
 package at.asitplus.wallet.app.common
 
+import at.asitplus.KmmResult
+import at.asitplus.catching
+import at.asitplus.data.NonEmptyList
 import at.asitplus.openid.CredentialOffer
 import at.asitplus.openid.IssuerMetadata
 import at.asitplus.openid.OAuth2AuthorizationServerMetadata
@@ -16,40 +19,57 @@ import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.signum.indispensable.josef.toJsonWebKey
 import at.asitplus.wallet.app.common.attestation.AttestationService
 import at.asitplus.wallet.app.common.data.SettingsRepository
+import at.asitplus.wallet.app.common.validation.IssuerValidationUi
+import at.asitplus.wallet.app.common.validation.PendingCredentialReview
+import at.asitplus.wallet.app.common.validation.ValidationPolicies
+import at.asitplus.wallet.app.common.validation.describeProblems
+import at.asitplus.wallet.app.common.validation.integrityRejection
+import at.asitplus.wallet.app.common.validation.needsReview
+import at.asitplus.wallet.app.common.validation.rejection
+import at.asitplus.wallet.app.common.validation.toUi
 import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
+import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
+import at.asitplus.wallet.lib.agent.PreparedCredentialStorage
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.AttributeIndex
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.ISO_MDOC
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.SD_JWT
 import at.asitplus.wallet.lib.data.CredentialScheme
-import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
 import at.asitplus.wallet.lib.ktor.openid.CredentialIssuanceResult
-import at.asitplus.wallet.lib.ktor.openid.OAuth2KtorClient
-import at.asitplus.wallet.lib.ktor.openid.OpenId4VciClient
+import at.asitplus.wallet.lib.ktor.openid.IssuedCredentials
+import at.asitplus.wallet.lib.ktor.openid.OpenId4VciKtorClient
 import at.asitplus.wallet.lib.ktor.openid.ProvisioningContext
+import at.asitplus.wallet.lib.oauth2.ClientAttestation
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
-import at.asitplus.wallet.lib.oidvci.WalletService
+import at.asitplus.wallet.lib.oidvci.CredentialIdentifierInfo
+import at.asitplus.wallet.lib.oidvci.LoadedIssuerMetadata
+import at.asitplus.wallet.lib.oidvci.OpenId4VciClient
+import at.asitplus.wallet.lib.oidvci.ReceivedCredential
 import at.asitplus.wallet.lib.utils.MapStore
+import at.asitplus.wallet.lib.validation.IssuerMetadataValidator
+import at.asitplus.wallet.lib.validation.ValidationDecision
+import data.credentials.claimLabel
 import data.storage.DataStoreService
 import data.storage.PersistentCookieStorage
 import data.storage.StoreEntryId
 import data.storage.WalletSubjectCredentialStore
 import data.storage.persistentStringMapStore
 import io.github.aakira.napier.Napier
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.URLBuilder
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import ui.navigation.IntentService
-import kotlin.time.Duration.Companion.milliseconds
 
 
 class ProvisioningService(
@@ -61,12 +81,28 @@ class ProvisioningService(
     private val subjectCredentialStore: WalletSubjectCredentialStore,
     private val config: SettingsRepository,
     private val errorService: ErrorService,
-    private val httpService: HttpService,
-    private val attestationService: AttestationService
+    httpService: HttpService,
+    private val attestationService: AttestationService,
+    private val issuerMetadataValidator: IssuerMetadataValidator,
+    private val pendingCredentialReview: PendingCredentialReview,
 ) {
+    /** The [credentialIdentifiers] a credential issuer offers, and the [issuer] as validated from its metadata. */
+    data class IssuerMetadataLoad(
+        val credentialIdentifiers: Collection<CredentialIdentifierInfo>,
+        val issuer: IssuerValidationUi,
+    )
+
     data class StoredCredentialIssuanceResult(
         val credentialIssuanceResult: CredentialIssuanceResult,
         val storedEntryIds: List<StoreEntryId> = emptyList(),
+        /** Whether credentials wait for the user to decide whether to store them, see [credentialsUnderReview]. */
+        val needsReview: Boolean = false,
+    )
+
+    /** The credentials that have been stored, and whether others wait for review, see [credentialsUnderReview]. */
+    data class StoredCredentials(
+        val storedEntryIds: List<StoreEntryId>,
+        val needsReview: Boolean,
     )
 
     private val cookieStorage = PersistentCookieStorage(dataStoreService, errorService)
@@ -92,9 +128,16 @@ class ProvisioningService(
     private var cachedClientId: String? = null
     private var cachedWalletProviderAttestationEnabled: Boolean? = null
 
-    private var openId4VciClientCached = null as OpenId4VciClient?
-    private var walletServiceCached = null as WalletService?
+    private var openId4VciClientCached = null as OpenId4VciKtorClient?
+    private var vciClientCached = null as OpenId4VciClient?
     private val provisioningFlowMutex = Mutex()
+
+    fun close() {
+        client.close()
+        // HttpService supplies a dedicated engine; cancelling it also stops VC-K's client copies.
+        client.engine.close()
+        client.engine.cancel()
+    }
 
     private suspend fun currentClientId(): String {
         val clientId = config.clientId.first()
@@ -121,25 +164,15 @@ class ProvisioningService(
             Napier.w("Keeping instance attestation while a provisioning browser flow is active")
         }
         openId4VciClientCached = null
-        walletServiceCached = null
+        vciClientCached = null
     }
 
-    private suspend fun walletService(): WalletService = walletServiceCached ?: run {
-        val clientId = currentClientId()
-        currentWalletProviderAttestationEnabled()
-        WalletService(
-            clientId = clientId,
-            loadKeyAttestation = attestationService::loadKeyAttestation,
-            keyMaterial = keyMaterial,
-            remoteResourceRetriever = { data ->
-                withContext(Dispatchers.IO) {
-                    client.get(data.url).bodyAsText()
-                }
-            }
-        )
-    }.also { walletServiceCached = it }
+    private suspend fun vciClient(): OpenId4VciClient = vciClientCached ?: OpenId4VciClient(
+        loadKeyAttestation = attestationService::loadKeyAttestation,
+        keyMaterial = keyMaterial,
+    ).also { vciClientCached = it }
 
-    private suspend fun openId4VciClient(): OpenId4VciClient {
+    private suspend fun openId4VciClient(): OpenId4VciKtorClient {
         assertProofKeyConsistent()
         return openId4VciClientCached ?: buildOpenId4VciClient()
     }
@@ -171,7 +204,7 @@ class ProvisioningService(
         }
     }
 
-    private suspend fun buildOpenId4VciClient(): OpenId4VciClient = run {
+    private suspend fun buildOpenId4VciClient(): OpenId4VciKtorClient = run {
         val clientId = currentClientId()
         val walletProviderAttestationEnabled = currentWalletProviderAttestationEnabled()
         val oAuth2Client = OAuth2Client(
@@ -179,53 +212,56 @@ class ProvisioningService(
             redirectUrl = redirectUrl,
             stateToCodeStore = stateToCodeStore
         )
-        val oAuth2KtorClient = if (walletProviderAttestationEnabled) {
-            OAuth2KtorClient(
-                engine = client.engine,
-                cookiesStorage = cookieStorage,
-                oAuth2Client = oAuth2Client,
-                httpClientConfig = httpService.loggingConfig,
+        val clientAttestation = if (walletProviderAttestationEnabled) {
+            ClientAttestation(
+                keyMaterial = attestationService.getInstanceAttestationKeyMaterial(),
                 loadInstanceAttestation = attestationService::loadInstanceAttestation,
-                keyMaterial = attestationService.getInstanceAttestationKeyMaterial()
             )
-        } else {
-            OAuth2KtorClient(
-                engine = client.engine,
-                cookiesStorage = cookieStorage,
-                oAuth2Client = oAuth2Client,
-                httpClientConfig = httpService.loggingConfig,
-            )
-        }
-        OpenId4VciClient(
-            engine = client.engine,
-            cookiesStorage = cookieStorage,
-            httpClientConfig = httpService.loggingConfig,
-            oauth2Client = oAuth2KtorClient,
-            oid4vciService = walletService()
+        } else null
+        OpenId4VciKtorClient(
+            httpClient = client,
+            oauth2Client = oAuth2Client,
+            vciClient = vciClient(),
+            clientAttestation = clientAttestation,
+            dpopKeyMaterial = clientAttestation?.keyMaterial ?: EphemeralKeyWithoutCert(),
+            issuerMetadataValidator = issuerMetadataValidator,
         ).also { openId4VciClientCached = it }
     }
 
     /**
-     * Loads credential metadata info from [host]
+     * Loads the metadata of the credential issuer [host], preferring signed metadata, which are validated under
+     * [ValidationPolicies.strict]. Metadata of an issuer that is not trusted are used nevertheless, so that the user
+     * can decide after being warned, but metadata whose signature or subject failed are not.
      */
     @Throws(Throwable::class)
-    suspend fun loadCredentialMetadata(host: String) =
-        openId4VciClient().loadCredentialMetadata(host).getOrThrow()
+    suspend fun loadCredentialMetadata(host: String): IssuerMetadataLoad {
+        val client = openId4VciClient()
+        val loaded = client.loadIssuerMetadata(host, ValidationPolicies.strict).getOrThrow()
+        val issuer = IssuerValidationUi.of(loaded)
+        if (issuer.outcome?.integrityFailed == true) {
+            throw (loaded as? LoadedIssuerMetadata.Signed)?.validation?.report?.integrityRejection()
+                ?: IllegalArgumentException("The metadata of $host have been rejected")
+        }
+        return IssuerMetadataLoad(client.parseCredentialMetadataIgnoringTrust(loaded).getOrThrow(), issuer)
+    }
 
     /**
-     * Parses issuer metadata into credential identifier info.
+     * Parses unsigned issuer metadata into credential identifier info, e.g. those of an offer through the Digital
+     * Credentials API.
      */
     @Throws(Throwable::class)
-    suspend fun parseCredentialMetadata(issuerMetadata: IssuerMetadata) =
-        openId4VciClient().parseCredentialMetadata(issuerMetadata).getOrThrow()
+    suspend fun parseCredentialMetadata(issuerMetadata: IssuerMetadata) = IssuerMetadataLoad(
+        credentialIdentifiers = openId4VciClient().parseCredentialMetadata(issuerMetadata).getOrThrow(),
+        issuer = IssuerValidationUi.unsigned(),
+    )
 
     /**
-     * Starts the issuing process at [credentialIssuer]
+     * Starts the issuing process at [credentialIssuer] for all of [credentialIdentifierInfos] with one authorization
      */
     @Throws(Throwable::class)
     suspend fun startProvisioningWithAuthRequest(
         credentialIssuer: String,
-        credentialIdentifierInfo: CredentialIdentifierInfo,
+        credentialIdentifierInfos: NonEmptyList<CredentialIdentifierInfo>,
         reissuingStoreEntryId: StoreEntryId? = null
     ) {
         provisioningFlowMutex.withLock {
@@ -235,7 +271,7 @@ class ProvisioningService(
             cookieStorage.reset()
             openId4VciClient().startProvisioningWithAuthRequestReturningResult(
                 credentialIssuer,
-                credentialIdentifierInfo,
+                credentialIdentifierInfos,
                 reissuingStoreEntryId
             ).getOrThrow().run {
                 storeContextOpenIntent()
@@ -269,7 +305,7 @@ class ProvisioningService(
         redirectedUrl: String,
         statusUpdater: ((Long, RefreshStatus) -> Unit)? = null,
         onProgress: ((LoadingMessageKey) -> Unit)? = null,
-    ): List<StoreEntryId> {
+    ): StoredCredentials {
         Napier.d("handleResponse with $redirectedUrl")
         val storedState = provisioningFlowMutex.withLock {
             takeProvisioningState(redirectedUrl)
@@ -290,12 +326,16 @@ class ProvisioningService(
                 val idsBefore =
                     subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
                 Napier.d("resumeWithAuthCode idsBefore=$idsBefore")
-                Napier.d("resumeWithAuthCode received ${result.credentials.size} credential(s)")
+                Napier.d("resumeWithAuthCode received ${result.credentialsByConfiguration.size} credential(s)")
                 onProgress?.invoke(LoadingMessageKey.StoringCredential)
-                val storageResults = result.credentials.map { cred ->
-                    holderAgent.storeCredential(cred, result.refreshToken)
+                // A credential replacing a stored one is not reviewed, as the stored one is removed below
+                val underReview = mutableListOf<PendingCredentialReview.Entry>()
+                    .takeIf { storedState.context.reissuingStoreEntryId == null }
+                val storageResults = result.credentialsByConfiguration.map { (issued, credential) ->
+                    storeCredential(credential, issued.scheme, issued.refreshToken, underReview)
                 }
-                val storedEntryIds = resolveNewStoreEntryIds(idsBefore)
+                val needsReview = storageResults.any { it.getOrNull() == null }
+                val storedEntryIds = resolveNewStoreEntryIds(idsBefore, storageResults.count { it.getOrNull() != null })
                 Napier.d("resumeWithAuthCode resolved storeEntryIds=$storedEntryIds")
 
                 if (storageResults.all { it.isSuccess }) {
@@ -307,7 +347,8 @@ class ProvisioningService(
                     storedState.context.reissuingStoreEntryId?.let { statusUpdater?.invoke(it, RefreshStatus.Failed) }
                     storageResults.first { it.isFailure }.getOrThrow()
                 }
-                storedEntryIds
+                underReview?.takeIf { it.isNotEmpty() }?.let { pendingCredentialReview.replace(it) }
+                StoredCredentials(storedEntryIds, needsReview)
             }
         } finally {
             clearActiveProvisioningState(storedState.state)
@@ -394,8 +435,8 @@ class ProvisioningService(
         clearCaches()
         Napier.d("refreshCredential with identifier ${renewalInfo.credentialIdentifier}")
         openId4VciClient().refreshCredentialReturningResult(renewalInfo).getOrThrow().also { result ->
-            val storageResults = result.credentials.map { credentialInput ->
-                holderAgent.storeCredential(credentialInput, result.refreshToken)
+            val storageResults = result.credentialsByConfiguration.map { (issued, credential) ->
+                storeCredential(credential, issued.scheme, issued.refreshToken, underReview = null)
             }
 
             if (storageResults.all { it.isSuccess }) {
@@ -418,14 +459,15 @@ class ProvisioningService(
         qrCodeContent: String
     ): CredentialOffer {
         clearCaches()
-        return walletService().parseCredentialOffer(qrCodeContent).getOrThrow()
+        return openId4VciClient().loadCredentialOffer(qrCodeContent).getOrThrow()
     }
 
     /**
-     * Loads a user-selected credential with pre-authorized code from the OID4VCI credential issuer
+     * Loads the user-selected credentials with pre-authorized code from the OID4VCI credential issuer, with one token
+     * for all of them
      *
      * @param credentialOffer as loaded and decoded from the QR Code
-     * @param credentialIdentifierInfo as selected by the user from the issuer's metadata
+     * @param credentialIdentifierInfos as selected by the user from the issuer's metadata
      * @param transactionCode if required from Issuing service, i.e. transmitted out-of-band to the user
      * @param authorizationServerMetadata oauthMetadata optionally transmitted via the DC API. Set to null for other flows.
      *
@@ -433,7 +475,7 @@ class ProvisioningService(
     @Throws(Throwable::class)
     suspend fun loadCredentialWithOffer(
         credentialOffer: CredentialOffer,
-        credentialIdentifierInfo: CredentialIdentifierInfo,
+        credentialIdentifierInfos: NonEmptyList<CredentialIdentifierInfo>,
         transactionCode: String? = null,
         authorizationServerMetadata: OAuth2AuthorizationServerMetadata? = null,
         onProgress: ((LoadingMessageKey) -> Unit)? = null,
@@ -443,7 +485,7 @@ class ProvisioningService(
             onProgress?.invoke(LoadingMessageKey.IssuingCredential)
             val result = openId4VciClient().loadCredentialWithOfferReturningResult(
                 credentialOffer,
-                credentialIdentifierInfo,
+                credentialIdentifierInfos,
                 transactionCode,
                 authorizationServerMetadata
             ).getOrThrow()
@@ -462,30 +504,108 @@ class ProvisioningService(
                 val idsBefore =
                     subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
                 Napier.d("loadCredentialWithOffer idsBefore=$idsBefore")
-                Napier.d("loadCredentialWithOffer received ${result.credentials.size} credential(s) without browser auth")
+                Napier.d("loadCredentialWithOffer received ${result.credentialsByConfiguration.size} credential(s) without browser auth")
                 onProgress?.invoke(LoadingMessageKey.StoringCredential)
-                result.credentials.forEach {
-                    holderAgent.storeCredential(it).getOrThrow()
+                val underReview = mutableListOf<PendingCredentialReview.Entry>()
+                val storedEntries = result.credentialsByConfiguration.map { (issued, credential) ->
+                    storeCredential(credential, issued.scheme, underReview = underReview).getOrThrow()
                 }
-                val storedEntryIds = resolveNewStoreEntryIds(idsBefore)
+                if (underReview.isNotEmpty()) pendingCredentialReview.replace(underReview)
+                val storedEntryIds = resolveNewStoreEntryIds(idsBefore, storedEntries.count { it != null })
                 Napier.d("loadCredentialWithOffer resolved storeEntryIds=$storedEntryIds")
                 StoredCredentialIssuanceResult(
                     credentialIssuanceResult = result,
                     storedEntryIds = storedEntryIds,
+                    needsReview = storedEntries.any { it == null },
                 )
             }
         }
     }
 
-    // Wait for the DataStore flow to emit a container that includes at least one new entry.
-    private suspend fun resolveNewStoreEntryIds(idsBefore: Set<StoreEntryId>): List<StoreEntryId> {
+    /** Issued credentials that wait for the user to decide whether to store them, see [keepCredentialsUnderReview]. */
+    val credentialsUnderReview: StateFlow<List<PendingCredentialReview.Entry>>
+        get() = pendingCredentialReview.entries
+
+    /** Stores every credential under review, as the user decided to keep it although it has been rejected. */
+    @Throws(Throwable::class)
+    suspend fun keepCredentialsUnderReview(): List<StoreEntryId> {
+        val idsBefore = subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
+        val entries = pendingCredentialReview.take()
+        entries.forEach { storeAfterUserConsent(it.prepared) }
+        return resolveNewStoreEntryIds(idsBefore, entries.size)
+    }
+
+    /** Drops every credential under review, as the user decided not to keep it. */
+    fun discardCredentialsUnderReview() = pendingCredentialReview.clear()
+
+    /**
+     * Validates [credential] as the type of [scheme] under [ValidationPolicies.issuance] with the key and validator of
+     * the [holderAgent], see [ReceivedCredential.prepareCredentialStorage], and stores it if it is accepted, returning
+     * its entry. A credential rejected only for problems the user may tolerate, e.g. an
+     * untrusted issuer, an expired one, an unknown status, or claims its type requires that the issuer left out, waits
+     * in [underReview] if it is set, so `null` is returned; otherwise, e.g. when refreshing a
+     * credential in the background, it is stored nevertheless, as before. A credential failing a check of its
+     * integrity, e.g. its signature or its binding to the key of the wallet, or one that can not be decoded at all,
+     * fails with that check, see [integrityRejection]. Every problem of a rejected credential is logged.
+     */
+    private suspend fun storeCredential(
+        credential: ReceivedCredential,
+        scheme: CredentialScheme,
+        renewalInfo: CredentialRenewalInfo? = null,
+        underReview: MutableList<PendingCredentialReview.Entry>?,
+    ): KmmResult<SubjectCredentialStore.StoreEntry?> = catching {
+        val prepared = withContext(Dispatchers.Default) {
+            credential.prepareCredentialStorage(holderAgent, scheme, ValidationPolicies.issuance, renewalInfo)
+                .getOrThrow()
+        }
+        val report = prepared.validation.report
+        if (report.decision == ValidationDecision.ACCEPTED) {
+            return@catching withContext(Dispatchers.Default) { holderAgent.storeAccepted(prepared).getOrThrow() }
+                .storedEntry ?: throw IllegalStateException("The credential has not been stored")
+        }
+        Napier.w("Issued credential rejected: ${report.describeProblems()}")
+        val outcome = report.toUi { scheme.claimLabel(it) }
+        when {
+            outcome.integrityFailed || prepared.validation.unacceptedCredential == null ->
+                throw report.integrityRejection() ?: report.rejection()
+                    ?: IllegalStateException("The credential has not been stored")
+
+            underReview != null && report.needsReview() -> null.also {
+                underReview += PendingCredentialReview.Entry(prepared, scheme, outcome)
+            }
+
+            else -> storeAfterUserConsent(prepared)
+        }
+    }
+
+    /** Stores [prepared] although it has been rejected, as long as it is intact, see [HolderAgent.storeAfterUserConsent]. */
+    private suspend fun storeAfterUserConsent(prepared: PreparedCredentialStorage): SubjectCredentialStore.StoreEntry =
+        withContext(Dispatchers.Default) { holderAgent.storeAfterUserConsent(prepared).getOrThrow() }.storedEntry
+            ?: throw prepared.validation.report.rejection()
+                ?: IllegalStateException("The credential has not been stored")
+
+    /**
+     * Every credential of [CredentialIssuanceResult.Success.issued], with the configuration it has been issued for,
+     * i.e. the scheme it has been requested as and its renewal info.
+     */
+    private val CredentialIssuanceResult.Success.credentialsByConfiguration: List<Pair<IssuedCredentials, ReceivedCredential>>
+        get() = issued.flatMap { issued -> issued.receivedCredentials.map { issued to it } }
+
+    /**
+     * Waits for the store to emit a container with all [count] entries stored since [idsBefore], as the session's hot
+     * store may still show only some of them, returning those found so far on a timeout.
+     */
+    private suspend fun resolveNewStoreEntryIds(idsBefore: Set<StoreEntryId>, count: Int): List<StoreEntryId> {
+        if (count == 0) return emptyList()
+        var newIds = emptyList<StoreEntryId>()
         return withTimeoutOrNull(3_000.milliseconds) {
             subjectCredentialStore.observeStoreContainer()
-                .map { container -> (container.credentials.map { it.first }.toSet() - idsBefore).toList() }
-                .first { it.isNotEmpty() }
+                .map { container -> container.credentials.map { it.first }.filterNot { it in idsBefore } }
+                .onEach { newIds = it }
+                .first { it.size >= count }
         } ?: run {
-            Napier.w("resolveNewStoreEntryIds timed out waiting for new store entries")
-            emptyList()
+            Napier.w("resolveNewStoreEntryIds timed out waiting for $count new store entries, found ${newIds.size}")
+            newIds
         }
     }
 

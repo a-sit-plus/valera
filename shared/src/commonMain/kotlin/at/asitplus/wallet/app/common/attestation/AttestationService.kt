@@ -10,8 +10,8 @@ import at.asitplus.wallet.app.common.BuildContext
 import at.asitplus.wallet.app.common.HttpService
 import at.asitplus.wallet.app.common.WalletKeyMaterial
 import at.asitplus.wallet.app.common.data.SettingsRepository
-import at.asitplus.wallet.lib.ktor.openid.OAuth2KtorClient.LoadInstanceAttestationInput
-import at.asitplus.wallet.lib.oidvci.WalletService.KeyAttestationInput
+import at.asitplus.wallet.lib.oauth2.OAuth2ProtocolClient.LoadInstanceAttestationInput
+import at.asitplus.wallet.lib.oidvci.OpenId4VciClient.KeyAttestationInput
 import io.github.aakira.napier.Napier
 import io.ktor.client.call.body
 import io.ktor.client.request.get

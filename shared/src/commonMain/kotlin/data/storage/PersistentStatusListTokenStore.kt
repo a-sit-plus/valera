@@ -1,19 +1,23 @@
 package data.storage
 
 import at.asitplus.catchingUnwrapped
+import at.asitplus.signum.indispensable.cosef.CoseSigned
 import at.asitplus.signum.indispensable.josef.JwsCompactTyped
 import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.data.primitives.CacheStoreEntry
 import at.asitplus.wallet.app.common.data.primitives.SimpleStore
+import at.asitplus.wallet.lib.data.StatusListCwt
 import at.asitplus.wallet.lib.data.StatusListJwt
 import at.asitplus.wallet.lib.data.StatusListToken
 import at.asitplus.wallet.lib.data.rfc.tokenStatusList.StatusListTokenPayload
 import at.asitplus.wallet.lib.data.rfc3986.UniformResourceIdentifier
 import io.github.aakira.napier.Napier
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ByteArraySerializer
+import kotlin.io.encoding.Base64
 import kotlin.time.Instant
 
-/** Persists the JWT status-list tokens requested by Valera together with their cache timestamps. */
+/** Persists the JWT and CWT status-list tokens requested by Valera together with their cache timestamps. */
 class PersistentStatusListTokenStore(
     dataStoreService: DataStoreService,
 ) : SimpleStore<UniformResourceIdentifier, CacheStoreEntry<StatusListToken>> {
@@ -29,13 +33,8 @@ class PersistentStatusListTokenStore(
     override suspend fun set(
         key: UniformResourceIdentifier,
         value: CacheStoreEntry<StatusListToken>,
-    ): CacheStoreEntry<StatusListToken>? {
-        val stored = value.toStoredOrNull() ?: run {
-            Napier.w("Only JWT status-list tokens can be persisted; not caching $key")
-            return null
-        }
-        return store.set(key.string, stored)?.toCacheEntry(key, removeIfInvalid = false)
-    }
+    ): CacheStoreEntry<StatusListToken>? =
+        store.set(key.string, value.toStored())?.toCacheEntry(key, removeIfInvalid = false)
 
     // Not on the hot path: the bulk-store chain drives get()/put() directly. Kept for interface conformance.
     override suspend fun getOrPut(
@@ -62,10 +61,16 @@ class PersistentStatusListTokenStore(
         removeIfInvalid: Boolean = true,
     ): CacheStoreEntry<StatusListToken>? {
         val parsed = catchingUnwrapped {
-            val token: StatusListToken = StatusListJwt(
-                value = JwsCompactTyped<StatusListTokenPayload>(compactJwt),
-                resolvedAt = resolvedAtEpochMilliseconds?.let(Instant::fromEpochMilliseconds),
-            )
+            val resolvedAt = resolvedAtEpochMilliseconds?.let(Instant::fromEpochMilliseconds)
+            val token: StatusListToken = when {
+                compactJwt != null -> StatusListJwt(JwsCompactTyped<StatusListTokenPayload>(compactJwt), resolvedAt)
+                cwt != null -> StatusListCwt(
+                    CoseSigned.deserialize(ByteArraySerializer(), Base64.decode(cwt)).getOrThrow(),
+                    resolvedAt,
+                )
+
+                else -> throw IllegalStateException("No status list token stored")
+            }
             CacheStoreEntry(
                 data = token,
                 createdTime = Instant.fromEpochMilliseconds(cachedAtEpochMilliseconds),
@@ -79,20 +84,19 @@ class PersistentStatusListTokenStore(
         return parsed
     }
 
-    // ponytail: JWT-only persistence; CWT status-list tokens simply aren't cached (null skips the write).
-    private fun CacheStoreEntry<StatusListToken>.toStoredOrNull(): StoredStatusListToken? {
-        val jwt = data as? StatusListJwt ?: return null
-        return StoredStatusListToken(
-            compactJwt = jwt.value.toString(),
-            resolvedAtEpochMilliseconds = jwt.resolvedAt?.toEpochMilliseconds(),
-            cachedAtEpochMilliseconds = createdTime.toEpochMilliseconds(),
-        )
-    }
+    private fun CacheStoreEntry<StatusListToken>.toStored() = StoredStatusListToken(
+        compactJwt = (data as? StatusListJwt)?.value?.toString(),
+        cwt = (data as? StatusListCwt)?.let { Base64.encode(it.value.serialize(ByteArraySerializer())) },
+        resolvedAtEpochMilliseconds = data.resolvedAt?.toEpochMilliseconds(),
+        cachedAtEpochMilliseconds = createdTime.toEpochMilliseconds(),
+    )
 }
 
 @Serializable
 private data class StoredStatusListToken(
-    val compactJwt: String,
+    val compactJwt: String? = null,
+    /** The COSE_Sign1 of a CWT token, base64-encoded. */
+    val cwt: String? = null,
     val resolvedAtEpochMilliseconds: Long?,
     val cachedAtEpochMilliseconds: Long,
 )

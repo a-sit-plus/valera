@@ -1,5 +1,7 @@
 package at.asitplus.wallet.app.common.presentation
 
+import at.asitplus.openid.dcql.DCQLIsoMdocZkCredentialQuery
+import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.zk.iso.IsoMdocZkBackendRegistry
 import at.asitplus.wallet.lib.zk.iso.LongfellowBackend
 import io.github.aakira.napier.Napier
@@ -30,4 +32,21 @@ object LongfellowZkRegistration {
                 .onFailure { Napier.w("Unable to register Longfellow-ZK backend", it) }
         }
     }
+
+    /**
+     * Loads the circuits, see [ensureRegistered], only if [presentation] asks for a zero-knowledge proof, as they take
+     * several megabytes of memory, e.g. of the iOS Identity Document Provider extension, that a plain one does not need.
+     */
+    suspend fun ensureRegisteredFor(presentation: CredentialPresentation) {
+        if (presentation.requestsZkProof()) ensureRegistered()
+    }
+}
+
+/** Whether a credential of the request may be answered with a zero-knowledge proof, i.e. needs a ZK backend. */
+internal fun CredentialPresentation.requestsZkProof(): Boolean = when (this) {
+    is CredentialPresentation.DCQLPresentation ->
+        presentationRequest.dcqlQuery.credentials.any { it is DCQLIsoMdocZkCredentialQuery }
+
+    is CredentialPresentation.IsoDeviceRetrievalPresentation ->
+        presentationRequest.deviceRequest.docRequests.any { it.itemsRequest.value.requestInfo?.zkRequest != null }
 }

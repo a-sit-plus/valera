@@ -6,19 +6,15 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import at.asitplus.catching
 import at.asitplus.catchingUnwrapped
-import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
-import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
+import at.asitplus.wallet.lib.ktor.openid.OpenId4VpKtorHolder
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.getString
 import ui.navigation.routes.AuthenticationViewRoute
 import ui.viewmodels.authentication.CredentialPresentationSubmissions
 import ui.viewmodels.authentication.DCQLCredentialSubmissions
@@ -27,7 +23,6 @@ import ui.viewmodels.authentication.IsoDeviceRequestCredentialSubmissions
 class DefaultPresentationGraphViewModel(
     savedStateHandle: SavedStateHandle,
     private val walletMain: WalletMain,
-    private val validator: Validator,
 ) : ViewModel() {
     val route = savedStateHandle.toRoute<AuthenticationViewRoute>()
     val trustListService = walletMain.trustListService
@@ -35,9 +30,7 @@ class DefaultPresentationGraphViewModel(
         route.authorizationResponsePreparationState
     }
 
-    val wrpValidationResult = route.wrpRequestValidationResultSerialized?.let {
-        catchingUnwrapped { joseCompliantSerializer.decodeFromString<WrpValidationResult>(it) }.getOrNull()
-    }
+    val relyingPartyValidation = catchingUnwrapped { route.relyingPartyValidation }.getOrNull()
     val selectionProvider = MutableStateFlow<UiState<CredentialSelectionProvider<SubjectCredentialStore.StoreEntry>>>(
         UiStateLoading
     ).apply {
@@ -49,7 +42,7 @@ class DefaultPresentationGraphViewModel(
                     ).getOrThrow().toCredentialSelectionProvider(
                         scope = viewModelScope
                     ) {
-                        validator.checkCredentialFreshness(it)
+                        walletMain.checkCredentialFreshness(it)
                     }
                 )
             } catch (it: Throwable) {
@@ -58,10 +51,14 @@ class DefaultPresentationGraphViewModel(
         }
     }
 
+    private val mutableIsSubmitting = MutableStateFlow(false)
+
+    /** Whether a presentation is being submitted, which stays set after success until the flow is left */
+    val isSubmitting: StateFlow<Boolean> = mutableIsSubmitting.asStateFlow()
 
     fun confirmSelection(
         credentialPresentationSubmissions: CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>,
-        onSuccess: (OpenId4VpWallet.AuthenticationSuccess) -> Unit,
+        onSuccess: (OpenId4VpKtorHolder.AuthenticationSuccess) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         val selectionProvider = selectionProvider.value as? UiStateSuccess ?: return
@@ -81,13 +78,16 @@ class DefaultPresentationGraphViewModel(
         } catch (it: Throwable) {
             return onFailure(it)
         }
+        // Ignore repeated confirmations while a presentation is being submitted
+        if (!mutableIsSubmitting.compareAndSet(expect = false, update = true)) return
         viewModelScope.launch {
             try {
                 val result = finalizeAuthorization(presentation)
                 onSuccess(result)
             } catch (_: at.asitplus.signum.supreme.UserInitiatedCancellationReason) {
-                // ignore
+                mutableIsSubmitting.value = false
             } catch (it: Throwable) {
+                mutableIsSubmitting.value = false
                 onFailure(it)
             }
         }
@@ -95,18 +95,16 @@ class DefaultPresentationGraphViewModel(
 
     private suspend fun finalizeAuthorization(
         credentialPresentation: CredentialPresentation
-    ): OpenId4VpWallet.AuthenticationSuccess {
-        walletMain.keyMaterial.promptText =
-            getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
+    ): OpenId4VpKtorHolder.AuthenticationSuccess {
         return finalizationMethod(credentialPresentation)
     }
 
-    private suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpWallet.AuthenticationSuccess {
+    private suspend fun finalizationMethod(credentialPresentation: CredentialPresentation): OpenId4VpKtorHolder.AuthenticationSuccess {
         val authenticationResult = walletMain.presentationService.finalizeAuthorizationResponse(
             credentialPresentation = credentialPresentation,
             preparationState = route.authorizationResponsePreparationState
         )
-        return authenticationResult as? OpenId4VpWallet.AuthenticationSuccess
+        return authenticationResult as? OpenId4VpKtorHolder.AuthenticationSuccess
             ?: throw IllegalStateException("DC API requests must use the DC API presentation flow")
     }
 }

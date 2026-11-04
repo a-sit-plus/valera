@@ -11,10 +11,12 @@ import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.warning_authentication_cancelled
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.extractCertificateChain
+import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
+import at.asitplus.wallet.app.common.validation.integrityRejection
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
-import at.asitplus.wallet.lib.ktor.openid.OpenId4VpWallet
+import at.asitplus.wallet.lib.ktor.openid.OpenId4VpKtorHolder
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 
@@ -41,14 +43,37 @@ class PresentationViewModel(
     private var sessionTranscript: SessionTranscript? = null
     var verifierCertificateChain: CertificateChain? = null
 
-    fun initWithDeviceRequest(
+    /**
+     * The validation of the reader, `null` for a request without reader authentication, or without a session
+     * transcript to verify it over.
+     */
+    var relyingPartyValidation: RelyingPartyValidationUi? = null
+
+    /**
+     * Validates the relying party of [parsedRequest], i.e. its reader authentication over [sessionTranscript], and
+     * fails if its integrity is not intact, e.g. its signature. Other problems, e.g. an untrusted reader, are shown to
+     * the user as warnings.
+     */
+    suspend fun initWithDeviceRequest(
         parsedRequest: DeviceRequest,
         finishFunction: (ByteArray) -> Unit,
         sessionTranscript: SessionTranscript?
     ) {
+        // VC-K rejects the relying party of a request without reader authentication by its `requestData`, which
+        // blocks, so such requests are not validated; a request without WRPRC only fails its `registration`
+        val authenticated = !parsedRequest.readerAuthAll.isNullOrEmpty() ||
+                parsedRequest.docRequests.any { it.readerAuth != null }
+        val validation = sessionTranscript?.takeIf { authenticated }?.let {
+            walletMain.presentationService.validateRelyingParty(parsedRequest, it)
+        }
+        val relyingParty = validation?.let { RelyingPartyValidationUi.of(it) }
+        if (relyingParty?.outcome?.integrityFailed == true) {
+            throw validation.report.integrityRejection() ?: IllegalArgumentException("The reader has been rejected")
+        }
         deviceRequest = parsedRequest
         this.finishFunction = finishFunction
         this.sessionTranscript = sessionTranscript
+        this.relyingPartyValidation = relyingParty
         this.verifierCertificateChain = parsedRequest.extractCertificateChain()
     }
 
@@ -73,7 +98,7 @@ class PresentationViewModel(
                 spName,
                 sessionTranscript!!
             )
-            OpenId4VpWallet.AuthenticationSuccess(null)
+            OpenId4VpKtorHolder.AuthenticationSuccess(null)
         } ?: throw IllegalStateException("No finish method found")
 
     override fun onCancel() {
@@ -99,7 +124,7 @@ class PresentationViewModel(
                     current.message?.contains("No signature from native code", ignoreCase = true) == true
         }
 
-    override fun handleAuthenticationSuccess(result: OpenId4VpWallet.AuthenticationSuccess) {
+    override fun handleAuthenticationSuccess(result: OpenId4VpKtorHolder.AuthenticationSuccess) {
         // Local presentment must keep the sheet alive until the presenter coroutine has sent the
         // device response and the transport flow completes.
     }

@@ -4,6 +4,7 @@ import io.github.aakira.napier.Napier
 import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.statement.request
 import io.ktor.http.HttpMethod
+import io.ktor.util.AttributeKey
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.time.Clock
@@ -18,6 +19,12 @@ class HttpFailureCacheConfig {
 /** Thrown (instead of making a request) while a URL is cooling down after a recent error response. */
 class HttpResourceInCooldownException(url: String, until: Instant) :
     Exception("$url is in failure cooldown until $until (last response was an error)")
+
+/**
+ * Marks a request that is sent even while its URL is cooling down, e.g. as its response must be fresh. Its response
+ * still starts or clears the cooldown, see [HttpFailureCache].
+ */
+val IgnoreFailureCooldown = AttributeKey<Unit>("IgnoreFailureCooldown")
 
 /**
  * Client plugin that stops re-fetching a GET URL that just returned an error status. After a `>= 400` response the
@@ -37,7 +44,7 @@ val HttpFailureCache = createClientPlugin("HttpFailureCache", ::HttpFailureCache
     val coolingUntil = mutableMapOf<String, Instant>()
 
     onRequest { request, _ ->
-        if (request.method == HttpMethod.Get) {
+        if (request.method == HttpMethod.Get && !request.attributes.contains(IgnoreFailureCooldown)) {
             val url = request.url.build().toString()
             mutex.withLock {
                 coolingUntil[url]?.let { until ->

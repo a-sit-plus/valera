@@ -2,8 +2,8 @@ package at.asitplus.wallet.app.common
 
 import at.asitplus.KmmResult
 import at.asitplus.catchingUnwrapped
+import at.asitplus.data.NonEmptyList
 import at.asitplus.dcapi.DigitalCredentialInterface
-import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
@@ -11,14 +11,14 @@ import at.asitplus.wallet.app.common.attestation.AttestationService
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.app.common.dcapi.DCAPIExportService
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
+import at.asitplus.wallet.app.common.dcapi.DCAPIVerificationRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.app.common.presentation.LocalPresentmentSessionCoordinator
 import at.asitplus.wallet.app.common.presentation.LongfellowZkRegistration
-import at.asitplus.wallet.app.common.relyingParty.WrpValidator
+import at.asitplus.wallet.app.common.validation.StoredCredentialValidator
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.agent.Validator
-import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
+import at.asitplus.wallet.lib.oidvci.CredentialIdentifierInfo
 import data.storage.DataStoreService
 import data.storage.WalletSubjectCredentialStore
 import io.github.aakira.napier.Napier
@@ -53,7 +53,6 @@ class WalletMain(
     val subjectCredentialStore: WalletSubjectCredentialStore,
     val buildContext: BuildContext,
     promptModel: PromptModel,
-    val credentialValidator: Validator,
     val holderAgent: HolderAgent,
     val provisioningService: ProvisioningService,
     val httpService: HttpService,
@@ -71,7 +70,7 @@ class WalletMain(
     val attestationService: AttestationService,
     sessionCoroutineScope: CoroutineScope,
     val trustListService: TrustListService,
-    val wrpValidator: WrpValidator,
+    val storedCredentialValidator: StoredCredentialValidator,
 ) {
     val appReady = MutableStateFlow<Boolean?>(null)
 
@@ -88,13 +87,20 @@ class WalletMain(
     private var dcApiRegistrationJob: Job? = null
 
     init {
-        credentialValidityService.startChecking()
-        trustListService.startChecking()
-        // Load the ZK circuits ahead of the first presentation, which waits for them
-        scope.launch { LongfellowZkRegistration.ensureRegistered() }
         if (keyMaterial.keyMaterial is FallBackKeyMaterial) {
             Napier.e("FallBackKeyMaterial: ${keyMaterial.keyMaterial.reason}")
         }
+    }
+
+    /**
+     * Starts the periodic checks of the stored credentials, of the Trust Lists and the WRPRC trust anchors, and loads
+     * the ZK circuits ahead of the first presentation, which waits for them. Not started in the iOS Identity Document
+     * Provider extension, see [createTransientFlowWalletSessionScope].
+     */
+    fun startBackgroundWork() {
+        credentialValidityService.startChecking()
+        trustListService.startChecking()
+        scope.launch { LongfellowZkRegistration.ensureRegistered() }
     }
 
     suspend fun resetApp() {
@@ -137,14 +143,14 @@ class WalletMain(
 
     fun startProvisioning(
         host: String,
-        credentialIdentifierInfo: CredentialIdentifierInfo,
+        credentialIdentifierInfos: NonEmptyList<CredentialIdentifierInfo>,
         onSuccess: () -> Unit,
     ) {
         scope.launch {
             try {
                 provisioningService.startProvisioningWithAuthRequest(
                     credentialIssuer = host,
-                    credentialIdentifierInfo = credentialIdentifierInfo,
+                    credentialIdentifierInfos = credentialIdentifierInfos,
                 )
                 onSuccess()
             } catch (e: Throwable) {
@@ -205,11 +211,9 @@ class WalletMain(
         }
     }
 
-    suspend fun checkCredentialFreshness(storeEntry: SubjectCredentialStore.StoreEntry) = when (val it = storeEntry) {
-        is SubjectCredentialStore.StoreEntry.Iso -> credentialValidator.checkCredentialFreshness(it.issuerSigned)
-        is SubjectCredentialStore.StoreEntry.SdJwt -> credentialValidator.checkCredentialFreshness(it.sdJwt)
-        is SubjectCredentialStore.StoreEntry.Vc -> credentialValidator.checkCredentialFreshness(it.vc)
-    }
+    /** Whether [storeEntry] is expired or not yet valid, and its status, see [StoredCredentialValidator.freshness]. */
+    suspend fun checkCredentialFreshness(storeEntry: SubjectCredentialStore.StoreEntry) =
+        storedCredentialValidator.freshness(storeEntry)
 }
 
 fun PlatformAdapter.decodeImage(image: ByteArray) = catchingUnwrapped {
@@ -271,7 +275,7 @@ interface PlatformAdapter {
     /**
      * Retrieves request from the digital credentials browser API
      */
-    fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest>
+    fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIVerificationRequest>
 
     /**
      * Retrieves creation request from the digital credentials browser API
@@ -333,7 +337,7 @@ class DummyPlatformAdapter : PlatformAdapter {
     override suspend fun registerWithDigitalCredentialsAPI(entries: CredentialRegistry, scope: CoroutineScope) {
     }
 
-    override fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest> {
+    override fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIVerificationRequest> {
         return KmmResult.failure(IllegalStateException("Using dummy platform adapter"))
     }
 

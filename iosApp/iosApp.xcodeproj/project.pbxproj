@@ -15,8 +15,8 @@
 		B7DE82D4C033625C80140561 /* OSLogNapierAntilog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DE86B6B19B6FFB46488EE1 /* OSLogNapierAntilog.swift */; };
 		B7DE8F4AF477D6E8EDAC45E9 /* OSLogNapierAntilog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DE86B6B19B6FFB46488EE1 /* OSLogNapierAntilog.swift */; };
 		E147A2B12EB4FD5A00D88306 /* IdentityDocumentProviderExtension.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = E147A2AA2EB4FD5A00D88306 /* IdentityDocumentProviderExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		E1B7FF8C2EF0A10006DA318 /* compose-resources in Resources */ = {isa = PBXBuildFile; fileRef = E1B7FF792EF07845006DA318 /* compose-resources */; };
 		E1B7FF7A2EF07846006DA318 /* compose-resources in Resources */ = {isa = PBXBuildFile; fileRef = E1B7FF792EF07845006DA318 /* compose-resources */; };
+		E1B7FF8C2EF0A10006DA318 /* compose-resources in Resources */ = {isa = PBXBuildFile; fileRef = E1B7FF792EF07845006DA318 /* compose-resources */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -275,24 +275,6 @@
 			shellPath = /bin/sh;
 			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :shared:embedAndSignAppleFrameworkForXcode\n";
 		};
-		E1B7FF8D2EF0A10006DA318 /* Copy Compose Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Copy Compose Resources";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "#!/bin/sh\nset -e\n\n# This script prepares Compose resources in an intermediate directory.\n# Xcode will then copy them into the bundle via a folder reference.\n\n# 1. Define the intermediate output directory.\nOUTPUT_DIR=\"$SRCROOT/../build/extension_compose_resources/compose-resources\"\n\n# 2. Define the root path where KMP stores all generated resources.\nKMP_RESOURCES_ROOT=\"$SRCROOT/../shared/build/kotlin-multiplatform-resources/aggregated-resources\"\n\n# 3. Determine the correct architecture-specific source directory.\nSOURCE_RESOURCES_DIR=\"$KMP_RESOURCES_ROOT/iosArm64/composeResources\"\nif [ \"$PLATFORM_NAME\" = \"iphonesimulator\" ]; then\n    SOURCE_RESOURCES_DIR=\"$KMP_RESOURCES_ROOT/iosSimulatorArm64/composeResources\"\nfi\n\n# 4. Sync the resources. This creates the structure \".../extension_compose_resources/composeResources\"\nif [ -d \"$SOURCE_RESOURCES_DIR\" ]; then\n  mkdir -p \"$OUTPUT_DIR\"\n  rsync -a --delete \"$SOURCE_RESOURCES_DIR\" \"$OUTPUT_DIR/\"\nelse\n  echo \"warning: Compose resources directory not found at $SOURCE_RESOURCES_DIR. Creating empty directory to avoid build errors.\"\n  mkdir -p \"$OUTPUT_DIR\"\nfi\n";
-		};
 		E1B7FF572EEF0519006DA318 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -327,6 +309,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :shared:embedAndSignAppleFrameworkForXcode\n";
+		};
+		E1B7FF8D2EF0A10006DA318 /* Copy Compose Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Compose Resources";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "#!/bin/sh\nset -e\n\n# This script prepares Compose resources in an intermediate directory.\n# Xcode will then copy them into the bundle via a folder reference.\n\n# 1. Define the intermediate output directory.\nOUTPUT_DIR=\"$SRCROOT/../build/extension_compose_resources/compose-resources\"\n\n# 2. Define the root path where KMP stores all generated resources.\nKMP_RESOURCES_ROOT=\"$SRCROOT/../shared/build/kotlin-multiplatform-resources/aggregated-resources\"\n\n# 3. Determine the correct architecture-specific source directory.\nSOURCE_RESOURCES_DIR=\"$KMP_RESOURCES_ROOT/iosArm64/composeResources\"\nif [ \"$PLATFORM_NAME\" = \"iphonesimulator\" ]; then\n    SOURCE_RESOURCES_DIR=\"$KMP_RESOURCES_ROOT/iosSimulatorArm64/composeResources\"\nfi\n\n# 4. Sync the resources. This creates the structure \".../extension_compose_resources/composeResources\"\nif [ -d \"$SOURCE_RESOURCES_DIR\" ]; then\n  mkdir -p \"$OUTPUT_DIR\"\n  rsync -a --delete \"$SOURCE_RESOURCES_DIR\" \"$OUTPUT_DIR/\"\nelse\n  echo \"warning: Compose resources directory not found at $SOURCE_RESOURCES_DIR. Creating empty directory to avoid build errors.\"\n  mkdir -p \"$OUTPUT_DIR\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -497,12 +497,12 @@
 				);
 				INFOPLIST_FILE = iosApp/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Valera;
-					IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 5.9.0;
+				MARKETING_VERSION = 5.9.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -540,12 +540,12 @@
 				);
 				INFOPLIST_FILE = iosApp/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Valera;
-					IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 5.9.0;
+				MARKETING_VERSION = 5.9.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -595,7 +595,7 @@
 						"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 5.9.0;
+				MARKETING_VERSION = 5.9.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -646,7 +646,7 @@
 						"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-                MARKETING_VERSION = 5.9.0;
+                MARKETING_VERSION = 5.9.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",

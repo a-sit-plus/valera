@@ -1,10 +1,10 @@
 diff --git a/shared/src/androidMain/kotlin/matcher/CredentialDatabase.cpp b/shared/src/androidMain/kotlin/matcher/CredentialDatabase.cpp
 --- a/shared/src/androidMain/kotlin/matcher/CredentialDatabase.cpp
 +++ b/shared/src/androidMain/kotlin/matcher/CredentialDatabase.cpp
-@@ -292,6 +292,22 @@ void Combination::addToCredmanPicker(const Request& request) const {
+@@ -435,6 +435,22 @@
                  );
              }
- 
+
 +            if (match.claims.empty()) {
 +                if (credmanRuntimeVersion >= 2) {
 +                    ::AddFieldToEntrySet(entryId,
@@ -24,8 +24,3 @@ diff --git a/shared/src/androidMain/kotlin/matcher/CredentialDatabase.cpp b/shar
              for (const auto &claim: match.claims) {
                  if (claim->isDeviceSigned) {
                      continue;
-@@ -322,4 +338,3 @@ void Combination::addToCredmanPicker(const Request& request) const {
-         }
-     }
- }
--

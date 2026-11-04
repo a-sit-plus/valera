@@ -26,7 +26,7 @@
     <string name="button_label_use_device_credential">Passwort</string>
     <string name="button_label_confirm">Bestätigen</string>
     <string name="button_label_dismiss">Abbrechen</string>
-    <string name="button_label_ok">Ok</string>
+    <string name="button_label_ok">OK</string>
     <string name="button_label_retry">Erneut versuchen</string>
     <string name="button_label_authenticate">Anmelden</string>
     <string name="button_label_present_data">Vorzeigen</string>
@@ -68,8 +68,7 @@
     <string name="credential_representation_format_label_mso_mdoc">ISO mDoc</string>
 
     <string name="issuing_label_host">Issuing service</string>
-    <string name="issuing_label_scheme">Schema</string>
-    <string name="issuing_label_representation">Repräsentation</string>
+    <string name="issuing_label_credentials">Nachweise</string>
     <string name="issuing_label_transaction_code">Transaktionscode</string>
     <string name="issuing_label_information">Es werden alle verfügbaren Daten geladen werden</string>
 
@@ -107,6 +106,7 @@
     <string name="loading_message_issuing_credential">Credential wird ausgestellt</string>
     <string name="loading_message_storing_credential">Credential wird gespeichert</string>
     <string name="loading_message_checking_requested_credentials">Angeforderte Credentials werden geprüft</string>
+    <string name="loading_message_submitting_presentation">Daten werden gesendet</string>
     <string name="loading_message_checking_device_requirements">App- und Geräteanforderungen werden geprüft</string>
     <string name="loading_message_requesting_camera_permission">Kameraberechtigung wird angefordert</string>
     <string name="loading_message_scanning_qr_content">QR-Code wird gelesen</string>
@@ -120,7 +120,6 @@
     <string name="text_label_openid4vp_allowed_origin_schemes">Erlaubte OpenID4VP-Origin-Schemata</string>
     <string name="text_supporting_openid4vp_allowed_origin_schemes">Kommagetrennt, z. B. https,android:apk-key-hash. Leerzeichen werden ignoriert; leeren, um alle zu deaktivieren.</string>
     <string name="text_label_wallet_provider_attestation">Wallet Attestierung verwenden</string>
-    <string name="text_label_id_identifier">Bezeichnung</string>
     <string name="text_label_id_format">Datenrepräsentation</string>
     <string name="text_label_id_scheme">Credential Typ</string>
     <string name="text_label_sex">Geschlecht</string>
@@ -140,6 +139,9 @@
     <string name="text_label_optional">Optional</string>
     <string name="text_label_all_claims_requested">Alle Attribute</string>
     <string name="text_label_intent_to_retain">wird gespeichert</string>
+    <string name="zk_mode_badge_plain">Klassisch</string>
+    <string name="zk_mode_badge_zk_with_plain_fallback">ZK versuchen</string>
+    <string name="zk_mode_badge_zk_required">ZK erzwingen</string>
     <string name="text_label_powered_by">POWERED BY</string>
     <string name="text_label_certificate">Zertifikat</string>
     <string name="text_label_vda">VDA</string>
@@ -158,6 +160,7 @@
     <string name="heading_label_show_data_third_party">Daten vorzeigen an dritte Bürger</string>
     <string name="heading_label_authentication_success">Angemeldet</string>
     <string name="heading_label_credential_added_screen">Ausweis hinzugefügt</string>
+    <string name="heading_label_credentials_added_screen">Nachweise hinzugefügt</string>
     <string name="heading_label_settings_screen">Einstellungen</string>
     <string name="heading_label_error_screen">Fehler</string>
     <string name="heading_label_loading_screen">Laden</string>
@@ -185,9 +188,7 @@
     <string name="heading_label_attestation">Attestierung</string>
     <string name="heading_label_select_data">Daten wählen</string>
 
-    <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Daten vorzeigen</string>
-    <string name="biometric_authentication_prompt_to_load_data_title">Daten laden</string>
-    <string name="biometric_authentication_prompt_to_bind_credentials_title">Gerätbindung erzeugen</string>
+    <string name="biometric_authentication_prompt_title">Zum Fortfahren authentifizieren</string>
 
     <string name="content_description_navigate_back">Zurück</string>
     <string name="content_description_close">Schließen</string>
@@ -242,10 +243,12 @@
     <string name="info_text_error_action_reset_app">Sie werden zur Erstkonfiguration weitergeleitet.</string>
     <string name="info_text_error_action_close_intent">Sie kehren zum vorherigen Bildschirm zurück.</string>
     <string name="info_text_error_action_return_to_invoker">Sie kehren zur anfragenden App/Webseite zurück.</string>
+    <string name="info_text_action_return_to_my_data">Sie kehren zu „Meine Daten“ zurück.</string>
     <string name="info_text_error_cause_reset_app">Aufgrund technischer Verbesserungen muss die App zurückgesetzt werden.</string>
     <string name="info_text_data_items_missing">fehlend</string>
     <string name="info_text_authentication_success">Die Anmeldung wurde erfolgreich durchgeführt.</string>
     <string name="info_text_credential_added">Das Credential wurde erfolgreich hinzugefügt.</string>
+    <string name="info_text_credentials_added">Die Nachweise wurden erfolgreich hinzugefügt.</string>
     <string name="info_text_no_credentials_available">Es sind noch keine Daten verfügbar.</string>
     <string name="info_text_available_credentials">Verfügbare Daten</string>
     <string name="info_text_requested_credentials">Angefragte Daten</string>
@@ -401,7 +404,6 @@
     <string name="text_label_optional_dataset">Optionales Datenset</string>
     <string name="text_label_requests">Anfragen</string>
     <string name="info_text_no_requests">Keine Anfragen</string>
-    <string name="info_text_credential_status_valid">GÜLTIG</string>
     <string name="error_mdl_driving_privilege_category_expired">Der Führerschein der Kategorie %1$s ist abgelaufen</string>
     <string name="error_mdl_driving_privilege_category_not_yet_valid">Der Führerschein der Kategorie %1$s ist noch nicht gültig</string>
 
@@ -473,6 +475,7 @@
     <string name="trust_status_trusted_verifier">Vertrauenswürdiger Service Provider</string>
     <string name="trust_status_untrusted_verifier">Nicht vertrauenswürdiger Service Provider</string>
     <string name="trust_status_title">Vertrauensstatus</string>
+    <string name="trust_status_title_preliminary">Vertrauensstatus (vorläufig)</string>
 
     <string name="section_heading_issuer_trust">Aussteller-Vertrauensdetails</string>
     <string name="section_heading_issuer_trust_icon_text">ITD</string>
@@ -486,27 +489,84 @@
 
     <!-- Access / Registration Certificate -->
     <string name="label_registration_cert_request">Abfrage</string>
-    <string name="label_registration_cert_valid">Gültig</string>
-    <string name="label_registration_cert_invalid">Ungültig</string>
-    <string name="label_registration_cert">Zertifikat</string>
-    <string name="label_registration_cert_credential_typ">Credential-Typ</string>
-    <string name="label_registration_cert_attributes">Attribute</string>
-    <string name="label_registration_cert_identifier">Identifikation</string>
     <string name="label_registration_cert_details_trade_name">Handelsbezeichnung</string>
     <string name="label_registration_cert_details_purpose">Zweck</string>
     <string name="label_registration_cert_details_country">Land</string>
-    <string name="label_registration_cert_details_service_description">Service-Beschreibung</string>
     <string name="label_registration_cert_more_details">Mehr Details</string>
+    <string name="label_registration_cert_unverified">Registrierungsinformationen (nicht geprüft)</string>
     <string name="label_registration_cert_info_uri">Info URL</string>
     <string name="label_registration_cert_support_uri">Support URL</string>
 
     <string name="info_text_registration_cert_missing">Der Service Provider hat kein Zertifikat zu dieser Anfrage mitgesendet</string>
-    <string name="info_text_registration_cert_valid">Der Service Provider hat ein gültiges Zertifikat</string>
-    <string name="info_text_registration_cert_invalid">Das Zertifikat des Service Provider ist ungültig!</string>
-    <string name="info_text_registration_cert_typ_valid">Die angefragten Credential-Typen sind erlaubt</string>
-    <string name="info_text_registration_cert_typ_invalid">Es werden andere Credential-Typen abgefragt als erlaubt!</string>
-    <string name="info_text_registration_cert_identifier_valid">Identifikation des Service Provider ist korrekt</string>
-    <string name="info_text_registration_cert_identifier_invalid">Der Service Provider verwendet eine andere Identifikation als registriert wurde!</string>
-    <string name="info_text_registration_cert_requested_claim_invalid">Es werden mehr Attribute abgefragt als erlaubt!</string>
-    <string name="info_text_registration_cert_requested_claim_valid">Die abgefragten Attribute sind erlaubt</string>
+    <string name="button_label_reload_trust_lists">Vertrauenslisten aktualisieren</string>
+    <string name="snackbar_trust_lists_reloaded">Vertrauenslisten wurden aktualisiert</string>
+    <string name="error_reloading_trust_lists_failed">Nicht alle Vertrauenslisten konnten aktualisiert werden.</string>
+    <string name="validation_summary_passed">Alle Prüfungen bestanden</string>
+    <string name="validation_summary_warning">Nicht alle Prüfungen bestanden</string>
+    <string name="validation_summary_failed">Prüfung fehlgeschlagen</string>
+    <string name="validation_details">Details der Prüfung</string>
+    <string name="validation_headline">%1$s: %2$s</string>
+    <string name="validation_artifact_credential">Nachweis</string>
+    <string name="validation_artifact_status_list_token">Statusliste</string>
+    <string name="validation_artifact_presentation">Präsentation</string>
+    <string name="validation_artifact_protocol_response">Antwort</string>
+    <string name="validation_artifact_jwt_proof">Besitznachweis</string>
+    <string name="validation_artifact_key_attestation">Schlüsselattestierung</string>
+    <string name="validation_artifact_client_attestation">Wallet-Attestierung</string>
+    <string name="validation_artifact_request_object">Anfrage</string>
+    <string name="validation_artifact_verifier_attestation">Verifier-Attestierung</string>
+    <string name="validation_artifact_relying_party">Vertrauende Partei</string>
+    <string name="validation_artifact_access_certificate">Zugangszertifikat</string>
+    <string name="validation_artifact_registration_certificate">Registrierungszertifikat</string>
+    <string name="validation_artifact_issuer_metadata">Metadaten des Ausstellers</string>
+    <string name="validation_check_parsing">Format</string>
+    <string name="validation_check_signature">Signatur</string>
+    <string name="validation_check_trust">Vertrauen</string>
+    <string name="validation_check_issuer_signature">Signatur des Ausstellers</string>
+    <string name="validation_check_issuer_trust">Vertrauen in den Aussteller</string>
+    <string name="validation_check_signer_trust">Vertrauen in den Unterzeichner</string>
+    <string name="validation_check_semantics">Inhalt</string>
+    <string name="validation_check_disclosed_items">Offengelegte Daten</string>
+    <string name="validation_check_required_claims">Pflichtangaben</string>
+    <string name="validation_check_holder_binding">An diese Wallet gebunden</string>
+    <string name="validation_check_timeliness">Gültigkeitszeitraum</string>
+    <string name="validation_check_status">Status</string>
+    <string name="validation_check_client_id">Client-Kennung</string>
+    <string name="validation_check_wallet_nonce">Wallet-Nonce</string>
+    <string name="validation_check_expected_origin">Herkunft</string>
+    <string name="validation_check_request_data">Angefragte Daten</string>
+    <string name="validation_check_linkage">Für die vertrauende Partei ausgestellt</string>
+    <string name="validation_check_request_authorization">Für die angefragten Daten registriert</string>
+    <string name="validation_check_subject">Kennung des Ausstellers</string>
+    <string name="validation_check_registration">Registrierungsinformationen</string>
+    <string name="validation_check_retrieval">Abruf</string>
+    <string name="validation_finding_untrusted">Nicht vertrauenswürdig</string>
+    <string name="validation_finding_untrusted_source">Nicht vertrauenswürdig laut %1$s</string>
+    <string name="validation_finding_trust_not_checked">Vertrauen konnte nicht geprüft werden, es gibt keine Vertrauensanker</string>
+    <string name="validation_finding_expired">Abgelaufen</string>
+    <string name="validation_finding_expired_at">Abgelaufen am %1$s</string>
+    <string name="validation_finding_not_yet_valid">Noch nicht gültig</string>
+    <string name="validation_finding_not_yet_valid_at">Nicht gültig vor %1$s</string>
+    <string name="validation_finding_revoked">Widerrufen</string>
+    <string name="validation_finding_suspended">Ausgesetzt</string>
+    <string name="validation_finding_other_status">Status nicht akzeptiert (%1$s)</string>
+    <string name="validation_finding_status_unavailable">Status konnte nicht geprüft werden</string>
+    <string name="validation_finding_not_linked">Nicht für die vertrauende Partei des Zugangszertifikats ausgestellt</string>
+    <string name="validation_finding_unregistered">Fragt Daten an, für die keine Registrierung besteht</string>
+    <string name="validation_finding_missing_claims">Es fehlen Angaben, die der Nachweistyp vorschreibt: %1$s</string>
+    <string name="validation_finding_missing_registration">Keine Registrierungsinformationen vorhanden</string>
+    <string name="validation_finding_unsigned">Nicht signiert, daher konnte der Absender nicht geprüft werden</string>
+    <string name="validation_finding_not_checked">Konnte nicht geprüft werden</string>
+    <string name="section_heading_issuer_validation">Aussteller</string>
+    <string name="label_issuer_registration">Registrierung des Ausstellers</string>
+    <string name="label_issuer_registration_unverified">Registrierung des Ausstellers (nicht geprüft)</string>
+    <string name="label_issuer_registration_description">Dienst</string>
+    <string name="label_issuer_registration_identifiers">Kennungen</string>
+    <string name="label_issuer_registration_attestations">Registrierte Nachweise</string>
+    <string name="label_issuer_registration_registry">Register</string>
+    <string name="warning_issuer_not_registered_for_credential">Der Aussteller ist nicht für die Ausstellung dieses Nachweises registriert</string>
+    <string name="heading_label_credential_review">Nachweis prüfen</string>
+    <string name="info_text_credential_review">Der ausgestellte Nachweis hat nicht alle Prüfungen bestanden. Er wurde noch nicht gespeichert: trotzdem behalten, oder abbrechen, um ihn zu verwerfen.</string>
+    <string name="prompt_credential_review">Den Nachweis behalten, obwohl nicht alle Prüfungen bestanden wurden?</string>
+    <string name="button_label_keep_anyway">Trotzdem behalten</string>
 </resources>

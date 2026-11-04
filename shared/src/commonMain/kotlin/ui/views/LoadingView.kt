@@ -29,6 +29,7 @@ import at.asitplus.valera.resources.loading_message_issuing_credential
 import at.asitplus.valera.resources.loading_message_requesting_camera_permission
 import at.asitplus.valera.resources.loading_message_scanning_qr_content
 import at.asitplus.valera.resources.loading_message_storing_credential
+import at.asitplus.valera.resources.loading_message_submitting_presentation
 import at.asitplus.wallet.app.common.LoadingMessageKey
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -48,6 +49,7 @@ private val LoadingMessageKey.stringResource: StringResource
         LoadingMessageKey.IssuingCredential -> Res.string.loading_message_issuing_credential
         LoadingMessageKey.StoringCredential -> Res.string.loading_message_storing_credential
         LoadingMessageKey.CheckingRequestedCredentials -> Res.string.loading_message_checking_requested_credentials
+        LoadingMessageKey.SubmittingPresentation -> Res.string.loading_message_submitting_presentation
         LoadingMessageKey.CheckingDeviceRequirements -> Res.string.loading_message_checking_device_requirements
         LoadingMessageKey.RequestingCameraPermission -> Res.string.loading_message_requesting_camera_permission
         LoadingMessageKey.ScanningQrContent -> Res.string.loading_message_scanning_qr_content

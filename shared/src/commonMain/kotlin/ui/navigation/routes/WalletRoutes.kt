@@ -6,7 +6,10 @@ import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.openid.SignatureRequestParameters
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.LoadingMessageKey
-import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
+import at.asitplus.wallet.app.common.dcapi.DCAPICredentialQuerySelection
+import at.asitplus.wallet.app.common.dcapi.DCAPIVerificationRequest
+import at.asitplus.wallet.app.common.dcapi.withRawIsoMdocRequest
+import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
 import at.asitplus.wallet.lib.openid.AuthorizationResponsePreparationState
 import data.storage.StoreEntryId
 import kotlinx.serialization.Serializable
@@ -81,8 +84,13 @@ data class AddCredentialDcApiRoute(
         get() = joseCompliantSerializer.decodeFromString(credentialOfferSerialized)
 }
 
+/** Shows the credentials stored in [storeEntryIds], all of those issued at once, in their order. */
 @Serializable
-data class TransientFlowIssuingResultRoute(val storeEntryId: StoreEntryId? = null) : Route()
+data class TransientFlowIssuingResultRoute(val storeEntryIds: List<StoreEntryId> = emptyList()) : Route()
+
+/** Issued credentials that have been rejected wait for the user to keep or discard them, see `PendingCredentialReview`. */
+@Serializable
+object CredentialReviewRoute : Route()
 
 @Serializable
 data class AddCredentialWithLinkRoute(val uri: String) : Route()
@@ -130,45 +138,53 @@ data class AuthenticationViewRoute(
     val authorizationPreparationStateSerialized: String,
     val recipientLocation: String,
     val isCrossDeviceFlow: Boolean,
-    val wrpRequestValidationResultSerialized: String?
+    val relyingPartyValidationSerialized: String?
 ) : Route() {
     constructor(
         authenticationRequest: RequestParametersFrom<AuthenticationRequestParameters>,
         authorizationResponsePreparationState: AuthorizationResponsePreparationState,
         recipientLocation: String,
         isCrossDeviceFlow: Boolean,
-        wrpValidationResult: WrpValidationResult? = null
+        relyingPartyValidation: RelyingPartyValidationUi? = null
     ) : this(
         authenticationRequestParametersFromSerialized = joseCompliantSerializer.encodeToString(authenticationRequest),
         authorizationPreparationStateSerialized = joseCompliantSerializer.encodeToString(authorizationResponsePreparationState),
         recipientLocation = recipientLocation,
         isCrossDeviceFlow = isCrossDeviceFlow,
-        wrpRequestValidationResultSerialized = joseCompliantSerializer.encodeToString(wrpValidationResult)
+        relyingPartyValidationSerialized = relyingPartyValidation?.let { joseCompliantSerializer.encodeToString(it) }
     )
 
     val authenticationRequest: RequestParametersFrom<AuthenticationRequestParameters>
         get() = joseCompliantSerializer.decodeFromString(authenticationRequestParametersFromSerialized)
     val authorizationResponsePreparationState: AuthorizationResponsePreparationState
         get() = joseCompliantSerializer.decodeFromString(authorizationPreparationStateSerialized)
-    val wrpValidationResult: WrpValidationResult?
-        get() = wrpRequestValidationResultSerialized?.let { joseCompliantSerializer.decodeFromString(it) }
+    val relyingPartyValidation: RelyingPartyValidationUi?
+        get() = relyingPartyValidationSerialized?.let { joseCompliantSerializer.decodeFromString(it) }
 }
 
 @Serializable
 data class DCAPIPresentationViewRoute(
     val apiRequestSerialized: String,
-    val wrpRequestValidationResultSerialized: String?
+    val credentialQuerySelectionsSerialized: String? = null,
 ) : Route() {
-    constructor(request: RequestParametersFrom.DcApiRequest, wrpValidationResult: WrpValidationResult? = null) : this(
-        apiRequestSerialized = joseCompliantSerializer.encodeToString<RequestParametersFrom.DcApiRequest>(request),
-        wrpRequestValidationResultSerialized = joseCompliantSerializer.encodeToString(wrpValidationResult)
+    constructor(request: DCAPIVerificationRequest) : this(
+        apiRequestSerialized = joseCompliantSerializer.encodeToString<RequestParametersFrom.DcApiRequest>(
+            request.request
+        ),
+        credentialQuerySelectionsSerialized = request.credentialQuerySelections.takeIf { it.isNotEmpty() }
+            ?.let { joseCompliantSerializer.encodeToString(it) },
     )
 
+    /** The request, an ISO mdoc request decoded from its raw request, whose reader authentication signs it as received */
     val request: RequestParametersFrom.DcApiRequest
-        get() = joseCompliantSerializer.decodeFromString(apiRequestSerialized)
+        get() = joseCompliantSerializer.decodeFromString<RequestParametersFrom.DcApiRequest>(apiRequestSerialized)
+            .withRawIsoMdocRequest()
 
-    val wrpValidationResult: WrpValidationResult?
-        get() = wrpRequestValidationResultSerialized?.let { joseCompliantSerializer.decodeFromString(it) }
+    /** The DCQL credential query the system selected each credential of [request] for */
+    val credentialQuerySelections: List<DCAPICredentialQuerySelection>
+        get() = credentialQuerySelectionsSerialized?.let {
+            joseCompliantSerializer.decodeFromString<List<DCAPICredentialQuerySelection>>(it)
+        }.orEmpty()
 }
 
 @Serializable

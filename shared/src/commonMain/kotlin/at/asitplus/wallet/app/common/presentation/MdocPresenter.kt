@@ -1,12 +1,12 @@
 package at.asitplus.wallet.app.common.presentation
 
-import at.asitplus.dcapi.NFCHandover
 import at.asitplus.iso.SessionTranscript
-import at.asitplus.signum.indispensable.cosef.CoseKey
 import at.asitplus.signum.indispensable.cosef.io.coseCompliantSerializer
+import at.asitplus.wallet.app.common.iso.transfer.encodeSessionTranscript
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -14,12 +14,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.decodeFromByteArray
-import kotlinx.serialization.encodeToByteArray
-import org.multipaz.cbor.Cbor
-import org.multipaz.cbor.Simple
-import org.multipaz.crypto.EcPublicKey
-import org.multipaz.mdoc.request.DeviceRequest
 import org.multipaz.mdoc.role.MdocRole
 import org.multipaz.mdoc.sessionencryption.SessionEncryption
 import org.multipaz.mdoc.transport.MdocTransport
@@ -29,6 +25,7 @@ import org.multipaz.mdoc.transport.NfcTransportMdoc
 import org.multipaz.util.Constants
 import ui.viewmodels.authentication.PresentationStateModel
 import ui.viewmodels.authentication.PresentationViewModel
+import kotlin.time.Duration.Companion.seconds
 
 
 // Based on the identity-credential sample code
@@ -63,7 +60,7 @@ class MdocPresenter(
             }
         }
         try {
-            runProcess(dismissible, numRequestsServed, credentialSelected, transport)
+            runProcess(dismissible, numRequestsServed, credentialSelected, transport, transportMonitorJob)
         } catch (_: MdocTransportClosedException) {
             // Nothing to do, this is thrown when transport.close() is called from another coroutine, that
             // is, the X in the top-right
@@ -90,7 +87,8 @@ class MdocPresenter(
         dismissible: MutableStateFlow<Boolean>,
         numRequestsServed: MutableStateFlow<Int>,
         credentialSelected: (ByteArray) -> Unit,
-        transport: MdocTransport
+        transport: MdocTransport,
+        transportMonitorJob: Job,
     ) {
         var sessionEncryption: SessionEncryption? = null
         var encodedSessionTranscript: ByteArray? = null
@@ -108,8 +106,12 @@ class MdocPresenter(
 
             if (sessionEncryption == null) {
                 val eReaderKey = SessionEncryption.getEReaderKey(sessionData)
-                sessionTranscript = calcSessionTranscript(eReaderKey.publicKey)
-                encodedSessionTranscript = coseCompliantSerializer.encodeToByteArray(sessionTranscript)
+                encodedSessionTranscript = encodeSessionTranscript(
+                    mechanism.encodedDeviceEngagement.toByteArray(),
+                    mechanism.handover,
+                    eReaderKey.publicKey,
+                )
+                sessionTranscript = coseCompliantSerializer.decodeFromByteArray<SessionTranscript>(encodedSessionTranscript)
                 Napier.i(
                     "Holder initialized session encryption; handover=${mechanism.handover::class.simpleName}, " +
                             "sessionTranscriptBytes=${encodedSessionTranscript.size}",
@@ -132,12 +134,9 @@ class MdocPresenter(
                 break
             }
 
-            // TODO: check the reader authentication
-            val deviceRequest = DeviceRequest.fromDataItem(Cbor.decode(encodedDeviceRequest!!))
-//            deviceRequest.verifyReaderAuthentication(sessionTranscript = RawCbor(encodedSessionTranscript!!))
-
+            // Verifies the reader authentication, and fails for an invalid one
             presentationViewModel.initWithDeviceRequest(
-                parsedRequest = coseCompliantSerializer.decodeFromByteArray(encodedDeviceRequest),
+                parsedRequest = coseCompliantSerializer.decodeFromByteArray(encodedDeviceRequest!!),
                 finishFunction = credentialSelected,
                 sessionTranscript = sessionTranscript
             )
@@ -205,6 +204,20 @@ class MdocPresenter(
                     if (mechanism.transport is NfcTransportMdoc) {
                         Napier.i("NFC response sent; allowing reader APDU exchange to drain before closing holder transport")
                         delay(NFC_TRANSPORT_DRAIN_DELAY_MS)
+                    } else {
+                        // Closing a BLE transport disconnects GATT right away, which tears down the
+                        // link (and the L2CAP channel on it) while the response may still be in
+                        // flight, so the reader fails waiting for it. The reader closes the
+                        // connection once it got the response with the session termination status.
+                        // A dropped connection is expected from here on, not a failed presentment.
+                        transportMonitorJob.cancel()
+                        Napier.i("Response sent; waiting up to $READER_CLOSE_TIMEOUT for the reader to close the connection")
+                        val readerClosed = withTimeoutOrNull(READER_CLOSE_TIMEOUT) {
+                            transport.state.first { it == State.FAILED || it == State.CLOSED }
+                        }
+                        if (readerClosed == null) {
+                            Napier.w("Reader did not close the connection in $READER_CLOSE_TIMEOUT, closing it")
+                        }
                     }
                     Napier.i("Response sent, completing single-request presentment")
                     stateModel.setCompleted()
@@ -223,31 +236,8 @@ class MdocPresenter(
         statusCode = if (!mechanism.allowMultipleRequests) Constants.SESSION_DATA_STATUS_SESSION_TERMINATION else null
     )
 
-    private fun calcSessionTranscript(eReaderKey: EcPublicKey): SessionTranscript =
-        if (mechanism.handover == Simple.NULL) {
-            SessionTranscript.forQr(
-                deviceEngagementBytes = mechanism.encodedDeviceEngagement.toByteArray(),
-                eReaderKeyBytes = eReaderKey.getBytes()
-            )
-        } else {
-            val nfcHandover = coseCompliantSerializer.decodeFromByteArray<NFCHandover>(
-                Cbor.encode(mechanism.handover)
-            )
-            SessionTranscript.forNfc(
-                deviceEngagementBytes = mechanism.encodedDeviceEngagement.toByteArray(),
-                eReaderKeyBytes = eReaderKey.getBytes(),
-                nfcHandover = nfcHandover
-            )
-        }
-
-    private fun EcPublicKey.getBytes(): ByteArray =
-        coseCompliantSerializer.encodeToByteArray(
-            coseCompliantSerializer.decodeFromByteArray<CoseKey>(
-                Cbor.encode(toCoseKey().toDataItem())
-            )
-        )
-
     private companion object {
         private const val NFC_TRANSPORT_DRAIN_DELAY_MS = 1_500L
+        private val READER_CLOSE_TIMEOUT = 5.seconds
     }
 }

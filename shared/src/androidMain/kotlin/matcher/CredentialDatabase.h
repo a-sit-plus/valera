@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <optional>
 
 //#include "Request.h"
 struct Request;
@@ -13,12 +14,13 @@ struct DcqlRequestedClaim;
 
 struct Claim {
     Claim() = default;
-    Claim(std::string claimName_, std::string displayName_, std::string value_, std::string matchValue_, bool isDeviceSigned_ = false)
+    Claim(std::string claimName_, std::string displayName_, std::string value_, std::string matchValue_, bool isDeviceSigned_ = false, bool omitValue_ = false)
         : claimName(std::move(claimName_)),
           displayName(std::move(displayName_)),
           value(std::move(value_)),
           matchValue(std::move(matchValue_)),
-          isDeviceSigned(isDeviceSigned_) {}
+          isDeviceSigned(isDeviceSigned_),
+          omitValue(omitValue_) {}
     ~Claim() {}
     // For Json-based credentials the claimName is the concatenation of all paths, using "." and for
     // Mdoc-based credentials it's namespaceName.dataElementName
@@ -27,6 +29,16 @@ struct Claim {
     std::string value;
     std::string matchValue;
     bool isDeviceSigned = false;
+    bool omitValue = false;
+};
+
+// Object members are literal keys; array positions are never encoded in member names.
+struct SdJwtClaimNode {
+    std::string kind;
+    std::string scalar;
+    Claim display;
+    std::map<std::string, SdJwtClaimNode> members;
+    std::vector<SdJwtClaimNode> elements;
 };
 
 struct Credential {
@@ -55,10 +67,21 @@ struct Credential {
     std::vector<std::string> keyAuthorizedNamespaces;
     std::map<std::string, std::vector<std::string>> keyAuthorizedDataElements;
 
+    bool supportsPortraitImageEquivalence = false;
+
+    bool omitClaims = false;
+
+    // Maps from claimName to displayName when omitClaims is true.
+    std::map<std::string, std::string> claimDisplayNames;
+
     // Maps from claimName to Claim.
     std::map<std::string, Claim> claims;
 
-    // Claims dynamically created for authorized device-signed data elements
+    std::optional<SdJwtClaimNode> sdJwtClaimsTree;
+    // Dedicated immutable-result cache: std::map preserves Claim pointers across insertions.
+    std::map<std::string, Claim> sdJwtQueryClaims;
+
+    // Claims dynamically created for authorized device-signed data elements or omitted claims
     mutable std::map<std::string, Claim> dynamicDeviceClaims;
 
     Credential(
@@ -73,7 +96,10 @@ struct Credential {
         std::vector<std::vector<uint8_t>> readerIdentifiers_,
         std::vector<std::string> keyAuthorizedNamespaces_,
         std::map<std::string, std::vector<std::string>> keyAuthorizedDataElements_,
-        std::map<std::string, Claim> claims_
+        std::map<std::string, Claim> claims_,
+        bool supportsPortraitImageEquivalence_ = false,
+        bool omitClaims_ = false,
+        std::map<std::string, std::string> claimDisplayNames_ = {}
     ) : title(std::move(title_)),
         subtitle(std::move(subtitle_)),
         bitmap(std::move(bitmap_)),
@@ -85,7 +111,12 @@ struct Credential {
         readerIdentifiers(std::move(readerIdentifiers_)),
         keyAuthorizedNamespaces(std::move(keyAuthorizedNamespaces_)),
         keyAuthorizedDataElements(std::move(keyAuthorizedDataElements_)),
-        claims(std::move(claims_)) {}
+        claims(std::move(claims_)),
+        supportsPortraitImageEquivalence(supportsPortraitImageEquivalence_),
+        omitClaims(omitClaims_),
+        claimDisplayNames(std::move(claimDisplayNames_)) {}
+
+    std::string lookupClaimDisplayName(const std::vector<std::string>& path) const;
 
     Claim* findMatchingClaim(const DcqlRequestedClaim& claim);
 
@@ -106,6 +137,8 @@ struct CredentialDatabase {
 struct CredentialPresentment {
     Credential* credential;
     std::vector<Claim*> claims;
+    // The credential query this credential is presented for, empty if unknown
+    std::string credentialQueryId;
 };
 
 struct CombinationElement {

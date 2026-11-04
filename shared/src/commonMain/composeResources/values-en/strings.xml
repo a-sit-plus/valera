@@ -26,7 +26,7 @@
     <string name="button_label_use_device_credential">Passcode</string>
     <string name="button_label_confirm">Confirm</string>
     <string name="button_label_dismiss">Dismiss</string>
-    <string name="button_label_ok">Ok</string>
+    <string name="button_label_ok">OK</string>
     <string name="button_label_retry">Retry</string>
     <string name="button_label_authenticate">Authenticate</string>
     <string name="button_label_present_data">Present Data</string>
@@ -69,8 +69,7 @@
     <string name="credential_representation_format_label_mso_mdoc">ISO mDoc</string>
 
     <string name="issuing_label_host">Issuing service</string>
-    <string name="issuing_label_scheme">Scheme</string>
-    <string name="issuing_label_representation">Representation</string>
+    <string name="issuing_label_credentials">Credentials</string>
     <string name="issuing_label_transaction_code">Transaction code</string>
     <string name="issuing_label_information">All available data will be loaded</string>
 
@@ -108,6 +107,7 @@
     <string name="loading_message_issuing_credential">Issuing credential</string>
     <string name="loading_message_storing_credential">Storing credential</string>
     <string name="loading_message_checking_requested_credentials">Checking requested credentials</string>
+    <string name="loading_message_submitting_presentation">Sending data</string>
     <string name="loading_message_checking_device_requirements">Checking app and device requirements</string>
     <string name="loading_message_requesting_camera_permission">Requesting camera permission</string>
     <string name="loading_message_scanning_qr_content">Reading QR code</string>
@@ -121,7 +121,6 @@
     <string name="text_label_openid4vp_allowed_origin_schemes">Allowed OpenID4VP origin schemes</string>
     <string name="text_supporting_openid4vp_allowed_origin_schemes">Comma-separated, for example https,android:apk-key-hash. Spaces are ignored; clear to disable all.</string>
     <string name="text_label_wallet_provider_attestation">Use Wallet Attestation</string>
-    <string name="text_label_id_identifier">Identifier</string>
     <string name="text_label_id_format">Representation</string>
     <string name="text_label_id_scheme">Credential Type</string>
     <string name="text_label_sex">Sex</string>
@@ -145,6 +144,9 @@
     <string name="text_label_optional_dataset">Optional dataset</string>
     <string name="text_label_optional_dataset_description">Optionally the service requests one of the following datasets</string>
     <string name="text_label_intent_to_retain">will be stored</string>
+    <string name="zk_mode_badge_plain">Plain</string>
+    <string name="zk_mode_badge_zk_with_plain_fallback">Try ZK</string>
+    <string name="zk_mode_badge_zk_required">Enforce ZK</string>
     <string name="text_label_powered_by">POWERED BY</string>
     <string name="text_label_certificate">Certificate</string>
     <string name="text_label_vda">VDA</string>
@@ -163,6 +165,7 @@
     <string name="heading_label_show_data_third_party">Present data to third-party citizens</string>
     <string name="heading_label_authentication_success">Authenticated</string>
     <string name="heading_label_credential_added_screen">Credential added</string>
+    <string name="heading_label_credentials_added_screen">Credentials added</string>
     <string name="heading_label_settings_screen">Settings</string>
     <string name="heading_label_error_screen">Error</string>
     <string name="heading_label_loading_screen">Loading</string>
@@ -191,9 +194,7 @@
     <string name="heading_label_result">Result</string>
     <string name="heading_label_device_engagement">Device Engagement</string>
 
-    <string name="biometric_authentication_prompt_for_data_transmission_consent_title">Disclose data</string>
-    <string name="biometric_authentication_prompt_to_load_data_title">Load data</string>
-    <string name="biometric_authentication_prompt_to_bind_credentials_title">Create device binding</string>
+    <string name="biometric_authentication_prompt_title">Authenticate to continue</string>
 
     <string name="content_description_navigate_back">Back</string>
     <string name="content_description_close">Close</string>
@@ -248,10 +249,12 @@
     <string name="info_text_error_action_reset_app">You will be redirected to the initialization screen.</string>
     <string name="info_text_error_action_close_intent">You will be returned to the previous screen.</string>
     <string name="info_text_error_action_return_to_invoker">You will be returned to the requesting app/website.</string>
+    <string name="info_text_action_return_to_my_data">You will be returned to “My Data”.</string>
     <string name="info_text_error_cause_reset_app">Due to breaking changes the App needs a reset.</string>
     <string name="info_text_data_items_missing">missing</string>
     <string name="info_text_authentication_success">The authentication has been carried out successfully.</string>
     <string name="info_text_credential_added">The credential was added successfully.</string>
+    <string name="info_text_credentials_added">The credentials were added successfully.</string>
     <string name="info_text_no_credentials_available">No data is available yet.</string>
     <string name="info_text_available_credentials">Available data</string>
     <string name="info_text_requested_credentials">Requested data</string>
@@ -396,7 +399,6 @@
     <string name="text_label_mandatory_attributes">Mandatory Attributes</string>
     <string name="text_label_requests">Requests</string>
     <string name="info_text_no_requests">No requests</string>
-    <string name="info_text_credential_status_valid">VALID</string>
     <string name="error_mdl_driving_privilege_category_expired">The driving privilege of category %1$s is expired</string>
     <string name="error_mdl_driving_privilege_category_not_yet_valid">The driving privilege of category %1$s is not yet valid</string>
 
@@ -467,6 +469,7 @@
     <string name="trust_status_trusted_verifier">Trusted Relying Party</string>
     <string name="trust_status_untrusted_verifier">Untrusted Relying Party</string>
     <string name="trust_status_title">Trust State</string>
+    <string name="trust_status_title_preliminary">Trust State (preliminary)</string>
 
     <string name="section_heading_issuer_trust">Issuer Trust Details</string>
     <string name="section_heading_issuer_trust_icon_text">ITD</string>
@@ -480,27 +483,84 @@
 
     <!-- Access / Registration Certificate -->
     <string name="label_registration_cert_request">Request</string>
-    <string name="label_registration_cert_valid">Valid</string>
-    <string name="label_registration_cert_invalid">Invalid</string>
-    <string name="label_registration_cert">Certificate</string>
-    <string name="label_registration_cert_credential_typ">Credential type</string>
-    <string name="label_registration_cert_attributes">Attributes</string>
-    <string name="label_registration_cert_identifier">Identifier</string>
     <string name="label_registration_cert_details_trade_name">Trade name</string>
     <string name="label_registration_cert_details_purpose">Purpose</string>
     <string name="label_registration_cert_details_country">Country</string>
-    <string name="label_registration_cert_details_service_description">Service description</string>
     <string name="label_registration_cert_more_details">More details</string>
+    <string name="label_registration_cert_unverified">Registration information (not verified)</string>
     <string name="label_registration_cert_info_uri">Info uri</string>
     <string name="label_registration_cert_support_uri">Support uri</string>
 
     <string name="info_text_registration_cert_missing">No registration certificate has been provided in the request.</string>
-    <string name="info_text_registration_cert_valid">The certificate of the service provider is valid</string>
-    <string name="info_text_registration_cert_invalid">The certificate of the service provider is invalid!</string>
-    <string name="info_text_registration_cert_typ_valid">The requested credential types are valid</string>
-    <string name="info_text_registration_cert_typ_invalid">The requested credential types are invalid</string>
-    <string name="info_text_registration_cert_identifier_invalid">The service provider uses a different identifier than registered!</string>
-    <string name="info_text_registration_cert_identifier_valid">The identifier of the service provider is correct</string>
-    <string name="info_text_registration_cert_requested_claim_invalid">The service provider requests more attributes than registered!</string>
-    <string name="info_text_registration_cert_requested_claim_valid">The requested attributes are correct</string>
+    <string name="button_label_reload_trust_lists">Refresh trust lists</string>
+    <string name="snackbar_trust_lists_reloaded">Trust lists have been refreshed</string>
+    <string name="error_reloading_trust_lists_failed">Not every trust list could be refreshed.</string>
+    <string name="validation_summary_passed">All checks passed</string>
+    <string name="validation_summary_warning">Not all checks passed</string>
+    <string name="validation_summary_failed">Validation failed</string>
+    <string name="validation_details">Details of the validation</string>
+    <string name="validation_headline">%1$s: %2$s</string>
+    <string name="validation_artifact_credential">Credential</string>
+    <string name="validation_artifact_status_list_token">Status list</string>
+    <string name="validation_artifact_presentation">Presentation</string>
+    <string name="validation_artifact_protocol_response">Response</string>
+    <string name="validation_artifact_jwt_proof">Proof of possession</string>
+    <string name="validation_artifact_key_attestation">Key attestation</string>
+    <string name="validation_artifact_client_attestation">Wallet attestation</string>
+    <string name="validation_artifact_request_object">Request</string>
+    <string name="validation_artifact_verifier_attestation">Verifier attestation</string>
+    <string name="validation_artifact_relying_party">Relying party</string>
+    <string name="validation_artifact_access_certificate">Access certificate</string>
+    <string name="validation_artifact_registration_certificate">Registration certificate</string>
+    <string name="validation_artifact_issuer_metadata">Issuer metadata</string>
+    <string name="validation_check_parsing">Format</string>
+    <string name="validation_check_signature">Signature</string>
+    <string name="validation_check_trust">Trust</string>
+    <string name="validation_check_issuer_signature">Signature of the issuer</string>
+    <string name="validation_check_issuer_trust">Trust in the issuer</string>
+    <string name="validation_check_signer_trust">Trust in the signer</string>
+    <string name="validation_check_semantics">Content</string>
+    <string name="validation_check_disclosed_items">Disclosed data</string>
+    <string name="validation_check_required_claims">Required claims</string>
+    <string name="validation_check_holder_binding">Bound to this wallet</string>
+    <string name="validation_check_timeliness">Validity period</string>
+    <string name="validation_check_status">Status</string>
+    <string name="validation_check_client_id">Client identifier</string>
+    <string name="validation_check_wallet_nonce">Wallet nonce</string>
+    <string name="validation_check_expected_origin">Origin</string>
+    <string name="validation_check_request_data">Requested data</string>
+    <string name="validation_check_linkage">Issued to the relying party</string>
+    <string name="validation_check_request_authorization">Registered for the requested data</string>
+    <string name="validation_check_subject">Identifier of the issuer</string>
+    <string name="validation_check_registration">Registration information</string>
+    <string name="validation_check_retrieval">Retrieval</string>
+    <string name="validation_finding_untrusted">Not trusted</string>
+    <string name="validation_finding_untrusted_source">Not trusted by %1$s</string>
+    <string name="validation_finding_trust_not_checked">Trust could not be checked, there are no trust anchors</string>
+    <string name="validation_finding_expired">Expired</string>
+    <string name="validation_finding_expired_at">Expired on %1$s</string>
+    <string name="validation_finding_not_yet_valid">Not yet valid</string>
+    <string name="validation_finding_not_yet_valid_at">Not valid before %1$s</string>
+    <string name="validation_finding_revoked">Revoked</string>
+    <string name="validation_finding_suspended">Suspended</string>
+    <string name="validation_finding_other_status">Status not accepted (%1$s)</string>
+    <string name="validation_finding_status_unavailable">Status could not be checked</string>
+    <string name="validation_finding_not_linked">Not issued to the relying party of the access certificate</string>
+    <string name="validation_finding_unregistered">Requests data it is not registered for</string>
+    <string name="validation_finding_missing_claims">Missing claims the credential type requires: %1$s</string>
+    <string name="validation_finding_missing_registration">No registration information provided</string>
+    <string name="validation_finding_unsigned">Not signed, so its sender could not be verified</string>
+    <string name="validation_finding_not_checked">Could not be checked</string>
+    <string name="section_heading_issuer_validation">Issuer</string>
+    <string name="label_issuer_registration">Registration of the issuer</string>
+    <string name="label_issuer_registration_unverified">Registration of the issuer (not verified)</string>
+    <string name="label_issuer_registration_description">Service</string>
+    <string name="label_issuer_registration_identifiers">Identifiers</string>
+    <string name="label_issuer_registration_attestations">Registered credentials</string>
+    <string name="label_issuer_registration_registry">Registry</string>
+    <string name="warning_issuer_not_registered_for_credential">The issuer is not registered to issue this credential</string>
+    <string name="heading_label_credential_review">Check credential</string>
+    <string name="info_text_credential_review">The issued credential did not pass every check. It has not been stored yet: keep it anyway, or cancel to discard it.</string>
+    <string name="prompt_credential_review">Keep the credential although not every check passed?</string>
+    <string name="button_label_keep_anyway">Keep anyway</string>
 </resources>

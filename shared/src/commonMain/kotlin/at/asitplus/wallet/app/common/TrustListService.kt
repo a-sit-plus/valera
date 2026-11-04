@@ -1,7 +1,6 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.KmmResult
-import at.asitplus.catching
 import at.asitplus.catchingUnwrapped
 import at.asitplus.etsi.ListOfTrustedEntities
 import at.asitplus.etsi.TrustListPayload
@@ -14,35 +13,49 @@ import at.asitplus.signum.indispensable.pki.CertificateChain
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.signum.indispensable.pki.leaf
 import at.asitplus.wallet.app.common.data.SettingsRepository
+import at.asitplus.wallet.lib.agent.TrustedCertificates
 import at.asitplus.wallet.lib.etsi.LoTEFilterService
 import at.asitplus.wallet.lib.etsi.LoTEStage
+import at.asitplus.wallet.lib.etsi.LoTETrustAnchorProvider
 import at.asitplus.wallet.lib.etsi.LoteProfile
 import at.asitplus.wallet.lib.etsi.isTrustedBy
 import at.asitplus.wallet.lib.jws.VerifyJwsObjectFun
 import at.asitplus.wallet.lib.jws.VerifyJwsObjectJades
+import at.asitplus.wallet.lib.validation.CredentialTrustAnchorSet
+import at.asitplus.wallet.lib.validation.CredentialTrustAnchors
+import at.asitplus.wallet.lib.validation.TrustPurpose
 import data.storage.DataStoreService
 import data.storage.PersistentHttpCacheStorage
 import data.storage.PersistentTrustListStore
 import io.github.aakira.napier.Napier
+import io.ktor.client.HttpClient
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.Url
+import io.ktor.http.isSuccess
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeoutOrNull
 import ui.composables.TrustState
 import ui.models.ResolvedCredential
 import kotlin.time.Clock
@@ -70,7 +83,7 @@ val asitRootPem = "-----BEGIN CERTIFICATE-----\n" +
 @OptIn(ExperimentalCoroutinesApi::class)
 class TrustListService(
     private val persistentTrustListStore: PersistentTrustListStore,
-    httpService: HttpService,
+    private val httpService: HttpService,
     dataStoreService: DataStoreService,
     settingsRepository: SettingsRepository,
     private val sessionCoroutineScope: CoroutineScope,
@@ -78,6 +91,14 @@ class TrustListService(
     private val clock: Clock = Clock.System,
 ) {
     private var job: Job? = null
+
+    // One refresh at a time, shared by the periodic check and callers waiting for fresh lists
+    private val refreshMutex = Mutex()
+    private var pendingRefresh: Pair<List<String>, Deferred<Boolean>>? = null
+
+    // One download of a list at a time, so that a refresh skips a list that a concurrent one fetched meanwhile, e.g.
+    // the periodic check started by enabling a stage and "Refresh trust lists", which downloaded every list twice
+    private val syncMutex = Mutex()
     private val client = httpService.cachedResourceClient(dataStoreService, revalidate = true)
 
     // Same storage the client above caches into, to drop the raw responses of disabled stages as well.
@@ -107,6 +128,10 @@ class TrustListService(
 
         val freshTrustLists = trustLists.filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
         evaluate(target, freshTrustLists)
+    }.flowOn(Dispatchers.Default).catch {
+        // Collected by the UI, where an exception would end the flow
+        Napier.e("Failed to observe the trust state", it)
+        emit(TrustState.UNKNOWN)
     }
 
 
@@ -117,18 +142,13 @@ class TrustListService(
         val issuer = entry.issuer
             ?: return@combineWithFreshTrustStore TrustState.UNKNOWN
 
-        // Works because the lambda is now suspend-aware!
-        val scheme = entry.resolveScheme()
         val schemeIdentifier = entry.schemeIdentifier
-            ?: scheme.vcType
-            ?: scheme.sdJwtType
-            ?: scheme.isoDocType
-
-        if (schemeIdentifier.isNullOrBlank()) {
+        if (schemeIdentifier.isBlank()) {
             return@combineWithFreshTrustStore TrustState.UNKNOWN
         }
-
-        evaluateCertificate(issuer, freshTrustLists, LoteProfile.fromSchemeIdentifier(schemeIdentifier))
+        val profile = LoteProfile.fromSchemeIdentifier(schemeIdentifier)
+            ?: return@combineWithFreshTrustStore TrustState.UNKNOWN
+        evaluateCertificate(issuer, freshTrustLists, profile)
     }
 
 
@@ -158,7 +178,7 @@ class TrustListService(
                 TrustState.UNTRUSTED
             }
         }
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
         Napier.e("Failed to evaluate issuer trust status due to unexpected error", e)
         TrustState.UNKNOWN
     }
@@ -206,18 +226,80 @@ class TrustListService(
                 pruneTrustListsOfDisabledStages(urls)
                 if (urls.isEmpty()) return@collectLatest
                 while (isActive) {
-                    val failed = refreshStaleEntries(urls)
-                    val cachedAt = urls.mapNotNull { persistentTrustListStore.getCachedAt(it) }
-                    delay(
+                    // An exception would end the checks, and be reported by the session as an error, e.g. while
+                    // presenting credentials in the iOS extension; retry after the interval instead
+                    val nextRefreshIn = catchingUnlessCancelled {
+                        val failed = !sharedRefresh(urls).await()
+                        val cachedAt = urls.mapNotNull { persistentTrustListStore.getCachedAt(it) }
                         if (failed || cachedAt.size != urls.size) retryInterval
                         else maxOf(
                             1.seconds,
                             cachedAt.nextRefreshIn(clock.now(), Configuration.CACHE_TTL_TRUST_LIST),
                         )
-                    )
+                    }.getOrElse {
+                        Napier.e("Checking Trust Lists failed", it)
+                        retryInterval
+                    }
+                    delay(nextRefreshIn)
                 }
             }
         }
+    }
+
+    /**
+     * Downloads every list of the enabled stages again, regardless of their age and without conditional requests, and
+     * persists them. Runs in the session, so that leaving the screen that started it does not cancel it.
+     *
+     * @return whether every list could be loaded
+     */
+    suspend fun reloadAllTrustLists(): Boolean = sessionCoroutineScope.async {
+        catchingUnlessCancelled {
+            val urls = trustListUrls.first()
+            val reloadStartedAt = clock.now()
+            // A client of its own bypasses the HTTP cache and the cooldown after failures of the shared one.
+            val client = httpService.buildHttpClient()
+            try {
+                urls.map { url ->
+                    syncSingleUrl(url, client) { cachedAt -> cachedAt >= reloadStartedAt }
+                }.all { it }
+            } finally {
+                client.close()
+            }
+        }.getOrElse {
+            Napier.e("Reloading Trust Lists failed", it)
+            false
+        }
+    }.await()
+
+    /**
+     * Refreshes missing or expired lists of the enabled stages, waiting at most [timeout] for it, e.g. before
+     * validating a request in a short-lived process like the iOS Identity Document Provider extension, which may
+     * not have refreshed them yet. The refresh continues in the session after the timeout, so that trust states
+     * observed from the lists update once it completes.
+     *
+     * @return whether every list is fresh, `false` if a list could not be fetched within [timeout], or the refresh
+     * failed in any other way, as validating with the cached lists is still possible
+     */
+    suspend fun refreshStaleTrustLists(timeout: Duration): Boolean = catchingUnlessCancelled {
+        val urls = trustListUrls.first()
+        if (urls.isEmpty()) return@catchingUnlessCancelled true
+        withTimeoutOrNull(timeout) { sharedRefresh(urls).await() }
+            ?: false.also { Napier.w("Trust Lists not refreshed within $timeout, using cached lists") }
+    }.getOrElse {
+        Napier.e("Could not refresh Trust Lists, using cached lists", it)
+        false
+    }
+
+    /** The running refresh of [urls], or a new one in the session, see [refreshStaleEntries]; whether it succeeded. */
+    private suspend fun sharedRefresh(urls: List<String>): Deferred<Boolean> = refreshMutex.withLock {
+        pendingRefresh?.takeIf { (pendingUrls, refresh) -> pendingUrls == urls && refresh.isActive }?.second
+            ?: sessionCoroutineScope.async {
+                catchingUnlessCancelled { !refreshStaleEntries(urls) }
+                    .getOrElse {
+                        Napier.e("Could not refresh Trust Lists", it)
+                        false
+                    }
+            }.also { pendingRefresh = urls to it }
     }
 
     /**
@@ -241,50 +323,109 @@ class TrustListService(
         }
     }
 
-    private suspend fun refreshStaleEntries(urls: List<String>): Boolean {
-        val now = clock.now()
-        return urls
-            .filter { url ->
-                val cachedAt = persistentTrustListStore.getCachedAt(url)
-                cachedAt == null || now - cachedAt >= Configuration.CACHE_TTL_TRUST_LIST
-            }
-            .map { syncSingleUrl(it) }
-            .any { !it }
-    }
+    private suspend fun refreshStaleEntries(urls: List<String>): Boolean = urls
+        .map { url ->
+            syncSingleUrl(url) { cachedAt -> clock.now() - cachedAt < Configuration.CACHE_TTL_TRUST_LIST }
+        }
+        .any { !it }
 
-    private suspend fun syncSingleUrl(url: String): Boolean = catching {
-        val rawJwsText = fetchTrustList(url).getOrThrow()
-        persistentTrustListStore.persistTrustList(url, rawJwsText, clock.now())
-        Napier.i("Successfully synced and persisted Trust List: $url")
-    }.onFailure { e ->
-        Napier.e("Background sync failed for Trust List: $url", e)
-    }.isSuccess
+    /**
+     * Downloads and persists the list of [url], unless the time its cached list was fetched [isCurrent] once it is
+     * this list's turn, e.g. because a concurrent refresh fetched it while this one waited.
+     */
+    private suspend fun syncSingleUrl(
+        url: String,
+        httpClient: HttpClient = client,
+        isCurrent: (cachedAt: Instant) -> Boolean,
+    ): Boolean = syncMutex.withLock {
+        catchingUnlessCancelled {
+            val cachedAt = persistentTrustListStore.getCachedAt(url)
+            if (cachedAt != null && isCurrent(cachedAt)) {
+                Napier.d("Trust List is current, not fetching it again: $url")
+                return@catchingUnlessCancelled
+            }
+            val rawJwsText = fetchTrustList(url, httpClient).getOrThrow()
+            persistentTrustListStore.persistTrustList(url, rawJwsText, clock.now())
+            Napier.i("Successfully synced and persisted Trust List: $url")
+        }.onFailure { e ->
+            Napier.e("Background sync failed for Trust List: $url", e)
+        }.isSuccess
+    }
 
     /**
      * Fetches the signed List of Trusted Entities (LoTE)
-     * Returns the raw signed payload after parsing and signature verification.
+     * Returns the raw signed payload after parsing and signature verification, or a failure for any error of the
+     * request, e.g. a [HttpResourceInCooldownException] or a request cancelled by the client.
      */
-    suspend fun fetchTrustList(url: String): KmmResult<String> = catching {
+    suspend fun fetchTrustList(
+        url: String,
+        httpClient: HttpClient = client,
+    ): KmmResult<String> = catchingUnlessCancelled {
         Napier.i("Fetching Trust List from: $url")
-        val response = client.get(url) {
+        val response = httpClient.get(url) {
             accept(ContentType.Application.Json)
         }
         val responseBody = response.bodyAsText()
+        // An error, e.g. an XML page of a 403 response, would otherwise fail as an invalid JWS
+        require(response.status.isSuccess()) { "Fetching Trust List failed with ${response.status}" }
         val jws = JwsCompact.parse<TrustListPayload>(responseBody).getOrThrow()
         verifyJwsObject(jws.first).getOrThrow()
         Napier.i("Successfully validated Trust List signature from $url")
         responseBody
     }
 
-    suspend fun getTrustList(
-        profile: LoteProfile
-    ) = catching {
-        persistentTrustListStore.observeTrustContainer(trustListUrls.first()).firstOrNull()?.let { trustLists ->
-            val freshTrustLists = trustLists.filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
-            freshTrustLists.values
-                .flatMap { lote -> loTeFilterService.extractIssuanceCertificates(lote, profile) }
-                .mapNotNull { it.certificate } + asitIssuerCert
-        } ?: listOf(asitIssuerCert)
+    /**
+     * The lists of every enabled stage that are not older than [Configuration.CACHE_TTL_TRUST_LIST], none if they can
+     * not be read. Read by the validators of VC-K for their anchors, which do not catch exceptions of them, so that
+     * one would end validating a request, instead of not trusting what the lists cover.
+     */
+    suspend fun freshTrustLists(): Collection<ListOfTrustedEntities> = catchingUnlessCancelled {
+        persistentTrustListStore.observeTrustContainer(trustListUrls.first()).first()
+            .filterFresh(clock.now(), Configuration.CACHE_TTL_TRUST_LIST)
+            .values
+    }.getOrElse {
+        Napier.e("Could not read Trust Lists, trusting none", it)
+        emptyList()
+    }
+
+    /**
+     * Anchors of [profile] for the validators of VC-K, read from the fresh lists whenever they are used: the
+     * certificates of its issuance services, or of its revocation services for [TrustPurpose.STATUS], and the A-SIT
+     * root.
+     */
+    fun trustedCertificates(
+        profile: LoteProfile,
+        purpose: TrustPurpose = TrustPurpose.ISSUANCE,
+    ) = TrustedCertificates {
+        freshTrustLists().flatMap { lote ->
+            when (purpose) {
+                TrustPurpose.ISSUANCE -> loTeFilterService.extractIssuanceCertificates(lote, profile)
+                TrustPurpose.STATUS -> loTeFilterService.extractRevocationCertificates(lote, profile)
+            }
+        }.mapNotNullTo(mutableSetOf()) { it.certificate } + asitIssuerCert
+    }
+
+    /**
+     * Anchors per credential type for VC-K's [at.asitplus.wallet.lib.validation.CredentialValidator]: those of the
+     * list of the type, e.g. the PID providers for a PID, see [LoteProfile.fromSchemeIdentifier], and the A-SIT root,
+     * which also covers types without a list.
+     */
+    fun credentialTrustAnchors(): CredentialTrustAnchors {
+        val provider = LoTETrustAnchorProvider(trustLists = ::freshTrustLists, filter = loTeFilterService)
+        return CredentialTrustAnchors { credentialIdentifier, purpose ->
+            val anchors = when (purpose) {
+                TrustPurpose.ISSUANCE -> provider.issuanceAnchors(credentialIdentifier)
+                TrustPurpose.STATUS -> provider.revocationAnchors(credentialIdentifier)
+            }
+            CredentialTrustAnchorSet(
+                source = LoteProfile.fromSchemeIdentifier(credentialIdentifier)?.fileName ?: ASIT_TRUST_SOURCE,
+                certificates = anchors.toSet() + asitIssuerCert,
+            )
+        }
+    }
+
+    private companion object {
+        const val ASIT_TRUST_SOURCE = "A-SIT"
     }
 }
 
@@ -307,13 +448,17 @@ fun RequestParametersFrom<*>.extractRelyingPartyCertificateChains(): List<X509Ce
             is JwsFlattened -> jws.jwsHeader.certificateChain
             is JwsGeneral -> jws.jwsHeaders.firstNotNullOfOrNull { it.certificateChain }
         }
+
         is RequestParametersFrom.OpenId4VpDcApiSigned ->
             this.jwsTyped.jws.jwsHeader.certificateChain
+
         is RequestParametersFrom.OpenId4VpDcApiMultiSigned ->
             this.jwsTyped.jws.jwsHeaders.firstOrNull()?.certificateChain
+
         is RequestParametersFrom.Uri,
         is RequestParametersFrom.Json,
         is RequestParametersFrom.OpenId4VpDcApiUnsigned -> null
+
         is RequestParametersFrom.IsoMdocDcApi ->
             this.parameters.isoMdocRequest.deviceRequest.extractCertificateChain()
     }?.takeIf { it.isNotEmpty() }

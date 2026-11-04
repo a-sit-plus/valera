@@ -10,7 +10,6 @@ import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
 import at.asitplus.wallet.lib.data.IsoMdocFallbackCredentialScheme
 import at.asitplus.wallet.lib.data.rfc3986.toUri
@@ -72,7 +71,7 @@ class DisclosedAttributeLabelingTest {
         scheme: IsoMdocFallbackCredentialScheme,
     ): SubjectCredentialStore.StoreEntry {
         val keyMaterial = EphemeralKeyWithoutCert()
-        val store = PersistentSubjectCredentialStore(DummyDataStoreService(), Validator())
+        val store = PersistentSubjectCredentialStore(DummyDataStoreService())
         HolderAgent(keyMaterial = keyMaterial, subjectCredentialStore = store).storeCredential(
             IssuerAgent(
                 keyMaterial = EphemeralKeyWithSelfSignedCert(),

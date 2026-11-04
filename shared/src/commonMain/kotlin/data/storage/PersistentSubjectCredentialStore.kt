@@ -1,7 +1,9 @@
 package data.storage
 
+import at.asitplus.KmmResult
+import at.asitplus.catching
 import at.asitplus.catchingUnwrapped
-import at.asitplus.csc.serializers.Base64X509CertificateSerializer
+import at.asitplus.csc.api.serializers.Base64X509CertificateSerializer
 import at.asitplus.iso.IssuerSigned
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.signum.indispensable.pki.X509Certificate
@@ -9,7 +11,6 @@ import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.data.IsoMdocCredentialScheme
 import at.asitplus.wallet.lib.data.SdJwtCredentialScheme
 import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
@@ -20,6 +21,7 @@ import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -28,7 +30,6 @@ import kotlin.random.Random
 
 class PersistentSubjectCredentialStore(
     private val dataStore: DataStoreService,
-    override val validator: Validator,
 ) : SubjectCredentialStore, WalletSubjectCredentialStore {
     private val container = this.observeStoreContainer()
 
@@ -39,6 +40,17 @@ class PersistentSubjectCredentialStore(
         exportToDataStore(newContainer)
     }
 
+    override suspend fun storeCredential(
+        entry: SubjectCredentialStore.StoreEntry
+    ): KmmResult<SubjectCredentialStore.StoreEntry> = catching {
+        entry.also { addStoreEntry(it) }
+    }
+
+
+    @Deprecated(
+        "Use storeCredential(StoreEntry)",
+        replaceWith = ReplaceWith("storeCredential(SubjectCredentialStore.StoreEntry.Vc(vcSerialized = vcSerialized, vc = vc, renewalInfo = renewalInfo, issuer = issuer, schemeIdentifier = scheme.vcType)).getOrThrow()")
+    )
     override suspend fun storeCredential(
         vc: VerifiableCredentialJws,
         vcSerialized: String,
@@ -56,6 +68,10 @@ class PersistentSubjectCredentialStore(
     }
 
 
+    @Deprecated(
+        "Use storeCredential(StoreEntry)",
+        replaceWith = ReplaceWith("storeCredential(SubjectCredentialStore.StoreEntry.SdJwt(vcSerialized = vcSerialized, sdJwt = vc, disclosures = disclosures, renewalInfo = renewalInfo, issuer = issuer, schemeIdentifier = scheme.sdJwtType)).getOrThrow()")
+    )
     override suspend fun storeCredential(
         vc: VerifiableCredentialSdJwt,
         vcSerialized: String,
@@ -74,6 +90,10 @@ class PersistentSubjectCredentialStore(
         addStoreEntry(it)
     }
 
+    @Deprecated(
+        "Use storeCredential(StoreEntry)",
+        replaceWith = ReplaceWith("storeCredential(SubjectCredentialStore.StoreEntry.Iso(issuerSigned = issuerSigned, renewalInfo = renewalInfo, issuer = issuer, schemeIdentifier = scheme.isoDocType)).getOrThrow()")
+    )
     override suspend fun storeCredential(
         issuerSigned: IssuerSigned,
         scheme: IsoMdocCredentialScheme,
@@ -209,7 +229,9 @@ class PersistentSubjectCredentialStore(
     }
 
     override fun observeStoreContainer(): Flow<StoreContainer> {
-        return dataStore.getPreference(Configuration.DATASTORE_KEY_VCS).map {
+        // The preferences emit on every change of any key, e.g. of the HTTP cache, so the container is decoded only
+        // if its own value changed, instead of holding a second copy of every credential while decoding it again
+        return dataStore.getPreference(Configuration.DATASTORE_KEY_VCS).distinctUntilChanged().map {
             withContext(Dispatchers.Default) {
                 dataStoreValueToStoreContainer(it)
             }

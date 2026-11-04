@@ -1,20 +1,24 @@
 package at.asitplus.wallet.app.common
 
 import at.asitplus.catchingUnwrapped
+import at.asitplus.data.NonEmptyList.Companion.nonEmptyListOf
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_no_refresh_token
 import at.asitplus.valera.resources.error_reissue_failed
 import at.asitplus.valera.resources.success_refreshed
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
+import at.asitplus.wallet.app.common.validation.StoredCredentialValidator
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialScheme
-import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
+import at.asitplus.wallet.lib.oidvci.CredentialIdentifierInfo
 import data.storage.DataStoreService
 import data.storage.StoreEntryId
 import data.storage.WalletSubjectCredentialStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,7 +38,8 @@ class CredentialValidityService(
     private val provisioningService: ProvisioningService,
     private val errorService: ErrorService,
     private val sessionCoroutineScope: CoroutineScope,
-    private val dataStoreService: DataStoreService
+    private val dataStoreService: DataStoreService,
+    private val storedCredentialValidator: StoredCredentialValidator,
 ) {
     private var periodicCheckJob: Job? = null
     private var storePruneJob: Job? = null
@@ -73,7 +78,7 @@ class CredentialValidityService(
         periodicCheckJob = sessionCoroutineScope.launch {
             delay(10.seconds)
             while (isActive) {
-                requestRefreshmentBatch(subjectCredentialStore.getInvalidCredentials())
+                requestRefreshmentBatch(getInvalidCredentials())
                 delay(interval)
             }
         }
@@ -86,6 +91,24 @@ class CredentialValidityService(
         }
 
     }
+
+    /**
+     * The stored credentials that can be refreshed and need to, i.e. that are expired or verified to be revoked, see
+     * [ui.models.CredentialFreshnessSummaryUiModel.needsRefresh], with their store entry IDs.
+     */
+    private suspend fun getInvalidCredentials(): List<Pair<StoreEntryId, SubjectCredentialStore.StoreEntry>> =
+        coroutineScope {
+            subjectCredentialStore.observeStoreContainer().first().credentials
+                .filter { it.second.renewalInfo != null }
+                .map { credential ->
+                    credential to async {
+                        catchingUnwrapped { storedCredentialValidator.freshness(credential.second).needsRefresh }
+                            .getOrDefault(false)
+                    }
+                }
+                .filter { (_, needsRefresh) -> needsRefresh.await() }
+                .map { (credential, _) -> credential }
+        }
 
     /**
      * Refreshes the credential
@@ -130,10 +153,12 @@ class CredentialValidityService(
         return try {
             provisioningService.startProvisioningWithAuthRequest(
                 credentialIssuer = renewalInfo.issuerMetadata.credentialIssuer,
-                credentialIdentifierInfo = CredentialIdentifierInfo(
-                    issuerMetadata = renewalInfo.issuerMetadata,
-                    credentialIdentifier = renewalInfo.credentialIdentifier,
-                    supportedCredentialFormat = renewalInfo.credentialFormat
+                credentialIdentifierInfos = nonEmptyListOf(
+                    CredentialIdentifierInfo(
+                        issuerMetadata = renewalInfo.issuerMetadata,
+                        credentialIdentifier = renewalInfo.credentialIdentifier,
+                        supportedCredentialFormat = renewalInfo.credentialFormat
+                    )
                 ),
                 reissuingStoreEntryId = storeId
             )

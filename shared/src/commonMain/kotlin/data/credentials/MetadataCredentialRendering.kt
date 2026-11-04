@@ -20,6 +20,21 @@ fun OpenId4VciClaimsPathPointer.toNormalizedJsonPathOrNull(): NormalizedJsonPath
 fun CredentialScheme.metadataLabel(path: NormalizedJsonPath, locale: String = "en"): String? =
     metadataLabelCandidatePaths(path).firstNotNullOfOrNull { metadataLabelExact(it, locale) }
 
+/**
+ * Display label for the claim at [path], e.g. one an issuer left out: from this scheme's type-metadata claim
+ * descriptions, otherwise the dot-joined member names of [path] without the ISO namespace of this scheme.
+ */
+fun CredentialScheme.claimLabel(path: OpenId4VciClaimsPathPointer, locale: String = "en"): String {
+    val names = path.mapNotNull { (it as? OpenId4VciClaimsPathPointerSegmentString)?.string }
+    val withoutNamespace = if (isoNamespace != null && names.firstOrNull() == isoNamespace) names.drop(1) else names
+    return listOf(names, withoutNamespace).distinct()
+        .filter { it.isNotEmpty() }
+        .firstNotNullOfOrNull { segments ->
+            metadataLabel(segments.fold(NormalizedJsonPath()) { acc, segment -> acc + segment }, locale)
+        }
+        ?: withoutNamespace.joinToString(".").ifEmpty { path.toString() }
+}
+
 /** Last-resort claim label when no metadata localization exists: the dot-joined claim path itself. */
 fun NormalizedJsonPath.genericLabel(): String =
     (0 until size).mapNotNull { memberName(it) }.joinToString(".").ifEmpty { toString() }

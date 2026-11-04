@@ -136,7 +136,8 @@ fun PresentationView(
                             presentationRequest = presentationViewModel.presentationRequest,
                             onClickLogo = presentationViewModel.onClickLogo,
                             onUnauthenticated = {},
-                            verifierCertificateChain = presentationViewModel.verifierCertificateChain
+                            verifierCertificateChain = presentationViewModel.verifierCertificateChain,
+                            relyingPartyValidation = presentationViewModel.relyingPartyValidation,
                         ),
                         onError = onError,
                         trustListService = trustListService
@@ -183,9 +184,6 @@ fun PresentationView(
                             )
                         }
 
-                        else -> LaunchedEffect(matching::class.simpleName) {
-                            onError(UnsupportedOperationException("Unsupported credential matching result: ${matching::class.simpleName}"))
-                        }
                     }
                 }
             }

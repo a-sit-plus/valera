@@ -12,6 +12,7 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isEnabled
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
@@ -50,6 +51,8 @@ import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.WalletDependencyProvider
 import at.asitplus.wallet.app.common.WalletSessionBindings
 import at.asitplus.wallet.app.common.di.appModule
+import at.asitplus.wallet.app.common.validation.ValidationPolicies
+import at.asitplus.wallet.app.common.validation.describeProblems
 import at.asitplus.wallet.eupidsdjwt.EU_PID_SD_JWT_VCT
 import at.asitplus.wallet.eupidsdjwt.EuPidSdJwtDataElements
 import at.asitplus.wallet.lib.RequestOptionsCredential
@@ -61,7 +64,6 @@ import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.agent.Validator
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.SD_JWT
 import at.asitplus.wallet.lib.data.SdJwtCredentialScheme
@@ -71,7 +73,9 @@ import at.asitplus.wallet.lib.openid.ClientIdScheme
 import at.asitplus.wallet.lib.openid.CreationOptions
 import at.asitplus.wallet.lib.openid.CredentialPresentationRequestBuilder
 import at.asitplus.wallet.lib.openid.OpenId4VpRequestOptions
+import at.asitplus.wallet.lib.openid.AuthnResponseResult
 import at.asitplus.wallet.lib.openid.OpenId4VpVerifier
+import at.asitplus.wallet.lib.validation.CredentialValidator
 import data.storage.AntilogAdapter
 import data.storage.DummyDataStoreService
 import io.matthewnelson.encoding.core.Decoder.Companion.decodeToByteArray
@@ -96,7 +100,7 @@ import org.koin.mp.KoinPlatform
 import org.multipaz.prompt.PromptModel
 import org.multipaz.prompt.Reason
 import ui.navigation.routes.RoutePrerequisites
-import kotlin.test.assertNotNull
+import kotlin.test.assertIs
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
@@ -146,7 +150,7 @@ private fun ComposeUiTest.runEndToEndTest() {
                         HolderAgent(
                             keyMaterial = get<KeyMaterial>(),
                             subjectCredentialStore = get<SubjectCredentialStore>(),
-                            validator = get<Validator>(),
+                            credentialValidator = get<CredentialValidator>(),
                         )
                     }
                 }
@@ -216,7 +220,9 @@ private fun ComposeUiTest.runEndToEndTest() {
                     statusListAgent = null,
                 )
                 catchingUnwrapped {
-                    holderAgent.storeCredential(
+                    // The ephemeral issuer has no certificate, so the credential is stored like one the user kept
+                    // although its issuer is not trusted
+                    val result = holderAgent.storeCredentialWithReport(
                         issuer.issueCredential(
                             CredentialToBeIssued.VcSd(
                                 getAttributes(),
@@ -227,8 +233,10 @@ private fun ComposeUiTest.runEndToEndTest() {
                             )
                         )
                             .getOrThrow()
-                            .toStoreCredentialInput()
+                            .toStoreCredentialInput(),
+                        ValidationPolicies.lenient,
                     ).getOrThrow()
+                    checkNotNull(result.storedEntry) { result.validation.report.describeProblems() }
                 }.onSuccess {
                     println("InstrumentedTests: credential issuance setup completed")
                     credentialIssued.complete(Unit)
@@ -269,6 +277,7 @@ private fun ComposeUiTest.runEndToEndTest() {
     onNodeWithText(continueText).performClick()
 
     waitUntilExactlyOneExists(hasText(sendDataPromptText), 5000)
+    waitUntilExactlyOneExists(hasText(submitText) and isEnabled(), 10000)
     onNodeWithText(submitText).performClick()
 
     waitUntilExactlyOneExists(hasText(authenticationSuccessText), 10000)
@@ -279,7 +288,8 @@ private fun ComposeUiTest.runEndToEndTest() {
             withTimeout(10000.milliseconds) { redirectUrl.await() }
         ).getOrThrow()
     }
-    assertNotNull(validationResult.vpTokenValidationResult?.getOrThrow())
+    @Suppress("DEPRECATION")
+    assertIs<AuthnResponseResult.Success>(validationResult).vpTokenResult.getOrThrow()
 }
 
 @Composable
@@ -294,6 +304,8 @@ private suspend fun createLocalPresentationRequest(): LocalPresentationRequest {
     val verifier = OpenId4VpVerifier(
         keyMaterial = EphemeralKeyWithoutCert(),
         clientIdScheme = ClientIdScheme.RedirectUri("https://wallet.example.org/return"),
+        // The test credentials are issued by ephemeral keys, which no trust anchor authorizes.
+        presentationPolicy = ValidationPolicies.lenient,
     )
     val requestOptions = OpenId4VpRequestOptions(
         presentationRequest = CredentialPresentationRequestBuilder(

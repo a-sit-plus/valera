@@ -48,6 +48,21 @@ class HttpFailureCacheTest {
     }
 
     @Test
+    fun requestIgnoringTheCooldownIsSent() = runTest {
+        var requests = 0
+        val client = HttpClient(MockEngine { requests++; respond("nope", HttpStatusCode.ServiceUnavailable) }) {
+            install(HttpFailureCache) { cooldown = 1.hours }
+        }
+
+        assertEquals("nope", client.get(url).bodyAsText())
+        assertFailsWith<HttpResourceInCooldownException> { client.get(url) }
+
+        val response = client.get(url) { attributes.put(IgnoreFailureCooldown, Unit) }
+        assertEquals("nope", response.bodyAsText())
+        assertEquals(2, requests)
+    }
+
+    @Test
     fun successfulResponsesAreNeverSuppressed() = runTest {
         var requests = 0
         val client = HttpClient(MockEngine { requests++; respond("ok", HttpStatusCode.OK) }) {

@@ -12,43 +12,48 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.info_text_redirection_to_browser_for_credential_provisioning
-import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
+import at.asitplus.wallet.app.common.validation.IssuerValidationUi
+import at.asitplus.wallet.lib.oidvci.CredentialIdentifierInfo
 import org.jetbrains.compose.resources.stringResource
+import ui.composables.validation.IssuerValidationView
 
 @Composable
 fun StatefulLoadDataForm(
     host: String,
-    credentialIdentifierInfo: CredentialIdentifierInfo,
-    onChangeCredentialIdentifierInfo: (CredentialIdentifierInfo) -> Unit,
+    credentialIdentifierInfos: List<CredentialIdentifierInfo>,
+    onChangeCredentialIdentifierInfos: (List<CredentialIdentifierInfo>) -> Unit,
     transactionCode: TextFieldValue,
     onChangeTransactionCode: (TextFieldValue) -> Unit,
     modifier: Modifier = Modifier,
     availableIdentifiers: Collection<CredentialIdentifierInfo>,
     showTransactionCode: Boolean,
+    issuer: IssuerValidationUi? = null,
 ) {
 
     LoadDataForm(
         host = host,
-        credentialIdentifierInfo = credentialIdentifierInfo,
-        onChangeCredentialIdentifierInfo = onChangeCredentialIdentifierInfo,
+        credentialIdentifierInfos = credentialIdentifierInfos,
+        onChangeCredentialIdentifierInfos = onChangeCredentialIdentifierInfos,
         transactionCode = transactionCode,
         onChangeTransactionCode = onChangeTransactionCode,
         modifier = modifier,
         availableIdentifiers = availableIdentifiers,
         showTransactionCode = showTransactionCode,
+        issuer = issuer,
     )
 }
 
 @Composable
 fun LoadDataForm(
     host: String,
-    credentialIdentifierInfo: CredentialIdentifierInfo,
-    onChangeCredentialIdentifierInfo: (CredentialIdentifierInfo) -> Unit,
+    credentialIdentifierInfos: List<CredentialIdentifierInfo>,
+    onChangeCredentialIdentifierInfos: (List<CredentialIdentifierInfo>) -> Unit,
     transactionCode: TextFieldValue,
     onChangeTransactionCode: (TextFieldValue) -> Unit,
     modifier: Modifier = Modifier,
     availableIdentifiers: Collection<CredentialIdentifierInfo>,
     showTransactionCode: Boolean,
+    issuer: IssuerValidationUi? = null,
 ) {
     Box(
         modifier = modifier,
@@ -60,14 +65,21 @@ fun LoadDataForm(
             Text(stringResource(Res.string.info_text_redirection_to_browser_for_credential_provisioning))
             CredentialMetadataSelectionForm(
                 host = host,
-                credentialIdentifierInfo = credentialIdentifierInfo,
-                onChangeCredentialIdentifierInfo = onChangeCredentialIdentifierInfo,
+                credentialIdentifierInfos = credentialIdentifierInfos,
+                onChangeCredentialIdentifierInfos = onChangeCredentialIdentifierInfos,
                 modifier = columnSpacingModifier,
                 availableIdentifiers = availableIdentifiers,
                 transactionCode = transactionCode,
                 onChangeTransactionCode = onChangeTransactionCode,
                 showTransactionCode = showTransactionCode,
+                issuer = issuer,
             )
+            issuer?.let {
+                IssuerValidationView(
+                    issuer = it,
+                    modifier = columnSpacingModifier,
+                )
+            }
         }
     }
 }

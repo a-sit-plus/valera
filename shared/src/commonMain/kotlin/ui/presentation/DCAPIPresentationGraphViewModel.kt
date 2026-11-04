@@ -6,20 +6,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import at.asitplus.catching
-import at.asitplus.catchingUnwrapped
-import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.signum.supreme.UserInitiatedCancellationReason
 import at.asitplus.valera.resources.Res
-import at.asitplus.valera.resources.biometric_authentication_prompt_for_data_transmission_consent_title
 import at.asitplus.valera.resources.warning_authentication_cancelled
+import at.asitplus.wallet.app.common.Configuration
 import at.asitplus.wallet.app.common.WalletMain
-import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
+import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
+import at.asitplus.wallet.app.common.validation.integrityRejection
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
 import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.openid.DcApiPreparationState
 import at.asitplus.wallet.lib.oidvci.OAuth2Exception
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import ui.navigation.routes.DCAPIPresentationViewRoute
@@ -35,11 +37,9 @@ class DCAPIPresentationGraphViewModel(
 
     val dcApiWalletRequest = catching { route.request }
 
-    val trustListService = walletMain.trustListService
+    val credentialQuerySelections = catching { route.credentialQuerySelections }
 
-    val wrpValidationResult = route.wrpRequestValidationResultSerialized?.let {
-        catchingUnwrapped { joseCompliantSerializer.decodeFromString<WrpValidationResult>(it) }.getOrNull()
-    }
+    val trustListService = walletMain.trustListService
 
     val selectionProvider = MutableStateFlow<UiState<DcApiPresentationUiState>>(
         UiStateLoading
@@ -47,9 +47,21 @@ class DCAPIPresentationGraphViewModel(
         viewModelScope.launch {
             value = try {
                 val unwrappedDcApiWalletRequest = dcApiWalletRequest.getOrThrow()
-                val preparationState = walletMain.presentationService.prepareDcApiRequest(
+                // Validate against fresh Trust Lists if they arrive in time, e.g. in the short-lived iOS extension
+                trustListService.refreshStaleTrustLists(Configuration.TRUST_LIST_REFRESH_TIMEOUT)
+                val validation = walletMain.presentationService.prepareDcApiRequest(
                     unwrappedDcApiWalletRequest
                 ).getOrThrow()
+                val relyingPartyValidation = RelyingPartyValidationUi.of(
+                    report = validation.validationReport,
+                    relyingParty = validation.relyingParty,
+                )
+                // The user is warned about the relying party, but a request that failed its integrity is rejected
+                if (relyingPartyValidation.outcome?.integrityFailed == true) {
+                    throw validation.validationReport?.integrityRejection()
+                        ?: OAuth2Exception.InvalidRequest("The request has been rejected")
+                }
+                val preparationState = validation.preparationState
                 val matchingResult = walletMain.presentationService.getMatchingCredentials(
                     preparationState
                 ).getOrThrow()
@@ -59,24 +71,44 @@ class DCAPIPresentationGraphViewModel(
                         selectionProvider = matchingResult.toCredentialSelectionProvider(viewModelScope) {
                             walletMain.checkCredentialFreshness(it)
                         },
+                        relyingPartyValidation = relyingPartyValidation,
                     )
                 )
             } catch (it: Throwable) {
-                val response = when (it) {
-                    is OAuth2Exception -> it
-                    else -> OAuth2Exception.InvalidRequest(it.message)
-                }.serialize()
-                UiStateError(
-                    ErrorHandlingOverrideException(
-                        onAcknowledge = {
-                            walletMain.platformAdapter.prepareDCAPICredentialError(response)
-                        },
-                        cause = it,
-                    )
-                )
+                // Rethrows the cancellation of the flow, but not one of e.g. a request whose job was cancelled, which
+                // would leave the request loading forever
+                ensureActive()
+                UiStateError(withErrorResponse(it))
             }
         }
     }
+
+    /**
+     * Sends [error] to the caller of the DC API once the user acknowledges it, as the flow ends without a
+     * presentation, unless [error] already sends a response on acknowledgement.
+     */
+    fun withErrorResponse(error: Throwable): Throwable {
+        val override = error as? ErrorHandlingOverrideException
+        if (override?.onAcknowledge != null) return error
+        val cause = override?.cause ?: error
+        val response = when (cause) {
+            is OAuth2Exception -> cause
+            else -> OAuth2Exception.InvalidRequest(cause.message)
+        }.serialize()
+        return ErrorHandlingOverrideException(
+            resetStackOverride = override?.resetStackOverride,
+            actionDescriptionOverride = override?.actionDescriptionOverride,
+            onAcknowledge = {
+                walletMain.platformAdapter.prepareDCAPICredentialError(response)
+            },
+            cause = cause,
+        )
+    }
+
+    private val mutableIsSubmitting = MutableStateFlow(false)
+
+    /** Whether a presentation is being submitted, which stays set after success until the flow is left */
+    val isSubmitting: StateFlow<Boolean> = mutableIsSubmitting.asStateFlow()
 
     fun confirmSelection(
         credentialPresentationSubmissions: CredentialPresentationSubmissions<SubjectCredentialStore.StoreEntry>,
@@ -100,6 +132,8 @@ class DCAPIPresentationGraphViewModel(
         } catch (it: Throwable) {
             return onFailure(it)
         }
+        // Ignore repeated confirmations while a presentation is being submitted
+        if (!mutableIsSubmitting.compareAndSet(expect = false, update = true)) return
         viewModelScope.launch {
             try {
                 finalizeAuthorization(
@@ -108,10 +142,14 @@ class DCAPIPresentationGraphViewModel(
                 )
                 onSuccess()
             } catch (_: UserInitiatedCancellationReason) {
+                mutableIsSubmitting.value = false
                 walletMain.snackbarService.showSnackbar(
                     getString(Res.string.warning_authentication_cancelled)
                 )
             } catch (it: Throwable) {
+                // The flow has been left if it is cancelled, there is no one to report a failure to
+                ensureActive()
+                mutableIsSubmitting.value = false
                 onFailure(it)
             }
         }
@@ -121,8 +159,6 @@ class DCAPIPresentationGraphViewModel(
         credentialPresentation: CredentialPresentation,
         preparationState: DcApiPreparationState,
     ) {
-        walletMain.keyMaterial.promptText =
-            getString(Res.string.biometric_authentication_prompt_for_data_transmission_consent_title)
         walletMain.presentationService.finalizeDcApiPresentation(
             credentialPresentation = credentialPresentation,
             preparationState = preparationState,
@@ -133,5 +169,5 @@ class DCAPIPresentationGraphViewModel(
 data class DcApiPresentationUiState(
     val preparationState: DcApiPreparationState,
     val selectionProvider: CredentialSelectionProvider<SubjectCredentialStore.StoreEntry>,
-    val wrpValidationResult: WrpValidationResult? = null
+    val relyingPartyValidation: RelyingPartyValidationUi,
 )

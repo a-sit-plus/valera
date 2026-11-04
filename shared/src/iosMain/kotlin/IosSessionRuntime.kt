@@ -5,6 +5,7 @@ import at.asitplus.wallet.app.common.SessionService
 import at.asitplus.wallet.app.common.SnackbarService
 import at.asitplus.wallet.app.common.createMainWalletSessionScope
 import at.asitplus.wallet.app.common.createTransientFlowWalletSessionScope
+import at.asitplus.wallet.app.common.isAppExtension
 import at.asitplus.wallet.app.common.di.appModule
 import at.asitplus.wallet.app.dcapi.IosDcApiPreRequestData
 import at.asitplus.wallet.app.dcapi.IosDCAPIInvocationData
@@ -15,6 +16,10 @@ import data.storage.createDataStore
 import io.github.aakira.napier.Antilog
 import io.github.aakira.napier.LogLevel
 import io.github.aakira.napier.Napier
+import kotlin.experimental.ExperimentalNativeApi
+import kotlin.native.ReportUnhandledExceptionHook
+import kotlin.native.setUnhandledExceptionHook
+import kotlin.native.terminateWithUnhandledException
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import org.koin.core.context.startKoin
@@ -65,6 +70,7 @@ private object IosSessionRuntime {
             }
 
             initializeLogging(buildContext, antilog)
+            logUnhandledExceptions()
             startKoin {
                 modules(appModule(), module { single { buildContext } })
             }
@@ -209,12 +215,14 @@ private object IosSessionRuntime {
         Napier.d("IosSessionRuntime registered DCAPI pre-request for origin=${data.origin}")
     }
 
-    fun clearDcapiInvocation() {
+    // keepFinishApp keeps the flow finishable after its invocation has been answered, e.g. from the error screen whose
+    // acknowledgement sends the error; its onCancel then leaves ending the request to the extension
+    fun clearDcapiInvocation(keepFinishApp: Boolean = false) {
         synchronized(stateLock) {
             if (pendingTransientState is PendingTransientState.Invocation) pendingTransientState = null
             transientFlowHandle?.intentState?.let { intentState ->
                 intentState.dcapiInvocationData.value = null
-                intentState.finishApp = null
+                if (!keepFinishApp) intentState.finishApp = null
                 if (intentState.appLink.value == IOS_DC_API_CALL) {
                     intentState.appLink.value = null
                 }
@@ -299,6 +307,18 @@ private object IosSessionRuntime {
         }
     }
 
+    // An uncaught exception terminates the process, e.g. the Identity Document Provider extension in the middle of a
+    // request, and is otherwise only printed to stderr: write it to the log first, which can be shared from the app
+    @OptIn(ExperimentalNativeApi::class)
+    private fun logUnhandledExceptions() {
+        var previousHook: ReportUnhandledExceptionHook? = null
+        previousHook = setUnhandledExceptionHook { throwable ->
+            runCatching { Napier.e("Uncaught exception, terminating", throwable) }
+            previousHook?.invoke(throwable)
+            terminateWithUnhandledException(throwable)
+        }
+    }
+
     private fun initializeLogging(buildContext: BuildContext, systemAntilog: Antilog) {
         Napier.takeLogarithm()
         Napier.base(
@@ -343,6 +363,11 @@ object IosSessionBridge {
 
     fun clearDcapiInvocation() {
         IosSessionRuntime.clearDcapiInvocation()
+    }
+
+    /** Clears the invocation once its response or error has been sent, and keeps the flow finishable */
+    internal fun clearAnsweredDcapiInvocation() {
+        IosSessionRuntime.clearDcapiInvocation(keepFinishApp = true)
     }
 
     fun clearDcapiPreRequest() {
@@ -396,6 +421,7 @@ private fun createIosWalletSessionScope(
             promptModel = promptModel,
             platformAdapter = platformAdapter,
             dataStoreService = dataStoreService,
+            startBackgroundWork = !isAppExtension(),
         )
     }
 }

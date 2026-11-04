@@ -13,6 +13,7 @@ enum class LoadingMessageKey {
     IssuingCredential,
     StoringCredential,
     CheckingRequestedCredentials,
+    SubmittingPresentation,
     CheckingDeviceRequirements,
     RequestingCameraPermission,
     ScanningQrContent,

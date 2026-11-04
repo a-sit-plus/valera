@@ -3,8 +3,10 @@ package ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.error_reloading_trust_lists_failed
 import at.asitplus.valera.resources.snackbar_clear_log_successfully
 import at.asitplus.valera.resources.snackbar_reset_app_successfully
+import at.asitplus.valera.resources.snackbar_trust_lists_reloaded
 import at.asitplus.wallet.app.common.WalletMain
 import at.asitplus.wallet.app.common.data.SettingsRepository
 import at.asitplus.wallet.lib.etsi.LoTEStage
@@ -98,6 +100,25 @@ class SettingsViewModel(
 
     fun resetOpenId4VpAllowedOriginSchemesToDefault() {
         openId4VpAllowedOriginSchemesInput.value = defaultOpenId4VpAllowedOriginSchemes.toInputString()
+    }
+
+    private val trustListsReloading = MutableStateFlow(false)
+    val isReloadingTrustLists = trustListsReloading.asStateFlow()
+
+    /** Downloads every trust list again, see [at.asitplus.wallet.app.common.TrustListService.reloadAllTrustLists]. */
+    fun onClickReloadTrustLists() = walletMain.scope.launch {
+        if (!trustListsReloading.compareAndSet(expect = false, update = true)) return@launch
+        try {
+            val reloaded = walletMain.trustListService.reloadAllTrustLists()
+            walletMain.snackbarService.showSnackbar(
+                getString(
+                    if (reloaded) Res.string.snackbar_trust_lists_reloaded
+                    else Res.string.error_reloading_trust_lists_failed
+                )
+            )
+        } finally {
+            trustListsReloading.value = false
+        }
     }
 
     fun setTrustListStageEnabled(stage: LoTEStage, enabled: Boolean) = walletMain.scope.launch {

@@ -136,7 +136,7 @@ Android DC API matching uses bundled WebAssembly assets:
 
 Sources and build instructions are under `shared/src/androidMain/kotlin/matcher*`. If matcher source changes, rebuild and replace the corresponding asset; otherwise the application continues executing the old binary.
 
-On Android, `credentialIds` supplied by the DC API are fixed credential selections made by the system. They are store-entry IDs, not DCQL credential-query IDs. Matching filters the credential store by these IDs; corresponding requested credential types can then be identified from the non-empty `DCQLMatchingResult.credentialQueryMatches` entries.
+On Android, `credentialIds` supplied by the DC API are fixed credential selections made by the system. They are store-entry IDs (`StoreEntry.getDcApiId()`), not DCQL credential-query IDs. Matching filters the credential store by these IDs. The matcher appends the DCQL credential-query ID to each picker entry ID, which is carried as `DCAPIVerificationRequest.credentialQuerySelections`; present each selected credential only for its selected query, as the picker showed that query's claims. Do not choose queries from our own matching when the selection names them: one credential may match several queries, e.g. alternative options of one credential set.
 
 Keep "no fixed selection" distinct from "fixed selection with no matches." UI highlighting or fading must only activate when the original request actually contains `credentialIds`; otherwise an empty selected-query set could incorrectly make every requested type appear unselected.
 

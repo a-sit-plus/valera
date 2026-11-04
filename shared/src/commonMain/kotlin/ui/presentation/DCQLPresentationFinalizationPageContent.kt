@@ -38,13 +38,18 @@ import at.asitplus.valera.resources.prompt_send_above_data
 import at.asitplus.valera.resources.section_heading_data_recipient
 import at.asitplus.valera.resources.trust_status_title
 import at.asitplus.wallet.app.common.TrustListService
+import at.asitplus.wallet.app.common.ZkMode
+import at.asitplus.wallet.app.common.zkMode
+import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
 import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
 import ui.composables.DataDisplaySection
 import ui.composables.PresentationRequestLoadingIndicator
 import ui.composables.ScreenHeading
 import ui.composables.TrustState
+import ui.composables.ZkModeBadgeAboveCard
 import ui.composables.displayVerifierText
+import ui.composables.validation.ValidationBanner
 
 @Composable
 fun DCQLPresentationFinalizationPageContent(
@@ -58,11 +63,16 @@ fun DCQLPresentationFinalizationPageContent(
     onSubmit: () -> Unit,
     serviceProviderLogo: ImageBitmap? = null,
     trustListService: TrustListService,
-    request: RequestParametersFrom<*>
+    request: RequestParametersFrom<*>,
+    relyingPartyValidation: RelyingPartyValidationUi? = null,
 ) {
-    val cards = remember(selections) {
-        selections.entries.sortedBy { it.key.string }.flatMap { it.value }
+    val cardsWithZkMode = remember(selections, dcqlQuery) {
+        selections.entries.sortedBy { it.key.string }.flatMap { (queryId, queryCards) ->
+            val zkMode = dcqlQuery.credentials.firstOrNull { it.id == queryId }?.zkMode() ?: ZkMode.UNKNOWN
+            queryCards.map { it to zkMode }
+        }
     }
+    val cards = remember(cardsWithZkMode) { cardsWithZkMode.map { it.first } }
     val loadingCards = remember(cards) {
         mutableStateMapOf<SelectableCredentialSubmissionCard, Boolean>().apply {
             cards.forEach { put(it, true) }
@@ -80,13 +90,15 @@ fun DCQLPresentationFinalizationPageContent(
         isContinueEnabled = !isLoading && !hasLoadingError,
         serviceProviderLogo = serviceProviderLogo,
         trustListService = trustListService,
-        request = request
+        request = request,
+        relyingPartyValidation = relyingPartyValidation,
     ) {
         if (isLoading) {
             PresentationRequestLoadingIndicator()
         }
-        cards.forEach { card ->
+        cardsWithZkMode.forEach { (card, zkMode) ->
             Spacer(modifier = Modifier.height(8.dp))
+            ZkModeBadgeAboveCard(zkMode)
             // TODO: good enough or should we have separate cards for final submissions?
             //  - if these cards should be reused, then allowMultiSelection shouldn't be relevant with (isSelected, onToggleSelection) = (true, null)
             //  - Cards should therefore implicitly handle the case (true, *, null) to show the card without any selection specific semantics UI
@@ -115,11 +127,15 @@ fun PresentationFinalizationPageContent(
     serviceProviderLogo: ImageBitmap? = null,
     trustListService: TrustListService,
     request: RequestParametersFrom<*>,
+    relyingPartyValidation: RelyingPartyValidationUi? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val relyingPartyTrustState by trustListService
-        .observeTrustStateForRelyingParty(flowOf(request))
-        .collectAsState(initial = TrustState.EVALUATING)
+    // A report of the relying party covers its trust, so it is evaluated separately only without one, e.g. for an
+    // ISO mdoc request over the DC API without reader authentication
+    val reportMissing = relyingPartyValidation?.outcome == null
+    val relyingPartyTrustState by remember(trustListService, request, reportMissing) {
+        trustListService.observeTrustStateForRelyingParty(flowOf(request.takeIf { reportMissing }))
+    }.collectAsState(initial = TrustState.EVALUATING)
     Scaffold(
         bottomBar = {
             CommonBottomButtonsAbortContinue(
@@ -163,9 +179,14 @@ fun PresentationFinalizationPageContent(
                             stringResource(Res.string.attribute_friendly_name_data_recipient_name) to serviceProviderLocalizedName
                         },
                         stringResource(Res.string.attribute_friendly_name_data_recipient_location) to serviceProviderLocalizedLocation,
-                        stringResource(Res.string.trust_status_title) to stringResource(relyingPartyTrustState.displayVerifierText)
+                        (stringResource(Res.string.trust_status_title) to
+                                stringResource(relyingPartyTrustState.displayVerifierText))
+                            .takeIf { reportMissing },
                     ),
                 )
+                relyingPartyValidation?.outcome?.let {
+                    ValidationBanner(it, modifier = Modifier.padding(bottom = 16.dp))
+                }
 
                 content()
             }

@@ -21,10 +21,17 @@ fun DCAPIPresentationGraphView(
     showStartRoute: Boolean = true,
     viewModel: DCAPIPresentationGraphViewModel = koinViewModel(scope = koinScope),
 ) {
+    // The flow ends with any error, which is to be sent to the caller instead of a presentation
+    val onError: (Throwable) -> Unit = { errorAction(viewModel.withErrorResponse(it)) }
     val dcApiRequest = try {
         viewModel.dcApiWalletRequest.getOrThrow()
     } catch (it: Throwable) {
-        return errorAction(it)
+        return onError(it)
+    }
+    val credentialQuerySelections = try {
+        viewModel.credentialQuerySelections.getOrThrow()
+    } catch (it: Throwable) {
+        return onError(it)
     }
 
     val spName = dcApiRequest.callingPackageName
@@ -33,12 +40,13 @@ fun DCAPIPresentationGraphView(
     val authenticateAtRelyingParty = spLocation != "Local Presentation"
 
     val matchingResult by viewModel.selectionProvider.collectAsState()
+    val isSubmitting by viewModel.isSubmitting.collectAsState()
     val queryMatchingResult = (matchingResult as? UiStateSuccess)?.value
         ?.selectionProvider?.queryMatchingResult
     val selectedCredentialQueryIds = if (dcApiRequest.credentialIds?.isNotEmpty() == true) {
-        (queryMatchingResult as? DCQLMatchingResult<*>)
-            ?.matchingResult?.credentialQueryMatches
-            ?.filterValues { it.isNotEmpty() }
+        (queryMatchingResult as? DCQLMatchingResult)
+            ?.toFixedDcApiSubmissions(credentialQuerySelections) { it.getDcApiId() }
+            ?.getOrNull()
             ?.keys
             .orEmpty()
     } else {
@@ -51,16 +59,17 @@ fun DCAPIPresentationGraphView(
         serviceProviderLocationLocalized = spLocation,
         authenticateAtRelyingParty = authenticateAtRelyingParty,
         onNavigateUp = onNavigateUp,
-        onError = errorAction,
+        onError = onError,
         onClickLogo = onClickLogo,
         navigateUpIsClose = true,
         selectionProvider = matchingResult.map {
             it.selectionProvider
         },
+        isSubmitting = isSubmitting,
         submitPresentation = { it, navigate ->
             viewModel.confirmSelection(
                 credentialPresentationSubmissions = it,
-                onFailure = errorAction,
+                onFailure = onError,
                 onSuccess = {
                     navigate(
                         PresentationSuccessRoute(
@@ -82,8 +91,9 @@ fun DCAPIPresentationGraphView(
         credentialQueryIdsSelectedForPresentation = selectedCredentialQueryIds,
         showStartRoute = showStartRoute,
         fixedCredentialSelection = dcApiRequest.credentialIds?.isNotEmpty() == true,
+        fixedCredentialQuerySelections = credentialQuerySelections,
         trustListService = viewModel.trustListService,
         request = dcApiRequest,
-        wrpValidationResult = viewModel.wrpValidationResult,
+        relyingPartyValidation = (matchingResult as? UiStateSuccess)?.value?.relyingPartyValidation,
     )
 }

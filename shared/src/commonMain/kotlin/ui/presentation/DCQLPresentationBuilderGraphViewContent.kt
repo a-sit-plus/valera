@@ -16,7 +16,7 @@ import at.asitplus.openid.dcql.DCQLQuery
 import at.asitplus.wallet.app.common.DcqlConsentData
 import at.asitplus.wallet.app.common.TrustListService
 import at.asitplus.wallet.app.common.extractConsentData
-import at.asitplus.wallet.app.common.relyingParty.WrpValidationResult
+import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
 import at.asitplus.wallet.app.common.toCredentialQueryUiModel
 import at.asitplus.wallet.lib.agent.validation.relyingParty.registrationCertificate.WrpCredentialRequest
 
@@ -55,7 +55,7 @@ fun DCQLPresentationBuilderGraphViewContent(
     confirmedOptionalCredentialSetQueryOptions: Map<UInt, UInt?>,
     trustListService: TrustListService,
     request: RequestParametersFrom<*>,
-    wrpValidationResult: WrpValidationResult? = null,
+    relyingPartyValidation: RelyingPartyValidationUi? = null,
 ) {
     val credentialSetQueries = dcqlQuery.requestedCredentialSetQueries
     val progressStart = 1
@@ -101,12 +101,13 @@ fun DCQLPresentationBuilderGraphViewContent(
         }.onFailure(errorAction).getOrNull()
     }
     val credentialQueryUiModels = consentData?.mapValues { entry ->
-        val matchedValidation = wrpValidationResult?.requestDataValidationResult?.filter {
-            (it.first as? WrpCredentialRequest.WrpDcqlCredentialQuery)?.let {
+        // Only requests the registration of the relying party does not cover are marked
+        val matchedValidation = relyingPartyValidation?.unregisteredRequests?.firstOrNull {
+            (it.request as? WrpCredentialRequest.WrpDcqlCredentialQuery)?.let {
                 it.query.id.string == entry.key.string
             } == true
-        }?.toList()?.firstOrNull()
-        val allowedAttributes = matchedValidation?.second?.credentialAttributesValidity
+        }
+        val allowedAttributes = matchedValidation?.validity?.credentialAttributesValidity
         entry.value.toCredentialQueryUiModel(allowedAttributes)
     } ?: return
 
@@ -244,6 +245,7 @@ fun DCQLPresentationBuilderGraphViewContent(
         onAbort = onNavigateUp,
         onSubmit = onSubmit,
         trustListService = trustListService,
-        request = request
+        request = request,
+        relyingPartyValidation = relyingPartyValidation,
     )
 }

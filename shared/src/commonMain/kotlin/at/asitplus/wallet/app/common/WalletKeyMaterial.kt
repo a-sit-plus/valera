@@ -4,8 +4,11 @@ import at.asitplus.signum.indispensable.CryptoSignature
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.signum.supreme.SignatureResult
 import at.asitplus.signum.supreme.os.PlatformSigningProviderSigner
+import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.biometric_authentication_prompt_title
 import at.asitplus.wallet.lib.agent.KeyMaterial
 import io.github.aakira.napier.Napier
+import org.jetbrains.compose.resources.getString
 
 open class WalletKeyMaterial(val keyMaterial: KeyMaterial) :
     KeyMaterial by keyMaterial {
@@ -20,13 +23,15 @@ open class WalletKeyMaterial(val keyMaterial: KeyMaterial) :
     ): SignatureResult<CryptoSignature.RawByteEncodable> = run {
         Napier.d("WalletKeyMaterial.sign using key ${keyMaterial.jsonWebKey.jwkThumbprint}")
         when (val signer = keyMaterial.getUnderLyingSigner()) {
-            is PlatformSigningProviderSigner<*, *> ->
+            is PlatformSigningProviderSigner<*, *> -> {
+                val promptTitle = getString(Res.string.biometric_authentication_prompt_title)
                 signer.sign(data) {
                     unlockPrompt {
-                        promptText?.let { message = it }
+                        message = promptTitle
                         promptCancelText?.let { cancelText = it }
                     }
                 }
+            }
 
             else -> signer.sign(data)
         }.also {
@@ -41,6 +46,5 @@ open class WalletKeyMaterial(val keyMaterial: KeyMaterial) :
     var onUnauthenticated: (() -> Unit)? = null
     var onSignError: (() -> Unit)? = null
     var onSuccess: (() -> Unit)? = null
-    var promptText: String? = null
     var promptCancelText: String? = null
 }

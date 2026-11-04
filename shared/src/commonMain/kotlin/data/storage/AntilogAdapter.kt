@@ -31,22 +31,9 @@ class AntilogAdapter(val platformAdapter: PlatformAdapter, private val defaultTa
         val pad = 15
         
         val message = message ?: ""
-
-        val data: String
-
-        when (priority) {
-            LogLevel.ERROR -> {
-                val message = throwable?.message ?: "Unknown Message"
-                val cause = throwable?.cause?.message ?: "Unknown Cause"
-                val stackTrace = throwable?.stackTraceToString() ?: ""
-                val info = "[${time}] ERROR".padEnd(pad, ' ')
-                data = ("$info $logTag : $message, $cause\n$stackTrace\n")
-            }
-            else -> {
-                val info = "[${time}] ${priority}".padEnd(pad, ' ')
-                data = ("$info $logTag : $message\n")
-            }
-        }
+        val info = "[${time}] ${priority}".padEnd(pad, ' ')
+        val stackTrace = throwable?.let { "${it.stackTraceToString()}\n" } ?: ""
+        val data = "$info $logTag : $message\n$stackTrace"
 
         platformAdapter.writeToFile(data, "log.txt", "logs")
         debugAntilogAdapter.log(priority, tag, throwable, message)

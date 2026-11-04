@@ -10,7 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import at.asitplus.wallet.lib.ktor.openid.CredentialIdentifierInfo
+import at.asitplus.wallet.app.common.validation.IssuerValidationUi
+import at.asitplus.wallet.lib.oidvci.CredentialIdentifierInfo
 import ui.composables.buttons.LoadDataButton
 import ui.composables.forms.StatefulLoadDataForm
 
@@ -18,8 +19,8 @@ import ui.composables.forms.StatefulLoadDataForm
 fun LoadDataView(
     // state
     host: String,
-    credentialIdentifierInfo: CredentialIdentifierInfo,
-    onChangeCredentialIdentifierInfo: (CredentialIdentifierInfo) -> Unit,
+    credentialIdentifierInfos: List<CredentialIdentifierInfo>,
+    onChangeCredentialIdentifierInfos: (List<CredentialIdentifierInfo>) -> Unit,
     transactionCode: TextFieldValue,
     onChangeTransactionCode: (TextFieldValue) -> Unit,
     // other
@@ -28,6 +29,7 @@ fun LoadDataView(
     availableIdentifiers: Collection<CredentialIdentifierInfo>,
     showTransactionCode: Boolean,
     isSubmitEnabled: Boolean = true,
+    issuer: IssuerValidationUi? = null,
 ) {
     Scaffold(
         bottomBar = {
@@ -47,13 +49,14 @@ fun LoadDataView(
     ) { scaffoldPadding ->
         StatefulLoadDataForm(
             host = host,
-            credentialIdentifierInfo = credentialIdentifierInfo,
-            onChangeCredentialIdentifierInfo = onChangeCredentialIdentifierInfo,
+            credentialIdentifierInfos = credentialIdentifierInfos,
+            onChangeCredentialIdentifierInfos = onChangeCredentialIdentifierInfos,
             transactionCode = transactionCode,
             onChangeTransactionCode = onChangeTransactionCode,
             modifier = Modifier.padding(scaffoldPadding),
             availableIdentifiers = availableIdentifiers,
-            showTransactionCode = showTransactionCode
+            showTransactionCode = showTransactionCode,
+            issuer = issuer,
         )
     }
 }

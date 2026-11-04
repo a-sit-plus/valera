@@ -18,7 +18,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "compose-wallet-app"
+rootProject.name = "Valera"
 
 // Mirrors the conventions plugin's `envExtra` lookup, which is not available this early:
 // environment first, then -P properties, then gradle.properties overridden by local.properties.

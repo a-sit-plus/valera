@@ -31,6 +31,7 @@ import androidx.credentials.registry.provider.selectedEntryId
 import at.asitplus.KmmResult
 import at.asitplus.catching
 import at.asitplus.dcapi.*
+import at.asitplus.dcapi.request.ExchangeProtocolIdentifier
 import at.asitplus.dcapi.request.verifier.DigitalCredentialRequestOptions
 import at.asitplus.dcapi.request.verifier.toRequestParametersFrom
 import at.asitplus.openid.RequestParametersFrom
@@ -39,7 +40,10 @@ import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.android.dcapi.AndroidDCAPIInvocationData
 import at.asitplus.wallet.app.android.dcapi.CustomRegistry
 import at.asitplus.wallet.app.common.*
+import at.asitplus.wallet.app.common.dcapi.DCAPICredentialQuerySelection
 import at.asitplus.wallet.app.common.dcapi.DCAPIIssuingRequest
+import at.asitplus.wallet.app.common.dcapi.DCAPIVerificationRequest
+import at.asitplus.wallet.app.common.dcapi.isoMdocDcApiRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.lib.openid.OpenId4VpHolder
 import io.github.aakira.napier.Napier
@@ -50,6 +54,10 @@ import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.multipaz.compose.prompt.PromptDialogs
 import org.multipaz.prompt.PromptModel
 import ui.theme.darkScheme
@@ -273,8 +281,39 @@ public class AndroidPlatformAdapter(
     // Source: https://github.com/openwallet-foundation/multipaz/blob/5c1845c400875edcc4620e395773d89c3f796256/multipaz-compose/src/androidMain/kotlin/org/multipaz/compose/digitalcredentials/CredentialManagerPresentmentActivity.kt#L206
     private data class SelectionInfo(
         val protocol: String,
-        val documentIds: List<String>
+        val documentIds: List<String>,
+        /** The DCQL credential query the matcher selected each document for, if it reported them */
+        val credentialQuerySelections: List<DCAPICredentialQuerySelection> = emptyList(),
     )
+
+    /**
+     * An entry of the credential picker, `<combination> <protocol> <documentId>`, followed by the identifier of the
+     * DCQL credential query the document is presented for, if the matcher reports one, see `addToCredmanPicker`.
+     */
+    private data class SelectedEntry(
+        val protocol: String,
+        val documentId: String,
+        val credentialQueryId: String?,
+    )
+
+    private fun parseEntryId(entryId: String): SelectedEntry {
+        val splits = entryId.split(" ")
+        require(splits.size == 3 || splits.size == 4) {
+            "Expected CredId to have three or four parts, got ${splits.size}"
+        }
+        return SelectedEntry(
+            protocol = splits[1],
+            documentId = splits[2],
+            credentialQueryId = splits.getOrNull(3),
+        )
+    }
+
+    private fun List<SelectedEntry>.toCredentialQuerySelections() =
+        if (all { it.credentialQueryId != null }) {
+            map { DCAPICredentialQuerySelection(it.documentId, it.credentialQueryId!!) }
+        } else {
+            emptyList()
+        }
 
     private fun getSetSelection(request: ProviderGetCredentialRequest): SelectionInfo? {
         // TODO: replace sourceBundle peeking when we upgrade to a new Credman Jetpack..
@@ -283,31 +322,30 @@ public class AndroidPlatformAdapter(
         val setElementLength = request.sourceBundle!!.getInt(
             "androidx.credentials.registry.provider.extra.CREDENTIAL_SET_ELEMENT_LENGTH", 0
         )
-        val credIds = mutableListOf<String>()
+        val entries = mutableListOf<SelectedEntry>()
         for (n in 0 until setElementLength) {
             val credId = request.sourceBundle!!.getString(
                 "androidx.credentials.registry.provider.extra.CREDENTIAL_SET_ELEMENT_ID_$n"
             ) ?: return null
-            val splits = credId.split(" ")
-            require(splits.size == 3) { "Expected CredId $n to have three parts, got ${splits.size}" }
-            credIds.add(splits[2])
+            entries.add(parseEntryId(credId))
         }
         val splits = setId.split(" ")
         require(splits.size == 2) { "Expected SetId to have two parts, got ${splits.size}" }
         return SelectionInfo(
             protocol = splits[1],
-            documentIds = credIds
+            documentIds = entries.map { it.documentId },
+            credentialQuerySelections = entries.toCredentialQuerySelections(),
         )
     }
 
     private fun getSelection(request: ProviderGetCredentialRequest): SelectionInfo {
         val selectedEntryId = request.selectedEntryId
             ?: throw IllegalStateException("selectedEntryId is null")
-        val splits = selectedEntryId.split(" ")
-        require(splits.size == 3) { "Expected CredId to have three parts, got ${splits.size}" }
+        val entry = parseEntryId(selectedEntryId)
         return SelectionInfo(
-            protocol = splits[1],
-            documentIds = listOf(splits[2])
+            protocol = entry.protocol,
+            documentIds = listOf(entry.documentId),
+            credentialQuerySelections = listOf(entry).toCredentialQuerySelections(),
         )
     }
 
@@ -351,7 +389,7 @@ public class AndroidPlatformAdapter(
     }
 
     @OptIn(ExperimentalDigitalCredentialApi::class)
-    override fun getCurrentDCAPIVerificationData(): KmmResult<RequestParametersFrom.DcApiRequest> = catching {
+    override fun getCurrentDCAPIVerificationData(): KmmResult<DCAPIVerificationRequest> = catching {
         (intentState.dcapiInvocationData.value as AndroidDCAPIInvocationData?)?.let { (intent, _) ->
             // Adapted from https://github.com/openwallet-foundation-labs/identity-credential/blob/d7a37a5c672ed6fe1d863cbaeb1a998314d19fc5/wallet/src/main/java/com/android/identity_credential/wallet/credman/CredmanPresentationActivity.kt#L74
             val credentialRequest = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
@@ -365,9 +403,10 @@ public class AndroidPlatformAdapter(
             Napier.d("DC API: Got request ${option.requestJson}")
             // Android's Bundle-to-JSON conversion currently serializes arrays as numerically-indexed objects
             // (e.g. ["a","b"] becomes {"0":"a","1":"b"}), which breaks deserialization of list properties.
+            val requestJson = joseCompliantSerializer.parseToJsonElement(option.requestJson).coerceIndexedObjectsToArrays()
             val dcRequestOptions = joseCompliantSerializer.decodeFromJsonElement(
                 DigitalCredentialRequestOptions.serializer(),
-                joseCompliantSerializer.parseToJsonElement(option.requestJson).coerceIndexedObjectsToArrays(),
+                requestJson,
             )
 
             Napier.d("DC API: Selection $dcRequestOptions")
@@ -378,12 +417,27 @@ public class AndroidPlatformAdapter(
             Napier.d("DC API: Selection $selectionInfo")
 
             val credentialIds = selectionInfo.documentIds
-            dcRequestOptions.toRequestParametersFrom(
-                selectedProtocol = selectionInfo.protocol,
-                credentialIds = credentialIds,
-                callingPackageName = callingPackageName,
-                callingOrigin = callingOrigin,
-            )
+            if (ExchangeProtocolIdentifier(selectionInfo.protocol).isIsoMdocRequest) {
+                // Keeps the request as received, whose reader authentication signs it
+                DCAPIVerificationRequest(
+                    isoMdocDcApiRequest(
+                        rawRequest = requestJson.rawRequestData(selectionInfo.protocol),
+                        callingOrigin = callingOrigin,
+                        credentialIds = credentialIds,
+                        callingPackageName = callingPackageName,
+                    )
+                )
+            } else {
+                DCAPIVerificationRequest(
+                    request = dcRequestOptions.toRequestParametersFrom(
+                        selectedProtocol = selectionInfo.protocol,
+                        credentialIds = credentialIds,
+                        callingPackageName = callingPackageName,
+                        callingOrigin = callingOrigin,
+                    ),
+                    credentialQuerySelections = selectionInfo.credentialQuerySelections,
+                )
+            }
         } ?: throw IllegalStateException("DCAPIInvocationData not set")
     }
 
@@ -491,6 +545,13 @@ public class AndroidPlatformAdapter(
         is JsonArray -> JsonArray(map { it.coerceIndexedObjectsToArrays() })
         else -> this
     }
+
+    /** The `data` of the request for [protocol] in these DC API request options, as received. */
+    private fun JsonElement.rawRequestData(protocol: String): String =
+        jsonObject["requests"]?.jsonArray
+            ?.firstOrNull { it.jsonObject["protocol"]?.jsonPrimitive?.contentOrNull == protocol }
+            ?.jsonObject?.get("data")?.toString()
+            ?: throw IllegalStateException("Unable to find the DC API request for $protocol")
 
     private companion object {
         /**

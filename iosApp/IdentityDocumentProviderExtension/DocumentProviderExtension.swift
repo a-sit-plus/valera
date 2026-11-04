@@ -1,5 +1,6 @@
 import ExtensionKit
 import Foundation
+import Security
 import IdentityDocumentServicesUI
 import IdentityDocumentServices
 import SwiftUI
@@ -59,25 +60,58 @@ private struct DcApiValidationError: LocalizedError {
 
 // Kotlin completes a presentment asynchronously after the sendResponse closure has returned
 // control to the shared UI. This gate makes all response, validation-error, and cancellation
-// callbacks idempotent so the checked continuation is resumed at most once.
+// callbacks idempotent so the checked continuation is resumed at most once. A cancellation that
+// arrives before the continuation is attached resumes it as soon as it is, without starting the flow.
+// One that arrives after a response or validation error has been sent is ignored, as that settles the request.
 private final class DcApiResponseCompletion: @unchecked Sendable {
     private let lock = NSLock()
     private var continuation: CheckedContinuation<Data, Error>?
+    private var isCancelled = false
+    private var isAnswered = false
 
-    init(_ continuation: CheckedContinuation<Data, Error>) {
+    /// Whether the flow is to be started, i.e. the request has not been cancelled already.
+    func attach(_ continuation: CheckedContinuation<Data, Error>) -> Bool {
+        lock.lock()
+        guard !isCancelled else {
+            lock.unlock()
+            continuation.resume(throwing: CancellationError())
+            return false
+        }
         self.continuation = continuation
+        lock.unlock()
+        return true
     }
 
     func returnResponse(_ data: Data) {
-        takeContinuation()?.resume(returning: data)
+        takeAnsweringContinuation()?.resume(returning: data)
     }
 
     func failValidation(_ message: String) {
-        takeContinuation()?.resume(throwing: DcApiValidationError(message: message))
+        takeAnsweringContinuation()?.resume(throwing: DcApiValidationError(message: message))
     }
 
-    func cancel() {
+    /// Whether the request has been cancelled, i.e. no response or validation error has been sent before.
+    @discardableResult
+    func cancel() -> Bool {
+        lock.lock()
+        guard !isAnswered else {
+            lock.unlock()
+            return false
+        }
+        isCancelled = true
+        lock.unlock()
         takeContinuation()?.resume(throwing: CancellationError())
+        return true
+    }
+
+    private func takeAnsweringContinuation() -> CheckedContinuation<Data, Error>? {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !isCancelled else { return nil }
+        isAnswered = true
+        let value = continuation
+        continuation = nil
+        return value
     }
 
     private func takeContinuation() -> CheckedContinuation<Data, Error>? {
@@ -94,7 +128,22 @@ private final class DcApiResponseCompletion: @unchecked Sendable {
 private func buildRequestSignature(from requestContext: ISO18013MobileDocumentRequestContext) -> String {
     let parsedRequestSummary = buildParsedRequestSummaryData(from: requestContext)
     let originString = requestContext.requestingWebsiteOrigin?.absoluteString ?? ""
-    return originString + "|" + (parsedRequestSummary.summaryJson ?? "")
+    let readerCertificates = buildReaderCertificateChains(from: requestContext)
+        .map { $0.joined(separator: ",") }
+        .joined(separator: ";")
+    return originString + "|" + (parsedRequestSummary.summaryJson ?? "") + "|" + readerCertificates
+}
+
+// The system verifies the reader authentication signatures before parsing the request, and exposes the
+// certificate chains so the pre-request UI can show the trust status of the relying party before consent.
+private func buildReaderCertificateChains(from requestContext: ISO18013MobileDocumentRequestContext) -> [[String]] {
+    requestContext.request.requestAuthentications
+        .map { authentication in
+            authentication.authenticationCertificateChain.map { certificate in
+                (SecCertificateCopyData(certificate) as Data).base64EncodedString()
+            }
+        }
+        .filter { !$0.isEmpty }
 }
 
 private func buildParsedRequestSummaryData(from requestContext: ISO18013MobileDocumentRequestContext) -> ParsedRequestSummaryData {
@@ -244,34 +293,45 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                         try await requestContext.sendResponse { rawRequest in
                             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse handler started")
                             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "rawRequest: \(String(decoding: rawRequest.requestData, as: UTF8.self))")
-                            let finalResponseData = try await withCheckedThrowingContinuation { continuation in
-                                Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "withCheckedThrowingContinuation started")
-                                let completion = DcApiResponseCompletion(continuation)
-                                let sendCredentialResponse: (Data) -> Void = { data in
-                                    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "sendCredentialResponse called with \(data.count) bytes")
-                                    completion.returnResponse(data)
-                                }
-                                let sendCredentialError: (String) -> Void = { message in
-                                    Napier.shared.log(priority: LogLevel.error, tag: "DocumentProviderExtension", throwable: nil, message: "sendCredentialError called: \(message)")
-                                    completion.failValidation(message)
-                                }
-                                let cancelInvocation: () -> Void = {
-                                    completion.cancel()
-                                    cancelRequest()
-                                }
+                            // The system cancels this task when it ends the request, e.g. as the verifier aborted it,
+                            // which would otherwise leave the continuation waiting for the shared UI forever.
+                            let completion = DcApiResponseCompletion()
+                            let finalResponseData = try await withTaskCancellationHandler {
+                                try await withCheckedThrowingContinuation { continuation in
+                                    Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "withCheckedThrowingContinuation started")
+                                    guard completion.attach(continuation) else { return }
+                                    let sendCredentialResponse: (Data) -> Void = { data in
+                                        Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "sendCredentialResponse called with \(data.count) bytes")
+                                        completion.returnResponse(data)
+                                    }
+                                    let sendCredentialError: (String) -> Void = { message in
+                                        Napier.shared.log(priority: LogLevel.error, tag: "DocumentProviderExtension", throwable: nil, message: "sendCredentialError called: \(message)")
+                                        completion.failValidation(message)
+                                    }
+                                    // The shared UI finishes the flow after it has sent a validation error as well,
+                                    // e.g. from its error screen. Cancelling the request then could replace that
+                                    // error, so it is ended below once sendResponse has returned instead.
+                                    let cancelInvocation: () -> Void = {
+                                        guard completion.cancel() else { return }
+                                        cancelRequest()
+                                    }
 
-                                // Hand the raw verifier request into shared Kotlin code, which drives
-                                // the actual consent/authentication flow and eventually calls back
-                                // with ISO response bytes, a validation failure, or explicit cancellation.
-                                let invocationData = IosDCAPIInvocationData(
-                                    rawRequest: String(decoding: rawRequest.requestData, as: UTF8.self),
-                                    parsedRequestSummary: parsedRequestSummary.summaryJson,
-                                    origin: originString,
-                                    sendCredentialResponse: sendCredentialResponse,
-                                    sendCredentialError: sendCredentialError,
-                                    onCancel: cancelInvocation
-                                )
-                                IosSessionBridge.shared.registerDcapiInvocation(data: invocationData)
+                                    // Hand the raw verifier request into shared Kotlin code, which drives
+                                    // the actual consent/authentication flow and eventually calls back
+                                    // with ISO response bytes, a validation failure, or explicit cancellation.
+                                    let invocationData = IosDCAPIInvocationData(
+                                        rawRequest: String(decoding: rawRequest.requestData, as: UTF8.self),
+                                        parsedRequestSummary: parsedRequestSummary.summaryJson,
+                                        origin: originString,
+                                        sendCredentialResponse: sendCredentialResponse,
+                                        sendCredentialError: sendCredentialError,
+                                        onCancel: cancelInvocation
+                                    )
+                                    IosSessionBridge.shared.registerDcapiInvocation(data: invocationData)
+                                }
+                            } onCancel: {
+                                Napier.shared.log(priority: LogLevel.warning, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse handler cancelled by the system")
+                                completion.cancel()
                             }
 
                             Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse handler finished")
@@ -281,6 +341,9 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
                         Napier.shared.log(priority: LogLevel.debug, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse cancelled")
                     } catch {
                         Napier.shared.log(priority: LogLevel.error, tag: "DocumentProviderExtension", throwable: nil, message: "sendResponse failed: \(error)")
+                        // The system keeps the extension open after a failed response, e.g. a validation error
+                        // sent from the error screen, and there is nothing left to show: end the request
+                        requestContext.cancel()
                     }
                 }
             }
@@ -290,6 +353,7 @@ struct DocumentProviderExtension: IdentityDocumentProvider {
             let preRequestData = IosDcApiPreRequestData(
                 parsedRequestSummary: parsedRequestSummary.summaryJson,
                 origin: originString,
+                readerCertificateChains: buildReaderCertificateChains(from: requestContext),
                 onContinue: onContinue,
                 onCancel: cancelRequest
             )

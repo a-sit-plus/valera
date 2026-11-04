@@ -2,16 +2,15 @@ package ui.presentation
 
 import at.asitplus.wallet.lib.agent.CredentialMatchingResult
 import at.asitplus.wallet.lib.agent.HolderIsoDeviceRetrievalQueryMatchingResult
-import at.asitplus.wallet.lib.agent.validation.CredentialFreshnessSummary
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
+import ui.models.CredentialFreshnessSummaryUiModel
 import ui.models.CredentialFreshnessValidationStateUiModel
 import ui.models.CredentialFreshnessValidationStateUiModel.Done
 import ui.models.CredentialFreshnessValidationStateUiModel.Loading
-import ui.models.toCredentialFreshnessSummaryModel
 
 data class CredentialSelectionProvider<Credential : Any>(
     val queryMatchingResult: CredentialMatchingResult<Credential>,
@@ -20,13 +19,13 @@ data class CredentialSelectionProvider<Credential : Any>(
 
 fun <Credential : Any> CredentialMatchingResult<Credential>.toCredentialSelectionProvider(
     scope: CoroutineScope,
-    checkCredentialFreshness: suspend (Credential) -> CredentialFreshnessSummary,
+    checkCredentialFreshness: suspend (Credential) -> CredentialFreshnessSummaryUiModel,
 ) = CredentialSelectionProvider(
     queryMatchingResult = this,
     credentialFreshnessProviders = this.matchingResult.credentials.map {
         flow {
             emit(Loading)
-            emit(Done(checkCredentialFreshness(it).toCredentialFreshnessSummaryModel()))
+            emit(Done(checkCredentialFreshness(it)))
         }.stateIn(
             scope = scope,
             started = SharingStarted.WhileSubscribed(60_000),

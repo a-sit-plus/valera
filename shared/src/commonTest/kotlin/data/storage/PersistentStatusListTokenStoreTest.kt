@@ -8,11 +8,14 @@ import at.asitplus.wallet.lib.agent.StatusListAgent
 import at.asitplus.wallet.lib.data.StatusListCwt
 import at.asitplus.wallet.lib.data.StatusListJwt
 import at.asitplus.wallet.lib.data.StatusListToken
+import at.asitplus.wallet.lib.data.rfc.tokenStatusList.IdentifierList
+import at.asitplus.wallet.lib.data.rfc.tokenStatusList.RevocationList
 import at.asitplus.wallet.lib.data.rfc3986.UniformResourceIdentifier
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
@@ -40,18 +43,23 @@ class PersistentStatusListTokenStoreTest {
     }
 
     @Test
-    fun skipsNonJwtTokensWithoutThrowing() = runTest {
+    fun persistsCwtTokens() = runTest {
         val dataStore = DummyDataStoreService()
         val url = UniformResourceIdentifier("https://example.test/status-cwt")
         val cachedAt = Instant.fromEpochMilliseconds(1_000_000)
         val cwt: CacheStoreEntry<StatusListToken> = CacheStoreEntry(
-            data = StatusListCwt(value = StatusListAgent().issueStatusListCwt(), resolvedAt = cachedAt),
+            data = StatusListCwt(
+                value = StatusListAgent().issueStatusListCwt(kind = RevocationList.Kind.IDENTIFIER_LIST),
+                resolvedAt = cachedAt,
+            ),
             createdTime = cachedAt,
         )
-        val store = PersistentStatusListTokenStore(dataStore)
 
-        assertNull(store.set(url, cwt))
-        assertNull(store[url])
+        PersistentStatusListTokenStore(dataStore)[url] = cwt
+
+        val restored = PersistentStatusListTokenStore(dataStore)[url]
+        assertEquals(cwt, restored)
+        assertIs<IdentifierList>(restored?.data?.parsedPayload?.getOrThrow()?.revocationList)
     }
 
     @Test

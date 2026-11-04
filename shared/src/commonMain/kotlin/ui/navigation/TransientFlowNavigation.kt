@@ -17,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -47,7 +46,6 @@ import org.jetbrains.compose.resources.getString
 import org.koin.compose.koinInject
 import org.koin.core.scope.Scope
 import ui.navigation.routes.AttestationSettingsRoute
-import ui.navigation.routes.DCAPIAuthorizationIntentRoute
 import ui.navigation.routes.ErrorRoute
 import ui.navigation.routes.IosDcApiPreRequestRoute
 import ui.navigation.routes.LoadingRoute
@@ -229,16 +227,9 @@ private fun TransientFlowNavHost(
         modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)
     ) {
 
+        // Continuing navigates on through IOS_DC_API_CALL in appLink, set by registerDcapiInvocation; navigating from
+        // here as well opened the request twice, and a late duplicate could replace the credential selection in use
         composable<IosDcApiPreRequestRoute> {
-            val preRequestData by intentState.iosDcApiPreRequestData.collectAsState()
-            val invocationData by intentState.dcapiInvocationData.collectAsState()
-
-            LaunchedEffect(preRequestData, invocationData) {
-                if (preRequestData == null && invocationData != null) {
-                    navigator.navigateNewGraph(DCAPIAuthorizationIntentRoute(IntentService.IOS_DC_API_CALL))
-                }
-            }
-
             IosDcApiPreRequestView(
                 intentState = intentState,
                 onError = onError,

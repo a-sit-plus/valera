@@ -3,6 +3,7 @@ package at.asitplus.wallet.app.common.dcapi.data.export
 import at.asitplus.jsonpath.core.NormalizedJsonPath
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonObject
 
 @Serializable
 data class SdJwtEntry(
@@ -10,18 +11,22 @@ data class SdJwtEntry(
     val jwtId: String,
     @SerialName("vct")
     val verifiableCredentialType: String,
-    @SerialName("claims")
-    val claims: Map<String, ExportedElements>
+    // No serialization default: the version must be present even when encodeDefaults is false.
+    val claimsFormatVersion: Int,
+    val claimsTree: SdJwtClaimNode,
 ) {
     companion object {
-        fun fromAttributeList(
-            attributeList: List<Pair<NormalizedJsonPath, Any>>,
+        /** Exports reconstructed JSON without flattening names or inventing wildcard claims. */
+        fun fromJson(
+            jwtId: String,
+            verifiableCredentialType: String,
+            claims: JsonObject,
             attributeLabel: (NormalizedJsonPath) -> String?,
-        ): Map<String, ExportedElements> = attributeList.map { (path, value) ->
-            val name = path.toDcqlPathKey()
-            val displayName = attributeLabel(path) ?: name
-            val truncatedValue = value.toCustomString().safeSubstring(128)
-            name to ExportedElements(displayName, truncatedValue, truncatedValue)
-        }.toMap()
+        ): SdJwtEntry = SdJwtEntry(
+            jwtId = jwtId,
+            verifiableCredentialType = verifiableCredentialType,
+            claimsFormatVersion = 1,
+            claimsTree = SdJwtClaimNode.fromJson(claims, attributeLabel),
+        )
     }
 }

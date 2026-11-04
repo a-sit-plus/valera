@@ -6,8 +6,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.ExperimentalComposeUiApi
-import at.asitplus.wallet.lib.agent.Validator
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.scope.Scope
 
@@ -21,7 +19,6 @@ fun DefaultPresentationGraphView(
     koinScope: Scope,
     navigateUpIsClose: Boolean = false,
     viewModel: DefaultPresentationGraphViewModel = koinViewModel(scope = koinScope),
-    credentialValidator: Validator = koinInject(),
 ) {
     val presentationRequest = try {
         viewModel.preparationState.getOrThrow().credentialPresentationRequest
@@ -36,6 +33,7 @@ fun DefaultPresentationGraphView(
     val authenticateAtRelyingParty = spLocation != "Local Presentation"
 
     val selectionProvider by viewModel.selectionProvider.collectAsState()
+    val isSubmitting by viewModel.isSubmitting.collectAsState()
 
     PresentationGraphView(
         koinScope = koinScope,
@@ -49,6 +47,7 @@ fun DefaultPresentationGraphView(
         selectionProvider = selectionProvider,
         presentationRequest = presentationRequest,
         navigateUpIsClose = navigateUpIsClose,
+        isSubmitting = isSubmitting,
         submitPresentation = SubmitPresentation { it, navigate ->
             viewModel.confirmSelection(
                 credentialPresentationSubmissions = it,
@@ -73,7 +72,7 @@ fun DefaultPresentationGraphView(
         },
         trustListService = viewModel.trustListService,
         request = viewModel.preparationState.getOrThrow().request,
-        wrpValidationResult = viewModel.wrpValidationResult,
+        relyingPartyValidation = viewModel.relyingPartyValidation,
     )
 }
 
