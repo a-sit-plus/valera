@@ -109,6 +109,7 @@ kotlin {
             implementation(libs.multipaz.compose)
             implementation(libs.multipaz.doctypes)
             implementation(libs.navigation.compose)
+            implementation(libs.lifecycle.runtime.compose)
             implementation(libs.semver)
             implementation(libs.qrose)
 

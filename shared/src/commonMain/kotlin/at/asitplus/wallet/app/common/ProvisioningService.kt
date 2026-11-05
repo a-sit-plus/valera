@@ -43,7 +43,9 @@ import at.asitplus.wallet.lib.ktor.openid.OpenId4VciKtorClient
 import at.asitplus.wallet.lib.ktor.openid.ProvisioningContext
 import at.asitplus.wallet.lib.oauth2.ClientAttestation
 import at.asitplus.wallet.lib.oauth2.OAuth2Client
+import at.asitplus.wallet.lib.oidvci.AttestationProofCreator
 import at.asitplus.wallet.lib.oidvci.CredentialIdentifierInfo
+import at.asitplus.wallet.lib.oidvci.JwtProofCreator
 import at.asitplus.wallet.lib.oidvci.LoadedIssuerMetadata
 import at.asitplus.wallet.lib.oidvci.OpenId4VciClient
 import at.asitplus.wallet.lib.oidvci.ReceivedCredential
@@ -168,8 +170,10 @@ class ProvisioningService(
     }
 
     private suspend fun vciClient(): OpenId4VciClient = vciClientCached ?: OpenId4VciClient(
-        loadKeyAttestation = attestationService::loadKeyAttestation,
-        keyMaterial = keyMaterial,
+        proofCreators = listOf(
+            JwtProofCreator(keyMaterial = keyMaterial, loadKeyAttestation = attestationService::loadKeyAttestation),
+            AttestationProofCreator(attestationService::loadKeyAttestation),
+        ),
     ).also { vciClientCached = it }
 
     private suspend fun openId4VciClient(): OpenId4VciKtorClient {

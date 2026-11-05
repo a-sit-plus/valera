@@ -8,14 +8,10 @@ import at.asitplus.iso.IssuerSigned
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.signum.indispensable.pki.X509Certificate
 import at.asitplus.wallet.app.common.Configuration
-import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.identifier
 import at.asitplus.wallet.lib.agent.CredentialRenewalInfo
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.data.IsoMdocCredentialScheme
-import at.asitplus.wallet.lib.data.SdJwtCredentialScheme
 import at.asitplus.wallet.lib.data.SelectiveDisclosureItem
 import at.asitplus.wallet.lib.data.VcDataModelConstants.VERIFIABLE_CREDENTIAL
-import at.asitplus.wallet.lib.data.VcJwtCredentialScheme
 import at.asitplus.wallet.lib.data.VerifiableCredentialJws
 import at.asitplus.wallet.lib.data.VerifiableCredentialSdJwt
 import io.github.aakira.napier.Napier
@@ -44,68 +40,6 @@ class PersistentSubjectCredentialStore(
         entry: SubjectCredentialStore.StoreEntry
     ): KmmResult<SubjectCredentialStore.StoreEntry> = catching {
         entry.also { addStoreEntry(it) }
-    }
-
-
-    @Deprecated(
-        "Use storeCredential(StoreEntry)",
-        replaceWith = ReplaceWith("storeCredential(SubjectCredentialStore.StoreEntry.Vc(vcSerialized = vcSerialized, vc = vc, renewalInfo = renewalInfo, issuer = issuer, schemeIdentifier = scheme.vcType)).getOrThrow()")
-    )
-    override suspend fun storeCredential(
-        vc: VerifiableCredentialJws,
-        vcSerialized: String,
-        scheme: VcJwtCredentialScheme,
-        renewalInfo: CredentialRenewalInfo?,
-        issuer: X509Certificate?
-    ) = SubjectCredentialStore.StoreEntry.Vc(
-        vcSerialized = vcSerialized,
-        vc = vc,
-        renewalInfo = renewalInfo,
-        issuer = issuer,
-        schemeIdentifier = scheme.identifier,
-    ).also {
-        addStoreEntry(it)
-    }
-
-
-    @Deprecated(
-        "Use storeCredential(StoreEntry)",
-        replaceWith = ReplaceWith("storeCredential(SubjectCredentialStore.StoreEntry.SdJwt(vcSerialized = vcSerialized, sdJwt = vc, disclosures = disclosures, renewalInfo = renewalInfo, issuer = issuer, schemeIdentifier = scheme.sdJwtType)).getOrThrow()")
-    )
-    override suspend fun storeCredential(
-        vc: VerifiableCredentialSdJwt,
-        vcSerialized: String,
-        disclosures: Map<String, SelectiveDisclosureItem?>,
-        scheme: SdJwtCredentialScheme,
-        renewalInfo: CredentialRenewalInfo?,
-        issuer: X509Certificate?
-    ) = SubjectCredentialStore.StoreEntry.SdJwt(
-        vcSerialized = vcSerialized,
-        sdJwt = vc,
-        disclosures = disclosures,
-        renewalInfo = renewalInfo,
-        issuer = issuer,
-        schemeIdentifier = scheme.identifier,
-    ).also {
-        addStoreEntry(it)
-    }
-
-    @Deprecated(
-        "Use storeCredential(StoreEntry)",
-        replaceWith = ReplaceWith("storeCredential(SubjectCredentialStore.StoreEntry.Iso(issuerSigned = issuerSigned, renewalInfo = renewalInfo, issuer = issuer, schemeIdentifier = scheme.isoDocType)).getOrThrow()")
-    )
-    override suspend fun storeCredential(
-        issuerSigned: IssuerSigned,
-        scheme: IsoMdocCredentialScheme,
-        renewalInfo: CredentialRenewalInfo?,
-        issuer: X509Certificate?
-    ) = SubjectCredentialStore.StoreEntry.Iso(
-        issuerSigned = issuerSigned,
-        renewalInfo = renewalInfo,
-        issuer = issuer,
-        schemeIdentifier = scheme.identifier,
-    ).also {
-        addStoreEntry(it)
     }
 
     private suspend fun exportToDataStore(newContainer: StoreContainer) {

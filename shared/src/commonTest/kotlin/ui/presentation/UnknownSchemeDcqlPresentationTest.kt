@@ -17,7 +17,6 @@ import at.asitplus.wallet.lib.agent.EphemeralKeyWithoutCert
 import at.asitplus.wallet.lib.agent.HolderAgent
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.agent.Verifier
 import at.asitplus.wallet.lib.agent.toStoreCredentialInput
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation
 import at.asitplus.wallet.lib.data.ConstantIndex.CredentialRepresentation.ISO_MDOC
@@ -36,7 +35,7 @@ import at.asitplus.wallet.lib.openid.CredentialPresentationRequestBuilder
 import at.asitplus.wallet.lib.agent.DCQLMatchingResult
 import at.asitplus.wallet.lib.openid.OpenId4VpRequestOptions
 import at.asitplus.wallet.lib.openid.OpenId4VpVerifier
-import at.asitplus.wallet.lib.openid.VpTokenValidationResultDCQL
+import at.asitplus.wallet.lib.validation.ValidatedPresentation
 import data.credentials.FallbackCredentialAdapter
 import data.credentials.labeledPresentationAttributes
 import data.credentials.toGenericAttributeList
@@ -202,14 +201,14 @@ class UnknownSchemeDcqlPresentationTest {
             ).getOrThrow()
 
             val validated = assertNotNull(responseValidation, "relying party should have received a response").getOrThrow()
-            @Suppress("DEPRECATION")
-            val presentationResult = assertIs<VpTokenValidationResultDCQL>(
-                assertIs<AuthnResponseResult.Success>(validated).vpTokenResult.getOrThrow()
-            ).credentialQueryResponseValidations.values.single().single().getOrThrow()
-            val disclosedClaims = when (presentationResult) {
-                is Verifier.VerifyPresentationResult.SuccessSdJwt -> presentationResult.disclosures.map { it.claimName }
-                is Verifier.VerifyPresentationResult.SuccessIso -> presentationResult.documents
-                    .flatMap { it.validItems }.map { it.elementIdentifier }
+            val presentationValidation = assertIs<AuthnResponseResult.Success>(validated)
+                .presentationValidations.values.single().single()
+            val presentation = presentationValidation.presentation
+                ?: throw presentationValidation.rejection() ?: IllegalStateException("Presentation rejected")
+            val disclosedClaims = when (presentation) {
+                is ValidatedPresentation.SdJwt -> presentation.credential.disclosures.values.map { it.claimName }
+                is ValidatedPresentation.MdocDocument -> presentation.credential.issuerSigned.namespaces.orEmpty()
+                    .values.flatMap { list -> list.entries.map { it.value.elementIdentifier } }
 
                 else -> emptyList()
             }

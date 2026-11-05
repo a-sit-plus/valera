@@ -102,6 +102,7 @@ import org.multipaz.prompt.PromptModel
 import org.multipaz.prompt.Reason
 import ui.navigation.routes.RoutePrerequisites
 import kotlin.test.assertIs
+import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
@@ -289,8 +290,10 @@ private fun ComposeUiTest.runEndToEndTest() {
             withTimeout(10000.milliseconds) { redirectUrl.await() }
         ).getOrThrow()
     }
-    @Suppress("DEPRECATION")
-    assertIs<AuthnResponseResult.Success>(validationResult).vpTokenResult.getOrThrow()
+    val presentationValidations = assertIs<AuthnResponseResult.Success>(validationResult)
+        .presentationValidations.values.flatten()
+    assertTrue(presentationValidations.isNotEmpty(), "response should contain a presentation")
+    presentationValidations.forEach { it.presentation ?: throw it.rejection() ?: IllegalStateException("Presentation rejected") }
 }
 
 @Composable

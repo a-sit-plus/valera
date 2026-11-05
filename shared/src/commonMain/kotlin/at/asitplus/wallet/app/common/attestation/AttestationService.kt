@@ -121,7 +121,7 @@ class AttestationService(
                     }
 
                     buffer.hasRemainingKeyStorageStatusPeriod(
-                        input.preferredKeyStorageStatusPeriod ?: PREFERRED_DEFAULT_TTL
+                        input.requirements?.preferredTtl ?: PREFERRED_DEFAULT_TTL
                     ) -> {
                         Napier.d("AttestationService: Use buffered key attestation")
                         bufferedKeyAttestation.emit(null)
@@ -180,7 +180,7 @@ class AttestationService(
             instanceAttestation = instanceAttestation,
             pop = pop,
             nonce = input.clientNonce,
-            preferredKeyStorageStatusPeriod = input.preferredKeyStorageStatusPeriod,
+            preferredKeyStorageStatusPeriod = input.requirements?.preferredTtl,
             supportedAlgorithms = input.supportedAlgorithms
         )
     }
