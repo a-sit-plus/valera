@@ -132,7 +132,6 @@ class IosPlatformAdapter(
 
     private companion object {
         const val REGISTERED_DOCUMENT_IDS_DEFAULTS_KEY = "dcapi.registeredDocumentIds"
-        const val REGISTRATION_ERROR_NOT_AUTHORIZED = "notAuthorized"
         const val ISO_DC_API_VALIDATION_ERROR = "ISO 18013-7 Annex C request validation failed"
         val registeredDocumentIdsLock = Mutex()
         val registeredDocumentIds = mutableSetOf<String>().apply {
@@ -378,9 +377,9 @@ class IosPlatformAdapter(
             try {
                 DigitalCredentials.getStatusWithCompletionHandler { status ->
                     val permission = when (status) {
-                        "authorized" -> DigitalCredentialsPermission.GRANTED
-                        "notAuthorized" -> DigitalCredentialsPermission.DENIED
-                        "notDetermined" -> DigitalCredentialsPermission.NOT_DETERMINED
+                        DigitalCredentials.authorized -> DigitalCredentialsPermission.GRANTED
+                        DigitalCredentials.notAuthorized -> DigitalCredentialsPermission.DENIED
+                        DigitalCredentials.notDetermined -> DigitalCredentialsPermission.NOT_DETERMINED
                         else -> DigitalCredentialsPermission.NOT_SUPPORTED
                     }
                     Napier.d("getDigitalCredentialsPermission callback with status=$status")
@@ -402,7 +401,7 @@ class IosPlatformAdapter(
             Napier.d("storeDocumentFromSwift invoked")
             DigitalCredentials.storeDocumentWithId(id, docType) { errorMessage ->
                 val success = errorMessage == null
-                val notAuthorized = errorMessage == REGISTRATION_ERROR_NOT_AUTHORIZED
+                val notAuthorized = errorMessage == DigitalCredentials.notAuthorized
                 Napier.d("storeDocumentFromSwift callback with success=$success error=$errorMessage")
                 // A denied access is shown to the user by the DC API notice instead
                 if (!success && !notAuthorized) {
