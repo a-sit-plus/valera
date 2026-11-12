@@ -1,13 +1,23 @@
 name: Publish Android App
 on: workflow_dispatch
+concurrency:
+  group: publish-android-google-play
+  cancel-in-progress: false
 jobs:
   build:
     runs-on: ${{ fromJSON(github.event.repository.private && '["self-hosted", "Linux"]' || '["ubuntu-latest"]') }}
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/iosApp/Gemfile
     steps:
       - name: Common setup
         uses: a-sit-plus/internal-workflows/.github/actions/common-setup@xcode-26
-      - name: Build apk
-        run: ./gradlew :androidApp:assemble
+      - name: Set up Ruby gems
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - name: Build APKs and release app bundle
+        run: ./gradlew :androidApp:assemble :androidApp:bundleRelease
         env:
           ANDROID_CERT_PASSWORD: ${{ secrets.ANDROID_CERT_PASSWORD }}
           CI: true
@@ -23,3 +33,15 @@ jobs:
           name: Wallet App Android (release)
           path: |
             androidApp/build/outputs/apk/release/*.apk
+      - name: Upload release app bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: Wallet App Android (Google Play)
+          path: androidApp/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
+      - name: Publish to Google Play internal testing
+        run: bundle exec fastlane android deploy
+        working-directory: androidApp
+        env:
+          FASTLANE_OPT_OUT_USAGE: true
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}

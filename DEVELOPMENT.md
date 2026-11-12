@@ -189,13 +189,72 @@ Required secrets for GitHub Actions:
 - `APPLE_CERT_PASSWORD` with the password of the certificate you've exported
 - `APPLE_DEVELOPMENT_TEAM` wtih the Apple Team ID
 
-For Android we use a keystore to sign and build the app. The keystore is checked in, the password needs to be set as a environment variable.
+### Android: APKs, internal testing and promotion to open testing
 
-Setup:
- - Create a new keystore, e.g. from Android Studio
+Run **Publish Android App** (`.github/workflows/publish-android.yml`) manually from GitHub Actions. Gradle builds debug and release APKs and a release Android App Bundle (`.aab`), and the workflow saves all three as artifacts. It then runs `bundle exec fastlane android deploy` from `androidApp/` to upload the bundle to Google Play's **internal testing** track (`track: "internal"` in the Android Fastfile). The lane in `androidApp/fastlane/Fastfile` uses Fastlane's built-in [`upload_to_play_store`](https://docs.fastlane.tools/actions/upload_to_play_store/) action. The release is rolled out to the configured internal testers (`release_status: "completed"`, up to 100 testers). Promotion to open testing is a separate manual step; the lane does not publish to open testing or production. Store metadata, release notes, images and screenshots are managed in Play Console and are not uploaded by this lane.
 
-Required secrets for GitHub Actions:
-- `ANDROID_CERT_PASSWORD` with the password for the keystore you've exported
+Open testing lets anyone join through the opt-in link, similar to a TestFlight public link, and also makes the beta visible on Google Play. It does not require an email allowlist or Google Group. Closed testing would restrict enrollment to an approved list or group even if its opt-in link were shared publicly. Google's Developer API calls the open testing track [`beta`](https://developers.google.com/android-publisher/tracks#track_name_for_form_factor_tracks).
+
+After testing internally, promote the release to **Open testing** in Play Console, or create an open testing release and use **Add from library** to select the already uploaded bundle. This reuses the exact same build and `versionCode`: do not rebuild, re-upload, or increment the version code just to promote it. Complete the open testing setup and any required review before rolling it out. See Google's [release guide](https://support.google.com/googleplay/android-developer/answer/9859348).
+
+#### Ruby and Android build hosts
+
+Android publishing reuses `iosApp/Gemfile` and `iosApp/Gemfile.lock`, including the same pinned Fastlane version as iOS. `BUNDLE_GEMFILE` selects that shared dependency definition; the Android lane has its own Fastfile and does not load the iOS signing lanes. The lockfile includes Linux and generic Ruby platforms alongside macOS.
+
+The workflow uses `ruby/setup-ruby@v1` with Ruby **3.3** and `bundler-cache: true`. It installs the lockfile's Bundler version (currently **2.4.10**), runs `bundle install`, and caches the gems. There is no separate `gem install fastlane` step.
+
+* **GitHub-hosted Ubuntu runners:** Ruby and gems are provisioned by the action; no manual host setup is needed.
+* **Self-hosted Linux runners** (used when this repository is private): provision the existing Android/JDK build prerequisites plus Ruby's runtime libraries and a C/C++ build toolchain for native gems. A host matching a supported GitHub runner image can use the action's prebuilt Ruby; it needs matching OpenSSL libraries, libyaml and libgmp, with `/opt/hostedtoolcache` and `/home/runner` writable by the runner account. On other distributions, install Ruby 3.3 in the runner tool cache as instructed by `ruby/setup-ruby` when it detects an unsupported host. A system `ruby` or `gem` on `PATH` alone is not sufficient for the action's tool-cache lookup. The runner also needs network access to download Ruby, Bundler and gems and to call the Google Play API. Install OS packages/tool-cache Ruby while provisioning the host, rather than using `sudo` during publishing.
+
+The Ruby installation must include **RubyGems and development headers**. Source-built and action-provided Rubies normally include the headers; packaged Ruby may need a matching `ruby-dev`/`ruby-devel` package. Bundler compiles native extensions for gems such as `json`, `bigdecimal` and `nkf`; having only the Ruby interpreter is not enough.
+
+See [`ruby/setup-ruby` self-hosted runner requirements](https://github.com/ruby/setup-ruby#using-self-hosted-runners). No Ruby installation is needed for Android workflows that only build/test through Gradle.
+
+For local uploads, install Ruby 3.3 with RubyGems and Bundler, then run from the repository root:
+
+```bash
+export BUNDLE_GEMFILE="$PWD/iosApp/Gemfile"
+gem install bundler -v 2.4.10
+bundle install
+./gradlew :androidApp:bundleRelease
+# Set GOOGLE_PLAY_SERVICE_ACCOUNT_JSON to the raw JSON key contents securely.
+cd androidApp
+bundle exec fastlane android deploy
+```
+
+The upload lane expects the existing release bundle at `androidApp/build/outputs/bundle/release/androidApp-release.aab`; it does not build or sign it. The local Gradle build also needs `android.cert.password` or `ANDROID_CERT_PASSWORD` as described above.
+
+#### One-time Play Console and signing setup
+
+1. In the team's [Google Play Console](https://play.google.com/console), create Valera with package name `at.asitplus.wallet.app.android`. Under **Testing > Internal testing > Testers**, configure the tester list, feedback URL/email and opt-in link. Before later promoting a release to open testing, complete the required public store listing, policy declarations (including Data safety), and country availability. Under **Testing > Open testing > Testers**, select the tester limit (or unlimited), set a feedback URL/email, and copy the public opt-in link to share on `wallet.a-sit.plus`. Open testing must be available for the developer account; complete any account-specific prerequisites shown by Play Console first.
+2. Configure **Play App Signing** to **provide your own app signing key**, using the existing key that signs the APKs distributed on `wallet.a-sit.plus`. Follow Play Console's encrypted key export/upload instructions (PEPK). Retain the local key: it continues signing website APKs, while Google receives a copy for signing Play-delivered APKs. Check that the Play app signing certificate's SHA-256 fingerprint matches the certificate of the website release APK. Accepting a new Google-generated key instead would give the two distributions different signing identities.
+3. Check the existing signing certificate before enrollment. Google Play requires its validity to end after **22 October 2033**. The 365-day certificate command in **Local deployments** above is for local debug builds and does not meet this requirement. Do not generate a replacement release key just to add Play distribution.
+4. The current Gradle configuration signs both APKs and the release bundle with `androidApp/keystore.p12`, alias `key0`. Register that same key's certificate as the **upload certificate** in Play Console as well. Google permits using one key for app signing and uploads; a separate upload key is recommended by Google, but would require a separate bundle signing configuration in this project.
+5. Build the first release bundle locally with `./gradlew :androidApp:bundleRelease` using the existing signing configuration, or download it from the workflow's **Wallet App Android (Google Play)** artifact. Upload it manually in Play Console and roll out the first internal testing release before using automated publishing. Artifacts are uploaded before the Play upload step, so they remain available if that step fails during initial setup. Finish any required declarations/review steps in Play Console. Testers must opt out of internal testing before opting into open testing.
+
+Keep `applicationId` and the app signing certificate consistent across website and Play builds. Increase `version.code` in `gradle.properties` for every new build uploaded to Play, including repeat workflow runs after a successful upload; Play does not allow uploading another bundle with an already used version code. Promoting the existing bundle between tracks retains its version code. Coordinate version codes across both distribution channels so updates can move forward without uninstalling the app.
+
+See Google's [Play App Signing guide](https://support.google.com/googleplay/android-developer/answer/9842756), [certificate requirements](https://developer.android.com/studio/publish/app-signing#considerations), and [testing-track setup](https://support.google.com/googleplay/android-developer/answer/9845334).
+
+#### Google Play API credentials
+
+1. Create or select a team-owned project in [Google Cloud Console](https://console.cloud.google.com/) and enable the [Google Play Android Developer API](https://console.cloud.google.com/apis/library/androidpublisher.googleapis.com).
+2. Under **IAM & Admin > Service Accounts**, create a service account for GitHub publishing. It does not need a Google Cloud project role for Play publishing; its app access is granted in Play Console.
+3. In **Play Console > Users and permissions**, invite the service account's email address. Grant access to Valera only, with **View app information (read-only)** and **Release apps to testing tracks**. Tester lists and open testing enrollment settings are managed manually in Play Console; the workflow does not need production-release or tester-management permissions.
+4. In Google Cloud Console, open that service account's **Keys > Add key > Create new key > JSON** and download the JSON file. Store its complete, raw JSON contents in the GitHub secret below; do not Base64-encode it or commit it.
+
+See Google's [Developer API setup](https://developers.google.com/android-publisher/getting_started) and [Play Console permission definitions](https://support.google.com/googleplay/android-developer/answer/9844686).
+
+#### GitHub Actions secrets
+
+Set these under the GitHub repository's **Settings > Secrets and variables > Actions > Repository secrets** (or provide organization secrets with access to this repository):
+
+| Secret | Value and source |
+| --- | --- |
+| `ANDROID_CERT_PASSWORD` | Existing password for `androidApp/keystore.p12` and its `key0` entry, obtained from the maintainer responsible for the website APK signing key. The workflow passes it to Gradle. Keep the existing value if it is already configured. |
+| `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | Complete JSON key file downloaded from **Google Cloud Console > IAM & Admin > Service Accounts > the publishing account > Keys**. Used to authenticate the upload to Play. |
+
+The existing workflow uses the repository's checked-in Android keystore; no additional keystore secret is introduced here. Do not commit new keys, passwords, or service-account JSON files. No Google account password, developer-account ID secret, or OAuth client secret is needed.
 
 ## DC API matcher
 

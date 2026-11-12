@@ -1,0 +1,16 @@
+platform :android do
+  desc "Upload the release app bundle to Google Play internal testing"
+  lane :deploy do
+    upload_to_play_store(
+      package_name: "at.asitplus.wallet.app.android",
+      json_key_data: ENV.fetch("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"),
+      aab: File.expand_path("../build/outputs/bundle/release/androidApp-release.aab", __dir__),
+      track: "internal",
+      release_status: "completed",
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+end
