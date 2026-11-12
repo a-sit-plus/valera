@@ -36,3 +36,24 @@ jobs:
       kotlin-version: ${{ inputs.kotlin-version }}
       testballoon-version: ${{ inputs.testballoon-version }}
     secrets: inherit
+
+  publish-public:
+    needs: [build-and-test-android, build-and-test-ios]
+    if: >-
+      github.event_name == 'push' &&
+      github.repository == 'a-sit-plus/private-valera' &&
+      github.event.repository.private == true &&
+      github.ref == 'refs/heads/development' &&
+      github.event.deleted != true
+    permissions:
+      contents: read
+    uses: a-sit-plus/internal-workflows/.github/workflows/publish-public.yml@14830482f54f5cfbe5c897bec973951818f8c6ac
+    with:
+      source-repository: a-sit-plus/private-valera
+      source-branch: development
+      destination-repository: a-sit-plus/valera
+      destination-branch: development
+      app-client-id: ${{ vars.PUBLIC_SYNC_APP_CLIENT_ID }}
+      runner-labels: '["self-hosted", "Linux"]'
+    secrets:
+      app-private-key: ${{ secrets.PUBLIC_SYNC_APP_PRIVATE_KEY }}
