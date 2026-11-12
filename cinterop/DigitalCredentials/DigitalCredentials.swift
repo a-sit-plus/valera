@@ -2,6 +2,13 @@ import Foundation
 import IdentityDocumentServices
 
 @objc(DigitalCredentials) public class DigitalCredentials: NSObject {
+    @objc public static let authorized = "authorized"
+    @objc public static let notAuthorized = "notAuthorized"
+    @objc public static let notDetermined = "notDetermined"
+    @objc public static let notSupported = "notSupported"
+    @objc public static let invalidRequest = "invalidRequest"
+    @objc public static let unknown = "unknown"
+
     private static func registrationErrorMessage(for error: Error) -> String {
         guard let registrationError = error as? IdentityDocumentProviderRegistrationStore.RegistrationError else {
             return error.localizedDescription
@@ -9,15 +16,32 @@ import IdentityDocumentServices
 
         switch registrationError {
         case .unknown:
-            return "unknown"
+            return unknown
         case .invalidRequest:
-            return "invalidRequest"
+            return invalidRequest
         case .notAuthorized:
-            return "notAuthorized"
+            return notAuthorized
         case .notSupported:
-            return "notSupported"
+            return notSupported
         @unknown default:
             return String(describing: registrationError)
+        }
+    }
+
+    @objc public class func getStatus() async -> String {
+        let store = IdentityDocumentProviderRegistrationStore()
+        let currentStatus = await store.status
+        switch currentStatus {
+        case .authorized:
+            return authorized
+        case .notAuthorized:
+            return notAuthorized
+        case .notDetermined:
+            return notDetermined
+        case .notSupported:
+            return notSupported
+        @unknown default:
+            return unknown
         }
     }
 

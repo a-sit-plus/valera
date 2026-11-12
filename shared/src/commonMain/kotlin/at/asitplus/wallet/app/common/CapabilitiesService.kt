@@ -5,6 +5,7 @@ import at.asitplus.authcheckkit.BiometricSecurityClass
 import at.asitplus.catchingUnwrapped
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.app.common.Configuration.DATASTORE_CAPABILITIES_ATTESTATION
+import at.asitplus.wallet.app.common.dcapi.DigitalCredentialsPermission
 import data.storage.DataStoreService
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsBytes
@@ -23,6 +24,8 @@ import kotlinx.coroutines.flow.shareIn
 import ui.navigation.routes.RoutePrerequisites
 
 interface CapabilitiesService {
+    /** Emits the current DC API permission initially and on every [refreshStatus]. */
+    val dcApiPermission: Flow<DigitalCredentialsPermission>
     fun getDeviceStatus(): Flow<CapabilitiesData?>
     suspend fun refreshStatus()
     suspend fun reset()
@@ -60,6 +63,10 @@ class RealCapabilitiesService(
         .onStart { emit(Unit) }
         .map { platformAdapter.getCameraPermission() }
 
+    override val dcApiPermission: Flow<DigitalCredentialsPermission> = refreshTrigger
+        .onStart { emit(Unit) }
+        .map { platformAdapter.getDigitalCredentialsPermission() }
+
     val flows = listOf(
         deviceLockStatus,
         biometryEnrolledStatus,
@@ -79,7 +86,6 @@ class RealCapabilitiesService(
                     it[3] as Boolean,
                     it[4] as Boolean,
                     it[5]
-
                 )
             }.getOrNull()
         }
