@@ -10,7 +10,7 @@ jobs:
       BUNDLE_GEMFILE: ${{ github.workspace }}/iosApp/Gemfile
     steps:
       - name: Common setup
-        uses: a-sit-plus/internal-workflows/.github/actions/common-setup@xcode-26
+        uses: a-sit-plus/internal-workflows/.github/actions/common-setup@main
       - name: Set up Ruby gems
         uses: ruby/setup-ruby@v1
         with:

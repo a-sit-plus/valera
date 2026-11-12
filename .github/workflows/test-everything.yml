@@ -47,7 +47,7 @@ jobs:
       github.event.deleted != true
     permissions:
       contents: read
-    uses: a-sit-plus/internal-workflows/.github/workflows/publish-public.yml@14830482f54f5cfbe5c897bec973951818f8c6ac
+    uses: a-sit-plus/internal-workflows/.github/workflows/publish-public.yml@main
     with:
       source-repository: a-sit-plus/private-valera
       source-branch: development
