@@ -30,7 +30,16 @@ jobs:
         uses: a-sit-plus/internal-workflows/.github/actions/common-setup@main
         with:
           override-cache: ${{ inputs.override-cache }}
-          enable-kvm: true
+          enable-kvm: ${{ !github.event.repository.private }}
+
+      - name: Check preconfigured KVM access on private runner
+        if: ${{ github.event.repository.private }}
+        shell: bash
+        run: |
+          if [[ ! -c /dev/kvm || ! -r /dev/kvm || ! -w /dev/kvm ]]; then
+            echo "::error::Android emulator tests require read/write access to /dev/kvm. Configure KVM access for the runner account on the host; for container runners, also pass /dev/kvm into the container with the appropriate group access. This workflow does not use sudo on private runners."
+            exit 1
+          fi
 
       - name: Build apk
         run: ./gradlew -U :androidApp:compileDebugSources

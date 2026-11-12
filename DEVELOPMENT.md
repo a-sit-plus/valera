@@ -48,6 +48,19 @@ For a persistent local setting, add it to the root `local.properties` or `gradle
 disableAppleTargets=true
 ```
 
+### Android test runners without sudo
+
+`.github/workflows/test-android.yml` uses a self-hosted Linux runner for private repositories. It skips the shared setup action's privileged KVM configuration and checks that the runner can read and write `/dev/kvm` before running the emulator tests. Public GitHub-hosted runners continue to use the shared KVM setup.
+
+Provision KVM on the self-hosted machine once, outside the workflow:
+
+* Enable hardware virtualization and ensure the host exposes `/dev/kvm`. A VM host also needs nested virtualization enabled by its administrator.
+* Give the runner account read/write access to `/dev/kvm`, typically through membership in the device's `kvm` group. Restart the runner service after changing its group membership.
+* For Docker runners, pass the device into the container (`--device=/dev/kvm`) and give the container's runner user access to the device's numeric group ID, for example with `--group-add` set to the host device's group ID. Membership in a container group named `kvm` alone is insufficient if its numeric ID differs from the device's.
+* Preinstall the Android SDK/emulator prerequisites and make SDK/cache directories writable by the runner account. The workflow does not install OS packages or grant device permissions on the private runner.
+
+The administrator may need elevated access for host provisioning; the workflow runner itself does not need sudo. Emulator tests remain enabled and fail with a provisioning message if KVM access is missing.
+
 ## Local deployments
 
 Building of the Android App locally requires a signer certificate to be configured. To do this you will need to generate a keystore file and add the keystore's password to your `local.properties` file.
