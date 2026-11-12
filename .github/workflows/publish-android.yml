@@ -2,7 +2,7 @@ name: Publish Android App
 on: workflow_dispatch
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(github.event.repository.private && '["self-hosted", "Linux"]' || '["ubuntu-latest"]') }}
     steps:
       - name: Common setup
         uses: a-sit-plus/internal-workflows/.github/actions/common-setup@xcode-26

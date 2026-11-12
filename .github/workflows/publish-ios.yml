@@ -2,7 +2,7 @@ name: Publish iOS App
 on: workflow_dispatch
 jobs:
   build:
-    runs-on: macos-26
+    runs-on: ${{ fromJSON(github.event.repository.private && '["self-hosted", "macOS"]' || '["macos-26"]') }}
     timeout-minutes: 90
     steps:
       - name: Common setup

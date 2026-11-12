@@ -21,7 +21,7 @@ on:
 
 jobs:
   build-and-test-ios:
-    runs-on: macos-latest
+    runs-on: ${{ fromJSON(github.event.repository.private && '["self-hosted", "macOS"]' || '["macos-26"]') }}
     env:
       KOTLIN_VERSION_ENV: ${{ inputs.kotlin-version }}
       TESTBALLOON_VERSION_OVERRIDE: ${{ inputs.testballoon-version }}
