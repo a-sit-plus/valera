@@ -1,0 +1,24 @@
+name: Publish Public Manually (Without Tests)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish-public:
+    if: >-
+      github.repository == 'a-sit-plus/private-valera' &&
+      github.event.repository.private == true &&
+      github.ref == 'refs/heads/development'
+    uses: a-sit-plus/internal-workflows/.github/workflows/publish-public.yml@main
+    with:
+      source-repository: a-sit-plus/private-valera
+      source-branch: development
+      destination-repository: a-sit-plus/valera
+      destination-branch: development
+      app-client-id: ${{ vars.PUBLIC_SYNC_APP_CLIENT_ID }}
+      runner-labels: '["self-hosted", "Linux"]'
+    secrets:
+      app-private-key: ${{ secrets.PUBLIC_SYNC_APP_PRIVATE_KEY }}
