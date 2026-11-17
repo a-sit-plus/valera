@@ -21,16 +21,18 @@ on:
 
 jobs:
   build-and-test-ios:
-    runs-on: ${{ fromJSON(github.event.repository.private && '["self-hosted", "macOS"]' || '["macos-26"]') }}
+    runs-on: ${{ fromJSON(github.event.repository.private && '["self-hosted", "macOS", "utm"]' || '["macos-26"]') }}
     env:
       KOTLIN_VERSION_ENV: ${{ inputs.kotlin-version }}
       TESTBALLOON_VERSION_OVERRIDE: ${{ inputs.testballoon-version }}
     steps:
       - name: Common setup
-        uses: a-sit-plus/internal-workflows/.github/actions/common-setup@1b9ba583bc33f3e4e2e826f85cc58464fb44717a
+        uses: a-sit-plus/internal-workflows/.github/actions/common-setup@69884bb201bcb5745a222a0e226cc27910917198
         with:
           override-cache: ${{ inputs.override-cache }}
           setup-xcode: "true"
+          # Only the private UTM runners need a pinned Xcode; empty falls back to the action's default
+          xcode-version: ${{ github.event.repository.private && '27.2' || '' }}
 
       - name: Prepare files from secrets
         run: |
