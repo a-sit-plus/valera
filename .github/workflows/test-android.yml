@@ -21,7 +21,7 @@ on:
 
 jobs:
   build-and-test-android:
-    runs-on: ${{ fromJSON(github.event.repository.private && '["self-hosted", "Linux"]' || '["ubuntu-latest"]') }}
+    runs-on: ${{ fromJSON(github.event.repository.private && '["self-hosted", "android"]' || '["ubuntu-latest"]') }}
     env:
       KOTLIN_VERSION_ENV: ${{ inputs.kotlin-version }}
       TESTBALLOON_VERSION_OVERRIDE: ${{ inputs.testballoon-version }}
@@ -31,15 +31,6 @@ jobs:
         with:
           override-cache: ${{ inputs.override-cache }}
           enable-kvm: ${{ !github.event.repository.private }}
-
-      - name: Check preconfigured KVM access on private runner
-        if: ${{ github.event.repository.private }}
-        shell: bash
-        run: |
-          if [[ ! -c /dev/kvm || ! -r /dev/kvm || ! -w /dev/kvm ]]; then
-            echo "::error::Android emulator tests require read/write access to /dev/kvm. Configure KVM access for the runner account on the host; for container runners, also pass /dev/kvm into the container with the appropriate group access. This workflow does not use sudo on private runners."
-            exit 1
-          fi
 
       - name: Build apk
         run: ./gradlew -U :androidApp:compileDebugSources

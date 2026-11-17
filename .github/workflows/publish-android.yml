@@ -5,7 +5,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   build:
-    runs-on: ${{ fromJSON(github.event.repository.private && '["self-hosted", "Linux"]' || '["ubuntu-latest"]') }}
+    runs-on: ${{ fromJSON(github.event.repository.private && '["self-hosted", "android"]' || '["ubuntu-latest"]') }}
     env:
       BUNDLE_GEMFILE: ${{ github.workspace }}/iosApp/Gemfile
     steps:
