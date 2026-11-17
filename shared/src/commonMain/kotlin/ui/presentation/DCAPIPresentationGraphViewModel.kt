@@ -18,11 +18,13 @@ import at.asitplus.wallet.lib.data.CredentialPresentation
 import at.asitplus.wallet.lib.data.CredentialPresentationRequest
 import at.asitplus.wallet.lib.openid.DcApiPreparationState
 import at.asitplus.wallet.lib.oidvci.OAuth2Exception
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import org.jetbrains.compose.resources.getString
 import ui.navigation.routes.DCAPIPresentationViewRoute
 import ui.viewmodels.authentication.CredentialPresentationSubmissions
@@ -41,10 +43,14 @@ class DCAPIPresentationGraphViewModel(
 
     val trustListService = walletMain.trustListService
 
+    // An exception escaping a coroutine of the view model would terminate the process on iOS, e.g. the Identity Document
+    // Provider extension in the middle of a request, so it is shown as an error instead
+    private val reportUncaught = CoroutineExceptionHandler { _, error -> walletMain.errorService.emit(error) }
+
     val selectionProvider = MutableStateFlow<UiState<DcApiPresentationUiState>>(
         UiStateLoading
     ).apply {
-        viewModelScope.launch {
+        viewModelScope.launch(reportUncaught) {
             value = try {
                 val unwrappedDcApiWalletRequest = dcApiWalletRequest.getOrThrow()
                 // Validate against fresh Trust Lists if they arrive in time, e.g. in the short-lived iOS extension
@@ -68,7 +74,7 @@ class DCAPIPresentationGraphViewModel(
                 UiStateSuccess(
                     DcApiPresentationUiState(
                         preparationState = preparationState,
-                        selectionProvider = matchingResult.toCredentialSelectionProvider(viewModelScope) {
+                        selectionProvider = matchingResult.toCredentialSelectionProvider(viewModelScope + reportUncaught) {
                             walletMain.checkCredentialFreshness(it)
                         },
                         relyingPartyValidation = relyingPartyValidation,
@@ -134,7 +140,7 @@ class DCAPIPresentationGraphViewModel(
         }
         // Ignore repeated confirmations while a presentation is being submitted
         if (!mutableIsSubmitting.compareAndSet(expect = false, update = true)) return
-        viewModelScope.launch {
+        viewModelScope.launch(reportUncaught) {
             try {
                 finalizeAuthorization(
                     credentialPresentation = presentation,

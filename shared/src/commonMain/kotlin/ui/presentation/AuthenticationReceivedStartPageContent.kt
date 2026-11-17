@@ -31,7 +31,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.dcql.DCQLCredentialQueryIdentifier
 import at.asitplus.openid.dcql.DCQLCredentialSetQuery
 import at.asitplus.openid.RequestParametersFrom
@@ -52,6 +51,7 @@ import at.asitplus.valera.resources.trust_status_title
 import at.asitplus.valera.resources.trust_status_title_preliminary
 import at.asitplus.wallet.app.common.DcqlConsentData
 import at.asitplus.wallet.app.common.TrustListService
+import at.asitplus.wallet.app.common.catchingUnlessCancelled
 import at.asitplus.wallet.app.common.extractConsentData
 import at.asitplus.wallet.app.common.relyingParty.ui.RelyingPartyValidationView
 import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
@@ -180,7 +180,7 @@ fun AuthenticationReceivedStartPageContent(
                                     presentationRequest,
                                 ) {
                                     value = withContext(Dispatchers.Default) {
-                                        catchingUnwrapped {
+                                        catchingUnlessCancelled {
                                             presentationRequest.dcqlQuery.credentials.associate {
                                                 it.id to it.extractConsentData()
                                             }

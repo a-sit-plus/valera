@@ -13,9 +13,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import at.asitplus.catchingUnwrapped
 import at.asitplus.openid.RequestParametersFrom
 import at.asitplus.wallet.app.common.TrustListService
+import at.asitplus.wallet.app.common.catchingUnlessCancelled
 import at.asitplus.wallet.app.common.domain.platform.ImageDecoder
 import at.asitplus.wallet.app.common.zkMode
 import at.asitplus.wallet.app.common.relyingParty.RelyingPartyValidationUi
@@ -105,7 +105,7 @@ private fun IsoSubmissionSummaryCard(
 ) {
     val freshness by freshnessProvider.collectAsState()
     val resolvedCredential by produceState<ResolvedCredential?>(null, disclosure.credential) {
-        value = catchingUnwrapped { disclosure.credential.toResolvedCredential() }
+        value = catchingUnlessCancelled { disclosure.credential.toResolvedCredential() }
             .getOrElse { disclosure.credential.toFallbackResolvedCredential() }
     }
     val displayCredential = resolvedCredential ?: return
