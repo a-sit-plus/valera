@@ -2,6 +2,7 @@
  * DC API: On iOS, show a snackbar once per app start when credentials can not be registered with the Digital Credentials API because access was denied, whose action opens the details with a link to the settings, instead of showing an error for every credential; credentials are registered as soon as access is allowed again
  * Android distribution: Add Google Play internal testing uploads through Fastlane to the manual publishing workflow, alongside APK artifacts, and document manual promotion to open testing, signing enrollment, CI credentials and Ruby setup for build hosts
  * Do not call code deprecated in VC-K 9.0.0
+ * Refresh: Re-issue one credential at a time when refreshing falls back to a new authorization in the browser. Requesting a second one while the first was still in the browser dropped the first one as abandoned, so that its redirect failed with “Provisioning callback state does not match active flow” or “No provisioning context found for callback state”; the second one now stays pending with a hint to finish the first one
 
 # Release 5.9.2:
  * Update to VC-K 9.0.0

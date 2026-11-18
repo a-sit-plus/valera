@@ -451,6 +451,7 @@
     <string name="success_refreshed">Aktualisiert</string>
     <string name="success_reissued">Neu ausgestellt</string>
     <string name="error_reissue_failed">Neuausstellung fehlgeschlagen</string>
+    <string name="error_reissue_in_progress">Zuerst die Neuausstellung im Browser abschließen</string>
     <string name="error_refresh_failed">Aktualisierung fehlgeschlagen</string>
 
     <string name="heading_label_nfc_transfer">Datenübertragung</string>

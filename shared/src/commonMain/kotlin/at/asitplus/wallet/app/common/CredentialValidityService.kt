@@ -6,6 +6,7 @@ import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.valera.resources.Res
 import at.asitplus.valera.resources.error_no_refresh_token
 import at.asitplus.valera.resources.error_reissue_failed
+import at.asitplus.valera.resources.error_reissue_in_progress
 import at.asitplus.valera.resources.success_refreshed
 import at.asitplus.wallet.app.common.thirdParty.at.asitplus.wallet.lib.data.uiLabelNonCompose
 import at.asitplus.wallet.app.common.validation.StoredCredentialValidator
@@ -27,10 +28,15 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.jetbrains.compose.resources.getString
+import kotlin.concurrent.Volatile
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 
 class CredentialValidityService(
     private val subjectCredentialStore: WalletSubjectCredentialStore,
@@ -44,15 +50,19 @@ class CredentialValidityService(
     private var periodicCheckJob: Job? = null
     private var storePruneJob: Job? = null
 
+    private val browserReissue = BrowserReissueGuard()
+
     private val _refreshItems = MutableStateFlow<List<RefreshItem>>(emptyList())
     val refreshItems: StateFlow<List<RefreshItem>> = _refreshItems.asStateFlow()
 
     fun clearAllRefreshRequests() {
         _refreshItems.value = emptyList()
+        browserReissue.clear()
     }
 
     fun removeRefreshRequest(item: RefreshItem) {
         _refreshItems.update { list -> list.filterNot { it.storeEntryId == item.storeEntryId } }
+        browserReissue.release(item.storeEntryId)
     }
 
     /** Drops refresh requests whose credential no longer exists in the store. */
@@ -147,9 +157,21 @@ class CredentialValidityService(
         }
 
 
+    /**
+     * Re-issues the credential with a new authorization in the browser. Only one such authorization can be open at a
+     * time, as starting one makes [ProvisioningService] drop the one before as abandoned, whose redirect then fails.
+     * So a credential requested while another one is still in the browser stays pending, to be refreshed afterwards.
+     */
     private suspend fun handleReissueFallback(entry: SubjectCredentialStore.StoreEntry, storeId: Long): RefreshStatus {
         val renewalInfo = entry.renewalInfo ?: return RefreshStatus.Failed
 
+        if (!browserReissue.tryAcquire(storeId)) {
+            snackbarService.showSnackbar(
+                getString(Res.string.error_reissue_in_progress),
+                entry.resolveScheme().uiLabelNonCompose()
+            )
+            return RefreshStatus.Pending
+        }
         return try {
             provisioningService.startProvisioningWithAuthRequest(
                 credentialIssuer = renewalInfo.issuerMetadata.credentialIssuer,
@@ -164,6 +186,7 @@ class CredentialValidityService(
             )
             RefreshStatus.InProgress
         } catch (e: Throwable) {
+            browserReissue.release(storeId)
             errorService.emit(e)
             snackbarService.showSnackbar(
                 getString(Res.string.error_reissue_failed),
@@ -174,6 +197,9 @@ class CredentialValidityService(
     }
 
     fun updateStatus(id: Long, status: RefreshStatus, error: String? = null) {
+        if (status == RefreshStatus.Succeeded || status == RefreshStatus.Failed) {
+            browserReissue.release(id)
+        }
         _refreshItems.update { list ->
             list.map { item ->
                 if (item.storeEntryId == id) item.copy(status = status, error = error) else item
@@ -201,3 +227,38 @@ data class RefreshItem(
 )
 
 enum class RefreshStatus { Pending, InProgress, Succeeded, Failed }
+
+/**
+ * Lets one credential at a time be re-issued with an authorization in the browser. The credential holds the guard
+ * until its redirect has been handled or its refresh request is removed. An authorization the user never returns
+ * from would hold it for the rest of the session, so it is taken as abandoned after [abandonedAfter].
+ */
+internal class BrowserReissueGuard(
+    private val abandonedAfter: Duration = 5.minutes,
+    private val timeSource: TimeSource = TimeSource.Monotonic,
+) {
+    private val mutex = Mutex()
+    @Volatile
+    private var holder: Pair<StoreEntryId, TimeMark>? = null
+
+    /** Whether [storeEntryId] may open the browser now, i.e. no other credential is waiting for its redirect. */
+    suspend fun tryAcquire(storeEntryId: StoreEntryId): Boolean = mutex.withLock {
+        val current = holder
+        if (current != null && current.first != storeEntryId && current.second.elapsedNow() < abandonedAfter) {
+            false
+        } else {
+            holder = storeEntryId to timeSource.markNow()
+            true
+        }
+    }
+
+    fun release(storeEntryId: StoreEntryId) {
+        if (holder?.first == storeEntryId) {
+            holder = null
+        }
+    }
+
+    fun clear() {
+        holder = null
+    }
+}
