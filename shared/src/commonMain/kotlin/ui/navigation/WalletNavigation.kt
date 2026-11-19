@@ -82,7 +82,6 @@ import ui.navigation.routes.ErrorRoute
 import ui.navigation.routes.HomeScreenRoute
 import ui.navigation.routes.InitializationRoute
 import ui.navigation.routes.LoadCredentialRoute
-import ui.navigation.routes.LoadingRoute
 import ui.navigation.routes.LocalPresentationAuthenticationConsentRoute
 import ui.navigation.routes.LogRoute
 import ui.navigation.routes.OnboardingInformationRoute
@@ -601,21 +600,15 @@ private fun WalletNavHost(
                         onSubmit = { credentialIdentifierInfos, _, _ ->
                             val host = backStackEntry.toRoute<LoadCredentialRoute>().host
                             navigator.popToInvoker()
-                            // Starting the authorization takes several requests before the browser opens
-                            walletMain.loadingStatusService.set(LoadingMessageKey.IssuingCredential)
-                            navigator.navigate(LoadingRoute(LoadingMessageKey.IssuingCredential))
-                            walletMain.scope.launch {
-                                try {
-                                    walletMain.provisioningService.startProvisioningWithAuthRequest(
-                                        credentialIssuer = host,
-                                        credentialIdentifierInfos = credentialIdentifierInfos,
-                                    )
-                                    walletMain.loadingStatusService.clear()
-                                    navigator.popToInvoker()
-                                } catch (e: Throwable) {
-                                    walletMain.loadingStatusService.clear()
-                                    walletMain.errorService.emit(e)
-                                }
+                            walletMain.launchCredentialIssuance(
+                                navigator = navigator,
+                                onFailure = { walletMain.errorService.emit(it) },
+                                onSuccess = { navigator.popToInvoker() },
+                            ) {
+                                walletMain.provisioningService.startProvisioningWithAuthRequest(
+                                    credentialIssuer = host,
+                                    credentialIdentifierInfos = credentialIdentifierInfos,
+                                )
                             }
                         },
                         onClickLogo = onClickLogo,

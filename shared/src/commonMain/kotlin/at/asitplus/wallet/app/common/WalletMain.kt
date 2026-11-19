@@ -26,6 +26,7 @@ import data.storage.WalletSubjectCredentialStore
 import io.github.aakira.napier.Napier
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -160,15 +161,32 @@ class WalletMain(
         credentialIdentifierInfos: NonEmptyList<CredentialIdentifierInfo>,
         onSuccess: () -> Unit,
     ) {
+        launchProvisioningRequest {
+            provisioningService.startProvisioningWithAuthRequest(
+                credentialIssuer = host,
+                credentialIdentifierInfos = credentialIdentifierInfos,
+            )
+            onSuccess()
+        }
+    }
+
+    internal fun launchProvisioningRequest(
+        onBlocked: () -> Unit = {},
+        onFailure: (Throwable) -> Unit = { errorService.emit(it) },
+        request: suspend () -> Unit,
+    ) {
         scope.launch {
             try {
-                provisioningService.startProvisioningWithAuthRequest(
-                    credentialIssuer = host,
-                    credentialIdentifierInfos = credentialIdentifierInfos,
-                )
-                onSuccess()
+                request()
+            } catch (e: BrowserProvisioningInProgressException) {
+                onBlocked()
+                credentialValidityService.showBrowserLoginConflict(e, onFailure) {
+                    launchProvisioningRequest(onBlocked, onFailure, request)
+                }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Throwable) {
-                errorService.emit(e)
+                onFailure(e)
             }
         }
     }

@@ -1,9 +1,13 @@
 package at.asitplus.wallet.app.common
 
+import androidx.compose.material3.SnackbarDuration
 import at.asitplus.catchingUnwrapped
 import at.asitplus.data.NonEmptyList.Companion.nonEmptyListOf
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.action_start_new_browser_login
+import at.asitplus.valera.resources.error_browser_provisioning_in_progress
+import at.asitplus.valera.resources.error_browser_provisioning_login_changed
 import at.asitplus.valera.resources.error_no_refresh_token
 import at.asitplus.valera.resources.error_reissue_failed
 import at.asitplus.valera.resources.success_refreshed
@@ -15,6 +19,7 @@ import at.asitplus.wallet.lib.oidvci.CredentialIdentifierInfo
 import data.storage.DataStoreService
 import data.storage.StoreEntryId
 import data.storage.WalletSubjectCredentialStore
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -24,6 +29,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -121,10 +127,18 @@ class CredentialValidityService(
      * Wraps core refresh logic with status updates for [ui.views.RefreshCredentialsView]
      */
     fun refreshSingleWithStatus(item: RefreshItem): Job = sessionCoroutineScope.launch {
-        if (item.status == RefreshStatus.InProgress) return@launch
+        val previous = _refreshItems.getAndUpdate { items ->
+            items.map {
+                if (it.storeEntryId == item.storeEntryId && it.status != RefreshStatus.InProgress) {
+                    it.copy(status = RefreshStatus.InProgress, error = null)
+                } else it
+            }
+        }
+        if (previous.none { it.storeEntryId == item.storeEntryId && it.status != RefreshStatus.InProgress }) {
+            return@launch
+        }
 
-        updateStatus(item.storeEntryId, RefreshStatus.InProgress)
-        updateStatus(item.storeEntryId, performRefreshLogic(item.entry, item.storeEntryId))
+        updateStatusAfterStart(item.storeEntryId, performRefreshLogic(item.entry, item.storeEntryId))
     }
 
     private suspend fun performRefreshLogic(entry: SubjectCredentialStore.StoreEntry, storeId: Long): RefreshStatus =
@@ -142,6 +156,8 @@ class CredentialValidityService(
                 entry.resolveScheme().uiLabelNonCompose()
             )
             RefreshStatus.Succeeded
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Exception) {
             handleReissueFallback(entry, storeId)
         }
@@ -163,6 +179,14 @@ class CredentialValidityService(
                 reissuingStoreEntryId = storeId
             )
             RefreshStatus.InProgress
+        } catch (e: BrowserProvisioningInProgressException) {
+            showBrowserLoginConflict(e) {
+                updateStatus(storeId, RefreshStatus.InProgress)
+                updateStatusAfterStart(storeId, handleReissueFallback(entry, storeId))
+            }
+            RefreshStatus.Pending
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Throwable) {
             errorService.emit(e)
             snackbarService.showSnackbar(
@@ -171,6 +195,45 @@ class CredentialValidityService(
             )
             RefreshStatus.Failed
         }
+    }
+
+    internal suspend fun showBrowserLoginConflict(
+        conflict: BrowserProvisioningInProgressException,
+        onFailure: (Throwable) -> Unit = { errorService.emit(it) },
+        retry: suspend () -> Unit,
+    ) {
+        val pendingState = conflict.pendingState
+        val replace: (() -> Unit)? = pendingState?.let { state ->
+            {
+                sessionCoroutineScope.launch {
+                    try {
+                        val abandoned = provisioningService.abandonBrowserLogin(state) {
+                            updateStatus(it, RefreshStatus.Pending)
+                        }
+                        if (abandoned) {
+                            retry()
+                        } else {
+                            snackbarService.showSnackbar(getString(Res.string.error_browser_provisioning_login_changed))
+                        }
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Throwable) {
+                        onFailure(e)
+                    }
+                }
+            }
+        }
+        snackbarService.showSnackbar(
+            text = getString(Res.string.error_browser_provisioning_in_progress),
+            actionLabel = if (replace != null) getString(Res.string.action_start_new_browser_login) else null,
+            duration = SnackbarDuration.Long,
+            callback = replace,
+        )
+    }
+
+    private fun updateStatusAfterStart(id: Long, status: RefreshStatus) {
+        // The redirect can finish before this coroutine resumes from opening the browser.
+        if (status != RefreshStatus.InProgress) updateStatus(id, status)
     }
 
     fun updateStatus(id: Long, status: RefreshStatus, error: String? = null) {

@@ -49,7 +49,6 @@ import at.asitplus.wallet.lib.oidvci.JwtProofCreator
 import at.asitplus.wallet.lib.oidvci.LoadedIssuerMetadata
 import at.asitplus.wallet.lib.oidvci.OpenId4VciClient
 import at.asitplus.wallet.lib.oidvci.ReceivedCredential
-import at.asitplus.wallet.lib.utils.MapStore
 import at.asitplus.wallet.lib.validation.IssuerMetadataValidator
 import at.asitplus.wallet.lib.validation.ValidationDecision
 import data.credentials.claimLabel
@@ -121,9 +120,13 @@ class ProvisioningService(
         dataStoreService = dataStoreService,
         preferenceKey = Configuration.DATASTORE_KEY_PROVISIONING_INSTANCE_ATTESTATION_BY_STATE,
     )
-    private val activeProvisioningStateStore = persistentStringMapStore(
-        dataStoreService = dataStoreService,
-        preferenceKey = Configuration.DATASTORE_KEY_ACTIVE_PROVISIONING_STATE,
+    private val browserProvisioning = BrowserProvisioningFlow(
+        activeStates = persistentStringMapStore(
+            dataStoreService, Configuration.DATASTORE_KEY_ACTIVE_PROVISIONING_STATE,
+        ),
+        contexts = provisioningContextStore,
+        attestations = provisioningInstanceAttestationStore,
+        codeVerifiers = stateToCodeStore,
     )
 
     private val redirectUrl = "asitplus-wallet://wallet.a-sit.plus/app/callback/provisioning"
@@ -159,8 +162,8 @@ class ProvisioningService(
         return enabled
     }
 
-    private suspend fun clearCaches(resetAttestation: Boolean = true) {
-        if (resetAttestation && activeProvisioningStateStore.get(ACTIVE_PROVISIONING_STATE_KEY) == null) {
+    private suspend fun clearCaches(resetAttestation: Boolean = true, startingBrowserFlow: Boolean = false) {
+        if (resetAttestation && (startingBrowserFlow || !browserProvisioning.isActive())) {
             attestationService.reset()
         } else if (resetAttestation) {
             Napier.w("Keeping instance attestation while a provisioning browser flow is active")
@@ -269,37 +272,46 @@ class ProvisioningService(
         reissuingStoreEntryId: StoreEntryId? = null
     ) {
         provisioningFlowMutex.withLock {
-            clearAbandonedProvisioningFlow()
-            clearCaches()
-            config.set(host = credentialIssuer)
-            cookieStorage.reset()
-            openId4VciClient().startProvisioningWithAuthRequestReturningResult(
-                credentialIssuer,
-                credentialIdentifierInfos,
-                reissuingStoreEntryId
-            ).getOrThrow().run {
-                storeContextOpenIntent()
+            startBrowserProvisioning {
+                clearCaches(startingBrowserFlow = true)
+                config.set(host = credentialIssuer)
+                cookieStorage.reset()
+                openId4VciClient().startProvisioningWithAuthRequestReturningResult(
+                    credentialIssuer,
+                    credentialIdentifierInfos,
+                    reissuingStoreEntryId,
+                ).getOrThrow()
             }
         }
     }
 
-    private suspend fun CredentialIssuanceResult.OpenUrlForAuthnRequest.storeContextOpenIntent() {
-        provisioningContextStore.put(context.state, joseCompliantSerializer.encodeToString(context))
-        storeCurrentInstanceAttestation(context.state)
-        markActiveProvisioningState(context.state)
-        Napier.d("Stored provisioning context for state ${context.state}")
-        try {
+    private suspend fun startBrowserProvisioning(
+        prepare: suspend () -> CredentialIssuanceResult.OpenUrlForAuthnRequest,
+    ) = browserProvisioning.start(
+        prepare = prepare,
+        stateOf = { it.context.state },
+        persist = { request ->
+            val state = request.context.state
+            provisioningContextStore.put(state, joseCompliantSerializer.encodeToString(request.context))
+            storeCurrentInstanceAttestation(state)
+            Napier.d("Stored provisioning context for state $state")
+        },
+        open = { request ->
             intentService.openIntent(
-                url = url,
+                url = request.url,
                 redirectUri = redirectUrl,
-                intentType = IntentService.IntentType.ProvisioningResumeIntent
+                intentType = IntentService.IntentType.ProvisioningResumeIntent,
             )
-        } catch (e: Throwable) {
-            cleanupProvisioningState(context.state)
-            throw e
-        }
-    }
+        },
+    )
 
+    internal suspend fun abandonBrowserLogin(state: String, onReissueAbandoned: (StoreEntryId) -> Unit): Boolean =
+        browserProvisioning.abandon(state) { context ->
+            context?.let {
+                joseCompliantSerializer.decodeFromString<ProvisioningContext>(it)
+                    .reissuingStoreEntryId?.let(onReissueAbandoned)
+            }
+        }
 
     /**
      * Called after getting the redirect back from ID Austria to the Issuing Service
@@ -311,79 +323,43 @@ class ProvisioningService(
         onProgress: ((LoadingMessageKey) -> Unit)? = null,
     ): StoredCredentials {
         Napier.d("handleResponse with $redirectedUrl")
-        val storedState = provisioningFlowMutex.withLock {
-            takeProvisioningState(redirectedUrl)
-        }
-            ?: throw IllegalStateException(
-                "No provisioning context found for callback state ${redirectedUrl.stateParameter()}"
-            )
-
-        try {
-            if (config.walletProviderAttestationEnabled.first()) {
-                storedState.instanceAttestation?.let {
-                    attestationService.restoreInstanceAttestation(it)
+        val state = URLBuilder(redirectedUrl).parameters["state"]
+        require(!state.isNullOrBlank()) { "Missing state in provisioning callback" }
+        return browserProvisioning.resume(state) { contextJson, instanceAttestation ->
+            val context = joseCompliantSerializer.decodeFromString<ProvisioningContext>(contextJson)
+            val reissuingId = context.reissuingStoreEntryId
+            try {
+                if (config.walletProviderAttestationEnabled.first()) {
+                    instanceAttestation?.let {
+                        attestationService.restoreInstanceAttestation(JwsCompactTyped<JsonWebToken>(it))
+                    }
                 }
-            }
-            onProgress?.invoke(LoadingMessageKey.IssuingCredential)
-            clearCaches(resetAttestation = false)
-            return openId4VciClient().resumeWithAuthCode(redirectedUrl, storedState.context).getOrThrow().let { result ->
+                onProgress?.invoke(LoadingMessageKey.IssuingCredential)
+                clearCaches(resetAttestation = false)
+                val result = openId4VciClient().resumeWithAuthCode(redirectedUrl, context).getOrThrow()
                 val idsBefore =
                     subjectCredentialStore.observeStoreContainer().first().credentials.map { it.first }.toSet()
-                Napier.d("resumeWithAuthCode idsBefore=$idsBefore")
                 Napier.d("resumeWithAuthCode received ${result.credentialsByConfiguration.size} credential(s)")
                 onProgress?.invoke(LoadingMessageKey.StoringCredential)
-                // A credential replacing a stored one is not reviewed, as the stored one is removed below
-                val underReview = mutableListOf<PendingCredentialReview.Entry>()
-                    .takeIf { storedState.context.reissuingStoreEntryId == null }
+                // A credential replacing a stored one is not reviewed, as the stored one is removed below.
+                val underReview = mutableListOf<PendingCredentialReview.Entry>().takeIf { reissuingId == null }
                 val storageResults = result.credentialsByConfiguration.map { (issued, credential) ->
                     storeCredential(credential, issued.scheme, issued.refreshToken, underReview)
                 }
-                val needsReview = storageResults.any { it.getOrNull() == null }
                 val storedEntryIds = resolveNewStoreEntryIds(idsBefore, storageResults.count { it.getOrNull() != null })
-                Napier.d("resumeWithAuthCode resolved storeEntryIds=$storedEntryIds")
-
-                if (storageResults.all { it.isSuccess }) {
-                    storedState.context.reissuingStoreEntryId?.let { id ->
-                        subjectCredentialStore.removeStoreEntryById(id)
-                        statusUpdater?.invoke(id, RefreshStatus.Succeeded)
-                    }
-                } else {
-                    storedState.context.reissuingStoreEntryId?.let { statusUpdater?.invoke(it, RefreshStatus.Failed) }
-                    storageResults.first { it.isFailure }.getOrThrow()
+                storageResults.firstOrNull { it.isFailure }?.getOrThrow()
+                reissuingId?.let { id ->
+                    subjectCredentialStore.removeStoreEntryById(id)
+                    statusUpdater?.invoke(id, RefreshStatus.Succeeded)
                 }
                 underReview?.takeIf { it.isNotEmpty() }?.let { pendingCredentialReview.replace(it) }
-                StoredCredentials(storedEntryIds, needsReview)
+                StoredCredentials(storedEntryIds, storageResults.any { it.getOrNull() == null })
+            } catch (e: Throwable) {
+                reissuingId?.let { statusUpdater?.invoke(it, RefreshStatus.Failed) }
+                throw e
             }
-        } finally {
-            clearActiveProvisioningState(storedState.state)
         }
     }
-
-    private data class StoredProvisioningState(
-        val state: String,
-        val context: ProvisioningContext,
-        val instanceAttestation: JwsCompactTyped<JsonWebToken>?,
-    )
-
-    private suspend fun takeProvisioningState(redirectedUrl: String): StoredProvisioningState? {
-        val state = redirectedUrl.stateParameter()
-        state?.let { callbackState ->
-            validateActiveProvisioningState(callbackState)
-            provisioningContextStore.remove(callbackState)?.let { contextJson ->
-                val instanceAttestation = provisioningInstanceAttestationStore.remove(callbackState)
-                    ?.let { JwsCompactTyped<JsonWebToken>(it) }
-                return StoredProvisioningState(
-                    state = callbackState,
-                    context = joseCompliantSerializer.decodeFromString<ProvisioningContext>(contextJson),
-                    instanceAttestation = instanceAttestation,
-                )
-            }
-        } ?: Napier.w("Provisioning callback has no state parameter")
-
-        return null
-    }
-
-    private fun String.stateParameter(): String? = URLBuilder(this).parameters["state"]
 
     private suspend fun storeCurrentInstanceAttestation(state: String) {
         if (!config.walletProviderAttestationEnabled.first()) {
@@ -395,39 +371,6 @@ class ProvisioningService(
             return
         }
         provisioningInstanceAttestationStore.put(state, instanceAttestation.toString())
-    }
-
-    /**
-     * A leftover active state means the previous browser flow was abandoned (the user never
-     * returned via the redirect): clear it and its stored context, so a new flow can start.
-     */
-    private suspend fun clearAbandonedProvisioningFlow() = clearAbandonedProvisioningFlow(
-        activeProvisioningStateStore = activeProvisioningStateStore,
-        provisioningContextStore = provisioningContextStore,
-        provisioningInstanceAttestationStore = provisioningInstanceAttestationStore,
-    )
-
-    private suspend fun markActiveProvisioningState(state: String) {
-        activeProvisioningStateStore.put(ACTIVE_PROVISIONING_STATE_KEY, state)
-    }
-
-    private suspend fun validateActiveProvisioningState(callbackState: String) {
-        activeProvisioningStateStore.get(ACTIVE_PROVISIONING_STATE_KEY)?.let { activeState ->
-            validateProvisioningCallbackStateValue(callbackState, activeState)
-        }
-    }
-
-    private suspend fun clearActiveProvisioningState(state: String) {
-        val activeState = activeProvisioningStateStore.get(ACTIVE_PROVISIONING_STATE_KEY)
-        if (activeState == state) {
-            activeProvisioningStateStore.remove(ACTIVE_PROVISIONING_STATE_KEY)
-        }
-    }
-
-    private suspend fun cleanupProvisioningState(state: String) {
-        provisioningContextStore.remove(state)
-        provisioningInstanceAttestationStore.remove(state)
-        clearActiveProvisioningState(state)
     }
 
     @Throws(Throwable::class)
@@ -485,19 +428,21 @@ class ProvisioningService(
         onProgress: ((LoadingMessageKey) -> Unit)? = null,
     ): StoredCredentialIssuanceResult {
         val result = provisioningFlowMutex.withLock {
-            clearAbandonedProvisioningFlow()
-            onProgress?.invoke(LoadingMessageKey.IssuingCredential)
-            val result = openId4VciClient().loadCredentialWithOfferReturningResult(
-                credentialOffer,
-                credentialIdentifierInfos,
-                transactionCode,
-                authorizationServerMetadata
-            ).getOrThrow()
-            if (result is CredentialIssuanceResult.OpenUrlForAuthnRequest) {
-                Napier.d("loadCredentialWithOffer requires browser auth")
-                result.storeContextOpenIntent()
+            val request = suspend {
+                onProgress?.invoke(LoadingMessageKey.IssuingCredential)
+                openId4VciClient().loadCredentialWithOfferReturningResult(
+                    credentialOffer,
+                    credentialIdentifierInfos,
+                    transactionCode,
+                    authorizationServerMetadata,
+                ).getOrThrow()
             }
-            result
+            // VC-K prefers the pre-authorized grant when present. Only the authorization-code path needs the browser.
+            if (credentialOffer.grants?.preAuthorizedCode != null) {
+                request()
+            } else {
+                startBrowserProvisioning { request() as CredentialIssuanceResult.OpenUrlForAuthnRequest }
+            }
         }
 
         return when (result) {
@@ -615,7 +560,7 @@ class ProvisioningService(
 
 }
 
-private fun validateProvisioningCallbackStateValue(callbackState: String, expectedState: String) {
+internal fun validateProvisioningCallbackStateValue(callbackState: String, expectedState: String) {
     require(callbackState.isNotBlank()) { "Missing state in provisioning callback" }
     require(callbackState == expectedState) { "Provisioning callback state does not match active flow" }
 }
@@ -629,20 +574,6 @@ internal fun validateProvisioningCallbackState(redirectedUrl: String, expectedSt
     validateProvisioningCallbackStateValue(callbackState.orEmpty(), expectedState)
 }
 
-/** Removes an abandoned browser flow's active-state marker and per-state context, if any. */
-internal suspend fun clearAbandonedProvisioningFlow(
-    activeProvisioningStateStore: MapStore<String, String>,
-    provisioningContextStore: MapStore<String, String>,
-    provisioningInstanceAttestationStore: MapStore<String, String>,
-) {
-    activeProvisioningStateStore.remove(ACTIVE_PROVISIONING_STATE_KEY)?.let { state ->
-        Napier.w("Clearing abandoned provisioning browser flow for state $state")
-        provisioningContextStore.remove(state)
-        provisioningInstanceAttestationStore.remove(state)
-    }
-}
-
-internal const val ACTIVE_PROVISIONING_STATE_KEY = "active"
 class ProofKeyMismatchException(expected: String?, actual: String?) : IllegalStateException(
     "The credential proof signing key no longer matches the device key store " +
             "(key store holds $expected, key material advertises $actual). " +
