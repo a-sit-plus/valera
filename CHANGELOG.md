@@ -3,7 +3,7 @@
  * Android distribution: Add Google Play internal testing uploads through Fastlane to the manual publishing workflow, alongside APK artifacts, and document manual promotion to open testing, signing enrollment, CI credentials and Ruby setup for build hosts
  * Do not call code deprecated in VC-K 9.0.0
  * DC API: Show an error instead of terminating the iOS Identity Document Provider extension if an exception escapes the presentation of a request, and handle a cancelled request for the status or type metadata of a credential, e.g. cancelled by its HTTP client, as a failure instead of loading forever
- * Issuing and refresh: Keep the current browser login active when another issuance or refresh asks for a new login. Prompt the user to finish the open login first and leave blocked refreshes pending.
+ * Issuing and refresh: Keep the current browser login active when another issuance or refresh asks for a new login. Leave blocked refreshes pending and let users explicitly replace a pending login with “Start a new login.”
 
 # Release 5.9.2:
  * Update to VC-K 9.0.0

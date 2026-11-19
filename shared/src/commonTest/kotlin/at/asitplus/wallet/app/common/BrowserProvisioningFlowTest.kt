@@ -12,6 +12,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.test.fail
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
@@ -151,6 +152,56 @@ class BrowserProvisioningFlowTest {
         }
 
         assertFailsWith<BrowserProvisioningInProgressException> { start(newSession(), "third") }
+        flow.resume("new") { context, _ -> assertEquals("context-new", context) }
+    }
+
+    @Test
+    fun replacesOnlyThePendingLoginAndClearsItsData() = runTest {
+        start(flow, "old")
+        val conflict = assertFailsWith<BrowserProvisioningInProgressException> { start(newSession(), "new") }
+
+        val abandoned = newSession().abandon(requireNotNull(conflict.pendingState)) {
+            assertEquals("context-old", it)
+        }
+        assertTrue(abandoned)
+        start(flow, "new")
+
+        assertNull(store("contexts").get("old"))
+        assertNull(store("attestations").get("old"))
+        assertNull(store("verifiers").get("old"))
+        assertFailsWith<IllegalArgumentException> {
+            newSession().resume("old") { _, _ -> fail("Replaced login was resumed") }
+        }
+        flow.resume("new") { context, _ -> assertEquals("context-new", context) }
+    }
+
+    @Test
+    fun staleReplacementCannotAbandonALoginOnceItsCallbackStarts() = runTest {
+        start(flow, "first")
+        val conflict = assertFailsWith<BrowserProvisioningInProgressException> { start(newSession(), "next") }
+
+        newSession().resume("first") { _, _ ->
+            val abandoned = flow.abandon(requireNotNull(conflict.pendingState)) {
+                fail("Abandoned a callback in progress")
+            }
+            assertFalse(abandoned)
+            val busy = assertFailsWith<BrowserProvisioningInProgressException> { start(flow, "next") }
+            assertNull(busy.pendingState)
+        }
+    }
+
+    @Test
+    fun staleReplacementCannotAbandonANewerLogin() = runTest {
+        start(flow, "old")
+        val conflict = assertFailsWith<BrowserProvisioningInProgressException> { start(newSession(), "next") }
+        flow.resume("old") { _, _ -> }
+        start(flow, "new")
+
+        val abandoned = newSession().abandon(requireNotNull(conflict.pendingState)) {
+            fail("Abandoned a newer login")
+        }
+
+        assertFalse(abandoned)
         flow.resume("new") { context, _ -> assertEquals("context-new", context) }
     }
 

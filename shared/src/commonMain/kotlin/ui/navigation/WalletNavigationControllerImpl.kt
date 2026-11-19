@@ -1,15 +1,18 @@
 package ui.navigation
 
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import at.asitplus.wallet.app.common.CapabilitiesService
 import at.asitplus.wallet.app.common.IntentState
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import ui.navigation.routes.CapabilitiesRoute
 import ui.navigation.routes.HomeScreenRoute
+import ui.navigation.routes.LoadingRoute
 import ui.navigation.routes.PrerequisiteRoute
 import ui.navigation.routes.Route
 
@@ -72,6 +75,14 @@ internal open class WalletNavigationControllerImpl(
             Napier.d("Navigate back")
             if (!navController.navigateUpOnMain()) {
                 popToInvoker()
+            }
+        }
+    }
+
+    override fun dismissLoading() {
+        scope.launch(Dispatchers.Main.immediate) {
+            if (navController.currentDestination?.hasRoute<LoadingRoute>() == true) {
+                navController.popBackStack()
             }
         }
     }

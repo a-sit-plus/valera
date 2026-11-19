@@ -446,6 +446,8 @@
     <string name="success_reissued">Re-issued</string>
     <string name="error_reissue_failed">Re-issue failed</string>
     <string name="error_browser_provisioning_in_progress">Finish the credential issuance in the browser first.</string>
+    <string name="action_start_new_browser_login">Start a new login</string>
+    <string name="error_browser_provisioning_login_changed">The previous login is no longer waiting in the browser. Try again.</string>
     <string name="error_refresh_failed">Refresh failed</string>
 
     <string name="heading_label_nfc_transfer">Data Transfer</string>

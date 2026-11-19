@@ -452,6 +452,8 @@
     <string name="success_reissued">Neu ausgestellt</string>
     <string name="error_reissue_failed">Neuausstellung fehlgeschlagen</string>
     <string name="error_browser_provisioning_in_progress">Schließen Sie zuerst die Ausstellung im Browser ab.</string>
+    <string name="action_start_new_browser_login">Neue Anmeldung starten</string>
+    <string name="error_browser_provisioning_login_changed">Die vorherige Anmeldung wartet nicht mehr im Browser. Versuchen Sie es erneut.</string>
     <string name="error_refresh_failed">Aktualisierung fehlgeschlagen</string>
 
     <string name="heading_label_nfc_transfer">Datenübertragung</string>

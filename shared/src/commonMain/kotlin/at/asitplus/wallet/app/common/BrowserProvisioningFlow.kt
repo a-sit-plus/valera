@@ -6,7 +6,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import org.multipaz.util.UUID
 
-internal class BrowserProvisioningInProgressException :
+internal class BrowserProvisioningInProgressException(val pendingState: String?) :
     IllegalStateException("Finish the credential issuance in the browser first")
 
 /** Coordinates browser issuance across sessions through the persisted, expiring OAuth state. */
@@ -27,7 +27,10 @@ internal class BrowserProvisioningFlow(
         val reservation = "$STARTING_PREFIX${UUID.randomUUID()}"
         var state: String? = null
         try {
-            if (!transition(expected = null, next = reservation)) throw BrowserProvisioningInProgressException()
+            if (!transition(expected = null, next = reservation)) {
+                val active = activeStates.get(ACTIVE_PROVISIONING_STATE_KEY)
+                throw BrowserProvisioningInProgressException(active?.takeIf { it.isPendingState() })
+            }
             val request = prepare()
             val requestState = stateOf(request)
             state = requestState
@@ -50,7 +53,7 @@ internal class BrowserProvisioningFlow(
     }
 
     suspend fun <T> resume(state: String, handle: suspend (context: String, attestation: String?) -> T): T {
-        require(!state.startsWith(STARTING_PREFIX) && !state.startsWith(RESUMING_PREFIX)) {
+        require(state.isPendingState()) {
             "Provisioning callback state does not match active flow"
         }
         val active = activeStates.get(ACTIVE_PROVISIONING_STATE_KEY)
@@ -70,6 +73,21 @@ internal class BrowserProvisioningFlow(
         }
     }
 
+    /** Abandons the observed login only while it is still waiting for its redirect. */
+    suspend fun abandon(state: String, onAbandoned: (context: String?) -> Unit): Boolean {
+        require(state.isPendingState())
+        val owner = "$STARTING_PREFIX${UUID.randomUUID()}"
+        return withContext(NonCancellable) {
+            if (!transition(expected = state, next = owner)) return@withContext false
+            try {
+                onAbandoned(contexts.get(state))
+            } finally {
+                cleanUp(state, owner)
+            }
+            true
+        }
+    }
+
     private suspend fun cleanUp(state: String, owner: String) {
         try {
             contexts.remove(state)
@@ -86,6 +104,8 @@ internal class BrowserProvisioningFlow(
     private fun missingContext(state: String) =
         IllegalStateException("No provisioning context found for callback state $state")
 }
+
+private fun String.isPendingState() = !startsWith(STARTING_PREFIX) && !startsWith(RESUMING_PREFIX)
 
 internal const val ACTIVE_PROVISIONING_STATE_KEY = "active"
 private const val STARTING_PREFIX = "starting:"
