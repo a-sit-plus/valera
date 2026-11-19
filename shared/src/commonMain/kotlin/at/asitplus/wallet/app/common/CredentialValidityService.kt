@@ -1,10 +1,13 @@
 package at.asitplus.wallet.app.common
 
+import androidx.compose.material3.SnackbarDuration
 import at.asitplus.catchingUnwrapped
 import at.asitplus.data.NonEmptyList.Companion.nonEmptyListOf
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.action_start_new_browser_login
 import at.asitplus.valera.resources.error_browser_provisioning_in_progress
+import at.asitplus.valera.resources.error_browser_provisioning_login_changed
 import at.asitplus.valera.resources.error_no_refresh_token
 import at.asitplus.valera.resources.error_reissue_failed
 import at.asitplus.valera.resources.success_refreshed
@@ -135,9 +138,7 @@ class CredentialValidityService(
             return@launch
         }
 
-        val status = performRefreshLogic(item.entry, item.storeEntryId)
-        // The redirect can finish before this coroutine resumes from opening the browser.
-        if (status != RefreshStatus.InProgress) updateStatus(item.storeEntryId, status)
+        updateStatusAfterStart(item.storeEntryId, performRefreshLogic(item.entry, item.storeEntryId))
     }
 
     private suspend fun performRefreshLogic(entry: SubjectCredentialStore.StoreEntry, storeId: Long): RefreshStatus =
@@ -178,8 +179,11 @@ class CredentialValidityService(
                 reissuingStoreEntryId = storeId
             )
             RefreshStatus.InProgress
-        } catch (_: BrowserProvisioningInProgressException) {
-            snackbarService.showSnackbar(getString(Res.string.error_browser_provisioning_in_progress))
+        } catch (e: BrowserProvisioningInProgressException) {
+            showBrowserLoginConflict(e) {
+                updateStatus(storeId, RefreshStatus.InProgress)
+                updateStatusAfterStart(storeId, handleReissueFallback(entry, storeId))
+            }
             RefreshStatus.Pending
         } catch (e: CancellationException) {
             throw e
@@ -191,6 +195,45 @@ class CredentialValidityService(
             )
             RefreshStatus.Failed
         }
+    }
+
+    internal suspend fun showBrowserLoginConflict(
+        conflict: BrowserProvisioningInProgressException,
+        onFailure: (Throwable) -> Unit = { errorService.emit(it) },
+        retry: suspend () -> Unit,
+    ) {
+        val pendingState = conflict.pendingState
+        val replace: (() -> Unit)? = pendingState?.let { state ->
+            {
+                sessionCoroutineScope.launch {
+                    try {
+                        val abandoned = provisioningService.abandonBrowserLogin(state) {
+                            updateStatus(it, RefreshStatus.Pending)
+                        }
+                        if (abandoned) {
+                            retry()
+                        } else {
+                            snackbarService.showSnackbar(getString(Res.string.error_browser_provisioning_login_changed))
+                        }
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Throwable) {
+                        onFailure(e)
+                    }
+                }
+            }
+        }
+        snackbarService.showSnackbar(
+            text = getString(Res.string.error_browser_provisioning_in_progress),
+            actionLabel = if (replace != null) getString(Res.string.action_start_new_browser_login) else null,
+            duration = SnackbarDuration.Long,
+            callback = replace,
+        )
+    }
+
+    private fun updateStatusAfterStart(id: Long, status: RefreshStatus) {
+        // The redirect can finish before this coroutine resumes from opening the browser.
+        if (status != RefreshStatus.InProgress) updateStatus(id, status)
     }
 
     fun updateStatus(id: Long, status: RefreshStatus, error: String? = null) {

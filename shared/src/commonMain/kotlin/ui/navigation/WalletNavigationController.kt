@@ -11,6 +11,7 @@ interface WalletNavigationController {
     fun navigate(route: Route)
     fun navigateReplacingCurrent(route: Route)
     fun navigateBack()
+    fun dismissLoading()
     fun popBackStack(route: Route)
     fun navigateNewGraph(route: Route)
     fun navigatePending()

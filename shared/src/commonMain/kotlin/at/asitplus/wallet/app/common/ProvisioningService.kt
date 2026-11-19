@@ -305,6 +305,14 @@ class ProvisioningService(
         },
     )
 
+    internal suspend fun abandonBrowserLogin(state: String, onReissueAbandoned: (StoreEntryId) -> Unit): Boolean =
+        browserProvisioning.abandon(state) { context ->
+            context?.let {
+                joseCompliantSerializer.decodeFromString<ProvisioningContext>(it)
+                    .reissuingStoreEntryId?.let(onReissueAbandoned)
+            }
+        }
+
     /**
      * Called after getting the redirect back from ID Austria to the Issuing Service
      */
