@@ -445,6 +445,7 @@
     <string name="success_refreshed">Refreshed</string>
     <string name="success_reissued">Re-issued</string>
     <string name="error_reissue_failed">Re-issue failed</string>
+    <string name="error_browser_provisioning_in_progress">Finish the credential issuance in the browser first.</string>
     <string name="error_refresh_failed">Refresh failed</string>
 
     <string name="heading_label_nfc_transfer">Data Transfer</string>
