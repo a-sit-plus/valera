@@ -3,8 +3,6 @@ package data.storage
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.wallet.lib.utils.MapStore
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.MapSerializer
@@ -26,58 +24,56 @@ class PersistentMapStore<Key : Any, Value : Any>(
         require(lifetime > Duration.ZERO) { "lifetime must be > 0" }
     }
 
-    private val mutex = Mutex()
     private val serializer = MapSerializer(
         keySerializer = keySerializer,
         valueSerializer = PersistentMapStoreEntry.serializer(valueSerializer),
     )
 
-    override suspend fun put(key: Key, value: Value) = mutex.withLock {
-        val entries = loadEntriesLocked()
-        cleanupExpiredLocked(entries)
-        entries[key] = PersistentMapStoreEntry(
-            value = value,
-            expirationEpochMilliseconds = (clock.now() + lifetime).toEpochMilliseconds(),
-        )
-        saveEntriesLocked(entries)
+    override suspend fun put(key: Key, value: Value) = editEntries { entries ->
+        entries[key] = expiringEntry(value)
     }
 
-    override suspend fun get(key: Key): Value? = mutex.withLock {
-        val entries = loadEntriesLocked()
-        val didCleanup = cleanupExpiredLocked(entries)
-        val entry = entries[key]
-        if (didCleanup) {
-            saveEntriesLocked(entries)
+    override suspend fun get(key: Key): Value? {
+        val entries = decodeEntries(dataStoreService.getPreference(preferenceKey).firstOrNull())
+        if (cleanupExpired(entries)) editEntries { }
+        return entries[key]?.value
+    }
+
+    override suspend fun remove(key: Key): Value? {
+        var removed: Value? = null
+        editEntries { removed = it.remove(key)?.value }
+        return removed
+    }
+
+    /** Changes an entry only if its current, unexpired value matches [expected]. */
+    internal suspend fun compareAndSet(key: Key, expected: Value?, value: Value?): Boolean {
+        var exchanged = false
+        editEntries { entries ->
+            exchanged = entries[key]?.value == expected
+            if (exchanged) {
+                if (value == null) entries.remove(key)
+                else entries[key] = expiringEntry(value)
+            }
         }
-        entry?.value
+        return exchanged
     }
 
-    override suspend fun remove(key: Key): Value? = mutex.withLock {
-        val entries = loadEntriesLocked()
-        cleanupExpiredLocked(entries)
-        val removed = entries.remove(key)
-        saveEntriesLocked(entries)
-        removed?.value
-    }
+    private fun expiringEntry(value: Value) =
+        PersistentMapStoreEntry(value, (clock.now() + lifetime).toEpochMilliseconds())
 
-    private suspend fun loadEntriesLocked(): MutableMap<Key, PersistentMapStoreEntry<Value>> =
-        dataStoreService.getPreference(preferenceKey).firstOrNull()
-            ?.let { serialized ->
-                joseCompliantSerializer.decodeFromString(serializer, serialized).toMutableMap()
-            } ?: mutableMapOf()
+    private fun decodeEntries(serialized: String?): MutableMap<Key, PersistentMapStoreEntry<Value>> =
+        serialized?.let { joseCompliantSerializer.decodeFromString(serializer, it).toMutableMap() } ?: mutableMapOf()
 
-    private suspend fun saveEntriesLocked(entries: Map<Key, PersistentMapStoreEntry<Value>>) {
-        if (entries.isEmpty()) {
-            dataStoreService.deletePreference(preferenceKey)
-        } else {
-            dataStoreService.setPreference(
-                key = preferenceKey,
-                value = joseCompliantSerializer.encodeToString(serializer, entries),
-            )
+    private suspend fun editEntries(edit: (MutableMap<Key, PersistentMapStoreEntry<Value>>) -> Unit) {
+        dataStoreService.updatePreference(preferenceKey) { serialized ->
+            val entries = decodeEntries(serialized)
+            cleanupExpired(entries)
+            edit(entries)
+            entries.takeIf { it.isNotEmpty() }?.let { joseCompliantSerializer.encodeToString(serializer, it) }
         }
     }
 
-    private fun cleanupExpiredLocked(entries: MutableMap<Key, PersistentMapStoreEntry<Value>>): Boolean {
+    private fun cleanupExpired(entries: MutableMap<Key, PersistentMapStoreEntry<Value>>): Boolean {
         val now = clock.now().toEpochMilliseconds()
         return entries.entries.removeAll { it.value.expirationEpochMilliseconds < now }
     }

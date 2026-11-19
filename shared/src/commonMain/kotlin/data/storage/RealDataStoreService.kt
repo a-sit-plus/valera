@@ -17,6 +17,7 @@ interface DataStoreService {
     fun getPreference(key: String): Flow<String?>
     suspend fun deletePreference(key: String)
     suspend fun deletePreferenceIfPresent(key: String): Boolean
+    suspend fun updatePreference(key: String, transform: (String?) -> String?)
     fun clearLog()
 }
 
@@ -63,6 +64,15 @@ class RealDataStoreService(private var dataStore: DataStore<Preferences>, privat
             removed = preferences.remove(dataStoreKey) != null
         }
         return removed
+    }
+
+    override suspend fun updatePreference(key: String, transform: (String?) -> String?) {
+        val dataStoreKey = stringPreferencesKey(key)
+        dataStore.edit { preferences ->
+            val value = transform(preferences[dataStoreKey])
+            if (value == null) preferences.remove(dataStoreKey)
+            else preferences[dataStoreKey] = value
+        }
     }
 
     override fun clearLog() {

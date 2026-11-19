@@ -4,9 +4,11 @@ import AppResetRequiredException
 import ErrorHandlingOverrideException
 import at.asitplus.catchingUnwrapped
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.error_browser_provisioning_in_progress
 import at.asitplus.valera.resources.info_text_error_action_reset_app
 import at.asitplus.valera.resources.info_text_error_action_start_screen
 import at.asitplus.valera.resources.info_text_error_cause_reset_app
+import at.asitplus.wallet.app.common.BrowserProvisioningInProgressException
 import at.asitplus.wallet.lib.HttpErrorResponseException
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
@@ -25,7 +27,9 @@ class ErrorViewModel(
     var textCause: String?
 
     private val displayThrowable = (throwable as? ErrorHandlingOverrideException)?.cause ?: throwable
-    val message = displayThrowable.message ?: displayThrowable.toString()
+    val message = if (displayThrowable is BrowserProvisioningInProgressException) {
+        runBlocking { getString(Res.string.error_browser_provisioning_in_progress) }
+    } else displayThrowable.message ?: displayThrowable.toString()
     val cause = (displayThrowable as? HttpErrorResponseException)?.let {
         it.oauth2Error?.toString() ?: it.problemDetails?.toString() ?: it.responseBody.take(200)
     } ?: displayThrowable.cause?.toString()

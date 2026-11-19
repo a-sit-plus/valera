@@ -4,6 +4,7 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.data.NonEmptyList.Companion.nonEmptyListOf
 import at.asitplus.signum.indispensable.josef.io.joseCompliantSerializer
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.error_browser_provisioning_in_progress
 import at.asitplus.valera.resources.error_no_refresh_token
 import at.asitplus.valera.resources.error_reissue_failed
 import at.asitplus.valera.resources.success_refreshed
@@ -15,6 +16,7 @@ import at.asitplus.wallet.lib.oidvci.CredentialIdentifierInfo
 import data.storage.DataStoreService
 import data.storage.StoreEntryId
 import data.storage.WalletSubjectCredentialStore
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -24,6 +26,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -121,10 +124,20 @@ class CredentialValidityService(
      * Wraps core refresh logic with status updates for [ui.views.RefreshCredentialsView]
      */
     fun refreshSingleWithStatus(item: RefreshItem): Job = sessionCoroutineScope.launch {
-        if (item.status == RefreshStatus.InProgress) return@launch
+        val previous = _refreshItems.getAndUpdate { items ->
+            items.map {
+                if (it.storeEntryId == item.storeEntryId && it.status != RefreshStatus.InProgress) {
+                    it.copy(status = RefreshStatus.InProgress, error = null)
+                } else it
+            }
+        }
+        if (previous.none { it.storeEntryId == item.storeEntryId && it.status != RefreshStatus.InProgress }) {
+            return@launch
+        }
 
-        updateStatus(item.storeEntryId, RefreshStatus.InProgress)
-        updateStatus(item.storeEntryId, performRefreshLogic(item.entry, item.storeEntryId))
+        val status = performRefreshLogic(item.entry, item.storeEntryId)
+        // The redirect can finish before this coroutine resumes from opening the browser.
+        if (status != RefreshStatus.InProgress) updateStatus(item.storeEntryId, status)
     }
 
     private suspend fun performRefreshLogic(entry: SubjectCredentialStore.StoreEntry, storeId: Long): RefreshStatus =
@@ -142,6 +155,8 @@ class CredentialValidityService(
                 entry.resolveScheme().uiLabelNonCompose()
             )
             RefreshStatus.Succeeded
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Exception) {
             handleReissueFallback(entry, storeId)
         }
@@ -163,6 +178,11 @@ class CredentialValidityService(
                 reissuingStoreEntryId = storeId
             )
             RefreshStatus.InProgress
+        } catch (_: BrowserProvisioningInProgressException) {
+            snackbarService.showSnackbar(getString(Res.string.error_browser_provisioning_in_progress))
+            RefreshStatus.Pending
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Throwable) {
             errorService.emit(e)
             snackbarService.showSnackbar(

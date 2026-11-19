@@ -2,6 +2,7 @@
  * DC API: On iOS, show a snackbar once per app start when credentials can not be registered with the Digital Credentials API because access was denied, whose action opens the details with a link to the settings, instead of showing an error for every credential; credentials are registered as soon as access is allowed again
  * Android distribution: Add Google Play internal testing uploads through Fastlane to the manual publishing workflow, alongside APK artifacts, and document manual promotion to open testing, signing enrollment, CI credentials and Ruby setup for build hosts
  * Do not call code deprecated in VC-K 9.0.0
+ * Issuing and refresh: Keep the current browser login active when another issuance or refresh asks for a new login. Prompt the user to finish the open login first and leave blocked refreshes pending.
 
 # Release 5.9.2:
  * Update to VC-K 9.0.0
