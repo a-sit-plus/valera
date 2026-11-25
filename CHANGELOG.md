@@ -4,6 +4,7 @@
  * Do not call code deprecated in VC-K 9.0.0
  * DC API: Show an error instead of terminating the iOS Identity Document Provider extension if an exception escapes the presentation of a request, and handle a cancelled request for the status or type metadata of a credential, e.g. cancelled by its HTTP client, as a failure instead of loading forever
  * Issuing and refresh: Keep the current browser login active when another issuance or refresh asks for a new login. Leave blocked refreshes pending and let users explicitly replace a pending login with “Start a new login.”
+ * Update check on Android: When installed from Google Play, ask Google Play for an update and install it from the snackbar with Play's update flow, instead of comparing with the latest version announced on `wallet.a-sit.plus`; when installed otherwise, e.g. from the APK, open the Google Play listing in the Play Store app to update, or the `updateUrl` announced in `check.json`, instead of the website, falling back to the website on devices without Google Play
 
 # Release 5.9.2:
  * Update to VC-K 9.0.0

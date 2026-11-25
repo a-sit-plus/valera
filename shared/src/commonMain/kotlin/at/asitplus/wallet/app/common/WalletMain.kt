@@ -5,6 +5,8 @@ import at.asitplus.catchingUnwrapped
 import at.asitplus.data.NonEmptyList
 import at.asitplus.dcapi.DigitalCredentialInterface
 import at.asitplus.valera.resources.Res
+import at.asitplus.valera.resources.snackbar_store_update_action
+import at.asitplus.valera.resources.snackbar_store_update_hint
 import at.asitplus.valera.resources.snackbar_update_action
 import at.asitplus.valera.resources.snackbar_update_hint
 import at.asitplus.wallet.app.common.attestation.AttestationService
@@ -43,6 +45,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.swiftzer.semver.SemVer
@@ -231,30 +234,53 @@ class WalletMain(
         }
     }
 
+    /**
+     * Asks the app store this app was installed from for an update, or, if it was not installed from one that can be
+     * asked, e.g. when sideloaded, checks the latest version announced in `check.json`.
+     */
     fun updateCheck() {
         scope.launch(Dispatchers.IO) {
             catchingUnwrapped {
-                val host = "https://wallet.a-sit.plus/"
-                val url = "${host}check.json"
-                Napier.d("Performing update check with $url")
-                val json = httpService.cachedResourceClient(dataStoreService).get(url).body<JsonObject>()
-                json["apps"]?.jsonObject?.get(buildContext.packageName)?.let {
-                    (it as? JsonObject)?.get("latestVersion")?.jsonPrimitive?.content?.let {
-                        val latestVersion = SemVer.parse(it)
-                        val currentVersion = SemVer.parse(buildContext.versionName)
-                        Napier.d("Version is $currentVersion, latest is $latestVersion")
-                        if (latestVersion > currentVersion) {
-                            snackbarService.showSnackbar(
-                                getString(Res.string.snackbar_update_hint, latestVersion),
-                                getString(Res.string.snackbar_update_action)
-                            ) {
-                                platformAdapter.openUrl(host)
-                            }
+                when (platformAdapter.checkAppStoreUpdate()) {
+                    AppStoreUpdateStatus.AVAILABLE -> {
+                        Napier.d("App store offers an update")
+                        snackbarService.showSnackbar(
+                            getString(Res.string.snackbar_store_update_hint),
+                            getString(Res.string.snackbar_store_update_action)
+                        ) {
+                            platformAdapter.startAppStoreUpdate()
                         }
                     }
+
+                    AppStoreUpdateStatus.UP_TO_DATE -> Napier.d("App store offers no update")
+                    AppStoreUpdateStatus.UNKNOWN -> announcedUpdateCheck()
                 }
             }.onFailure {
                 Napier.w("Update check failed", it)
+            }
+        }
+    }
+
+    /**
+     * Compares this version with `latestVersion` of this app in `check.json`, and offers to open its `updateUrl`,
+     * or the platform's default, e.g. the store listing, if it is newer.
+     */
+    private suspend fun announcedUpdateCheck() {
+        val host = "https://wallet.a-sit.plus/"
+        val url = "${host}check.json"
+        Napier.d("Performing update check with $url")
+        val json = httpService.cachedResourceClient(dataStoreService).get(url).body<JsonObject>()
+        val app = json["apps"]?.jsonObject?.get(buildContext.packageName) as? JsonObject ?: return
+        val latestVersion = app["latestVersion"]?.jsonPrimitive?.content?.let { SemVer.parse(it) } ?: return
+        val updateUrl = app["updateUrl"]?.jsonPrimitive?.contentOrNull
+        val currentVersion = SemVer.parse(buildContext.versionName)
+        Napier.d("Version is $currentVersion, latest is $latestVersion")
+        if (latestVersion > currentVersion) {
+            snackbarService.showSnackbar(
+                getString(Res.string.snackbar_update_hint, latestVersion),
+                getString(Res.string.snackbar_update_action)
+            ) {
+                platformAdapter.openUpdatePage(url = updateUrl, fallbackUrl = host)
             }
         }
     }
@@ -371,6 +397,37 @@ interface PlatformAdapter {
      */
     fun getCameraPermission(): Boolean?
 
+    /**
+     * Asks the app store this app was installed from, e.g. Google Play, whether it offers an update.
+     *
+     * @return [AppStoreUpdateStatus.UNKNOWN] if the app was not installed from such a store, e.g. when sideloaded,
+     * or the store could not be asked
+     */
+    suspend fun checkAppStoreUpdate(): AppStoreUpdateStatus = AppStoreUpdateStatus.UNKNOWN
+
+    /**
+     * Starts installing the update that [checkAppStoreUpdate] reported as available.
+     */
+    fun startAppStoreUpdate() {}
+
+    /**
+     * Opens a page to update this app when it was not installed from an app store, see [checkAppStoreUpdate].
+     *
+     * @param url the page announced by the update check, or `null` for the platform's default, e.g. its store listing
+     * @param fallbackUrl the page to open if the platform can not open [url] or its default, e.g. without an app store
+     */
+    fun openUpdatePage(url: String?, fallbackUrl: String) = openUrl(url ?: fallbackUrl)
+
+}
+
+/**
+ * Whether the app store this app was installed from offers an update, see [PlatformAdapter.checkAppStoreUpdate].
+ */
+enum class AppStoreUpdateStatus {
+    /** Not installed from an app store that can be asked, or asking it failed */
+    UNKNOWN,
+    UP_TO_DATE,
+    AVAILABLE,
 }
 
 class DummyPlatformAdapter : PlatformAdapter {

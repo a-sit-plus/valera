@@ -36,7 +36,11 @@ internal class AndroidWalletSessionViewModel(
     val buildContext = createAndroidBuildContext()
     val promptModel: PromptModel =
         AndroidPromptModel.Builder().apply { addCommonDialogs() }.build()
-    private val platformAdapter = AndroidPlatformAdapter(applicationContext, intentState)
+    private val platformAdapter = AndroidPlatformAdapter(
+        context = applicationContext,
+        intentState = intentState,
+        runWithActivity = { action -> activityHost.dispatch(action) },
+    )
     val sessionService = SessionService().apply {
         initialize {
             when (sessionKind) {

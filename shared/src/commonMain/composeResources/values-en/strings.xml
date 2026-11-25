@@ -16,6 +16,8 @@
     <string name="snackbar_clear_log_successfully">Log has been cleared successfully</string>
     <string name="snackbar_update_hint">Your app is out-of-date, please update to %1$s.</string>
     <string name="snackbar_update_action">Open</string>
+    <string name="snackbar_store_update_hint">An update of the app is available.</string>
+    <string name="snackbar_store_update_action">Update</string>
     <string name="snackbar_sign_successful">Signed successfully</string>
     <string name="snackbar_digital_credentials_store_failed">Digital Credential API support could not be activated.</string>
     <string name="snackbar_dc_api_permission_denied">Access to the Digital Credentials API was denied.</string>

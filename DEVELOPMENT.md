@@ -269,6 +269,26 @@ Set these under the GitHub repository's **Settings > Secrets and variables > Act
 
 The existing workflow uses the repository's checked-in Android keystore; no additional keystore secret is introduced here. Do not commit new keys, passwords, or service-account JSON files. No Google account password, developer-account ID secret, or OAuth client secret is needed.
 
+#### Update check
+
+On start, the app checks for updates depending on where it was installed from:
+
+* **Installed from Google Play** (the installer reported by `PackageManager.getInstallSourceInfo` is `com.android.vending`): the app asks Google Play through the [In-App Updates API](https://developer.android.com/guide/playcore/in-app-updates). If Play offers an update for this device, a snackbar starts Play's immediate update flow, which installs the update and restarts the app. `check.json` is not used, so the snackbar only appears once Play can deliver the update. This only works for builds delivered by Play, e.g. through internal testing or internal app sharing, not for locally installed builds.
+* **Installed otherwise**, e.g. the APK from the website: the app reads `https://wallet.a-sit.plus/check.json` and shows a snackbar if `latestVersion` of its package name is newer than its own version name. Its action opens `updateUrl` if set, otherwise the Google Play listing in the Play Store app, and falls back to `https://wallet.a-sit.plus/` on devices without Google Play:
+
+```json
+{
+    "apps": {
+        "at.asitplus.wallet.app.android": {
+            "latestVersion": "5.9.3",
+            "updateUrl": "https://play.google.com/store/apps/details?id=at.asitplus.wallet.app.android"
+        }
+    }
+}
+```
+
+Updating a website APK installation through Google Play replaces it in place only if Play signs with the same key as the website APKs and the Play build has a higher `versionCode`, see the signing setup above.
+
 ## DC API matcher
 
 Android uses custom WebAssembly matchers for the Digital Credentials API integration.

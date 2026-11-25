@@ -143,6 +143,7 @@ kotlin {
             implementation(libs.androidx.credentials.registry.provider)
             implementation(libs.androidx.registry.provider.play.services)
             implementation(libs.androidx.browser)
+            implementation(libs.app.update)
         }
 
         getByName("androidDeviceTest").dependencies {

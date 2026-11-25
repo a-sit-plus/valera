@@ -12,6 +12,7 @@ testballoon = "1.0.1-K2.4.0"
 
 accompanist-permissions = "0.37.3"
 activity-compose = "1.13.0"
+app-update = "2.1.0"
 appcompat = "1.7.1"
 barcode-scanning = "17.3.0"
 core-ktx = "1.18.0"
@@ -50,6 +51,7 @@ androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx
 androidx-credentials = { module = "androidx.credentials:credentials", version.ref="androidx-credentials" }
 androidx-credentials-registry-provider = { module = "androidx.credentials.registry:registry-provider", version.ref = "androidx-credentials-registry-provider" }
 androidx-registry-provider-play-services = { module = "androidx.credentials.registry:registry-provider-play-services", version.ref = "androidx-credentials-registry-provider" }
+app-update = { module = "com.google.android.play:app-update", version.ref = "app-update" }
 atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "atomicfu" }
 barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "barcode-scanning" }
 datastore-core-okio = { module = "androidx.datastore:datastore-core-okio", version.ref = "datastore-preferences-core" }

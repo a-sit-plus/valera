@@ -1,4 +1,5 @@
 import android.Manifest
+import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -30,6 +31,7 @@ import androidx.credentials.registry.provider.RegistryManager
 import androidx.credentials.registry.provider.selectedEntryId
 import at.asitplus.KmmResult
 import at.asitplus.catching
+import at.asitplus.catchingUnwrapped
 import at.asitplus.dcapi.*
 import at.asitplus.dcapi.request.ExchangeProtocolIdentifier
 import at.asitplus.dcapi.request.verifier.DigitalCredentialRequestOptions
@@ -48,9 +50,16 @@ import at.asitplus.wallet.app.common.dcapi.DigitalCredentialsPermission
 import at.asitplus.wallet.app.common.dcapi.isoMdocDcApiRequest
 import at.asitplus.wallet.app.common.dcapi.data.export.CredentialRegistry
 import at.asitplus.wallet.lib.openid.OpenId4VpHolder
+import com.google.android.gms.tasks.Task
+import com.google.android.play.core.appupdate.AppUpdateInfo
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.appupdate.AppUpdateOptions
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.UpdateAvailability
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.json.JsonArray
@@ -66,6 +75,8 @@ import ui.theme.darkScheme
 import ui.theme.lightScheme
 import java.io.File
 import java.security.MessageDigest
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 
 actual fun getPlatformName(): String = "Android"
@@ -163,11 +174,117 @@ private fun TransientFlowRootView(
     )
 }
 
+/**
+ * @param runWithActivity runs an operation that requires an Activity on the current one, e.g. through the Activity
+ * host of the session, without retaining it here
+ */
 public class AndroidPlatformAdapter(
     context: Context,
-    private val intentState: IntentState
+    private val intentState: IntentState,
+    private val runWithActivity: ((Activity) -> Unit) -> Unit = {
+        Napier.w("No Activity available to run an operation on")
+    },
 ) : PlatformAdapter {
     private val applicationContext = context.applicationContext
+    private val appUpdateManager by lazy { AppUpdateManagerFactory.create(applicationContext) }
+    private val googlePlayListingUrl =
+        "https://play.google.com/store/apps/details?id=${applicationContext.packageName}"
+
+    private fun isInstalledFromGooglePlay(): Boolean = catchingUnwrapped {
+        applicationContext.packageManager.getInstallSourceInfo(applicationContext.packageName)
+            .installingPackageName == GOOGLE_PLAY_PACKAGE
+    }.getOrElse {
+        Napier.w("Could not determine the installer of this app", it)
+        false
+    }
+
+    override suspend fun checkAppStoreUpdate(): AppStoreUpdateStatus {
+        if (!isInstalledFromGooglePlay()) {
+            Napier.d("Not installed from Google Play")
+            return AppStoreUpdateStatus.UNKNOWN
+        }
+        return catchingUnwrapped { appUpdateManager.appUpdateInfo.await() }.fold(
+            onSuccess = { info ->
+                Napier.d("Google Play reports availability ${info.updateAvailability()} of ${info.availableVersionCode()}")
+                when {
+                    info.isUpdateOffered() -> AppStoreUpdateStatus.AVAILABLE
+                    info.updateAvailability() == UpdateAvailability.UPDATE_NOT_AVAILABLE -> AppStoreUpdateStatus.UP_TO_DATE
+                    else -> AppStoreUpdateStatus.UNKNOWN
+                }
+            },
+            onFailure = {
+                Napier.w("Could not ask Google Play for an update", it)
+                AppStoreUpdateStatus.UNKNOWN
+            }
+        )
+    }
+
+    /** Asks for the update again, as each [AppUpdateInfo] may only start one update flow. */
+    override fun startAppStoreUpdate() {
+        appUpdateManager.appUpdateInfo
+            .addOnSuccessListener { info ->
+                if (info.isUpdateOffered()) {
+                    runWithActivity { activity ->
+                        appUpdateManager.startUpdateFlow(
+                            info,
+                            activity,
+                            AppUpdateOptions.defaultOptions(AppUpdateType.IMMEDIATE)
+                        )
+                            .addOnSuccessListener { Napier.d("Google Play update flow finished with $it") }
+                            .addOnFailureListener {
+                                Napier.w("Could not start the Google Play update flow", it)
+                                openGooglePlayListing(googlePlayListingUrl)
+                            }
+                    }
+                } else {
+                    Napier.i("Google Play offers no immediate update anymore, opening the store listing")
+                    openGooglePlayListing(googlePlayListingUrl)
+                }
+            }
+            .addOnFailureListener {
+                Napier.w("Could not ask Google Play for an update", it)
+                openGooglePlayListing(googlePlayListingUrl)
+            }
+    }
+
+    override fun openUpdatePage(url: String?, fallbackUrl: String) {
+        val target = url ?: googlePlayListingUrl
+        if (!target.isGooglePlayUrl()) {
+            openUrl(target)
+        } else if (!openGooglePlayListing(target)) {
+            openUrl(fallbackUrl)
+        }
+    }
+
+    /** Opens [url] in the Google Play app instead of a browser, returns whether it is installed. */
+    private fun openGooglePlayListing(url: String): Boolean = try {
+        applicationContext.startActivity(
+            Intent(Intent.ACTION_VIEW, url.toUri())
+                .setPackage(GOOGLE_PLAY_PACKAGE)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
+        true
+    } catch (e: ActivityNotFoundException) {
+        Napier.i("Google Play is not available", e)
+        false
+    }
+
+    private fun String.isGooglePlayUrl(): Boolean = toUri().let {
+        it.scheme == "market" || (it.scheme == "https" && it.host == "play.google.com")
+    }
+
+    private fun AppUpdateInfo.isUpdateOffered(): Boolean = when (updateAvailability()) {
+        UpdateAvailability.UPDATE_AVAILABLE -> isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
+        // An immediate update the user left, which the update flow resumes
+        UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS -> true
+        else -> false
+    }
+
+    private suspend fun <T> Task<T>.await(): T = suspendCancellableCoroutine { continuation ->
+        addOnSuccessListener { continuation.resume(it) }
+        addOnFailureListener { continuation.resumeWithException(it) }
+        addOnCanceledListener { continuation.cancel() }
+    }
 
     override fun getCameraPermission(): Boolean? {
         val permission = Manifest.permission.CAMERA
@@ -564,6 +681,8 @@ public class AndroidPlatformAdapter(
             ?: throw IllegalStateException("Unable to find the DC API request for $protocol")
 
     private companion object {
+        private const val GOOGLE_PLAY_PACKAGE = "com.android.vending"
+
         /**
          * Serialized names of array-valued properties across the OpenID4VP request, its `dcql_query`,
          * `client_metadata`, `transaction_data` and ISO 18013-7 DC API structures. Used to recover
